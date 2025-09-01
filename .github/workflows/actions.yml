@@ -23,7 +23,7 @@ jobs:
       - name: Get pip cache dir
         id: pip-cache
         run: |
-          python -m pip install --upgrade pip setuptools build
+          python -m pip install --upgrade pip setuptools
           echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
       - name: pip cache
         uses: actions/cache@v4
@@ -35,12 +35,12 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt --progress-bar off
-          python -m pip install . --progress-bar off
+          pip install --no-deps -e "." --progress-bar off
       - name: Test with pytest
         run: pytest aistudio
 
-  check_format:
-    name: Check the code format
+  format_test:
+    name: Check code format
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -51,7 +51,7 @@ jobs:
       - name: Get pip cache dir
         id: pip-cache
         run: |
-          python -m pip install --upgrade pip setuptools build
+          python -m pip install --upgrade pip setuptools
           echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
       - name: pip cache
         uses: actions/cache@v4
@@ -63,20 +63,10 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt --progress-bar off
-          python -m pip install . --progress-bar off
-          pip install pre-commit
+          pip install --no-deps -e "." --progress-bar off
+          pip install pre-commit clang-format
       - name: Run pre-commit
         run: pre-commit run --all-files --hook-stage manual
-  clang_format_check:
-    name: clang-format Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - name: Install clang-format
-        run: sudo apt-get update && sudo apt-get install -y clang-format
       - name: Run clang-format check
         run: |
-          files=$(find . -type f \( -name '*.cpp' -o -name '*.hpp' \ ))
-          if [ -n "$files" ]; then
-            clang-format --dry-run --Werror $files
-          fi
+          find . -type f \( -name "*.cpp" -o -name "*.hpp" \) -exec clang-format --dry-run --Werror {} +
