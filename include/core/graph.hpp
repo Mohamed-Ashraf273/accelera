@@ -1,12 +1,10 @@
 #pragma once
+#include "core/node.hpp"
+#include <functional>
+#include <memory>
+#include <pybind11/pybind11.h>
 #include <string>
 #include <vector>
-#include <memory>
-#include "core/node.hpp"
-
-// Include pybind11 headers
-#include <pybind11/pybind11.h>
-#include <pybind11/functional.h> 
 
 namespace py = pybind11;
 
@@ -14,21 +12,27 @@ namespace aistudio {
 
 class Graph {
 public:
-    using Ptr = std::shared_ptr<Graph>;
+  using Ptr = std::shared_ptr<Graph>;
 
-    Graph() = default;
+  Graph() = default;
 
-    // Add node without Python callable
-    Graph& add(const std::string& name);
+  // Add a regular node
+  Node::Ptr add(const std::string &name);
 
-    // Add node with Python callable and arguments
-    Graph& add(const std::string& name, py::function py_op, py::args args);
+  // Add a Python callable node (function or model)
+  Node::Ptr add(const std::string &name, py::object py_op, py::args args);
 
-    void* compute();  // returns raw PyObject* (last node's output)
-    void clearCache();
+  // Connect nodes
+  void connect(Node::Ptr source, Node::Ptr target);
+  void connect(const std::string &source_name, const std::string &target_name);
+
+  // Compute final node with optional input arguments
+  py::object compute(py::args args = py::args());
+
+  void clearCache();
 
 private:
-    std::vector<Node::Ptr> nodes;
+  std::vector<Node::Ptr> nodes;
 };
 
 } // namespace aistudio

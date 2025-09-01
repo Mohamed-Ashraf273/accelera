@@ -1,9 +1,9 @@
 #pragma once
+#include <functional>
+#include <memory>
+#include <pybind11/pybind11.h>
 #include <string>
 #include <vector>
-#include <memory>
-#include <functional>
-#include <pybind11/pybind11.h>
 
 namespace py = pybind11;
 
@@ -11,26 +11,30 @@ namespace aistudio {
 
 class Node {
 public:
-    using Ptr = std::shared_ptr<Node>;
+  using Ptr = std::shared_ptr<Node>;
 
-    std::string name;
-    std::vector<Ptr> inputs;
-    std::vector<Ptr> outputs;
-    bool dirty = true;
+  Node(const std::string &name);
+  ~Node();
 
-    Node(const std::string& n);
-    ~Node();
+  std::string name;
+  std::vector<Ptr> inputs;
+  std::vector<Ptr> outputs;
+  bool dirty = true;
 
-    // Store a callable (Python function or C++ lambda)
-    void setPyOp(std::function<py::object()> op);
-    void clearCache();
+  // Store different types of operations
+  void setPyOp(std::function<py::object()> op);
+  void setPyOpWithInput(std::function<py::object(py::object)> op);
+  void setPyOpWithInputs(std::function<py::object(py::args)> op);
 
-    // compute returns a PyObject* (void* for opaque)
-    void* compute();
+  void clearCache();
+
+  void *compute(const py::args &external_args = py::args());
+  void *computeWithInput(void *input_ptr);
+  void *computeWithInputs(const std::vector<void *> &input_ptrs);
 
 private:
-    struct Impl;
-    std::unique_ptr<Impl> impl;
+  struct Impl;
+  std::unique_ptr<Impl> impl;
 };
 
 } // namespace aistudio

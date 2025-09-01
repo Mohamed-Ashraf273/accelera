@@ -1,12 +1,44 @@
+import numpy as np
+import pytest
+from sklearn.linear_model import LogisticRegression
+
 from aistudio.src.core.graph import Graph
 
-from sklearn.linear_model import LogisticRegression
-import numpy as np
 
-X = np.array([[0,0],[1,1],[2,2],[3,3]])
-y = np.array([0,0,1,1])
+@pytest.fixture
+def sample_data():
+    X = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
+    y = np.array([0, 0, 1, 1])
+    test_data = np.array([[1.5, 1.5]])
+    return X, y, test_data
 
-clf = LogisticRegression().fit(X, y)
-g = Graph()
-g.add("logreg", LogisticRegression().fit, X, y).add("predict", clf.predict, X)
-print("Result:", g.compute())
+
+def test_graph_predictions(sample_data):
+    X, y, test_data = sample_data
+
+    g = Graph()
+    model = g.add("logreg", LogisticRegression(random_state=42))
+    g.add("predict", model.predict, test_data)
+
+    predictions = g(X, y)
+
+    # Compare with manual implementation
+    manual_model = LogisticRegression(random_state=42)
+    manual_model.fit(X, y)
+    expected = manual_model.predict(test_data)
+
+    np.testing.assert_array_equal(predictions, expected)
+
+
+def test_graph_consistency(sample_data):
+    X, y, test_data = sample_data
+
+    g = Graph()
+    model = g.add("logreg", LogisticRegression(random_state=42))
+    g.add("predict", model.predict, test_data)
+
+    # Multiple calls should produce same results
+    pred1 = g(X, y)
+    pred2 = g(X, y)
+
+    np.testing.assert_array_equal(pred1, pred2)

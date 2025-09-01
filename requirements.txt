@@ -5,9 +5,7 @@ packaging
 build
 # ML/DL Libraries & Tools
 dm-tree
-huggingface_hub
 scikit-learn
-opencv-python
 pandas
 numpy
 # Dev & Testing Tools

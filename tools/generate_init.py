@@ -1,7 +1,7 @@
 import os
 import shutil
 
-SKIP_NAMES = {"api_export.py", "__pycache__"}
+SKIP_NAMES = {"__pycache__"}
 
 TEMPLATE_HEADER = '''"""DO NOT EDIT.
 

@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 
 # Add everything in /api/ to the module search path.
 __path__.append(os.path.join(os.path.dirname(__file__), "api"))  # noqa: F405
