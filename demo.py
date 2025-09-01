@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from sklearn.linear_model import LogisticRegression
 
-from aistudio.src.core.graph import Graph
+from aistudio.src.core.pipeline import Pipeline
 
 
 @pytest.fixture
@@ -13,14 +13,14 @@ def sample_data():
     return X, y, test_data
 
 
-def test_graph_predictions(sample_data):
+def test_pipeline_predictions(sample_data):
     X, y, test_data = sample_data
 
-    g = Graph()
-    model = g.add("logreg", LogisticRegression(random_state=42))
-    g.add("predict", model.predict, test_data)
+    p = Pipeline()
+    model = p.add("logreg", LogisticRegression(random_state=42))
+    p.add("predict", model.predict, test_data)
 
-    predictions = g(X, y)
+    predictions = p(X, y)
 
     # Compare with manual implementation
     manual_model = LogisticRegression(random_state=42)
@@ -33,12 +33,12 @@ def test_graph_predictions(sample_data):
 def test_graph_consistency(sample_data):
     X, y, test_data = sample_data
 
-    g = Graph()
-    model = g.add("logreg", LogisticRegression(random_state=42))
-    g.add("predict", model.predict, test_data)
+    p = Pipeline()
+    model = p.add("logreg", LogisticRegression(random_state=42))
+    p.add("predict", model.predict, test_data)
 
     # Multiple calls should produce same results
-    pred1 = g(X, y)
-    pred2 = g(X, y)
+    pred1 = p(X, y)
+    pred2 = p(X, y)
 
     np.testing.assert_array_equal(pred1, pred2)

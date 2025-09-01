@@ -4,9 +4,6 @@ project(ai_studio LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# -----------------------------
-# Find or fetch pybind11
-# -----------------------------
 find_package(pybind11 QUIET)
 
 if(NOT pybind11_FOUND)
@@ -20,9 +17,6 @@ if(NOT pybind11_FOUND)
     FetchContent_MakeAvailable(pybind11)
 endif()
 
-# -----------------------------
-# Core library
-# -----------------------------
 file(GLOB_RECURSE CORE_SOURCES "${CMAKE_SOURCE_DIR}/src/core/*.cpp")
 file(GLOB_RECURSE NODE_SOURCES "${CMAKE_SOURCE_DIR}/src/nodes/*.cpp")
 
@@ -31,22 +25,42 @@ target_include_directories(aistudio_core PUBLIC "${CMAKE_SOURCE_DIR}/include")
 target_link_libraries(aistudio_core PUBLIC pybind11::module)
 set_target_properties(aistudio_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-# -----------------------------
-# Python bindings
-# -----------------------------
-file(GLOB_RECURSE BINDINGS_SOURCES "${CMAKE_SOURCE_DIR}/aistudio/bindings/*.cpp")
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bindings")
 
-if(BINDINGS_SOURCES)
-    pybind11_add_module(graph ${BINDINGS_SOURCES})
-    target_link_libraries(graph PRIVATE aistudio_core)
+file(GLOB_RECURSE BINDINGS_SOURCES 
+    "${CMAKE_SOURCE_DIR}/aistudio/bindings/*.cpp"
+    "${CMAKE_SOURCE_DIR}/aistudio/bindings/**/*.cpp"
+)
 
-    # Output compiled module to build/bindings
-    set_target_properties(graph PROPERTIES
+foreach(binding_file ${BINDINGS_SOURCES})
+    get_filename_component(module_name ${binding_file} NAME_WE)
+    
+    if(TARGET ${module_name})
+        message(WARNING "Duplicate module name '${module_name}' found! File: ${binding_file}")
+        string(RANDOM LENGTH 4 RANDOM_SUFFIX)
+        set(module_name "${module_name}_${RANDOM_SUFFIX}")
+        message(STATUS "Renaming duplicate to: ${module_name}")
+    endif()
+    
+    message(STATUS "Creating Python module: ${module_name} from ${binding_file}")
+    
+    pybind11_add_module(${module_name} ${binding_file})
+    target_link_libraries(${module_name} PRIVATE aistudio_core)
+    
+    set_target_properties(${module_name} PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bindings"
-        OUTPUT_NAME graph
+        OUTPUT_NAME ${module_name}
     )
-endif()
+endforeach()
 
+message(STATUS "Generated ${BINDINGS_SOURCES} Python modules in ${CMAKE_BINARY_DIR}/bindings/")
 
-# add_executable(ai_studio main.cpp)
-# target_link_libraries(ai_studio PRIVATE aistudio_core)
+install(TARGETS aistudio_core
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+)
+
+install(DIRECTORY "${CMAKE_BINARY_DIR}/bindings/"
+    DESTINATION lib/python/site-packages
+    FILES_MATCHING PATTERN "*.so"
+)
