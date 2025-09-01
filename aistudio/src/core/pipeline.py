@@ -1,4 +1,10 @@
-import graph
+try:
+    import graph
+except ImportError as e:
+    raise ImportError(
+        "The 'graph' C++ module could not be imported. "
+        "Please ensure it is built and available in your PYTHONPATH."
+    ) from e
 
 
 class Pipeline:
