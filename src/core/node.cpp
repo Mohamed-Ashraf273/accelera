@@ -85,7 +85,8 @@ void *Node::computeWithInputs(const std::vector<void *> &input_ptrs) {
     try {
       impl->cache = impl->py_op_with_inputs(inputs);
     } catch (const std::exception &e) {
-      std::cerr << "Exception in Node::computeWithInputs: " << e.what() << std::endl;
+      std::cerr << "Exception in Node::computeWithInputs: " << e.what()
+                << std::endl;
       impl->cache = py::none();
     }
   } else {
