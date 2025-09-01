@@ -21,5 +21,6 @@ class Pipeline:
             if len(self._nodes) > 1:
                 previous_node = self._nodes[-2]
                 self._impl.connect(previous_node, node)
-
-        return py_op
+        if hasattr(py_op, "fit") and callable(getattr(py_op, "fit")):
+            return py_op
+        return node
