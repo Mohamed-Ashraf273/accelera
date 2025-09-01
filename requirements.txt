@@ -1,0 +1,18 @@
+# Core Python Utilities
+setuptools
+regex
+packaging
+build
+# ML/DL Libraries & Tools
+dm-tree
+scikit-learn
+pandas
+numpy
+# Dev & Testing Tools
+tqdm
+pre-commit
+astor
+ruff
+pytest
+pytest-cov
+namex
