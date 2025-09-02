@@ -7,15 +7,16 @@
 #include <iostream>
 #include <stdexcept>
 #include <thread>
-#include <vector>
 
 namespace aistudio {
 
+// Constructor/Destructor
 Graph::Graph()
     : m_compiled(false), m_parallel_enabled(false), m_first_node(nullptr) {}
 
 Graph::~Graph() { clear(); }
 
+// Core node management
 Node::Ptr Graph::add_node(NodeType type, const std::string &name,
                           py::object py_func, size_t num_inputs,
                           size_t num_outputs) {
@@ -25,166 +26,117 @@ Node::Ptr Graph::add_node(NodeType type, const std::string &name,
   return node;
 }
 
-Node::Ptr Graph::add_branch_node(const std::string &name,
-                                 const std::vector<Node::Ptr> &branches) {
-  // Create a branch node that fans out to multiple paths
-  auto branch_node =
-      std::make_shared<BranchNode>(name, 2, branches.size() * 2, py::none());
-  addNode(branch_node);
+void Graph::addNode(Node::Ptr node) {
+  m_nodes.push_back(node);
+  m_node_map[node->name] = node; // Fast lookup
+  m_compiled = false;
 
-  // Connect branch node outputs to all branch models (X and y for each)
-  for (size_t i = 0; i < branches.size(); ++i) {
-    branch_node->connectTo(i * 2, branches[i], 0);     // X to model
-    branch_node->connectTo(i * 2 + 1, branches[i], 1); // y to model
+  // Track first node with priority: PREPROCESS > BRANCH > MODEL
+  if (!m_first_node || shouldReplaceFirstNode(node)) {
+    m_first_node = node;
   }
-
-  return branch_node;
 }
 
-Node::Ptr Graph::createBranch(const std::string &name,
-                              const std::vector<Node::Ptr> &models,
-                              py::object merge_func) {
-  // Create a branch node with proper input/output configuration
-  size_t num_outputs = models.size() * 2; // Each model needs X and y
-  auto branch_node =
-      std::make_shared<BranchNode>(name, 2, num_outputs, merge_func);
-  addNode(branch_node);
-
-  // Connect branch outputs to models
-  for (size_t i = 0; i < models.size(); ++i) {
-    branch_node->connectTo(i * 2, models[i], 0);     // X to model input 0
-    branch_node->connectTo(i * 2 + 1, models[i], 1); // y to model input 1
-  }
-
-  return branch_node;
+// Utility methods
+Node::Ptr Graph::findNodeByName(const std::string &name) const {
+  auto it = m_node_map.find(name);
+  return (it != m_node_map.end()) ? it->second : nullptr;
 }
 
-std::vector<Node::Ptr>
-Graph::duplicateNodeForBranches(Node::Ptr template_node,
-                                const std::vector<Node::Ptr> &branch_models) {
-  std::vector<Node::Ptr> duplicated_nodes;
-
-  for (size_t i = 0; i < branch_models.size(); ++i) {
-    // Create a new node for each branch
-    std::string new_name =
-        template_node->name + "_branch" + std::to_string(i + 1);
-
-    // Determine number of inputs/outputs based on node type
-    size_t num_inputs = template_node->getInputEdges().size();
-    size_t num_outputs = template_node->getOutputEdges().size();
-
-    auto new_node =
-        NodeFactory::createNode(template_node->type, new_name, num_inputs,
-                                num_outputs, template_node->py_func);
-    addNode(new_node);
-
-    // Connect the branch model to this new node
-    if (template_node->type == NodeType::PREDICT) {
-      // For predict nodes: model output → predict input 1, test data → predict
-      // input 0
-      branch_models[i]->connectTo(0, new_node, 1);
-    } else {
-      // For other nodes: normal connection
-      branch_models[i]->connectTo(0, new_node, 0);
-    }
-
-    duplicated_nodes.push_back(new_node);
-  }
-
-  return duplicated_nodes;
+bool Graph::shouldReplaceFirstNode(Node::Ptr node) const {
+  // Only replace if we don't have a first node yet, or if the current first
+  // node is not a preprocessing node and the new node is a preprocessing node
+  if (node->type == NodeType::PREPROCESS &&
+      m_first_node->type != NodeType::PREPROCESS)
+    return true;
+  if (node->type == NodeType::BRANCH &&
+      m_first_node->type != NodeType::PREPROCESS &&
+      m_first_node->type != NodeType::BRANCH)
+    return true;
+  if (node->type == NodeType::MODEL &&
+      m_first_node->type != NodeType::PREPROCESS &&
+      m_first_node->type != NodeType::BRANCH &&
+      m_first_node->type != NodeType::MODEL)
+    return true;
+  return false;
 }
 
-std::vector<py::object>
-Graph::collectBranchResults(const std::vector<Node::Ptr> &result_nodes) {
-  std::vector<py::object> results;
+// Graph operations
+void Graph::compile() {
+  if (m_compiled)
+    return;
+  m_execution_order = topologicalSort();
+  optimizeGraph();
+  m_compiled = true;
+}
 
-  for (size_t i = 0; i < result_nodes.size(); ++i) {
-    if (result_nodes[i]->getOutputEdges().size() > 0 &&
-        result_nodes[i]->getOutputEdges()[0]->isReady()) {
-      py::object result = result_nodes[i]->getOutputEdges()[0]->getData();
-      results.push_back(result);
-    } else {
-      results.push_back(py::none());
+std::vector<py::object> Graph::execute(py::object X, py::object y) {
+  if (!m_compiled)
+    compile();
+
+  // Provide inputs to first node
+  if (m_first_node) {
+    // First node always gets input data directly through its input edges
+    if (!m_first_node->getInputEdges().empty()) {
+      m_first_node->getInputEdges()[0]->setData(X);
+      if (m_first_node->getInputEdges().size() > 1 && !y.is_none()) {
+        m_first_node->getInputEdges()[1]->setData(y);
+      }
     }
   }
 
-  return results;
-}
-
-std::vector<Node::Ptr> Graph::createBranchPipeline(
-    const std::string &branch_name, const std::vector<Node::Ptr> &models,
-    const std::string &predict_name, py::object test_data) {
-  // Create branch node with 2 inputs (X, y) and outputs for each model
-  size_t num_outputs = models.size() * 2; // Each model needs X and y
-  auto branch_node =
-      std::make_shared<BranchNode>(branch_name, 2, num_outputs, py::none());
-  addNode(branch_node);
-
-  // Connect branch outputs to models
-  for (size_t i = 0; i < models.size(); ++i) {
-    branch_node->connectTo(i * 2, models[i], 0);     // X to model input 0
-    branch_node->connectTo(i * 2 + 1, models[i], 1); // y to model input 1
+  // Execute nodes
+  if (m_parallel_enabled) {
+    runParallel();
+  } else {
+    run();
   }
 
-  // Create predict nodes for each model
-  std::vector<Node::Ptr> predict_nodes;
-  for (size_t i = 0; i < models.size(); ++i) {
-    std::string pred_name = predict_name + "_branch" + std::to_string(i + 1);
-    auto predict_node =
-        NodeFactory::createNode(NodeType::PREDICT, pred_name, 2, 1, py::none());
-    addNode(predict_node);
-
-    // Connect model output to predict input 1
-    models[i]->connectTo(0, predict_node, 1);
-
-    // Set test data on predict input 0 if provided
-    if (!test_data.is_none()) {
-      predict_node->getInputEdges()[0]->setData(test_data);
+  // Collect predictions
+  std::vector<py::object> predictions;
+  for (const auto &node : m_nodes) {
+    if (node->type == NodeType::PREDICT && !node->getOutputEdges().empty() &&
+        node->getOutputEdges()[0]->isReady()) {
+      predictions.push_back(node->getOutputEdges()[0]->getData());
     }
-
-    predict_nodes.push_back(predict_node);
   }
-
-  // Set branch as first node
-  setFirstNode(branch_node);
-
-  return predict_nodes;
+  return predictions;
 }
 
-void Graph::setFirstNode(Node::Ptr node) { m_first_node = node; }
-
-Node::Ptr Graph::getFirstNode() const {
-  // Simple implementation - return the first node if available
-  return m_nodes.empty() ? nullptr : m_nodes[0];
+void Graph::clear() {
+  m_nodes.clear();
+  m_execution_order.clear();
+  m_node_map.clear();
+  m_sequential_nodes.clear();
+  m_branch_tails.clear();
+  m_compiled = false;
+  m_is_branched = false;
+  m_first_node = nullptr;
+  m_node_counter = 0;
 }
 
+// Parallel execution
 void Graph::enableParallelExecution(bool enable) {
-  // Set flag for parallel execution
   m_parallel_enabled = enable;
 }
 
 void Graph::runParallel() {
   if (!m_parallel_enabled) {
-    run(); // Fall back to sequential execution
+    run();
     return;
   }
 
-  // Parallel execution implementation
   auto sorted_nodes = topologicalSort();
-
-  // Group nodes by execution level (nodes that can run in parallel)
   std::vector<std::vector<Node::Ptr>> execution_levels;
   std::vector<int> node_levels(sorted_nodes.size(), -1);
 
-  // Calculate execution levels
+  // Calculate execution levels for parallel execution
   for (size_t i = 0; i < sorted_nodes.size(); ++i) {
     int max_input_level = -1;
     auto &node = sorted_nodes[i];
 
-    // Find the maximum level of input dependencies
     for (auto &input_edge : node->getInputEdges()) {
       if (input_edge) {
-        // Find which node provides this input
         for (size_t j = 0; j < i; ++j) {
           auto &dep_node = sorted_nodes[j];
           for (auto &output_edge : dep_node->getOutputEdges()) {
@@ -200,53 +152,48 @@ void Graph::runParallel() {
     int current_level = max_input_level + 1;
     node_levels[i] = current_level;
 
-    // Add to execution level
     if (current_level >= (int)execution_levels.size()) {
       execution_levels.resize(current_level + 1);
     }
     execution_levels[current_level].push_back(node);
   }
 
-  // Execute nodes level by level with parallelism within each level
+  // Execute levels with parallelism within each level
   for (auto &level : execution_levels) {
     if (level.size() == 1) {
-      // Single node - execute normally with GIL
       try {
-        py::gil_scoped_acquire acquire; // Ensure GIL for Python object access
+        py::gil_scoped_acquire acquire;
         level[0]->execute();
+        level[0]->dirty = false;
       } catch (const std::exception &e) {
         std::cerr << "Error executing node '" << level[0]->name
                   << "': " << e.what() << std::endl;
         throw;
       }
     } else {
-      // Multiple nodes - execute in parallel using threads with GIL handling
+      // Parallel execution
       std::vector<std::thread> threads;
       std::vector<std::exception_ptr> exceptions(level.size());
 
       for (size_t i = 0; i < level.size(); ++i) {
         threads.emplace_back([&level, &exceptions, i]() {
           try {
-            // Acquire GIL for this thread when working with Python objects
             py::gil_scoped_acquire acquire;
             level[i]->execute();
+            level[i]->dirty = false;
           } catch (...) {
             exceptions[i] = std::current_exception();
           }
         });
       }
 
-      // Release GIL while waiting for threads to complete
       {
         py::gil_scoped_release release;
-
-        // Wait for all threads to complete
         for (auto &thread : threads) {
           thread.join();
         }
       }
 
-      // Check for exceptions
       for (size_t i = 0; i < exceptions.size(); ++i) {
         if (exceptions[i]) {
           std::cerr << "Error executing node '" << level[i]->name
@@ -258,59 +205,9 @@ void Graph::runParallel() {
   }
 }
 
-void Graph::addNode(Node::Ptr node) {
-  m_nodes.push_back(node);
-  m_compiled = false; // Graph needs recompilation
-
-  // Track first node for input provision - priority: PREPROCESS > BRANCH >
-  // MODEL
-  if (!m_first_node) {
-    // Set any node as first if none exists
-    m_first_node = node;
-    std::cout << "Set first node to " << node->name
-              << " (type: " << static_cast<int>(node->type) << ")" << std::endl;
-  } else {
-    // Replace based on priority: PREPROCESS (0) > BRANCH (4) > MODEL (2)
-    bool should_replace = false;
-
-    if (node->type == NodeType::PREPROCESS) {
-      // PREPROCESS has highest priority - always replace
-      should_replace = true;
-    } else if (node->type == NodeType::BRANCH &&
-               m_first_node->type != NodeType::PREPROCESS) {
-      // BRANCH replaces MODEL but not PREPROCESS
-      should_replace = true;
-    } else if (node->type == NodeType::MODEL &&
-               m_first_node->type != NodeType::PREPROCESS &&
-               m_first_node->type != NodeType::BRANCH) {
-      // MODEL only replaces if no PREPROCESS or BRANCH exists
-      should_replace = true;
-    }
-
-    if (should_replace) {
-      m_first_node = node;
-      std::cout << "Updated first node to " << node->name
-                << " (type: " << static_cast<int>(node->type) << ")"
-                << std::endl;
-    }
-  }
-}
-
-void Graph::compile() {
-  if (m_compiled)
-    return;
-
-  m_execution_order = topologicalSort();
-
-  optimizeGraph();
-
-  m_compiled = true;
-}
-
 void Graph::run() {
-  if (!m_compiled) {
+  if (!m_compiled)
     compile();
-  }
 
   for (auto &node : m_execution_order) {
     if (node->dirty) {
@@ -326,86 +223,7 @@ void Graph::run() {
   }
 }
 
-std::vector<py::object> Graph::execute(py::object X, py::object y) {
-  if (!m_compiled) {
-    compile();
-  }
-
-  // Provide inputs to first node
-  if (m_first_node) {
-    if (m_first_node->getInputEdges().size() >= 2) {
-      m_first_node->getInputEdges()[0]->setData(X);
-      m_first_node->getInputEdges()[1]->setData(y);
-    } else if (m_first_node->getInputEdges().size() == 1) {
-      m_first_node->getInputEdges()[0]->setData(X);
-    }
-  }
-
-  // Execute nodes - use parallel execution if enabled
-  if (m_parallel_enabled) {
-    runParallel();
-  } else {
-    // Execute all nodes in order
-    for (auto &node : m_execution_order) {
-      try {
-        node->execute();
-        node->dirty = false;
-      } catch (const std::exception &e) {
-        std::cerr << "Error executing node '" << node->name << "': " << e.what()
-                  << std::endl;
-        throw;
-      }
-    }
-  }
-
-  // Collect outputs from prediction nodes
-  std::vector<py::object> predictions;
-  for (auto &node : m_nodes) {
-    if (node->type == NodeType::PREDICT) {
-      if (node->getOutputEdges().size() > 0 &&
-          node->getOutputEdges()[0]->isReady()) {
-        predictions.push_back(node->getOutputEdges()[0]->getData());
-      }
-    }
-  }
-
-  return predictions;
-}
-
-void Graph::autoConnectNodes() {
-  // Simple linear auto-connection
-  for (size_t i = 0; i < m_nodes.size() - 1; ++i) {
-    auto &current = m_nodes[i];
-    auto &next = m_nodes[i + 1];
-
-    if (current->getOutputEdges().size() > 0 &&
-        next->getInputEdges().size() > 0) {
-      current->connectTo(0, next, 0);
-    }
-  }
-}
-
-void Graph::clear() {
-  m_nodes.clear();
-  m_execution_order.clear();
-  m_compiled = false;
-}
-
-void Graph::set_input(Node::Ptr node, size_t input_index, py::object data) {
-  if (input_index >= node->getInputEdges().size()) {
-    throw std::out_of_range("Input index out of range for node: " + node->name);
-  }
-  node->getInputEdges()[input_index]->setData(data);
-}
-
-py::object Graph::get_output(Node::Ptr node, size_t output_index) {
-  if (output_index >= node->getOutputEdges().size()) {
-    throw std::out_of_range("Output index out of range for node: " +
-                            node->name);
-  }
-  return node->getOutputEdges()[output_index]->getData();
-}
-
+// Accessors
 const std::vector<Node::Ptr> &Graph::getNodes() const { return m_nodes; }
 
 bool Graph::isCompiled() const { return m_compiled; }
@@ -461,7 +279,6 @@ void Graph::optimizeGraph() {
   // - Node fusion
   // - Constant propagation
   // - Dead code elimination
-  std::cout << "Graph optimization placeholder" << std::endl;
 }
 
 void Graph::serialize(const std::string &filepath) const {
@@ -605,72 +422,29 @@ void Graph::serialize(const std::string &filepath) const {
   file.close();
 }
 
-std::vector<Node::Ptr>
-Graph::createPredictForBranches(const std::string &predict_name,
-                                const std::vector<Node::Ptr> &models,
-                                py::object test_data) {
-  std::vector<Node::Ptr> predict_nodes;
-
-  for (size_t i = 0; i < models.size(); ++i) {
-    std::string pred_name = predict_name + "_branch" + std::to_string(i + 1);
-    auto predict_node =
-        NodeFactory::createNode(NodeType::PREDICT, pred_name, 2, 1, py::none());
-    addNode(predict_node);
-
-    // Connect model output to predict input 1
-    models[i]->connectTo(0, predict_node, 1);
-
-    // Set test data on predict input 0 if provided
-    if (!test_data.is_none()) {
-      predict_node->getInputEdges()[0]->setData(test_data);
-    }
-
-    predict_nodes.push_back(predict_node);
-  }
-
-  return predict_nodes;
-}
-
-// Pipeline management methods - handle all complex logic in C++
-
+// Pipeline management methods - optimized with fast lookups
 void Graph::addSequentialNode(const std::string &node_type,
                               const std::string &name, py::object obj) {
-  std::cout << "Adding sequential node: " << name << " (type: " << node_type
-            << ")" << std::endl;
-
-  // Create node using the existing add_node method
+  // Create node with appropriate input/output configuration
   Node::Ptr node;
   if (node_type == "preprocess") {
-    node =
-        add_node(NodeType::PREPROCESS, name, obj, 2, 2); // 2 inputs, 2 outputs
+    node = add_node(NodeType::PREPROCESS, name, obj, 2, 2);
   } else if (node_type == "model") {
-    node = add_node(NodeType::MODEL, name, obj, 2, 1); // 2 inputs, 1 output
+    node = add_node(NodeType::MODEL, name, obj, 2, 1);
   } else if (node_type == "predict") {
-    node = add_node(NodeType::PREDICT, name, obj, 2, 1); // 2 inputs, 1 output
+    node = add_node(NodeType::PREDICT, name, obj, 2, 1);
   } else {
     throw std::runtime_error("Unknown node type: " + node_type);
   }
 
   // Connect to previous sequential node if exists
   if (!m_sequential_nodes.empty()) {
-    std::string prev_node_name = m_sequential_nodes.back();
-
-    // Find the previous node
-    Node::Ptr prev_node = nullptr;
-    for (auto &n : m_nodes) {
-      if (n->name == prev_node_name) {
-        prev_node = n;
-        break;
-      }
-    }
-
+    Node::Ptr prev_node = findNodeByName(m_sequential_nodes.back());
     if (prev_node) {
-      // Connect prev_node output 0 to new node input 0
       prev_node->connectTo(0, node, 0);
     }
   }
 
-  // Track this node as the latest sequential node
   m_sequential_nodes.push_back(name);
 }
 
@@ -679,59 +453,37 @@ void Graph::startBranching(const std::string &branch_name,
   if (m_is_branched) {
     throw std::runtime_error("Already in branched mode - merge first");
   }
-
   if (m_sequential_nodes.empty()) {
     throw std::runtime_error("Cannot branch - no previous node to branch from");
   }
 
-  std::string branch_from_name = m_sequential_nodes.back();
-  std::cout << "Starting branching from node: " << branch_from_name
-            << std::endl;
-
-  // Find the node to branch from
-  Node::Ptr branch_from = nullptr;
-  for (auto &n : m_nodes) {
-    if (n->name == branch_from_name) {
-      branch_from = n;
-      break;
-    }
-  }
-
+  Node::Ptr branch_from = findNodeByName(m_sequential_nodes.back());
   if (!branch_from) {
     throw std::runtime_error("Cannot find branch source node: " +
-                             branch_from_name);
+                             m_sequential_nodes.back());
   }
 
-  // Enter branched mode
   m_is_branched = true;
   m_branch_tails.clear();
 
-  // Create a branch for each model
+  // Create branches for each model
   for (size_t i = 0; i < branch_models.size(); ++i) {
     py::object branch_model = branch_models[i];
 
-    // Generate unique branch node name
-    m_node_counter++;
-    std::string branch_node_name = branch_name + "_path_" + std::to_string(i) +
-                                   "_" + std::to_string(m_node_counter);
-
-    // Validate it's a model (has fit method)
     if (!py::hasattr(branch_model, "fit")) {
       throw std::runtime_error("Branch node must be a model with 'fit' method");
     }
 
-    // Create model node for this branch
+    std::string branch_node_name = branch_name + "_path_" + std::to_string(i) +
+                                   "_" + std::to_string(++m_node_counter);
     Node::Ptr branch_node =
         add_node(NodeType::MODEL, branch_node_name, branch_model, 2, 1);
 
-    // Connect from the branching point - both X and y outputs
-    branch_from->connectTo(0, branch_node, 0); // X (output 0) to input 0
-    branch_from->connectTo(1, branch_node, 1); // y (output 1) to input 1
+    // Connect both X and y from the branching point
+    branch_from->connectTo(0, branch_node, 0);
+    branch_from->connectTo(1, branch_node, 1);
 
-    // Track this branch tail
     m_branch_tails.push_back(branch_node_name);
-
-    std::cout << "Created branch path: " << branch_node_name << std::endl;
   }
 }
 
@@ -741,35 +493,19 @@ void Graph::addToBranches(const std::string &node_type, const std::string &name,
     throw std::runtime_error("Not in branched mode - cannot add to branches");
   }
 
-  std::cout << "Adding " << node_type << " node to all branches: " << name
-            << std::endl;
-
   std::vector<std::string> new_branch_tails;
 
-  // Add node to each branch
   for (size_t i = 0; i < m_branch_tails.size(); ++i) {
-    std::string tail_node_name = m_branch_tails[i];
-
-    // Find the tail node
-    Node::Ptr tail_node = nullptr;
-    for (auto &n : m_nodes) {
-      if (n->name == tail_node_name) {
-        tail_node = n;
-        break;
-      }
-    }
-
+    Node::Ptr tail_node = findNodeByName(m_branch_tails[i]);
     if (!tail_node) {
       throw std::runtime_error("Cannot find branch tail node: " +
-                               tail_node_name);
+                               m_branch_tails[i]);
     }
 
-    // Generate unique branch node name
-    m_node_counter++;
-    std::string branch_node_name =
-        name + "_br" + std::to_string(i) + "_" + std::to_string(m_node_counter);
+    std::string branch_node_name = name + "_br" + std::to_string(i) + "_" +
+                                   std::to_string(++m_node_counter);
 
-    // Create the node based on type
+    // Create node based on type
     Node::Ptr branch_node;
     if (node_type == "preprocess") {
       branch_node = add_node(NodeType::PREPROCESS, branch_node_name, obj, 2, 2);
@@ -781,14 +517,8 @@ void Graph::addToBranches(const std::string &node_type, const std::string &name,
       throw std::runtime_error("Unknown node type: " + node_type);
     }
 
-    // Connect from current branch tail
     tail_node->connectTo(0, branch_node, 0);
-
-    // Update branch tail
     new_branch_tails.push_back(branch_node_name);
-
-    std::cout << "Added to branch " << i << ": " << branch_node_name
-              << std::endl;
   }
 
   m_branch_tails = new_branch_tails;
@@ -800,36 +530,17 @@ void Graph::mergeBranches(const std::string &merge_name,
     throw std::runtime_error("Not in branched mode - nothing to merge");
   }
 
-  std::cout << "Merging " << m_branch_tails.size()
-            << " branches into: " << merge_name << std::endl;
-
-  // Create merge node - for now, treat it as a feature node that aggregates
-  // inputs
   Node::Ptr merge_node = add_node(NodeType::FEATURE, merge_name, merge_func,
                                   m_branch_tails.size(), 1);
 
   // Connect all branch tails to merge node
   for (size_t i = 0; i < m_branch_tails.size(); ++i) {
-    std::string tail_node_name = m_branch_tails[i];
-
-    // Find the tail node
-    Node::Ptr tail_node = nullptr;
-    for (auto &n : m_nodes) {
-      if (n->name == tail_node_name) {
-        tail_node = n;
-        break;
-      }
-    }
-
+    Node::Ptr tail_node = findNodeByName(m_branch_tails[i]);
     if (tail_node) {
       tail_node->connectTo(0, merge_node, i);
-      std::cout << "Connected branch tail " << tail_node_name
-                << " to merge node " << merge_name << " (input " << i << ")"
-                << std::endl;
     }
   }
 
-  // Exit branched mode and return to sequential
   m_is_branched = false;
   m_branch_tails.clear();
   m_sequential_nodes.push_back(merge_name);

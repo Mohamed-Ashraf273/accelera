@@ -49,6 +49,11 @@ class Pipeline:
         self._graph.mergeBranches(name, merge_func)
         return self
 
+    def enable_parallel(self, enable=True):
+        """Enable or disable parallel execution"""
+        self._graph.enableParallelExecution(enable)
+        return self
+
     # Legacy compatibility methods
     def compile(self):
         return self
