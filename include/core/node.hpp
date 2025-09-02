@@ -9,6 +9,9 @@ namespace py = pybind11;
 
 namespace aistudio {
 
+// Forward declare Impl struct
+struct NodeImpl;
+
 class Node {
 public:
   using Ptr = std::shared_ptr<Node>;
@@ -17,24 +20,22 @@ public:
   ~Node();
 
   std::string name;
-  std::vector<Ptr> inputs;
-  std::vector<Ptr> outputs;
+  py::object py_func;
+  py::args args;
+  Node::Ptr prev;
+  Node::Ptr next;
+  py::object input_value;
+  py::object output_value;
   bool dirty = true;
 
-  // Store different types of operations
   void setPyOp(std::function<py::object()> op);
   void setPyOpWithInput(std::function<py::object(py::object)> op);
-  void setPyOpWithInputs(std::function<py::object(py::args)> op);
 
   void clearCache();
-
-  void *compute(const py::args &external_args = py::args());
-  void *computeWithInput(void *input_ptr);
-  void *computeWithInputs(const std::vector<void *> &input_ptrs);
+  void compute(py::object input = py::none());
 
 private:
-  struct Impl;
-  std::unique_ptr<Impl> impl;
+  std::unique_ptr<NodeImpl> impl; // Use NodeImpl instead of Impl
 };
 
 } // namespace aistudio
