@@ -1,0 +1,17 @@
+#include "nodes/feature.hpp"
+#include <pybind11/pybind11.h>
+
+namespace py = pybind11;
+
+namespace aistudio {
+
+FeatureNode::FeatureNode(const std::string &name, size_t numInputs,
+                         size_t numOutputs, py::object py_func)
+    : Node(NodeType::FEATURE, name, numInputs, numOutputs, py_func) {}
+
+void FeatureNode::execute() {
+  // Implement the feature extraction logic here
+  // This should use the py_func for feature extraction
+}
+
+} // namespace aistudio

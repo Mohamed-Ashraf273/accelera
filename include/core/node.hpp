@@ -1,5 +1,7 @@
-#pragma once
-#include <functional>
+#ifndef NODE_HPP
+#define NODE_HPP
+
+#include "edge.hpp"
 #include <memory>
 #include <pybind11/pybind11.h>
 #include <string>
@@ -9,33 +11,38 @@ namespace py = pybind11;
 
 namespace aistudio {
 
-// Forward declare Impl struct
-struct NodeImpl;
+enum class NodeType { PREPROCESS, FEATURE, MODEL, PREDICT, BRANCH };
 
-class Node {
+class __attribute__((visibility("default"))) Node {
 public:
   using Ptr = std::shared_ptr<Node>;
 
-  Node(const std::string &name);
-  ~Node();
+  Node(NodeType type, const std::string &name, size_t numInputs,
+       size_t numOutputs, py::object py_func);
+  virtual ~Node();
 
+  // Public members for Python access
+  NodeType type;
   std::string name;
   py::object py_func;
-  py::args args;
-  Node::Ptr prev;
-  Node::Ptr next;
-  py::object input_value;
-  py::object output_value;
   bool dirty = true;
 
-  void setPyOp(std::function<py::object()> op);
-  void setPyOpWithInput(std::function<py::object(py::object)> op);
+  virtual void execute() = 0;
 
-  void clearCache();
-  void compute(py::object input = py::none());
+  // Graph connectivity methods
+  const std::vector<std::shared_ptr<Edge>> &getInputEdges() const;
+  const std::vector<std::shared_ptr<Edge>> &getOutputEdges() const;
+  void connectTo(size_t myOutputIndex, Node::Ptr targetNode,
+                 size_t targetInputIndex);
 
-private:
-  std::unique_ptr<NodeImpl> impl; // Use NodeImpl instead of Impl
+protected:
+  py::list collectInputs();
+  void setOutputs(py::object result);
+
+  std::vector<std::shared_ptr<Edge>> m_inputEdges;
+  std::vector<std::shared_ptr<Edge>> m_outputEdges;
 };
 
 } // namespace aistudio
+
+#endif // NODE_HPP

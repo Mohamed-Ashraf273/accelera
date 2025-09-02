@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
 
 from aistudio.src.core.pipeline import Pipeline
 
@@ -15,18 +16,9 @@ X, y, test_data = sample_data()
 
 p = Pipeline()
 
-# p.branch([
-#     ("logreg", LogisticRegression(random_state=42)),
-#     ("predict", model.predict, test_data)
-# ])
-model = p.add("logreg", LogisticRegression(random_state=42))
-p.add("predict", model.predict)
+p.model("logreg", LogisticRegression(random_state=42))
+p.model("svc", SVC(probability=True, random_state=42))
+p.branch("branch", "logreg", "svc")
+p.predict("predict", test_data)
 
-predictions = p(X, y)
-print(predictions)
-# # Compare with manual implementation
-# manual_model = LogisticRegression(random_state=42)
-# manual_model.fit(X, y)
-# expected = manual_model.predict(test_data)
-
-# np.testing.assert_array_equal(predictions, expected)
+print("Predictions:", p(X, y))
