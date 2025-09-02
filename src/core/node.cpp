@@ -1,100 +1,79 @@
 #include "core/node.hpp"
 #include <iostream>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-
-namespace py = pybind11;
+#include <stdexcept>
 
 namespace aistudio {
 
-struct Node::Impl {
-  std::function<py::object()> py_op = nullptr;
-  std::function<py::object(py::object)> py_op_with_input = nullptr;
-  std::function<py::object(py::args)> py_op_with_inputs = nullptr;
-  py::object cache = py::none();
-};
+Node::Node(NodeType type, const std::string &name, size_t numInputs,
+           size_t numOutputs, py::object py_func)
+    : type(type), name(name), py_func(py_func) {
 
-Node::Node(const std::string &n) : name(n), impl(std::make_unique<Impl>()) {}
+  // Initialize input edges
+  m_inputEdges.resize(numInputs);
+  for (size_t i = 0; i < numInputs; ++i) {
+    m_inputEdges[i] = std::make_shared<Edge>();
+  }
 
-Node::~Node() = default;
-
-void Node::setPyOp(std::function<py::object()> op) {
-  impl->py_op = std::move(op);
-}
-
-void Node::setPyOpWithInput(std::function<py::object(py::object)> op) {
-  impl->py_op_with_input = std::move(op);
-}
-
-void Node::setPyOpWithInputs(std::function<py::object(py::args)> op) {
-  impl->py_op_with_inputs = std::move(op);
-}
-
-void Node::clearCache() {
-  dirty = true;
-  impl->cache = py::none();
-
-  for (auto &out : outputs) {
-    if (out)
-      out->clearCache();
+  // Initialize output edges
+  m_outputEdges.resize(numOutputs);
+  for (size_t i = 0; i < numOutputs; ++i) {
+    m_outputEdges[i] = std::make_shared<Edge>();
   }
 }
 
-void *Node::compute(const py::args &external_args) {
-  if (!dirty && !impl->cache.is_none())
-    return impl->cache.ptr();
-
-  if (impl->py_op) {
-    impl->cache = impl->py_op();
-  }
-
-  dirty = false;
-  return impl->cache.ptr();
+Node::~Node() {
+  // Cleanup handled by shared_ptr
 }
 
-void *Node::computeWithInput(void *input_ptr) {
-  if (!dirty && !impl->cache.is_none())
-    return impl->cache.ptr();
-  if (impl->py_op_with_input && input_ptr) {
-    py::object input = py::reinterpret_borrow<py::object>(
-        reinterpret_cast<PyObject *>(input_ptr));
-    try {
-      impl->cache = impl->py_op_with_input(input);
-    } catch (const std::exception &e) {
-      impl->cache = py::none();
+py::list Node::collectInputs() {
+  py::list inputs;
+  for (const auto &edge : m_inputEdges) {
+    if (edge && edge->isReady()) {
+      inputs.append(edge->getData());
+    } else {
+      inputs.append(py::none());
+    }
+  }
+  return inputs;
+}
+
+void Node::setOutputs(py::object result) {
+  if (m_outputEdges.size() == 1) {
+    // Single output
+    m_outputEdges[0]->setData(result);
+  } else if (py::isinstance<py::tuple>(result)) {
+    // Multiple outputs as tuple
+    py::tuple result_tuple = result.cast<py::tuple>();
+    for (size_t i = 0; i < m_outputEdges.size() && i < result_tuple.size();
+         ++i) {
+      m_outputEdges[i]->setData(result_tuple[i]);
     }
   } else {
-    impl->cache = py::none();
+    // Single output to first edge only
+    m_outputEdges[0]->setData(result);
   }
-
-  dirty = false;
-  return impl->cache.ptr();
 }
 
-void *Node::computeWithInputs(const std::vector<void *> &input_ptrs) {
-  if (!dirty && !impl->cache.is_none())
-    return impl->cache.ptr();
+const std::vector<std::shared_ptr<Edge>> &Node::getInputEdges() const {
+  return m_inputEdges;
+}
 
-  if (impl->py_op_with_inputs && !input_ptrs.empty()) {
-    py::tuple inputs(input_ptrs.size());
-    for (size_t i = 0; i < input_ptrs.size(); ++i) {
-      inputs[i] = py::reinterpret_borrow<py::object>(
-          reinterpret_cast<PyObject *>(input_ptrs[i]));
-    }
+const std::vector<std::shared_ptr<Edge>> &Node::getOutputEdges() const {
+  return m_outputEdges;
+}
 
-    try {
-      impl->cache = impl->py_op_with_inputs(inputs);
-    } catch (const std::exception &e) {
-      std::cerr << "Exception in Node::computeWithInputs: " << e.what()
-                << std::endl;
-      impl->cache = py::none();
-    }
-  } else {
-    impl->cache = py::none();
+void Node::connectTo(size_t myOutputIndex, Node::Ptr targetNode,
+                     size_t targetInputIndex) {
+  if (myOutputIndex >= m_outputEdges.size()) {
+    throw std::out_of_range("Output index out of range for node: " + name);
+  }
+  if (targetInputIndex >= targetNode->m_inputEdges.size()) {
+    throw std::out_of_range("Input index out of range for target node: " +
+                            targetNode->name);
   }
 
-  dirty = false;
-  return impl->cache.ptr();
+  // Share the edge between output and input
+  targetNode->m_inputEdges[targetInputIndex] = m_outputEdges[myOutputIndex];
 }
 
 } // namespace aistudio
