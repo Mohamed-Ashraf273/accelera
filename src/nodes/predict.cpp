@@ -47,8 +47,12 @@ void PredictNode::execute() {
     // Determine what to use as prediction input
     py::object X_to_predict = py::none();
 
-    // Priority 1: Use explicit test data if provided
-    if (!explicit_test_data.is_none()) {
+    // Priority 1: Use test data provided during node construction
+    if (!py_func.is_none()) {
+      X_to_predict = py_func;
+    }
+    // Priority 2: Use explicit test data if provided via inputs
+    else if (!explicit_test_data.is_none()) {
       X_to_predict = explicit_test_data;
     }
     // Priority 2: Look for input from connected model node (training data

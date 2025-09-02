@@ -11,7 +11,15 @@ namespace py = pybind11;
 
 namespace aistudio {
 
-enum class NodeType { PREPROCESS, FEATURE, MODEL, PREDICT, BRANCH };
+enum class NodeType {
+  PREPROCESS,
+  FEATURE,
+  MODEL,
+  PREDICT,
+  BRANCH,
+  MERGE,
+  GENERAL
+};
 
 class __attribute__((visibility("default"))) Node {
 public:

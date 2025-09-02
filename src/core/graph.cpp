@@ -262,17 +262,37 @@ void Graph::addNode(Node::Ptr node) {
   m_nodes.push_back(node);
   m_compiled = false; // Graph needs recompilation
 
-  // Track first node for input provision - prefer BRANCH nodes over MODEL nodes
+  // Track first node for input provision - priority: PREPROCESS > BRANCH >
+  // MODEL
   if (!m_first_node) {
-    if (node->type == NodeType::BRANCH) {
-      m_first_node = node;
-    } else if (node->type == NodeType::MODEL) {
-      m_first_node = node;
-    }
-  } else if (node->type == NodeType::BRANCH &&
-             m_first_node->type == NodeType::MODEL) {
-    // Replace MODEL with BRANCH node as first node (BRANCH has higher priority)
+    // Set any node as first if none exists
     m_first_node = node;
+    std::cout << "Set first node to " << node->name
+              << " (type: " << static_cast<int>(node->type) << ")" << std::endl;
+  } else {
+    // Replace based on priority: PREPROCESS (0) > BRANCH (4) > MODEL (2)
+    bool should_replace = false;
+
+    if (node->type == NodeType::PREPROCESS) {
+      // PREPROCESS has highest priority - always replace
+      should_replace = true;
+    } else if (node->type == NodeType::BRANCH &&
+               m_first_node->type != NodeType::PREPROCESS) {
+      // BRANCH replaces MODEL but not PREPROCESS
+      should_replace = true;
+    } else if (node->type == NodeType::MODEL &&
+               m_first_node->type != NodeType::PREPROCESS &&
+               m_first_node->type != NodeType::BRANCH) {
+      // MODEL only replaces if no PREPROCESS or BRANCH exists
+      should_replace = true;
+    }
+
+    if (should_replace) {
+      m_first_node = node;
+      std::cout << "Updated first node to " << node->name
+                << " (type: " << static_cast<int>(node->type) << ")"
+                << std::endl;
+    }
   }
 }
 
@@ -610,5 +630,211 @@ Graph::createPredictForBranches(const std::string &predict_name,
 
   return predict_nodes;
 }
+
+// Pipeline management methods - handle all complex logic in C++
+
+void Graph::addSequentialNode(const std::string &node_type,
+                              const std::string &name, py::object obj) {
+  std::cout << "Adding sequential node: " << name << " (type: " << node_type
+            << ")" << std::endl;
+
+  // Create node using the existing add_node method
+  Node::Ptr node;
+  if (node_type == "preprocess") {
+    node =
+        add_node(NodeType::PREPROCESS, name, obj, 2, 2); // 2 inputs, 2 outputs
+  } else if (node_type == "model") {
+    node = add_node(NodeType::MODEL, name, obj, 2, 1); // 2 inputs, 1 output
+  } else if (node_type == "predict") {
+    node = add_node(NodeType::PREDICT, name, obj, 2, 1); // 2 inputs, 1 output
+  } else {
+    throw std::runtime_error("Unknown node type: " + node_type);
+  }
+
+  // Connect to previous sequential node if exists
+  if (!m_sequential_nodes.empty()) {
+    std::string prev_node_name = m_sequential_nodes.back();
+
+    // Find the previous node
+    Node::Ptr prev_node = nullptr;
+    for (auto &n : m_nodes) {
+      if (n->name == prev_node_name) {
+        prev_node = n;
+        break;
+      }
+    }
+
+    if (prev_node) {
+      // Connect prev_node output 0 to new node input 0
+      prev_node->connectTo(0, node, 0);
+    }
+  }
+
+  // Track this node as the latest sequential node
+  m_sequential_nodes.push_back(name);
+}
+
+void Graph::startBranching(const std::string &branch_name,
+                           const std::vector<py::object> &branch_models) {
+  if (m_is_branched) {
+    throw std::runtime_error("Already in branched mode - merge first");
+  }
+
+  if (m_sequential_nodes.empty()) {
+    throw std::runtime_error("Cannot branch - no previous node to branch from");
+  }
+
+  std::string branch_from_name = m_sequential_nodes.back();
+  std::cout << "Starting branching from node: " << branch_from_name
+            << std::endl;
+
+  // Find the node to branch from
+  Node::Ptr branch_from = nullptr;
+  for (auto &n : m_nodes) {
+    if (n->name == branch_from_name) {
+      branch_from = n;
+      break;
+    }
+  }
+
+  if (!branch_from) {
+    throw std::runtime_error("Cannot find branch source node: " +
+                             branch_from_name);
+  }
+
+  // Enter branched mode
+  m_is_branched = true;
+  m_branch_tails.clear();
+
+  // Create a branch for each model
+  for (size_t i = 0; i < branch_models.size(); ++i) {
+    py::object branch_model = branch_models[i];
+
+    // Generate unique branch node name
+    m_node_counter++;
+    std::string branch_node_name = branch_name + "_path_" + std::to_string(i) +
+                                   "_" + std::to_string(m_node_counter);
+
+    // Validate it's a model (has fit method)
+    if (!py::hasattr(branch_model, "fit")) {
+      throw std::runtime_error("Branch node must be a model with 'fit' method");
+    }
+
+    // Create model node for this branch
+    Node::Ptr branch_node =
+        add_node(NodeType::MODEL, branch_node_name, branch_model, 2, 1);
+
+    // Connect from the branching point - both X and y outputs
+    branch_from->connectTo(0, branch_node, 0); // X (output 0) to input 0
+    branch_from->connectTo(1, branch_node, 1); // y (output 1) to input 1
+
+    // Track this branch tail
+    m_branch_tails.push_back(branch_node_name);
+
+    std::cout << "Created branch path: " << branch_node_name << std::endl;
+  }
+}
+
+void Graph::addToBranches(const std::string &node_type, const std::string &name,
+                          py::object obj) {
+  if (!m_is_branched) {
+    throw std::runtime_error("Not in branched mode - cannot add to branches");
+  }
+
+  std::cout << "Adding " << node_type << " node to all branches: " << name
+            << std::endl;
+
+  std::vector<std::string> new_branch_tails;
+
+  // Add node to each branch
+  for (size_t i = 0; i < m_branch_tails.size(); ++i) {
+    std::string tail_node_name = m_branch_tails[i];
+
+    // Find the tail node
+    Node::Ptr tail_node = nullptr;
+    for (auto &n : m_nodes) {
+      if (n->name == tail_node_name) {
+        tail_node = n;
+        break;
+      }
+    }
+
+    if (!tail_node) {
+      throw std::runtime_error("Cannot find branch tail node: " +
+                               tail_node_name);
+    }
+
+    // Generate unique branch node name
+    m_node_counter++;
+    std::string branch_node_name =
+        name + "_br" + std::to_string(i) + "_" + std::to_string(m_node_counter);
+
+    // Create the node based on type
+    Node::Ptr branch_node;
+    if (node_type == "preprocess") {
+      branch_node = add_node(NodeType::PREPROCESS, branch_node_name, obj, 2, 2);
+    } else if (node_type == "model") {
+      branch_node = add_node(NodeType::MODEL, branch_node_name, obj, 2, 1);
+    } else if (node_type == "predict") {
+      branch_node = add_node(NodeType::PREDICT, branch_node_name, obj, 2, 1);
+    } else {
+      throw std::runtime_error("Unknown node type: " + node_type);
+    }
+
+    // Connect from current branch tail
+    tail_node->connectTo(0, branch_node, 0);
+
+    // Update branch tail
+    new_branch_tails.push_back(branch_node_name);
+
+    std::cout << "Added to branch " << i << ": " << branch_node_name
+              << std::endl;
+  }
+
+  m_branch_tails = new_branch_tails;
+}
+
+void Graph::mergeBranches(const std::string &merge_name,
+                          py::object merge_func) {
+  if (!m_is_branched) {
+    throw std::runtime_error("Not in branched mode - nothing to merge");
+  }
+
+  std::cout << "Merging " << m_branch_tails.size()
+            << " branches into: " << merge_name << std::endl;
+
+  // Create merge node - for now, treat it as a feature node that aggregates
+  // inputs
+  Node::Ptr merge_node = add_node(NodeType::FEATURE, merge_name, merge_func,
+                                  m_branch_tails.size(), 1);
+
+  // Connect all branch tails to merge node
+  for (size_t i = 0; i < m_branch_tails.size(); ++i) {
+    std::string tail_node_name = m_branch_tails[i];
+
+    // Find the tail node
+    Node::Ptr tail_node = nullptr;
+    for (auto &n : m_nodes) {
+      if (n->name == tail_node_name) {
+        tail_node = n;
+        break;
+      }
+    }
+
+    if (tail_node) {
+      tail_node->connectTo(0, merge_node, i);
+      std::cout << "Connected branch tail " << tail_node_name
+                << " to merge node " << merge_name << " (input " << i << ")"
+                << std::endl;
+    }
+  }
+
+  // Exit branched mode and return to sequential
+  m_is_branched = false;
+  m_branch_tails.clear();
+  m_sequential_nodes.push_back(merge_name);
+}
+
+bool Graph::isBranched() const { return m_is_branched; }
 
 } // namespace aistudio

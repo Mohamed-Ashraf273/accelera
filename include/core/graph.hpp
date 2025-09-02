@@ -66,6 +66,16 @@ public:
                            const std::vector<Node::Ptr> &models,
                            py::object test_data = py::none());
 
+  // Pipeline management - handle sequential and branched modes
+  void addSequentialNode(const std::string &node_type, const std::string &name,
+                         py::object obj);
+  void startBranching(const std::string &branch_name,
+                      const std::vector<py::object> &branch_models);
+  void addToBranches(const std::string &node_type, const std::string &name,
+                     py::object obj);
+  void mergeBranches(const std::string &merge_name, py::object merge_func);
+  bool isBranched() const;
+
 private:
   // Topological sorting
   std::vector<Node::Ptr> topologicalSort();
@@ -81,6 +91,12 @@ private:
   bool m_compiled = false;
   bool m_parallel_enabled = false;  // Parallel execution flag
   Node::Ptr m_first_node = nullptr; // Track first node for input
+
+  // Pipeline state management
+  std::vector<std::string> m_sequential_nodes; // Sequential node names
+  bool m_is_branched = false;                  // Branched mode flag
+  std::vector<std::string> m_branch_tails;     // Current branch tail nodes
+  int m_node_counter = 0;                      // For unique naming
 };
 
 } // namespace aistudio

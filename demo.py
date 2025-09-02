@@ -16,9 +16,13 @@ X, y, test_data = sample_data()
 
 p = Pipeline()
 
-p.model("logreg", LogisticRegression(random_state=42))
-p.model("svc", SVC(probability=True, random_state=42))
-p.branch("branch", "logreg", "svc")
+p.preprocess("power", lambda x: x**2)
+p.branch(
+    "branch1",
+    LogisticRegression(random_state=42),
+    SVC(probability=True, random_state=42),
+)
 p.predict("predict", test_data)
-
+p.merge("mean", lambda preds: np.mean(preds, axis=0))
+p.serialize("pipeline.xml")
 print("Predictions:", p(X, y))

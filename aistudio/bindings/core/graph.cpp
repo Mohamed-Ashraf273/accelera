@@ -129,7 +129,20 @@ PYBIND11_MODULE(graph, m) {
 
       .def("collectBranchResults", &Graph::collectBranchResults,
            py::arg("result_nodes"),
-           "Collect results from multiple branch result nodes");
+           "Collect results from multiple branch result nodes")
+
+      // Pipeline management methods - all complex logic in C++
+      .def("addSequentialNode", &Graph::addSequentialNode, py::arg("node_type"),
+           py::arg("name"), py::arg("obj"),
+           "Add node in sequential mode with automatic connection")
+      .def("startBranching", &Graph::startBranching, py::arg("branch_name"),
+           py::arg("branch_models"), "Start branching mode from current node")
+      .def("addToBranches", &Graph::addToBranches, py::arg("node_type"),
+           py::arg("name"), py::arg("obj"), "Add node to all current branches")
+      .def("mergeBranches", &Graph::mergeBranches, py::arg("merge_name"),
+           py::arg("merge_func"), "Merge all branches back to sequential mode")
+      .def("isBranched", &Graph::isBranched,
+           "Check if currently in branched mode");
 
   m.def("create_model_node", [](const std::string &name, py::object py_func) {
     return NodeFactory::createNode(NodeType::MODEL, name, 1, 1, py_func);
