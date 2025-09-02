@@ -5,5 +5,4 @@ since your modifications would be overwritten.
 """
 
 from aistudio.src import core as core
-from aistudio.src import models as models
 from aistudio.src.version import __version__ as __version__
