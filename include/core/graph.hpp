@@ -10,6 +10,8 @@
 
 namespace aistudio {
 
+class InputNode; // Forward declaration
+
 class __attribute__((visibility("default"))) Graph {
 public:
   Graph();
@@ -25,19 +27,11 @@ public:
   std::vector<py::object> execute(py::object X, py::object y);
   void clear();
 
-  // Pipeline management - handle sequential and branched modes
-  void addSequentialNode(const std::string &node_type, const std::string &name,
-                         py::object obj);
-  void startBranching(const std::string &branch_name,
-                      const std::vector<py::object> &branch_models);
-  void startBranchingWithTypes(const std::string &branch_name,
-                               const std::vector<py::object> &branch_objects,
-                               const std::vector<std::string> &node_types,
-                               const std::vector<std::string> &node_names);
-  void addToBranches(const std::string &node_type, const std::string &name,
-                     py::object obj);
+  void split(const std::string &branch_name,
+             const std::vector<py::object> &branch_objects,
+             const std::vector<std::string> &node_types,
+             const std::vector<std::string> &node_names);
   void mergeBranches(const std::string &merge_name, py::object merge_func);
-  bool isBranched() const;
 
   // Parallel execution
   void enableParallelExecution(bool enable = true);
@@ -46,9 +40,6 @@ public:
   // Accessors
   const std::vector<Node::Ptr> &getNodes() const;
   bool isCompiled() const;
-
-  // Serialization
-  void serialize(const std::string &filepath) const;
 
 private:
   // Core execution methods
@@ -63,8 +54,9 @@ private:
 
   // Utility methods
   void optimizeGraph();
-  Node::Ptr findNodeByName(const std::string &name) const;
+  std::vector<Node::Ptr> findLeafNodes() const;
   bool shouldReplaceFirstNode(Node::Ptr node) const;
+  Node::Ptr findNodeByName(const std::string &name) const;
 
   // Core data members
   std::vector<Node::Ptr> m_nodes;
@@ -74,6 +66,7 @@ private:
   bool m_parallel_enabled = false;
   size_t m_multicore_threshold = 3; // Minimum tasks to use multicore
   Node::Ptr m_first_node = nullptr;
+  std::shared_ptr<InputNode> m_input_node = nullptr; // Automatic input node
 
   // Pipeline state management
   std::vector<std::string> m_sequential_nodes;

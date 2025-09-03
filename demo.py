@@ -16,13 +16,17 @@ X, y, test_data = sample_data()
 
 p = Pipeline()
 
-p.preprocess("power", lambda x: x**2)
+p.branch(
+    "branch1",
+    p.preprocess("power", lambda x: x**2, branch=True),
+    p.preprocess("power", lambda x: x**3, branch=True),
+)
+p.preprocess("power", lambda x: x**4)
 p.branch(
     "branch1",
     p.model("logreg", LogisticRegression(random_state=42), branch=True),
     p.model("svc", SVC(probability=True, random_state=42), branch=True),
 )
 p.predict("predict", test_data)
-p.merge("mean", lambda preds: np.mean(preds, axis=0))
 p.serialize("pipeline.xml")
-print("Predictions:", p(X, y))
+# print("Predictions:", p(X, y))

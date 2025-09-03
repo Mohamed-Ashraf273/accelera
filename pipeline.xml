@@ -1,0 +1,219 @@
+<?xml version="1.0"?>
+<net name="AI_Studio_Pipeline" version="11">
+	<layers>
+		<layer id="0" name="input_node" type="INPUT">
+			<data/>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+				<port id="1" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="1" name="power" type="PREPROCESS">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="2" name="power" type="PREPROCESS">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="3" name="power" type="PREPROCESS">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="4" name="power_copy_1" type="PREPROCESS">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="5" name="logreg_leaf_0" type="MODEL">
+			<data C="1.0" dual="False" fit_intercept="True" intercept_scaling="1" max_iter="100" multi_class="deprecated" penalty="l2" random_state="42" solver="lbfgs" tol="0.0001" verbose="0" warm_start="False"/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="6" name="svc_leaf_0" type="MODEL">
+			<data C="1.0" break_ties="False" cache_size="200" coef0="0.0" decision_function_shape="ovr" degree="3" gamma="scale" kernel="rbf" max_iter="-1" probability="True" random_state="42" shrinking="True" tol="0.001" verbose="False"/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="7" name="logreg_leaf_1" type="MODEL">
+			<data C="1.0" dual="False" fit_intercept="True" intercept_scaling="1" max_iter="100" multi_class="deprecated" penalty="l2" random_state="42" solver="lbfgs" tol="0.0001" verbose="0" warm_start="False"/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="8" name="svc_leaf_1" type="MODEL">
+			<data C="1.0" break_ties="False" cache_size="200" coef0="0.0" decision_function_shape="ovr" degree="3" gamma="scale" kernel="rbf" max_iter="-1" probability="True" random_state="42" shrinking="True" tol="0.001" verbose="False"/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="9" name="predict" type="PREDICT">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="10" name="predict_copy_1" type="PREDICT">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="11" name="predict_copy_2" type="PREDICT">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="12" name="predict_copy_3" type="PREDICT">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP32">
+					<dim>1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+	</layers>
+	<edges>
+		<edge from-layer="0" from-port="0" to-layer="1" to-port="0"/>
+		<edge from-layer="0" from-port="0" to-layer="2" to-port="0"/>
+		<edge from-layer="1" from-port="1" to-layer="3" to-port="0"/>
+		<edge from-layer="2" from-port="1" to-layer="4" to-port="0"/>
+		<edge from-layer="3" from-port="1" to-layer="5" to-port="0"/>
+		<edge from-layer="3" from-port="1" to-layer="6" to-port="0"/>
+		<edge from-layer="4" from-port="1" to-layer="7" to-port="0"/>
+		<edge from-layer="4" from-port="1" to-layer="8" to-port="0"/>
+		<edge from-layer="5" from-port="1" to-layer="9" to-port="0"/>
+		<edge from-layer="6" from-port="1" to-layer="10" to-port="0"/>
+		<edge from-layer="7" from-port="1" to-layer="11" to-port="0"/>
+		<edge from-layer="8" from-port="1" to-layer="12" to-port="0"/>
+	</edges>
+	<meta_data>
+		<MO_version value="AI Studio Graph Serializer"/>
+		<cli_parameters>
+			<input_shape value="[1,-1]"/>
+			<transform value=""/>
+		</cli_parameters>
+	</meta_data>
+</net>
