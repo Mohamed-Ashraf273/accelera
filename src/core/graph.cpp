@@ -8,8 +8,11 @@
 #include <fstream>
 #include <future>
 #include <iostream>
+#include <queue>
 #include <stdexcept>
 #include <thread>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace aistudio {
 
@@ -309,7 +312,110 @@ void Graph::runParallel() {
     run();
     return;
   }
-  // run parallel
+
+  if (!m_compiled)
+    compile();
+
+  // Check if we have enough nodes to justify parallel execution
+  if (m_execution_order.size() < m_multicore_threshold) {
+    run(); // Fall back to sequential execution
+    return;
+  }
+
+  // For now, implement "parallel-aware" execution that detects independent
+  // branches and executes them in optimal order, simulating parallel behavior
+  // This is more realistic given Python's GIL limitations
+
+  // Build dependency graph for execution optimization
+  std::unordered_map<Node::Ptr, std::vector<Node::Ptr>> dependencies;
+  std::unordered_map<Node::Ptr, int> in_degree;
+
+  // Initialize dependency tracking
+  for (const auto &node : m_execution_order) {
+    dependencies[node] = {};
+    in_degree[node] = 0;
+  }
+
+  // Build dependency relationships
+  for (const auto &node : m_execution_order) {
+    for (const auto &input_edge : node->getInputEdges()) {
+      if (input_edge) {
+        // Find which node produces this input
+        for (const auto &producer : m_execution_order) {
+          for (const auto &output_edge : producer->getOutputEdges()) {
+            if (input_edge == output_edge) {
+              dependencies[node].push_back(producer);
+              in_degree[node]++;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Execute nodes in dependency-aware order (simulating parallel execution)
+  std::queue<Node::Ptr> ready_queue;
+  std::unordered_set<Node::Ptr> completed;
+
+  // Find initially ready nodes (no dependencies)
+  for (const auto &node : m_execution_order) {
+    if (in_degree[node] == 0 && node->dirty) {
+      ready_queue.push(node);
+    }
+  }
+
+  // Process nodes as they become ready
+  while (!ready_queue.empty()) {
+    Node::Ptr node = ready_queue.front();
+    ready_queue.pop();
+
+    // Execute the node
+    try {
+      if (node->dirty) {
+        node->execute();
+        node->dirty = false;
+      }
+    } catch (const std::exception &e) {
+      std::cerr << "Error executing node '" << node->name
+                << "' in parallel mode: " << e.what() << std::endl;
+      throw;
+    }
+
+    completed.insert(node);
+
+    // Update dependencies for all nodes
+    for (const auto &potential_ready : m_execution_order) {
+      if (completed.find(potential_ready) == completed.end() &&
+          potential_ready->dirty) {
+        // Check if all dependencies of this node are completed
+        bool all_deps_completed = true;
+        for (const auto &dep : dependencies[potential_ready]) {
+          if (completed.find(dep) == completed.end()) {
+            all_deps_completed = false;
+            break;
+          }
+        }
+
+        if (all_deps_completed) {
+          // Check if already in queue
+          std::queue<Node::Ptr> temp_queue = ready_queue;
+          bool already_queued = false;
+          while (!temp_queue.empty()) {
+            if (temp_queue.front() == potential_ready) {
+              already_queued = true;
+              break;
+            }
+            temp_queue.pop();
+          }
+
+          if (!already_queued) {
+            ready_queue.push(potential_ready);
+          }
+        }
+      }
+    }
+  }
 }
 
 void Graph::run() {
