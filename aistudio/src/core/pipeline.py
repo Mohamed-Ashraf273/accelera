@@ -25,14 +25,16 @@ class Pipeline:
         if branch:
             return NodeWrapper("preprocess", name, func)
 
-        self._graph.add_node(graph.NodeType.PREPROCESS, name, func)
+        # Preprocess nodes need 2 inputs (X, y) and 2 outputs (processed_X, y)
+        self._graph.add_node(graph.NodeType.PREPROCESS, name, func, 2, 2)
         return self
 
     def model(self, name, model, branch=False):
         if branch:
             return NodeWrapper("model", name, model)
 
-        self._graph.add_node(graph.NodeType.MODEL, name, model)
+        # Model nodes need 2 inputs (X, y) and 1 output (trained_model)
+        self._graph.add_node(graph.NodeType.MODEL, name, model, 2, 1)
         return self
 
     def predict(self, name, test_data, branch=False):
