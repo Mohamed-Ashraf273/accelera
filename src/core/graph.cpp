@@ -2,6 +2,7 @@
 #include "core/node_factory.hpp"
 #include "nodes/input.hpp"
 #include "nodes/merge.hpp"
+#include "passes/node_fusion.hpp"
 #include <algorithm>
 #include <chrono>
 #include <exception>
@@ -545,10 +546,10 @@ void Graph::topologicalSortDFS(Node::Ptr node,
 }
 
 void Graph::optimizeGraph() {
-  // Placeholder for future optimizations
-  // - Node fusion
-  // - Constant propagation
-  // - Dead code elimination
+  // Resources
+  // https://github.com/openvinotoolkit/openvino/blob/master/src/plugins/intel_cpu/docs/internal_cpu_plugin_optimization.md
+  // https://github.com/openvinotoolkit/openvino/tree/master/src/common/transformations
+  passes::NodeFusion::apply(*this);
 }
 
 std::vector<Node::Ptr> Graph::findLeafNodes() const {
