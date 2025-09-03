@@ -8,8 +8,11 @@
 #include <fstream>
 #include <future>
 #include <iostream>
+#include <queue>
 #include <stdexcept>
 #include <thread>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace aistudio {
 
@@ -263,7 +266,6 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
   bool found_merge_result = false;
   for (const auto &leaf : final_leaves) {
     if (leaf->type == NodeType::MERGE && !leaf->dirty) {
-      // Cast to MergeNode and get the result
       auto merge_node = std::dynamic_pointer_cast<MergeNode>(leaf);
       if (merge_node) {
         py::object result = merge_node->getResult();
@@ -320,7 +322,153 @@ void Graph::runParallel() {
     run();
     return;
   }
-  // run parallel
+
+  if (!m_compiled)
+    compile();
+
+  // Check if we have enough nodes AND they're compute-heavy enough to justify
+  // parallel overhead
+  if (m_execution_order.size() < m_multicore_threshold) {
+    run();
+    return;
+  }
+
+  // For small/fast operations, threading overhead > benefit, so use sequential
+  // Only use parallel for genuinely compute-intensive operations
+  bool has_heavy_computation = false;
+  for (const auto &node : m_execution_order) {
+    if (node->type == NodeType::MODEL && node->dirty) {
+      has_heavy_computation = true;
+      break;
+    }
+  }
+
+  if (!has_heavy_computation) {
+    run();
+    return;
+  }
+
+  // Build dependency graph for execution optimization
+  std::unordered_map<Node::Ptr, std::vector<Node::Ptr>> dependencies;
+  std::unordered_map<Node::Ptr, int> in_degree;
+
+  // Initialize dependency tracking
+  for (const auto &node : m_execution_order) {
+    dependencies[node] = {};
+    in_degree[node] = 0;
+  }
+
+  // Build dependency relationships
+  for (const auto &node : m_execution_order) {
+    for (const auto &input_edge : node->getInputEdges()) {
+      if (input_edge) {
+        // Find which node produces this input
+        for (const auto &producer : m_execution_order) {
+          for (const auto &output_edge : producer->getOutputEdges()) {
+            if (input_edge == output_edge) {
+              dependencies[node].push_back(producer);
+              in_degree[node]++;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Execute nodes in dependency-aware
+  std::queue<Node::Ptr> ready_queue;
+  std::unordered_set<Node::Ptr> completed;
+
+  // Find initially ready nodes (no dependencies)
+  for (const auto &node : m_execution_order) {
+    if (in_degree[node] == 0 && node->dirty) {
+      ready_queue.push(node);
+    }
+  }
+
+  // Process execution in waves
+  while (!ready_queue.empty()) {
+    std::vector<Node::Ptr> current_wave;
+
+    // Collect all nodes that can run in this wave
+    while (!ready_queue.empty()) {
+      current_wave.push_back(ready_queue.front());
+      ready_queue.pop();
+    }
+
+    if (current_wave.size() == 1) {
+      // Single node - execute normally
+      Node::Ptr node = current_wave[0];
+      try {
+        if (node->dirty) {
+          node->execute();
+          node->dirty = false;
+        }
+      } catch (const std::exception &e) {
+        std::cerr << "Error executing node '" << node->name << "': " << e.what()
+                  << std::endl;
+        throw;
+      }
+      completed.insert(node);
+    } else {
+      // Multiple independent nodes
+      std::vector<std::future<bool>> futures;
+
+      {
+        py::gil_scoped_release release; // Release GIL
+
+        for (const auto &node : current_wave) {
+          auto future = std::async(std::launch::async, [node]() -> bool {
+            try {
+              // Each thread reacquires GIL only when needed for Python
+              // operations
+              py::gil_scoped_acquire acquire;
+              if (node->dirty) {
+                node->execute();
+                node->dirty = false;
+              }
+              return true;
+            } catch (const std::exception &e) {
+              std::cerr << "Error executing node '" << node->name
+                        << "' in parallel: " << e.what() << std::endl;
+              return false;
+            }
+          });
+          futures.push_back(std::move(future));
+        }
+
+        // Wait for all parallel tasks to complete (merge synchronization)
+        for (size_t i = 0; i < futures.size(); ++i) {
+          bool success = futures[i].get();
+          if (!success) {
+            throw std::runtime_error("Parallel execution failed for node: " +
+                                     current_wave[i]->name);
+          }
+          completed.insert(current_wave[i]);
+        }
+      } // GIL reacquired
+    }
+
+    // Update dependencies and find next ready nodes
+    for (const auto &potential_ready : m_execution_order) {
+      if (completed.find(potential_ready) == completed.end() &&
+          potential_ready->dirty) {
+        // Check if all dependencies of this node are completed
+        bool all_deps_completed = true;
+        for (const auto &dep : dependencies[potential_ready]) {
+          if (completed.find(dep) == completed.end()) {
+            all_deps_completed = false;
+            break;
+          }
+        }
+
+        if (all_deps_completed) {
+          ready_queue.push(potential_ready);
+        }
+      }
+    }
+  }
 }
 
 void Graph::run() {
