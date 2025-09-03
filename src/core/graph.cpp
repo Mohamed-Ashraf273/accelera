@@ -13,7 +13,6 @@
 
 namespace aistudio {
 
-// Constructor/Destructor
 Graph::Graph()
     : m_compiled(false), m_parallel_enabled(false), m_first_node(nullptr) {
   // Automatically create an input node as the starting point
@@ -25,7 +24,6 @@ Graph::Graph()
 
 Graph::~Graph() { clear(); }
 
-// Core node management
 Node::Ptr Graph::add_node(NodeType type, const std::string &name,
                           py::object py_func, size_t num_inputs,
                           size_t num_outputs) {
@@ -223,7 +221,6 @@ void Graph::split(const std::string &branch_name,
   m_compiled = false;
 }
 
-// Graph operations
 void Graph::compile() {
   if (m_compiled)
     return;
@@ -236,12 +233,10 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
   if (!m_compiled)
     compile();
 
-  // Set input data on the input node
   if (m_input_node) {
     m_input_node->setInputData(X, y);
   }
 
-  // Execute nodes
   if (m_parallel_enabled) {
     runParallel();
   } else {
@@ -301,7 +296,6 @@ void Graph::clear() {
   m_first_node = m_input_node;
 }
 
-// Parallel execution
 void Graph::enableParallelExecution(bool enable) {
   m_parallel_enabled = enable;
 }
@@ -315,116 +309,7 @@ void Graph::runParallel() {
     run();
     return;
   }
-
-  auto sorted_nodes = topologicalSort();
-  std::vector<std::vector<Node::Ptr>> execution_levels;
-  std::vector<int> node_levels(sorted_nodes.size(), -1);
-
-  // Calculate execution levels for parallel execution
-  for (size_t i = 0; i < sorted_nodes.size(); ++i) {
-    int max_input_level = -1;
-    auto &node = sorted_nodes[i];
-
-    for (auto &input_edge : node->getInputEdges()) {
-      if (input_edge) {
-        for (size_t j = 0; j < i; ++j) {
-          auto &dep_node = sorted_nodes[j];
-          for (auto &output_edge : dep_node->getOutputEdges()) {
-            if (output_edge == input_edge) {
-              max_input_level = std::max(max_input_level, node_levels[j]);
-              break;
-            }
-          }
-        }
-      }
-    }
-
-    int current_level = max_input_level + 1;
-    node_levels[i] = current_level;
-
-    if (current_level >= (int)execution_levels.size()) {
-      execution_levels.resize(current_level + 1);
-    }
-    execution_levels[current_level].push_back(node);
-  }
-
-  // Execute levels with optimal parallelism
-  for (auto &level : execution_levels) {
-    if (level.size() == 1) {
-      // Single node - execute directly
-      try {
-        py::gil_scoped_acquire acquire;
-        level[0]->execute();
-        level[0]->dirty = false;
-      } catch (const std::exception &e) {
-        std::cerr << "Error executing node '" << level[0]->name
-                  << "': " << e.what() << std::endl;
-        throw;
-      }
-    } else if (level.size() >= m_multicore_threshold) {
-      // Use std::async for true multicore execution when beneficial
-      std::vector<std::future<void>> futures;
-      std::vector<std::exception_ptr> exceptions(level.size());
-
-      for (size_t i = 0; i < level.size(); ++i) {
-        futures.emplace_back(
-            std::async(std::launch::async, [&level, &exceptions, i]() {
-              try {
-                py::gil_scoped_acquire acquire;
-                level[i]->execute();
-                level[i]->dirty = false;
-              } catch (...) {
-                exceptions[i] = std::current_exception();
-              }
-            }));
-      }
-
-      // Wait for all tasks to complete
-      for (auto &future : futures) {
-        future.wait();
-      }
-
-      // Check for exceptions
-      for (size_t i = 0; i < exceptions.size(); ++i) {
-        if (exceptions[i]) {
-          std::cerr << "Error executing node '" << level[i]->name
-                    << "' in parallel" << std::endl;
-          std::rethrow_exception(exceptions[i]);
-        }
-      }
-    } else {
-      // Use threads for smaller groups to avoid overhead
-      std::vector<std::thread> threads;
-      std::vector<std::exception_ptr> exceptions(level.size());
-
-      for (size_t i = 0; i < level.size(); ++i) {
-        threads.emplace_back([&level, &exceptions, i]() {
-          try {
-            py::gil_scoped_acquire acquire;
-            level[i]->execute();
-            level[i]->dirty = false;
-          } catch (...) {
-            exceptions[i] = std::current_exception();
-          }
-        });
-      }
-
-      {
-        py::gil_scoped_release release;
-        for (auto &thread : threads) {
-          thread.join();
-        }
-      }
-
-      for (size_t i = 0; i < exceptions.size(); ++i) {
-        if (exceptions[i]) {
-          std::cerr << "Error executing node '" << level[i]->name
-                    << "' in parallel" << std::endl;
-          std::rethrow_exception(exceptions[i]);
-        }
-      }
-    }
-  }
+  // run parallel
 }
 
 void Graph::run() {

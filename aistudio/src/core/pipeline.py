@@ -25,7 +25,6 @@ class Pipeline:
         if branch:
             return NodeWrapper("preprocess", name, func)
 
-        # Preprocess nodes need 2 inputs (X, y) and 2 outputs (processed_X, y)
         self._graph.add_node(graph.NodeType.PREPROCESS, name, func, 2, 2)
         return self
 
@@ -33,7 +32,6 @@ class Pipeline:
         if branch:
             return NodeWrapper("model", name, model)
 
-        # Model nodes need 2 inputs (X, y) and 1 output (trained_model)
         self._graph.add_node(graph.NodeType.MODEL, name, model, 2, 1)
         return self
 
@@ -52,9 +50,7 @@ class Pipeline:
         for node in branch_nodes:
             if isinstance(node, NodeWrapper):
                 branch_objects.append(node.obj)
-                node_types.append(
-                    node.node_type.upper()
-                )  # Convert to uppercase
+                node_types.append(node.node_type.upper())
                 node_names.append(node.name)
             else:
                 branch_objects.append(node)
@@ -65,17 +61,14 @@ class Pipeline:
         return self
 
     def merge(self, name, merge_func):
-        """Merge branches - all logic in C++"""
         self._graph.mergeBranches(name, merge_func)
         return self
 
     def enable_parallel(self, enable=True):
-        """Enable or disable parallel execution"""
         self._graph.enableParallelExecution(enable)
         return self
 
     def set_multicore_threshold(self, threshold):
-        """Set minimum number of tasks to use multicore execution"""
         self._graph.setMulticoreThreshold(threshold)
         return self
 

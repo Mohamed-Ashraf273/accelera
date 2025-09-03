@@ -16,16 +16,13 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
     throw std::runtime_error("Failed to open file for writing: " + filepath);
   }
 
-  // Write OpenVINO-compatible XML format
   file << "<?xml version=\"1.0\"?>\n";
   file << "<net name=\"AI_Studio_Pipeline\" version=\"11\">\n";
 
-  // Add layers (nodes)
   file << "\t<layers>\n";
   for (size_t i = 0; i < m_nodes.size(); ++i) {
     const auto &node = m_nodes[i];
 
-    // Use the actual node type names
     std::string layer_type;
     switch (node->type) {
     case NodeType::INPUT:
@@ -54,7 +51,6 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
     file << "\t\t<layer id=\"" << i << "\" name=\"" << node->name
          << "\" type=\"" << layer_type << "\">\n";
 
-    // Add data section for parameters
     if (!node->py_func.is_none() && py::hasattr(node->py_func, "get_params")) {
       try {
         py::dict params = node->py_func.attr("get_params")();
@@ -75,7 +71,6 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
       file << "\t\t\t<data/>\n";
     }
 
-    // Add input ports
     if (node->getInputEdges().size() > 0) {
       file << "\t\t\t<input>\n";
       for (size_t in_idx = 0; in_idx < node->getInputEdges().size(); ++in_idx) {
@@ -87,7 +82,6 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
       file << "\t\t\t</input>\n";
     }
 
-    // Add output ports
     if (node->getOutputEdges().size() > 0) {
       file << "\t\t\t<output>\n";
       for (size_t out_idx = 0; out_idx < node->getOutputEdges().size();
@@ -106,7 +100,6 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
   }
   file << "\t</layers>\n";
 
-  // Add edges (connections)
   file << "\t<edges>\n";
   for (size_t i = 0; i < m_nodes.size(); ++i) {
     const auto &node = m_nodes[i];
@@ -140,7 +133,6 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
   }
   file << "\t</edges>\n";
 
-  // Add meta information
   file << "\t<meta_data>\n";
   file << "\t\t<MO_version value=\"AI Studio Graph Serializer\"/>\n";
   file << "\t\t<cli_parameters>\n";
