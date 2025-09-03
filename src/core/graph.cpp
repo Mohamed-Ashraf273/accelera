@@ -2,8 +2,10 @@
 #include "core/node_factory.hpp"
 #include "nodes/branch.hpp"
 #include <algorithm>
+#include <chrono>
 #include <exception>
 #include <fstream>
+#include <future>
 #include <iostream>
 #include <stdexcept>
 #include <thread>
@@ -120,6 +122,10 @@ void Graph::enableParallelExecution(bool enable) {
   m_parallel_enabled = enable;
 }
 
+void Graph::setMulticoreThreshold(size_t threshold) {
+  m_multicore_threshold = threshold;
+}
+
 void Graph::runParallel() {
   if (!m_parallel_enabled) {
     run();
@@ -158,9 +164,10 @@ void Graph::runParallel() {
     execution_levels[current_level].push_back(node);
   }
 
-  // Execute levels with parallelism within each level
+  // Execute levels with optimal parallelism
   for (auto &level : execution_levels) {
     if (level.size() == 1) {
+      // Single node - execute directly
       try {
         py::gil_scoped_acquire acquire;
         level[0]->execute();
@@ -170,8 +177,39 @@ void Graph::runParallel() {
                   << "': " << e.what() << std::endl;
         throw;
       }
+    } else if (level.size() >= m_multicore_threshold) {
+      // Use std::async for true multicore execution when beneficial
+      std::vector<std::future<void>> futures;
+      std::vector<std::exception_ptr> exceptions(level.size());
+
+      for (size_t i = 0; i < level.size(); ++i) {
+        futures.emplace_back(
+            std::async(std::launch::async, [&level, &exceptions, i]() {
+              try {
+                py::gil_scoped_acquire acquire;
+                level[i]->execute();
+                level[i]->dirty = false;
+              } catch (...) {
+                exceptions[i] = std::current_exception();
+              }
+            }));
+      }
+
+      // Wait for all tasks to complete
+      for (auto &future : futures) {
+        future.wait();
+      }
+
+      // Check for exceptions
+      for (size_t i = 0; i < exceptions.size(); ++i) {
+        if (exceptions[i]) {
+          std::cerr << "Error executing node '" << level[i]->name
+                    << "' in parallel" << std::endl;
+          std::rethrow_exception(exceptions[i]);
+        }
+      }
     } else {
-      // Parallel execution
+      // Use threads for smaller groups to avoid overhead
       std::vector<std::thread> threads;
       std::vector<std::exception_ptr> exceptions(level.size());
 
@@ -478,6 +516,71 @@ void Graph::startBranching(const std::string &branch_name,
                                    "_" + std::to_string(++m_node_counter);
     Node::Ptr branch_node =
         add_node(NodeType::MODEL, branch_node_name, branch_model, 2, 1);
+
+    // Connect both X and y from the branching point
+    branch_from->connectTo(0, branch_node, 0);
+    branch_from->connectTo(1, branch_node, 1);
+
+    m_branch_tails.push_back(branch_node_name);
+  }
+}
+
+void Graph::startBranchingWithTypes(
+    const std::string &branch_name,
+    const std::vector<py::object> &branch_objects,
+    const std::vector<std::string> &node_types,
+    const std::vector<std::string> &node_names) {
+  if (m_is_branched) {
+    throw std::runtime_error("Already in branched mode - merge first");
+  }
+  if (m_sequential_nodes.empty()) {
+    throw std::runtime_error("Cannot branch - no previous node to branch from");
+  }
+
+  if (branch_objects.size() != node_types.size() ||
+      branch_objects.size() != node_names.size()) {
+    throw std::runtime_error(
+        "Branch objects, types, and names must have same size");
+  }
+
+  Node::Ptr branch_from = findNodeByName(m_sequential_nodes.back());
+  if (!branch_from) {
+    throw std::runtime_error("Cannot find branch source node: " +
+                             m_sequential_nodes.back());
+  }
+
+  m_is_branched = true;
+  m_branch_tails.clear();
+
+  // Create branches for each object with specified type
+  for (size_t i = 0; i < branch_objects.size(); ++i) {
+    py::object branch_obj = branch_objects[i];
+    std::string node_type = node_types[i];
+    std::string base_name = node_names[i];
+
+    std::string branch_node_name = branch_name + "_path_" + std::to_string(i) +
+                                   "_" + base_name + "_" +
+                                   std::to_string(++m_node_counter);
+
+    Node::Ptr branch_node;
+
+    // Create node based on specified type
+    if (node_type == "preprocess") {
+      branch_node =
+          add_node(NodeType::PREPROCESS, branch_node_name, branch_obj, 2, 2);
+    } else if (node_type == "model") {
+      if (!py::hasattr(branch_obj, "fit")) {
+        throw std::runtime_error("Model node '" + base_name +
+                                 "' must have 'fit' method");
+      }
+      branch_node =
+          add_node(NodeType::MODEL, branch_node_name, branch_obj, 2, 1);
+    } else if (node_type == "predict") {
+      branch_node =
+          add_node(NodeType::PREDICT, branch_node_name, branch_obj, 2, 1);
+    } else {
+      throw std::runtime_error("Unknown node type: " + node_type);
+    }
 
     // Connect both X and y from the branching point
     branch_from->connectTo(0, branch_node, 0);

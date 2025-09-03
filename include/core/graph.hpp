@@ -30,6 +30,10 @@ public:
                          py::object obj);
   void startBranching(const std::string &branch_name,
                       const std::vector<py::object> &branch_models);
+  void startBranchingWithTypes(const std::string &branch_name,
+                               const std::vector<py::object> &branch_objects,
+                               const std::vector<std::string> &node_types,
+                               const std::vector<std::string> &node_names);
   void addToBranches(const std::string &node_type, const std::string &name,
                      py::object obj);
   void mergeBranches(const std::string &merge_name, py::object merge_func);
@@ -37,6 +41,7 @@ public:
 
   // Parallel execution
   void enableParallelExecution(bool enable = true);
+  void setMulticoreThreshold(size_t threshold);
 
   // Accessors
   const std::vector<Node::Ptr> &getNodes() const;
@@ -67,6 +72,7 @@ private:
   std::unordered_map<std::string, Node::Ptr> m_node_map; // Fast node lookup
   bool m_compiled = false;
   bool m_parallel_enabled = false;
+  size_t m_multicore_threshold = 3; // Minimum tasks to use multicore
   Node::Ptr m_first_node = nullptr;
 
   // Pipeline state management

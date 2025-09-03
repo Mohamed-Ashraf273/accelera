@@ -19,8 +19,8 @@ p = Pipeline()
 p.preprocess("power", lambda x: x**2)
 p.branch(
     "branch1",
-    LogisticRegression(random_state=42),
-    SVC(probability=True, random_state=42),
+    p.model("logreg", LogisticRegression(random_state=42), branch=True),
+    p.model("svc", SVC(probability=True, random_state=42), branch=True),
 )
 p.predict("predict", test_data)
 p.merge("mean", lambda preds: np.mean(preds, axis=0))

@@ -49,6 +49,10 @@ PYBIND11_MODULE(graph, m) {
       .def("enableParallelExecution", &Graph::enableParallelExecution,
            py::arg("enable") = true, "Enable or disable parallel execution")
 
+      .def("setMulticoreThreshold", &Graph::setMulticoreThreshold,
+           py::arg("threshold"),
+           "Set minimum number of tasks to use multicore execution")
+
       .def("get_nodes", &Graph::getNodes, "Get all nodes in the graph")
 
       // Pipeline management methods
@@ -56,6 +60,10 @@ PYBIND11_MODULE(graph, m) {
            py::arg("name"), py::arg("obj"), "Add node in sequential mode")
       .def("startBranching", &Graph::startBranching, py::arg("branch_name"),
            py::arg("branch_models"), "Start branching mode from current node")
+      .def("startBranchingWithTypes", &Graph::startBranchingWithTypes,
+           py::arg("branch_name"), py::arg("branch_objects"),
+           py::arg("node_types"), py::arg("node_names"),
+           "Start branching with explicit node types")
       .def("addToBranches", &Graph::addToBranches, py::arg("node_type"),
            py::arg("name"), py::arg("obj"), "Add node to all current branches")
       .def("mergeBranches", &Graph::mergeBranches, py::arg("merge_name"),
