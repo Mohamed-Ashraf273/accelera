@@ -52,7 +52,6 @@ test_data = np.random.rand(10, 20)
 
 # Build pipeline with parallel branches
 pipeline = Pipeline()
-pipeline.enable_parallel(True)  # Enable true parallel execution
 
 # Create parallel ensemble
 pipeline.branch("ensemble",
@@ -65,7 +64,6 @@ pipeline.branch("ensemble",
 pipeline.predict("predictions", test_data)
 pipeline.merge("final", lambda preds: np.mean(preds, axis=0))
 
-# Execute with automatic parallelization
 results = pipeline(X, y)
 print(f"Predictions: {results}")
 ```
@@ -75,8 +73,7 @@ print(f"Predictions: {results}")
 ```python
 # Heavy computation example (4x speedup!)
 pipeline = Pipeline()
-pipeline.enable_parallel(True)
-
+=
 # These will run in parallel across CPU cores
 pipeline.branch("heavy_models",
     pipeline.model("rf1", RandomForestClassifier(n_estimators=100)),
@@ -193,29 +190,6 @@ AI Studio's breakthrough parallel execution works by:
 | Ensemble (4 models) | 45.2s | 12.1s | **3.74x** |
 
 *Light operations are faster sequential due to threading overhead
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Here's how to get started:
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Follow** the development setup above
-4. **Make** your changes with tests
-5. **Run** pre-commit hooks (`pre-commit run --all-files --hook-stage manual`)
-6. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-7. **Push** to the branch (`git push origin feature/amazing-feature`)
-8. **Open** a Pull Request
-
-### Code Standards
-
-- **C++17** standard compliance
-- **Python 3.9+** compatibility
-- **Type hints** required for Python code
-- **Comprehensive tests** for new features
-- **Documentation** for public APIs
 
 ---
 
