@@ -17,6 +17,7 @@ class NodeWrapper:
 class Pipeline:
     def __init__(self):
         self._graph = graph.Graph()
+        self._graph.enableParallelExecution(True)
 
     def __call__(self, X, y=None):
         return self._graph.execute(X, y)
@@ -62,10 +63,6 @@ class Pipeline:
 
     def merge(self, name, merge_func):
         self._graph.mergeBranches(name, merge_func)
-        return self
-
-    def enable_parallel(self, enable=True):
-        self._graph.enableParallelExecution(enable)
         return self
 
     def set_multicore_threshold(self, threshold):
