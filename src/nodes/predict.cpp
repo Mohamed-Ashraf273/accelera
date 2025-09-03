@@ -1,5 +1,8 @@
 #include "nodes/predict.hpp"
+#include "core/graph.hpp"
+#include <functional>
 #include <iostream>
+#include <memory>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -101,8 +104,31 @@ void PredictNode::execute() {
       }
     }
 
-    // Perform prediction using the fitted model
-    py::object predictions = fitted_model.attr("predict")(X_to_predict);
+    // BUGFIX: Apply preprocessing to test data using graph's preprocessing
+    // functions
+    py::object X_preprocessed = X_to_predict;
+
+    // Get preprocessing functions from the graph
+    if (getGraph()) {
+      const auto &preprocess_functions =
+          getGraph()->getPreprocessingFunctions();
+
+      // Apply each preprocessing function in order
+      for (const auto &preprocess_func : preprocess_functions) {
+        if (!preprocess_func.is_none()) {
+          try {
+            X_preprocessed = preprocess_func(X_preprocessed);
+          } catch (const py::error_already_set &e) {
+            std::cerr << "Warning: Failed to apply preprocessing to test data: "
+                      << e.what() << std::endl;
+            // Continue with partially preprocessed data if one function fails
+          }
+        }
+      }
+    }
+
+    // Perform prediction using the fitted model on preprocessed test data
+    py::object predictions = fitted_model.attr("predict")(X_preprocessed);
 
     if (py::isinstance<py::array>(predictions)) {
       py::array pred_array = predictions.cast<py::array>();

@@ -1,4 +1,5 @@
 #include "core/node.hpp"
+#include "core/graph.hpp"
 #include <iostream>
 #include <stdexcept>
 
@@ -75,5 +76,9 @@ void Node::connectTo(size_t myOutputIndex, Node::Ptr targetNode,
   // Share the edge between output and input
   targetNode->m_inputEdges[targetInputIndex] = m_outputEdges[myOutputIndex];
 }
+
+void Node::setGraph(Graph *graph) { m_graph = graph; }
+
+Graph *Node::getGraph() const { return m_graph; }
 
 } // namespace aistudio
