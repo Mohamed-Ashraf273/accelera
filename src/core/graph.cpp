@@ -29,11 +29,20 @@ Node::Ptr Graph::add_node(NodeType type, const std::string &name,
                           size_t num_outputs) {
   auto node =
       NodeFactory::createNode(type, name, num_inputs, num_outputs, py_func);
+
+  // Store preprocessing functions for later use in predict nodes
+  if (type == NodeType::PREPROCESS && !py_func.is_none()) {
+    m_preprocessing_functions.push_back(py_func);
+  }
+
   addNode(node);
   return node;
 }
 
 void Graph::addNode(Node::Ptr node) {
+  // Set graph pointer for the node
+  node->setGraph(this);
+
   // Find all current leaf nodes before adding the new node
   std::vector<Node::Ptr> leaves = findLeafNodes();
 
@@ -78,6 +87,8 @@ void Graph::addNode(Node::Ptr node) {
 
         nodeToAdd = NodeFactory::createNode(node->type, copyName, numInputs,
                                             numOutputs, node->py_func);
+        // Set graph pointer for copied node
+        nodeToAdd->setGraph(this);
       }
 
       // Add the node to the graph
@@ -334,6 +345,10 @@ void Graph::run() {
 const std::vector<Node::Ptr> &Graph::getNodes() const { return m_nodes; }
 
 bool Graph::isCompiled() const { return m_compiled; }
+
+const std::vector<py::object> &Graph::getPreprocessingFunctions() const {
+  return m_preprocessing_functions;
+}
 
 // Topological sort implementation
 std::vector<Node::Ptr> Graph::topologicalSort() {

@@ -41,6 +41,9 @@ public:
   const std::vector<Node::Ptr> &getNodes() const;
   bool isCompiled() const;
 
+  // Preprocessing function access
+  const std::vector<py::object> &getPreprocessingFunctions() const;
+
 private:
   // Core execution methods
   void run();
@@ -73,6 +76,9 @@ private:
   bool m_is_branched = false;
   std::vector<std::string> m_branch_tails;
   int m_node_counter = 0;
+
+  // Preprocessing functions storage for test data preprocessing
+  std::vector<py::object> m_preprocessing_functions;
 };
 
 } // namespace aistudio
