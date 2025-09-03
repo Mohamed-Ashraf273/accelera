@@ -255,7 +255,6 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
   bool found_merge_result = false;
   for (const auto &leaf : final_leaves) {
     if (leaf->type == NodeType::MERGE && !leaf->dirty) {
-      // Cast to MergeNode and get the result
       auto merge_node = std::dynamic_pointer_cast<MergeNode>(leaf);
       if (merge_node) {
         py::object result = merge_node->getResult();
@@ -319,7 +318,7 @@ void Graph::runParallel() {
   // Check if we have enough nodes AND they're compute-heavy enough to justify
   // parallel overhead
   if (m_execution_order.size() < m_multicore_threshold) {
-    run(); // Fall back to sequential execution
+    run();
     return;
   }
 
@@ -328,26 +327,15 @@ void Graph::runParallel() {
   bool has_heavy_computation = false;
   for (const auto &node : m_execution_order) {
     if (node->type == NodeType::MODEL && node->dirty) {
-      has_heavy_computation = true; // Model training is compute-heavy
+      has_heavy_computation = true;
       break;
     }
   }
 
   if (!has_heavy_computation) {
-    run(); // Use faster sequential execution for lightweight operations
+    run();
     return;
   }
-
-  // REALITY CHECK: True parallelism with Python requires one of these
-  // approaches:
-  // 1. Separate Python processes (fork/exec) - high overhead, true parallelism
-  // 2. C++ only computations - bypass Python entirely for compute-heavy work
-  // 3. NumPy/BLAS operations - these release GIL internally
-  // 4. Joblib/multiprocessing at Python level - better process management
-  //
-  // Current approach: Optimized threading with GIL management
-  // Trade-off: Some overhead for potential parallelism when tasks are large
-  // enough
 
   // Build dependency graph for execution optimization
   std::unordered_map<Node::Ptr, std::vector<Node::Ptr>> dependencies;
@@ -377,7 +365,7 @@ void Graph::runParallel() {
     }
   }
 
-  // Execute nodes in dependency-aware order with TRUE parallel execution
+  // Execute nodes in dependency-aware
   std::queue<Node::Ptr> ready_queue;
   std::unordered_set<Node::Ptr> completed;
 
@@ -388,11 +376,11 @@ void Graph::runParallel() {
     }
   }
 
-  // Process execution in waves - each wave can be truly parallelized
+  // Process execution in waves
   while (!ready_queue.empty()) {
     std::vector<Node::Ptr> current_wave;
 
-    // Collect all nodes that can run in this wave (independent branches)
+    // Collect all nodes that can run in this wave
     while (!ready_queue.empty()) {
       current_wave.push_back(ready_queue.front());
       ready_queue.pop();
@@ -413,11 +401,11 @@ void Graph::runParallel() {
       }
       completed.insert(node);
     } else {
-      // Multiple independent nodes - use TRUE multiprocessing to bypass GIL
+      // Multiple independent nodes
       std::vector<std::future<bool>> futures;
 
       {
-        py::gil_scoped_release release; // Release GIL for true parallelism
+        py::gil_scoped_release release; // Release GIL
 
         for (const auto &node : current_wave) {
           auto future = std::async(std::launch::async, [node]() -> bool {
@@ -448,7 +436,7 @@ void Graph::runParallel() {
           }
           completed.insert(current_wave[i]);
         }
-      } // GIL reacquired here
+      } // GIL reacquired
     }
 
     // Update dependencies and find next ready nodes
