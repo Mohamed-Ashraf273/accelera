@@ -5,3 +5,4 @@ since your modifications would be overwritten.
 """
 
 from aistudio.src.core import pipeline as pipeline
+from aistudio.src.core import pipeline_test as pipeline_test

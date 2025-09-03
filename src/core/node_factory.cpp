@@ -1,6 +1,6 @@
 #include "core/node_factory.hpp"
-#include "nodes/branch.hpp"
 #include "nodes/feature.hpp"
+#include "nodes/merge.hpp"
 #include "nodes/model.hpp"
 #include "nodes/predict.hpp"
 #include "nodes/preprocess.hpp"
@@ -21,8 +21,8 @@ Node::Ptr NodeFactory::createNode(NodeType type, const std::string &name,
     return std::make_shared<ModelNode>(name, numInputs, numOutputs, py_func);
   case NodeType::PREDICT:
     return std::make_shared<PredictNode>(name, numInputs, numOutputs, py_func);
-  case NodeType::BRANCH:
-    return std::make_shared<BranchNode>(name, numInputs, numOutputs, py_func);
+  case NodeType::MERGE:
+    return std::make_shared<MergeNode>(name, numInputs, numOutputs, py_func);
   default:
     throw std::invalid_argument("Unknown node type: " +
                                 std::to_string(static_cast<int>(type)));

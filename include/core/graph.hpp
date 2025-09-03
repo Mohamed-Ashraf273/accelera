@@ -4,83 +4,75 @@
 #include "node.hpp"
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 namespace aistudio {
+
+class InputNode; // Forward declaration
 
 class __attribute__((visibility("default"))) Graph {
 public:
   Graph();
   ~Graph();
 
+  // Core node management
   Node::Ptr add_node(NodeType type, const std::string &name, py::object py_func,
                      size_t num_inputs = 1, size_t num_outputs = 1);
-  Node::Ptr add_branch_node(const std::string &name,
-                            const std::vector<Node::Ptr> &branches);
   void addNode(Node::Ptr node);
-
-  Node::Ptr createBranch(const std::string &name,
-                         const std::vector<Node::Ptr> &models,
-                         py::object merge_func = py::none());
-  std::vector<Node::Ptr>
-  duplicateNodeForBranches(Node::Ptr template_node,
-                           const std::vector<Node::Ptr> &branch_models);
-  std::vector<py::object>
-  collectBranchResults(const std::vector<Node::Ptr> &result_nodes);
-
-  std::vector<Node::Ptr> createBranchPipeline(
-      const std::string &branch_name, const std::vector<Node::Ptr> &models,
-      const std::string &predict_name, py::object test_data = py::none());
-  void setFirstNode(Node::Ptr node);
-  Node::Ptr getFirstNode() const;
-
-  // Parallel execution support
-  void enableParallelExecution(bool enable = true);
-  void runParallel();
 
   // Graph operations
   void compile();
-  void run();
-  std::vector<py::object>
-  execute(py::object X,
-          py::object y); // Execute with inputs and return predictions
-  void autoConnectNodes();
+  std::vector<py::object> execute(py::object X, py::object y);
   void clear();
 
-  // Input/output management
-  void set_input(Node::Ptr node, size_t input_index, py::object data);
-  py::object get_output(Node::Ptr node, size_t output_index = 0);
+  void split(const std::string &branch_name,
+             const std::vector<py::object> &branch_objects,
+             const std::vector<std::string> &node_types,
+             const std::vector<std::string> &node_names);
+  void mergeBranches(const std::string &merge_name, py::object merge_func);
 
-  // Serialization
-  void serialize(const std::string &filepath) const;
-  void serializeDot(const std::string &filepath) const;
+  // Parallel execution
+  void enableParallelExecution(bool enable = true);
+  void setMulticoreThreshold(size_t threshold);
 
   // Accessors
   const std::vector<Node::Ptr> &getNodes() const;
   bool isCompiled() const;
 
-  // Branch operations - create predict nodes for existing branches
-  std::vector<Node::Ptr>
-  createPredictForBranches(const std::string &predict_name,
-                           const std::vector<Node::Ptr> &models,
-                           py::object test_data = py::none());
-
 private:
+  // Core execution methods
+  void run();
+  void runParallel();
+
   // Topological sorting
   std::vector<Node::Ptr> topologicalSort();
   void topologicalSortDFS(Node::Ptr node, std::unordered_set<Node *> &visited,
                           std::unordered_set<Node *> &temp_visited,
                           std::vector<Node::Ptr> &result);
 
-  // Graph optimization
+  // Utility methods
   void optimizeGraph();
+  std::vector<Node::Ptr> findLeafNodes() const;
+  bool shouldReplaceFirstNode(Node::Ptr node) const;
+  Node::Ptr findNodeByName(const std::string &name) const;
 
+  // Core data members
   std::vector<Node::Ptr> m_nodes;
   std::vector<Node::Ptr> m_execution_order;
+  std::unordered_map<std::string, Node::Ptr> m_node_map; // Fast node lookup
   bool m_compiled = false;
-  bool m_parallel_enabled = false;  // Parallel execution flag
-  Node::Ptr m_first_node = nullptr; // Track first node for input
+  bool m_parallel_enabled = false;
+  size_t m_multicore_threshold = 3; // Minimum tasks to use multicore
+  Node::Ptr m_first_node = nullptr;
+  std::shared_ptr<InputNode> m_input_node = nullptr; // Automatic input node
+
+  // Pipeline state management
+  std::vector<std::string> m_sequential_nodes;
+  bool m_is_branched = false;
+  std::vector<std::string> m_branch_tails;
+  int m_node_counter = 0;
 };
 
 } // namespace aistudio

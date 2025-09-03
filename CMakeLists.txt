@@ -19,8 +19,9 @@ endif()
 
 file(GLOB_RECURSE CORE_SOURCES "${CMAKE_SOURCE_DIR}/src/core/*.cpp")
 file(GLOB_RECURSE NODE_SOURCES "${CMAKE_SOURCE_DIR}/src/nodes/*.cpp")
+file(GLOB_RECURSE UTILS_SOURCES "${CMAKE_SOURCE_DIR}/src/utils/*.cpp")
 
-add_library(aistudio_core STATIC ${CORE_SOURCES} ${NODE_SOURCES})
+add_library(aistudio_core STATIC ${CORE_SOURCES} ${NODE_SOURCES} ${UTILS_SOURCES})
 target_include_directories(aistudio_core PUBLIC "${CMAKE_SOURCE_DIR}/include")
 target_link_libraries(aistudio_core PUBLIC pybind11::module)
 set_target_properties(aistudio_core PROPERTIES POSITION_INDEPENDENT_CODE ON)

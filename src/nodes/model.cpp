@@ -30,28 +30,29 @@ void ModelNode::execute() {
     py::object X = inputs[0];
     py::object y = inputs[1];
 
-    // Validate that inputs are arrays/tensors
+    // Validate inputs
     if (X.is_none() || y.is_none()) {
       throw std::runtime_error("Model node '" + name +
                                "' received None inputs");
     }
 
-    // Check if inputs have array-like properties (shape, etc.)
     if (!py::hasattr(X, "shape") || !py::hasattr(y, "shape")) {
       throw std::runtime_error("Model node '" + name +
                                "' inputs must be array-like objects");
     }
 
+    // Fit the model
     py::object model_instance = py_func;
     model_instance.attr("fit")(X, y);
 
     setOutputs(model_instance);
 
   } catch (const py::error_already_set &e) {
-    throw std::runtime_error("ModelNode: Python error during execution");
-
+    throw std::runtime_error("ModelNode: Python error during execution: " +
+                             std::string(e.what()));
   } catch (const std::exception &e) {
-    throw std::runtime_error("ModelNode: Error during execution");
+    throw std::runtime_error("ModelNode: Error during execution: " +
+                             std::string(e.what()));
   }
 }
 
