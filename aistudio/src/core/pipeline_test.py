@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-"""
-Focused correctness tests for AI Studio Pipeline
-"""
-
 import numpy as np
 from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
