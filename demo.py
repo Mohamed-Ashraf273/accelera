@@ -28,5 +28,6 @@ p.branch(
     p.model("svc", SVC(probability=True, random_state=42), branch=True),
 )
 p.predict("predict", test_data)
-p.serialize("pipeline.xml")
+p.merge("mean", lambda preds: np.mean(preds, axis=0))
+p.serialize("pipeline_with merge.xml")
 # print("Predictions:", p(X, y))

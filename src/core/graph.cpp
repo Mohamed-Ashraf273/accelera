@@ -50,6 +50,8 @@ void Graph::addNode(Node::Ptr node) {
     }
   } else {
     // Create a copy of the node for each leaf and connect them
+    std::vector<std::string> new_branch_tails; // Track new tails if in branched mode
+    
     for (size_t i = 0; i < leaves.size(); ++i) {
       Node::Ptr nodeToAdd;
 
@@ -75,6 +77,16 @@ void Graph::addNode(Node::Ptr node) {
           !nodeToAdd->getInputEdges().empty()) {
         leaves[i]->connectTo(0, nodeToAdd, 0);
       }
+      
+      // If in branched mode, track the new node as a potential branch tail
+      if (m_is_branched) {
+        new_branch_tails.push_back(nodeToAdd->name);
+      }
+    }
+
+    // Update branch tails if we're in branched mode
+    if (m_is_branched && !new_branch_tails.empty()) {
+      m_branch_tails = new_branch_tails;
     }
 
     m_compiled = false;
@@ -491,20 +503,75 @@ void Graph::mergeBranches(const std::string &merge_name,
     throw std::runtime_error("Not in branched mode - nothing to merge");
   }
 
-  Node::Ptr merge_node = add_node(NodeType::FEATURE, merge_name, merge_func,
-                                  m_branch_tails.size(), 1);
+  if (m_branch_tails.size() < 2) {
+    throw std::runtime_error("Need at least 2 branches to merge");
+  }
 
-  // Connect all branch tails to merge node
-  for (size_t i = 0; i < m_branch_tails.size(); ++i) {
-    Node::Ptr tail_node = findNodeByName(m_branch_tails[i]);
+  // Get all branch tail nodes
+  std::vector<Node::Ptr> tail_nodes;
+  for (const auto &tail_name : m_branch_tails) {
+    Node::Ptr tail_node = findNodeByName(tail_name);
     if (tail_node) {
-      tail_node->connectTo(0, merge_node, i);
+      tail_nodes.push_back(tail_node);
     }
+  }
+
+  if (tail_nodes.size() != m_branch_tails.size()) {
+    throw std::runtime_error("Some branch tail nodes not found");
+  }
+
+  // Binary tree merging: pair nodes and merge them level by level
+  std::vector<Node::Ptr> current_level = tail_nodes;
+  int level = 0;
+  
+  while (current_level.size() > 1) {
+    std::vector<Node::Ptr> next_level;
+    
+    // Pair up nodes in the current level
+    for (size_t i = 0; i < current_level.size(); i += 2) {
+      if (i + 1 < current_level.size()) {
+        // We have a pair - create merge node
+        std::string merge_step_name;
+        if (current_level.size() == 2 && level == 0) {
+          // If we only have 2 nodes at the first level, use the final name
+          merge_step_name = merge_name;
+        } else {
+          merge_step_name = merge_name + "_step_" + std::to_string(level) + "_" + std::to_string(i/2);
+        }
+        
+        Node::Ptr merge_node = NodeFactory::createNode(NodeType::MERGE, merge_step_name, 2, 1, merge_func);
+        
+        // Add directly to graph without going through addNode
+        m_nodes.push_back(merge_node);
+        m_node_map[merge_node->name] = merge_node;
+        
+        // Connect the pair to this merge node
+        current_level[i]->connectTo(0, merge_node, 0);
+        current_level[i + 1]->connectTo(0, merge_node, 1);
+        
+        next_level.push_back(merge_node);
+      } else {
+        // Odd node - carry it forward to next level
+        next_level.push_back(current_level[i]);
+      }
+    }
+    
+    current_level = next_level;
+    level++;
+  }
+  
+  // Rename the final merge node to the requested name if it's not already
+  if (current_level.size() == 1 && current_level[0]->name != merge_name) {
+    // Update the node map
+    m_node_map.erase(current_level[0]->name);
+    current_level[0]->name = merge_name;
+    m_node_map[merge_name] = current_level[0];
   }
 
   m_is_branched = false;
   m_branch_tails.clear();
   m_sequential_nodes.push_back(merge_name);
+  m_compiled = false; // Mark for recompilation
 }
 
 } // namespace aistudio
