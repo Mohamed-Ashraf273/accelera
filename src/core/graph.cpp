@@ -2,6 +2,7 @@
 #include "core/node_factory.hpp"
 #include "nodes/input.hpp"
 #include "nodes/merge.hpp"
+#include "passes/node_fusion.hpp"
 #include <algorithm>
 #include <chrono>
 #include <exception>
@@ -348,127 +349,7 @@ void Graph::runParallel() {
     return;
   }
 
-  // Build dependency graph for execution optimization
-  std::unordered_map<Node::Ptr, std::vector<Node::Ptr>> dependencies;
-  std::unordered_map<Node::Ptr, int> in_degree;
-
-  // Initialize dependency tracking
-  for (const auto &node : m_execution_order) {
-    dependencies[node] = {};
-    in_degree[node] = 0;
-  }
-
-  // Build dependency relationships
-  for (const auto &node : m_execution_order) {
-    for (const auto &input_edge : node->getInputEdges()) {
-      if (input_edge) {
-        // Find which node produces this input
-        for (const auto &producer : m_execution_order) {
-          for (const auto &output_edge : producer->getOutputEdges()) {
-            if (input_edge == output_edge) {
-              dependencies[node].push_back(producer);
-              in_degree[node]++;
-              break;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // Execute nodes in dependency-aware
-  std::queue<Node::Ptr> ready_queue;
-  std::unordered_set<Node::Ptr> completed;
-
-  // Find initially ready nodes (no dependencies)
-  for (const auto &node : m_execution_order) {
-    if (in_degree[node] == 0 && node->dirty) {
-      ready_queue.push(node);
-    }
-  }
-
-  // Process execution in waves
-  while (!ready_queue.empty()) {
-    std::vector<Node::Ptr> current_wave;
-
-    // Collect all nodes that can run in this wave
-    while (!ready_queue.empty()) {
-      current_wave.push_back(ready_queue.front());
-      ready_queue.pop();
-    }
-
-    if (current_wave.size() == 1) {
-      // Single node - execute normally
-      Node::Ptr node = current_wave[0];
-      try {
-        if (node->dirty) {
-          node->execute();
-          node->dirty = false;
-        }
-      } catch (const std::exception &e) {
-        std::cerr << "Error executing node '" << node->name << "': " << e.what()
-                  << std::endl;
-        throw;
-      }
-      completed.insert(node);
-    } else {
-      // Multiple independent nodes
-      std::vector<std::future<bool>> futures;
-
-      {
-        py::gil_scoped_release release; // Release GIL
-
-        for (const auto &node : current_wave) {
-          auto future = std::async(std::launch::async, [node]() -> bool {
-            try {
-              // Each thread reacquires GIL only when needed for Python
-              // operations
-              py::gil_scoped_acquire acquire;
-              if (node->dirty) {
-                node->execute();
-                node->dirty = false;
-              }
-              return true;
-            } catch (const std::exception &e) {
-              std::cerr << "Error executing node '" << node->name
-                        << "' in parallel: " << e.what() << std::endl;
-              return false;
-            }
-          });
-          futures.push_back(std::move(future));
-        }
-
-        // Wait for all parallel tasks to complete (merge synchronization)
-        for (size_t i = 0; i < futures.size(); ++i) {
-          bool success = futures[i].get();
-          if (!success) {
-            throw std::runtime_error("Parallel execution failed for node: " +
-                                     current_wave[i]->name);
-          }
-          completed.insert(current_wave[i]);
-        }
-      } // GIL reacquired
-    }
-
-    // Update dependencies and find next ready nodes
-    for (const auto &potential_ready : m_execution_order) {
-      if (completed.find(potential_ready) == completed.end() &&
-          potential_ready->dirty) {
-        // Check if all dependencies of this node are completed
-        bool all_deps_completed = true;
-        for (const auto &dep : dependencies[potential_ready]) {
-          if (completed.find(dep) == completed.end()) {
-            all_deps_completed = false;
-            break;
-          }
-        }
-
-        if (all_deps_completed) {
-          ready_queue.push(potential_ready);
-        }
-      }
-    }
-  }
+  // parallel graph execution will be implemented in the future
 }
 
 void Graph::run() {
@@ -545,10 +426,10 @@ void Graph::topologicalSortDFS(Node::Ptr node,
 }
 
 void Graph::optimizeGraph() {
-  // Placeholder for future optimizations
-  // - Node fusion
-  // - Constant propagation
-  // - Dead code elimination
+  // Resources
+  // https://github.com/openvinotoolkit/openvino/blob/master/src/plugins/intel_cpu/docs/internal_cpu_plugin_optimization.md
+  // https://github.com/openvinotoolkit/openvino/tree/master/src/common/transformations
+  passes::NodeFusion::apply(*this);
 }
 
 std::vector<Node::Ptr> Graph::findLeafNodes() const {

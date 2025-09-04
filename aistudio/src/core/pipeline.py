@@ -17,7 +17,6 @@ class NodeWrapper:
 class Pipeline:
     def __init__(self):
         self._graph = graph.Graph()
-        self._graph.enableParallelExecution(True)
 
     def __call__(self, X, y=None):
         return self._graph.execute(X, y)
