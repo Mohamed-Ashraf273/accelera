@@ -11,6 +11,9 @@ PreprocessNode::PreprocessNode(const std::string &name, size_t numInputs,
     : Node(NodeType::PREPROCESS, name, numInputs, numOutputs, py_func) {}
 
 void PreprocessNode::execute() {
+  // Incomplete node (it should check for instance
+  // with transform method as well)
+
   try {
     py::list inputs = collectInputs();
 
