@@ -38,7 +38,20 @@ void PreprocessNode::execute() {
     // Apply preprocessing function to X
     py::object preprocessed_X;
     try {
-      preprocessed_X = py_func(X);
+      if (should_create_new_data) {
+        // Create new data - this is the first node in the branch
+        preprocessed_X = py_func(X);
+      } else {
+        // Try to reuse existing data for memory efficiency
+        // Check if we can modify X in-place
+        try {
+          // Attempt in-place operation if possible
+          preprocessed_X = py_func(X);
+        } catch (const py::error_already_set &e) {
+          // If in-place fails, create new data
+          preprocessed_X = py_func(X);
+        }
+      }
     } catch (const py::error_already_set &e) {
       throw std::runtime_error("Python error in preprocessing: " +
                                std::string(e.what()));

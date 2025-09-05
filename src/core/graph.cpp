@@ -99,6 +99,21 @@ void Graph::addNode(Node::Ptr node) {
       m_nodes.push_back(nodeToAdd);
       m_node_map[nodeToAdd->name] = nodeToAdd; // Fast lookup
 
+      // Check if this is the first node after input (should create new data)
+      bool is_first_after_input = false;
+      for (const auto &leaf : leaves) {
+        if (leaf->type == NodeType::INPUT) {
+          is_first_after_input = true;
+          break;
+        }
+      }
+
+      // Mark for creating new data if it's first after input or if there are
+      // multiple leaves (branching scenario)
+      if (is_first_after_input || leaves.size() > 1) {
+        nodeToAdd->setShouldCreateNewData(true);
+      }
+
       // Connect the leaf to this node
       // Handle multiple input/output connections for nodes that need both X and
       // y
@@ -209,6 +224,10 @@ void Graph::split(const std::string &branch_name,
       Node::Ptr branchNode =
           NodeFactory::createNode(nodeType, uniqueName, numInputs, numOutputs,
                                   branch_objects[node_idx]);
+
+      // Mark this as a branch head node - should create new data for memory
+      // optimization
+      branchNode->setShouldCreateNewData(true);
 
       // Add to graph
       m_nodes.push_back(branchNode);

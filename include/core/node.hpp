@@ -40,6 +40,7 @@ public:
   std::string name;
   py::object py_func;
   bool dirty = true;
+  bool should_create_new_data = false; // Flag for memory optimization
 
   virtual void execute() = 0;
 
@@ -48,6 +49,10 @@ public:
   const std::vector<std::shared_ptr<Edge>> &getOutputEdges() const;
   void connectTo(size_t myOutputIndex, Node::Ptr targetNode,
                  size_t targetInputIndex);
+
+  // Memory optimization methods
+  void setShouldCreateNewData(bool should_create);
+  bool getShouldCreateNewData() const;
 
 protected:
   py::list collectInputs();

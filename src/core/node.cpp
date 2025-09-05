@@ -81,4 +81,10 @@ void Node::setGraph(Graph *graph) { m_graph = graph; }
 
 Graph *Node::getGraph() const { return m_graph; }
 
+void Node::setShouldCreateNewData(bool should_create) {
+  should_create_new_data = should_create;
+}
+
+bool Node::getShouldCreateNewData() const { return should_create_new_data; }
+
 } // namespace mainera
