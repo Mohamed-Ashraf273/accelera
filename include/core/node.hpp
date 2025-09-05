@@ -9,7 +9,7 @@
 
 namespace py = pybind11;
 
-namespace aistudio {
+namespace mainera {
 
 class Graph; // Forward declaration
 
@@ -58,6 +58,6 @@ protected:
   Graph *m_graph = nullptr; // Pointer to parent graph
 };
 
-} // namespace aistudio
+} // namespace mainera
 
 #endif // NODE_HPP

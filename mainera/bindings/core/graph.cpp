@@ -6,7 +6,7 @@
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
-using namespace aistudio;
+using namespace mainera;
 
 PYBIND11_MODULE(graph, m) {
   m.doc() = "AI Studio C++ core bindings";

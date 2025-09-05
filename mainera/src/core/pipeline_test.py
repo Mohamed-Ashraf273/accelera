@@ -3,7 +3,7 @@ from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 
-from aistudio.src.core.pipeline import Pipeline
+from mainera.src.core.pipeline import Pipeline
 
 
 def test_simple_preprocessing_correctness():

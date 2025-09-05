@@ -6,7 +6,7 @@
 
 namespace py = pybind11;
 
-namespace aistudio {
+namespace mainera {
 
 class __attribute__((visibility("default"))) Edge {
 public:
@@ -24,6 +24,6 @@ private:
   bool m_isReady;
 };
 
-} // namespace aistudio
+} // namespace mainera
 
 #endif // EDGE_HPP

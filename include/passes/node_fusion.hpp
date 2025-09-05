@@ -2,7 +2,7 @@
 
 #include "core/graph.hpp"
 
-namespace aistudio {
+namespace mainera {
 namespace passes {
 
 class NodeFusion {
@@ -11,4 +11,4 @@ public:
 };
 
 } // namespace passes
-} // namespace aistudio
+} // namespace mainera

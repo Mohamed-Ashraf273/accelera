@@ -15,7 +15,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-namespace aistudio {
+namespace mainera {
 
 Graph::Graph()
     : m_compiled(false), m_parallel_enabled(false), m_first_node(nullptr) {
@@ -349,7 +349,7 @@ void Graph::runParallel() {
     return;
   }
 
-  // parallel graph execution will be implemented in the future
+  throw std::runtime_error("Parallel graph execution is not yet implemented.");
 }
 
 void Graph::run() {
@@ -573,4 +573,4 @@ void Graph::mergeBranches(const std::string &merge_name,
   m_compiled = false; // Mark for recompilation
 }
 
-} // namespace aistudio
+} // namespace mainera

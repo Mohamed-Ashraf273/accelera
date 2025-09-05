@@ -4,15 +4,15 @@ import sys
 # Add everything in /api/ to the module search path.
 __path__.append(os.path.join(os.path.dirname(__file__), "api"))  # noqa: F405
 
-from aistudio.api import *  # noqa: F403, E402
+from mainera.api import *  # noqa: F403, E402
 
 current_dir = os.path.dirname(__file__)
 repo_root = current_dir
 
-while not os.path.exists(os.path.join(repo_root, "aistudio")):
+while not os.path.exists(os.path.join(repo_root, "mainera")):
     parent = os.path.dirname(repo_root)
     if parent == repo_root:
-        raise RuntimeError("Cannot find repo root containing 'aistudio/'")
+        raise RuntimeError("Cannot find repo root containing 'mainera/'")
     repo_root = parent
 
 build_path = os.path.join(repo_root, "build", "bindings")

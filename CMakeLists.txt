@@ -22,16 +22,16 @@ file(GLOB_RECURSE NODE_SOURCES "${CMAKE_SOURCE_DIR}/src/nodes/*.cpp")
 file(GLOB_RECURSE UTILS_SOURCES "${CMAKE_SOURCE_DIR}/src/utils/*.cpp")
 file(GLOB_RECURSE PASSES_SOURCES "${CMAKE_SOURCE_DIR}/src/passes/*.cpp")
 
-add_library(aistudio_core STATIC ${CORE_SOURCES} ${NODE_SOURCES} ${UTILS_SOURCES} ${PASSES_SOURCES})
-target_include_directories(aistudio_core PUBLIC "${CMAKE_SOURCE_DIR}/include")
-target_link_libraries(aistudio_core PUBLIC pybind11::module)
-set_target_properties(aistudio_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
+add_library(mainera_core STATIC ${CORE_SOURCES} ${NODE_SOURCES} ${UTILS_SOURCES} ${PASSES_SOURCES})
+target_include_directories(mainera_core PUBLIC "${CMAKE_SOURCE_DIR}/include")
+target_link_libraries(mainera_core PUBLIC pybind11::module)
+set_target_properties(mainera_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bindings")
 
 file(GLOB_RECURSE BINDINGS_SOURCES 
-    "${CMAKE_SOURCE_DIR}/aistudio/bindings/*.cpp"
-    "${CMAKE_SOURCE_DIR}/aistudio/bindings/**/*.cpp"
+    "${CMAKE_SOURCE_DIR}/mainera/bindings/*.cpp"
+    "${CMAKE_SOURCE_DIR}/mainera/bindings/**/*.cpp"
 )
 
 foreach(binding_file ${BINDINGS_SOURCES})
@@ -47,7 +47,7 @@ foreach(binding_file ${BINDINGS_SOURCES})
     message(STATUS "Creating Python module: ${module_name} from ${binding_file}")
     
     pybind11_add_module(${module_name} ${binding_file})
-    target_link_libraries(${module_name} PRIVATE aistudio_core)
+    target_link_libraries(${module_name} PRIVATE mainera_core)
     
     set_target_properties(${module_name} PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bindings"
@@ -57,7 +57,7 @@ endforeach()
 
 message(STATUS "Generated ${BINDINGS_SOURCES} Python modules in ${CMAKE_BINARY_DIR}/bindings/")
 
-install(TARGETS aistudio_core
+install(TARGETS mainera_core
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
 )

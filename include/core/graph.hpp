@@ -8,7 +8,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace aistudio {
+namespace mainera {
 
 class InputNode; // Forward declaration
 
@@ -81,6 +81,6 @@ private:
   std::vector<py::object> m_preprocessing_functions;
 };
 
-} // namespace aistudio
+} // namespace mainera
 
 #endif // GRAPH_HPP

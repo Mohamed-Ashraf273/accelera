@@ -1,4 +1,4 @@
-# AI Studio 🚀
+# mAInera 🚀
 
 **A High-Performance Machine Learning Pipeline Framework**
 
@@ -41,7 +41,7 @@ pip install -r requirements.txt
 ### Basic Usage
 
 ```python
-from aistudio.src.core.pipeline import Pipeline
+from mainera.src.core.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 import numpy as np
@@ -134,10 +134,10 @@ This ensures code quality, formatting, and passes all checks. **Commits without 
 
 ```bash
 # Run all tests
-pytest aistudio/
+pytest mainera/
 
 # Run specific test
-python -c "from aistudio.src.core.pipeline_test import test_parallel_execution_performance; test_parallel_execution_performance()"
+python -c "from mainera.src.core.pipeline_test import test_parallel_execution_performance; test_parallel_execution_performance()"
 
 # Run heavy parallel test
 python test_heavy_parallel.py

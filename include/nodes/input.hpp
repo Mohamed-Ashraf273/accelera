@@ -3,7 +3,7 @@
 
 #include "core/node.hpp"
 
-namespace aistudio {
+namespace mainera {
 
 class InputNode : public Node {
 public:
@@ -21,6 +21,6 @@ private:
   bool m_data_set = false;
 };
 
-} // namespace aistudio
+} // namespace mainera
 
 #endif // INPUT_HPP

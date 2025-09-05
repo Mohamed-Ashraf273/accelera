@@ -4,7 +4,7 @@
 #include "node.hpp"
 #include <memory>
 
-namespace aistudio {
+namespace mainera {
 
 class NodeFactory {
 public:
@@ -13,6 +13,6 @@ public:
                               py::object py_func);
 };
 
-} // namespace aistudio
+} // namespace mainera
 
 #endif // NODE_FACTORY_HPP

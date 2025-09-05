@@ -6,7 +6,7 @@
 
 namespace py = pybind11;
 
-namespace aistudio {
+namespace mainera {
 
 class MergeNode : public Node {
 public:
@@ -22,6 +22,6 @@ private:
   py::object m_result = py::none(); // Store the merge result
 };
 
-} // namespace aistudio
+} // namespace mainera
 
 #endif // MERGE_HPP

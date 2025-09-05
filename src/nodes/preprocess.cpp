@@ -4,7 +4,7 @@
 
 namespace py = pybind11;
 
-namespace aistudio {
+namespace mainera {
 
 PreprocessNode::PreprocessNode(const std::string &name, size_t numInputs,
                                size_t numOutputs, py::object py_func)
@@ -58,4 +58,4 @@ void PreprocessNode::execute() {
   }
 }
 
-} // namespace aistudio
+} // namespace mainera

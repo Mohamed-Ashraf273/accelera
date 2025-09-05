@@ -1,6 +1,6 @@
 #include "nodes/input.hpp"
 
-namespace aistudio {
+namespace mainera {
 
 InputNode::InputNode() : Node(NodeType::INPUT, "input_node", 0, 2, py::none()) {
   // Input node has no inputs (data comes from setInputData)
@@ -28,4 +28,4 @@ void InputNode::setInputData(py::object X, py::object y) {
   m_data_set = true;
 }
 
-} // namespace aistudio
+} // namespace mainera

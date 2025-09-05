@@ -6,7 +6,7 @@
 #include <string>
 
 namespace py = pybind11;
-namespace aistudio {
+namespace mainera {
 
 void serialize_graph(const Graph &graph, const std::string &filepath) {
   const auto &m_nodes = graph.getNodes();
@@ -146,4 +146,4 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
   file.close();
 }
 
-} // namespace aistudio
+} // namespace mainera

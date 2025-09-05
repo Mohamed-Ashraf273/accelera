@@ -1,6 +1,6 @@
 #include "passes/node_fusion.hpp"
 
-namespace aistudio {
+namespace mainera {
 namespace passes {
 
 void NodeFusion::apply(Graph &graph) {
@@ -39,4 +39,4 @@ void NodeFusion::apply(Graph &graph) {
 }
 
 } // namespace passes
-} // namespace aistudio
+} // namespace mainera
