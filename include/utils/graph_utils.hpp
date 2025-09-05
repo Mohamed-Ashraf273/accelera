@@ -3,13 +3,13 @@
 
 #include <string>
 
-namespace aistudio {
+namespace mainera {
 
 class Graph; // Forward declaration
 
 // Serialize a graph to XML format
 void serialize_graph(const Graph &graph, const std::string &filepath);
 
-} // namespace aistudio
+} // namespace mainera
 
 #endif // GRAPH_UTILS_HPP

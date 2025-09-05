@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 
-namespace aistudio {
+namespace mainera {
 
 Node::Node(NodeType type, const std::string &name, size_t numInputs,
            size_t numOutputs, py::object py_func)
@@ -81,4 +81,4 @@ void Node::setGraph(Graph *graph) { m_graph = graph; }
 
 Graph *Node::getGraph() const { return m_graph; }
 
-} // namespace aistudio
+} // namespace mainera

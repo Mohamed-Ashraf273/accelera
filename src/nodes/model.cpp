@@ -5,7 +5,7 @@
 
 namespace py = pybind11;
 
-namespace aistudio {
+namespace mainera {
 
 ModelNode::ModelNode(const std::string &name, size_t numInputs,
                      size_t numOutputs, py::object py_func)
@@ -56,4 +56,4 @@ void ModelNode::execute() {
   }
 }
 
-} // namespace aistudio
+} // namespace mainera

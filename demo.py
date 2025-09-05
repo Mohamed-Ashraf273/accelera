@@ -7,7 +7,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-from aistudio.src.core.pipeline import Pipeline
+from mainera.src.core.pipeline import Pipeline
 
 
 def sample_data():
@@ -41,7 +41,7 @@ def sample_data():
 X, y, test_data = sample_data()
 
 p = Pipeline()
-p._graph.enableParallelExecution(True)
+# p._graph.enableParallelExecution(True) # not working yet
 
 
 print("\nSetting up preprocessing branches...")

@@ -3,7 +3,7 @@
 
 #include "core/node.hpp"
 
-namespace aistudio {
+namespace mainera {
 
 class PreprocessNode : public Node {
 public:
@@ -12,6 +12,6 @@ public:
   void execute() override;
 };
 
-} // namespace aistudio
+} // namespace mainera
 
 #endif // PREPROCESS_NODE_HPP

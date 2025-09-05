@@ -1,6 +1,6 @@
 #include "core/edge.hpp"
 
-namespace aistudio {
+namespace mainera {
 
 Edge::Edge() : m_isReady(false) {}
 
@@ -17,4 +17,4 @@ bool Edge::isReady() const { return m_isReady; }
 
 void Edge::setReady(bool status) { m_isReady = status; }
 
-} // namespace aistudio
+} // namespace mainera

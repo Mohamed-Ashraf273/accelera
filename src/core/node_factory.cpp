@@ -6,7 +6,7 @@
 #include "nodes/preprocess.hpp"
 #include <stdexcept>
 
-namespace aistudio {
+namespace mainera {
 
 Node::Ptr NodeFactory::createNode(NodeType type, const std::string &name,
                                   size_t numInputs, size_t numOutputs,
@@ -29,4 +29,4 @@ Node::Ptr NodeFactory::createNode(NodeType type, const std::string &name,
   }
 }
 
-} // namespace aistudio
+} // namespace mainera

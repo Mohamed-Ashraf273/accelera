@@ -3,7 +3,7 @@ requires = ["setuptools >=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "aistudio"
+name = "mainera"
 authors = [
     {name = "Mohamed Ashraf", email = "ma2736666@gmail.com"},
 ]
@@ -40,12 +40,12 @@ dependencies = [
 Home = "https://github.com/Mohamed-Ashraf273/ai-studio.git"
 
 [tool.setuptools.dynamic]
-version = {attr = "aistudio.src.version.__version__"}
+version = {attr = "mainera.src.version.__version__"}
 
 [tool.setuptools.package-dir]
 "" = "."
-"aistudio" = "aistudio/src"
-"aistudio.src" = "aistudio/src"
+"mainera" = "mainera/src"
+"mainera.src" = "mainera/src"
 
 [tool.ruff]
 line-length = 80
@@ -65,7 +65,7 @@ ignore = [
 
 [tool.ruff.lint.isort]
 force-single-line = true
-known-first-party = ["aistudio"]
+known-first-party = ["mainera"]
 
 [tool.pytest.ini_options]
 filterwarnings = [

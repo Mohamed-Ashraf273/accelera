@@ -47,7 +47,7 @@ jobs:
           cmake .. -DENABLE_PYTHON=ON -DENABLE_WHEEL=ON -DENABLE_TESTS=ON
           cmake --build .
       - name: Test with pytest
-        run: pytest aistudio/src/core/pipeline_test.py -v
+        run: pytest mainera/src/core/pipeline_test.py -v
 
   format_test:
     name: Check code format
