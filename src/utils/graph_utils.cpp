@@ -71,28 +71,21 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
       file << "\t\t\t<data/>\n";
     }
 
-    if (node->getInputEdges().size() > 0) {
+    if (node->getInputEdge()) {
       file << "\t\t\t<input>\n";
-      for (size_t in_idx = 0; in_idx < node->getInputEdges().size(); ++in_idx) {
-        file << "\t\t\t\t<port id=\"" << in_idx << "\" precision=\"FP32\">\n";
-        file << "\t\t\t\t\t<dim>1</dim>\n";  // Batch size
-        file << "\t\t\t\t\t<dim>-1</dim>\n"; // Dynamic dimension
-        file << "\t\t\t\t</port>\n";
-      }
+      file << "\t\t\t\t<port id=\"0\" precision=\"FP32\">\n";
+      file << "\t\t\t\t\t<dim>1</dim>\n";  // Batch size
+      file << "\t\t\t\t\t<dim>-1</dim>\n"; // Dynamic dimension
+      file << "\t\t\t\t</port>\n";
       file << "\t\t\t</input>\n";
     }
 
-    if (node->getOutputEdges().size() > 0) {
+    if (node->getOutputEdge()) {
       file << "\t\t\t<output>\n";
-      for (size_t out_idx = 0; out_idx < node->getOutputEdges().size();
-           ++out_idx) {
-        file << "\t\t\t\t<port id=\""
-             << (node->getInputEdges().size() + out_idx)
-             << "\" precision=\"FP32\">\n";
-        file << "\t\t\t\t\t<dim>1</dim>\n";  // Batch size
-        file << "\t\t\t\t\t<dim>-1</dim>\n"; // Dynamic dimension
-        file << "\t\t\t\t</port>\n";
-      }
+      file << "\t\t\t\t<port id=\"1\" precision=\"FP32\">\n";
+      file << "\t\t\t\t\t<dim>1</dim>\n";  // Batch size
+      file << "\t\t\t\t\t<dim>-1</dim>\n"; // Dynamic dimension
+      file << "\t\t\t\t</port>\n";
       file << "\t\t\t</output>\n";
     }
 
@@ -103,30 +96,20 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
   file << "\t<edges>\n";
   for (size_t i = 0; i < m_nodes.size(); ++i) {
     const auto &node = m_nodes[i];
-    const auto &outputs = node->getOutputEdges();
+    const auto &output_edge = node->getOutputEdge();
 
-    for (size_t out_idx = 0; out_idx < outputs.size(); ++out_idx) {
-      const auto &edge = outputs[out_idx];
-      if (!edge)
-        continue;
-
+    if (output_edge) {
       // Find which node this edge connects to
       for (size_t j = 0; j < m_nodes.size(); ++j) {
         if (i == j)
           continue; // Skip self
         const auto &target_node = m_nodes[j];
-        const auto &inputs = target_node->getInputEdges();
+        const auto &input_edge = target_node->getInputEdge();
 
-        for (size_t in_idx = 0; in_idx < inputs.size(); ++in_idx) {
-          if (inputs[in_idx] == edge) {
-            // Calculate port IDs according to OpenVINO convention
-            size_t from_port = node->getInputEdges().size() + out_idx;
-            size_t to_port = in_idx;
-
-            file << "\t\t<edge from-layer=\"" << i << "\" from-port=\""
-                 << from_port << "\" to-layer=\"" << j << "\" to-port=\""
-                 << to_port << "\"/>\n";
-          }
+        if (input_edge && input_edge == output_edge) {
+          // In single-edge architecture: output port is 1, input port is 0
+          file << "\t\t<edge from-layer=\"" << i << "\" from-port=\"1\" "
+               << "to-layer=\"" << j << "\" to-port=\"0\"/>\n";
         }
       }
     }

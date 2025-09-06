@@ -1,4 +1,5 @@
 #include "nodes/model.hpp"
+#include "nodes/input.hpp"
 #include <iostream>
 #include <pybind11/functional.h>
 #include <pybind11/stl.h>
@@ -7,9 +8,8 @@ namespace py = pybind11;
 
 namespace mainera {
 
-ModelNode::ModelNode(const std::string &name, size_t numInputs,
-                     size_t numOutputs, py::object py_func)
-    : Node(NodeType::MODEL, name, numInputs, numOutputs, py_func) {
+ModelNode::ModelNode(const std::string &name, py::object py_func)
+    : Node(NodeType::MODEL, name, py_func) {
 
   // Validate that this is a model object with fit method
   if (!py::hasattr(py_func, "fit")) {
@@ -20,20 +20,19 @@ ModelNode::ModelNode(const std::string &name, size_t numInputs,
 
 void ModelNode::execute() {
   try {
-    py::list inputs = collectInputs();
+    std::shared_ptr<InputNode> input = getInput();
 
-    if (inputs.size() < 2) {
+    if (!input) {
       throw std::runtime_error("Model node '" + name +
-                               "' requires at least 2 inputs (X, y)");
+                               "' requires a valid input");
     }
 
-    py::object X = inputs[0];
-    py::object y = inputs[1];
+    py::object X = input->getX();
+    py::object y = input->getY();
 
-    // Validate inputs
     if (X.is_none() || y.is_none()) {
       throw std::runtime_error("Model node '" + name +
-                               "' received None inputs");
+                               "' received None inputs (X or y)");
     }
 
     if (!py::hasattr(X, "shape") || !py::hasattr(y, "shape")) {
@@ -41,11 +40,24 @@ void ModelNode::execute() {
                                "' inputs must be array-like objects");
     }
 
-    // Fit the model
     py::object model_instance = py_func;
-    model_instance.attr("fit")(X, y);
+    try {
+      model_instance.attr("fit")(X, y);
+    } catch (const py::error_already_set &e) {
+      throw std::runtime_error("Python error in model fitting: " +
+                               std::string(e.what()));
+    }
 
-    setOutputs(model_instance);
+    if (should_create_new_data) {
+      auto new_input = std::make_shared<InputNode>();
+      new_input->setInputData(X, y);
+      new_input->setFittedModel(model_instance);
+      setOutput(new_input);
+    } else {
+      input->setInputData(X, y);
+      input->setFittedModel(model_instance);
+      setOutput(input);
+    }
 
   } catch (const py::error_already_set &e) {
     throw std::runtime_error("ModelNode: Python error during execution: " +

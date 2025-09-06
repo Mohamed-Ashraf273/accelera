@@ -25,14 +25,14 @@ class Pipeline:
         if branch:
             return NodeWrapper("preprocess", name, func)
 
-        self._graph.add_node(graph.NodeType.PREPROCESS, name, func, 2, 2)
+        self._graph.add_node(graph.NodeType.PREPROCESS, name, func)
         return self
 
     def model(self, name, model, branch=False):
         if branch:
             return NodeWrapper("model", name, model)
 
-        self._graph.add_node(graph.NodeType.MODEL, name, model, 2, 1)
+        self._graph.add_node(graph.NodeType.MODEL, name, model)
         return self
 
     def predict(self, name, test_data, branch=False):

@@ -18,8 +18,8 @@ public:
   ~Graph();
 
   // Core node management
-  Node::Ptr add_node(NodeType type, const std::string &name, py::object py_func,
-                     size_t num_inputs = 1, size_t num_outputs = 1);
+  Node::Ptr add_node(NodeType type, const std::string &name,
+                     py::object py_func);
   void addNode(Node::Ptr node);
 
   // Graph operations

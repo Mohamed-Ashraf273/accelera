@@ -26,8 +26,7 @@ PYBIND11_MODULE(graph, m) {
       .def_readonly("name", &Node::name)
       .def_readonly("type", &Node::type)
       .def_readonly("dirty", &Node::dirty)
-      .def("connectTo", &Node::connectTo, py::arg("myOutputIndex"),
-           py::arg("targetNode"), py::arg("targetInputIndex"),
+      .def("connectTo", &Node::connectTo, py::arg("targetNode"),
            "Connect this node's output to target node's input");
 
   // Graph binding with streamlined interface
@@ -35,8 +34,7 @@ PYBIND11_MODULE(graph, m) {
       .def(py::init<>())
 
       .def("add_node", &Graph::add_node, py::arg("type"), py::arg("name"),
-           py::arg("py_func"), py::arg("num_inputs") = 1,
-           py::arg("num_outputs") = 1, "Add a node to the graph")
+           py::arg("py_func"), "Add a node to the graph")
 
       .def("split", &Graph::split, py::arg("branch_name"),
            py::arg("branch_objects"), py::arg("node_types"),

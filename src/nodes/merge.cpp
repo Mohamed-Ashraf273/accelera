@@ -1,47 +1,42 @@
 #include "nodes/merge.hpp"
+#include "nodes/input.hpp"
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
 
 namespace mainera {
 
-MergeNode::MergeNode(const std::string &name, size_t numInputs,
-                     size_t numOutputs, py::object py_func)
-    : Node(NodeType::MERGE, name, numInputs, numOutputs, py_func) {}
+MergeNode::MergeNode(const std::string &name, py::object py_func)
+    : Node(NodeType::MERGE, name, py_func) {}
 
 void MergeNode::execute() {
   try {
-    py::list inputs = collectInputs();
+    std::shared_ptr<InputNode> input = getInput();
 
-    if (inputs.size() == 0) {
-      throw std::runtime_error("Merge node '" + name + "' received no inputs");
+    if (!input) {
+      throw std::runtime_error("Merge node '" + name +
+                               "' requires a valid input");
     }
 
-    // If only one input, just pass it through
-    if (inputs.size() == 1) {
-      m_result = inputs[0];
-      if (!getOutputEdges().empty()) {
-        setOutputs(inputs[0]);
-      }
-      return;
-    }
+    py::object X = input->getX();
+    py::object y = input->getY();
+    py::object fitted_model = input->getFittedModel();
 
-    // Apply the merge function to the inputs
     py::object result;
     try {
-      result = py_func(inputs);
+      result = py_func(y);
     } catch (const py::error_already_set &e) {
       throw std::runtime_error("Python error in merge function: " +
                                std::string(e.what()));
     }
 
-    // Store the result for later retrieval
+    auto new_input = std::make_shared<InputNode>();
+    new_input->setInputData(X, result);
+    new_input->setFittedModel(fitted_model);
+
     m_result = result;
 
-    // If we have output edges, also set the outputs
-    if (!getOutputEdges().empty()) {
-      setOutputs(result);
-    }
+    setOutput(new_input);
 
   } catch (const py::error_already_set &e) {
     throw std::runtime_error("MergeNode: Error during execution: " +

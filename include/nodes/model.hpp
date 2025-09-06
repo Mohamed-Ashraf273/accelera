@@ -7,8 +7,7 @@ namespace mainera {
 
 class ModelNode : public Node {
 public:
-  ModelNode(const std::string &name, size_t numInputs, size_t numOutputs,
-            py::object py_func);
+  ModelNode(const std::string &name, py::object py_func);
   void execute() override;
 };
 
