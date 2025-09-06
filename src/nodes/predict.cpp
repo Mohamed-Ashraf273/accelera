@@ -2,7 +2,6 @@
 #include "core/graph.hpp"
 #include "nodes/input.hpp"
 #include <functional>
-#include <iostream>
 #include <memory>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
@@ -86,8 +85,8 @@ void PredictNode::execute() {
     }
 
   } catch (const std::exception &e) {
-    std::cerr << "Error in PredictNode::execute(): " << e.what() << std::endl;
-    throw;
+    throw std::runtime_error("Error in PredictNode::execute(): " +
+                             std::string(e.what()));
   }
 }
 

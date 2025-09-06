@@ -8,7 +8,6 @@
 #include <exception>
 #include <fstream>
 #include <future>
-#include <iostream>
 #include <queue>
 #include <stdexcept>
 #include <thread>
@@ -92,10 +91,13 @@ void Graph::addNode(Node::Ptr node) {
         }
       }
 
-      // Mark for creating new data if it's first after input or if there are
-      // multiple leaves (branching scenario)
-      if (is_first_after_input || leaves.size() > 1) {
+      // Only mark for creating new data if it's first after input
+      // Nodes created via split() already have the flag set appropriately
+      if (is_first_after_input) {
         nodeToAdd->setShouldCreateNewData(true);
+      } else {
+        // Default to false for memory optimization - enable InputNode reuse
+        nodeToAdd->setShouldCreateNewData(false);
       }
 
       // Connect the leaf to this node
@@ -339,9 +341,8 @@ void Graph::run() {
         node->execute();
         node->dirty = false;
       } catch (const std::exception &e) {
-        std::cerr << "Error executing node '" << node->name << "': " << e.what()
-                  << std::endl;
-        throw;
+        throw std::runtime_error("Error executing node '" + node->name +
+                                 "': " + std::string(e.what()));
       }
     }
   }

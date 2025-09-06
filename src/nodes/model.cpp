@@ -1,6 +1,5 @@
 #include "nodes/model.hpp"
 #include "nodes/input.hpp"
-#include <iostream>
 #include <pybind11/functional.h>
 #include <pybind11/stl.h>
 
