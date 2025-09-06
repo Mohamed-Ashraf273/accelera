@@ -8,7 +8,6 @@
 #include <exception>
 #include <fstream>
 #include <future>
-#include <iostream>
 #include <queue>
 #include <stdexcept>
 #include <thread>
@@ -21,18 +20,17 @@ Graph::Graph()
     : m_compiled(false), m_parallel_enabled(false), m_first_node(nullptr) {
   // Automatically create an input node as the starting point
   m_input_node = std::make_shared<InputNode>();
-  m_nodes.push_back(m_input_node);
-  m_node_map[m_input_node->name] = m_input_node;
-  m_first_node = m_input_node;
+  auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
+  m_nodes.push_back(input_as_node);
+  m_node_map[m_input_node->name] = input_as_node;
+  m_first_node = input_as_node;
 }
 
 Graph::~Graph() { clear(); }
 
 Node::Ptr Graph::add_node(NodeType type, const std::string &name,
-                          py::object py_func, size_t num_inputs,
-                          size_t num_outputs) {
-  auto node =
-      NodeFactory::createNode(type, name, num_inputs, num_outputs, py_func);
+                          py::object py_func) {
+  auto node = NodeFactory::createNode(type, name, py_func);
 
   // Store preprocessing functions for later use in predict nodes
   if (type == NodeType::PREPROCESS && !py_func.is_none()) {
@@ -53,7 +51,7 @@ void Graph::addNode(Node::Ptr node) {
   if (leaves.empty()) {
     // If no leaves exist (empty graph), just add the node normally
     m_nodes.push_back(node);
-    m_node_map[node->name] = node; // Fast lookup
+    m_node_map[node->name] = node;
     m_compiled = false;
 
     // Track first node with priority: INPUT > PREPROCESS > MODEL
@@ -74,23 +72,8 @@ void Graph::addNode(Node::Ptr node) {
       } else {
         // Create a copy for subsequent leaves
         std::string copyName = node->name + "_copy_" + std::to_string(i);
-
-        // Determine appropriate input/output counts based on node type
-        size_t numInputs, numOutputs;
-        if (node->type == NodeType::PREPROCESS) {
-          numInputs = 2;  // X and y
-          numOutputs = 2; // processed X and y
-        } else if (node->type == NodeType::MODEL) {
-          numInputs = 2;  // X and y
-          numOutputs = 1; // trained model
-        } else {
-          // For other node types, use the original node's edge counts
-          numInputs = node->getInputEdges().size();
-          numOutputs = node->getOutputEdges().size();
-        }
-
-        nodeToAdd = NodeFactory::createNode(node->type, copyName, numInputs,
-                                            numOutputs, node->py_func);
+        nodeToAdd =
+            NodeFactory::createNode(node->type, copyName, node->py_func);
         // Set graph pointer for copied node
         nodeToAdd->setGraph(this);
       }
@@ -99,20 +82,27 @@ void Graph::addNode(Node::Ptr node) {
       m_nodes.push_back(nodeToAdd);
       m_node_map[nodeToAdd->name] = nodeToAdd; // Fast lookup
 
-      // Connect the leaf to this node
-      // Handle multiple input/output connections for nodes that need both X and
-      // y
-      if (!leaves[i]->getOutputEdges().empty() &&
-          !nodeToAdd->getInputEdges().empty()) {
-
-        // Connect first output to first input (X connection)
-        leaves[i]->connectTo(0, nodeToAdd, 0);
-
-        // If both leaf and node have second edges, connect them (y connection)
-        if (leaves[i]->getOutputEdges().size() > 1 &&
-            nodeToAdd->getInputEdges().size() > 1) {
-          leaves[i]->connectTo(1, nodeToAdd, 1);
+      // Check if this is the first node after input (should create new data)
+      bool is_first_after_input = false;
+      for (const auto &leaf : leaves) {
+        if (leaf->type == NodeType::INPUT) {
+          is_first_after_input = true;
+          break;
         }
+      }
+
+      // Only mark for creating new data if it's first after input
+      // Nodes created via split() already have the flag set appropriately
+      if (is_first_after_input) {
+        nodeToAdd->setShouldCreateNewData(true);
+      } else {
+        // Default to false for memory optimization - enable InputNode reuse
+        nodeToAdd->setShouldCreateNewData(false);
+      }
+
+      // Connect the leaf to this node
+      if (leaves[i]->getOutputEdge() && nodeToAdd->getInputEdge()) {
+        leaves[i]->connectTo(nodeToAdd);
       }
 
       // If in branched mode, track the new node as a potential branch tail
@@ -192,39 +182,20 @@ void Graph::split(const std::string &branch_name,
         uniqueName = node_names[node_idx] + "_leaf_" + std::to_string(leaf_idx);
       }
 
-      // Determine appropriate input/output counts based on node type
-      size_t numInputs, numOutputs;
-      if (nodeType == NodeType::PREPROCESS) {
-        numInputs = 2;  // X and y
-        numOutputs = 2; // processed X and y
-      } else if (nodeType == NodeType::MODEL) {
-        numInputs = 2;  // X and y
-        numOutputs = 1; // trained model
-      } else {
-        numInputs = 1;  // Default
-        numOutputs = 1; // Default
-      }
+      Node::Ptr branchNode = NodeFactory::createNode(nodeType, uniqueName,
+                                                     branch_objects[node_idx]);
 
-      // Create the new node
-      Node::Ptr branchNode =
-          NodeFactory::createNode(nodeType, uniqueName, numInputs, numOutputs,
-                                  branch_objects[node_idx]);
+      // Mark this as a branch head node - should create new data for memory
+      // optimization
+      branchNode->setShouldCreateNewData(true);
 
       // Add to graph
       m_nodes.push_back(branchNode);
       m_node_map[branchNode->name] = branchNode;
 
       // Connect the leaf to this branch node
-      if (!leaf->getOutputEdges().empty() &&
-          !branchNode->getInputEdges().empty()) {
-        // Connect both outputs from leaf to both inputs of branch node
-        if (leaf->getOutputEdges().size() >= 2 &&
-            branchNode->getInputEdges().size() >= 2) {
-          leaf->connectTo(0, branchNode, 0); // X connection
-          leaf->connectTo(1, branchNode, 1); // y connection
-        } else {
-          leaf->connectTo(0, branchNode, 0); // Single connection
-        }
+      if (leaf->getOutputEdge() && branchNode->getInputEdge()) {
+        leaf->connectTo(branchNode);
       }
 
       // Track this as a branch tail for potential future merging
@@ -281,9 +252,16 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
   // Fallback: collect from PREDICT nodes that have results
   if (!found_merge_result) {
     for (const auto &node : m_nodes) {
-      if (node->type == NodeType::PREDICT && !node->getOutputEdges().empty() &&
-          node->getOutputEdges()[0]->isReady()) {
-        predictions.push_back(node->getOutputEdges()[0]->getData());
+      if (node->type == NodeType::PREDICT && node->getOutputEdge() &&
+          node->getOutputEdge()->isReady()) {
+        auto input_data = node->getOutputEdge()->getData();
+        if (input_data) {
+          // Extract the predictions (y) from the InputNode
+          py::object prediction_result = input_data->getY();
+          if (!prediction_result.is_none()) {
+            predictions.push_back(prediction_result);
+          }
+        }
       }
     }
   }
@@ -305,9 +283,10 @@ void Graph::clear() {
 
   // Recreate the input node
   m_input_node = std::make_shared<InputNode>();
-  m_nodes.push_back(m_input_node);
-  m_node_map[m_input_node->name] = m_input_node;
-  m_first_node = m_input_node;
+  auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
+  m_nodes.push_back(input_as_node);
+  m_node_map[m_input_node->name] = input_as_node;
+  m_first_node = input_as_node;
 }
 
 void Graph::enableParallelExecution(bool enable) {
@@ -362,9 +341,8 @@ void Graph::run() {
         node->execute();
         node->dirty = false;
       } catch (const std::exception &e) {
-        std::cerr << "Error executing node '" << node->name << "': " << e.what()
-                  << std::endl;
-        throw;
+        throw std::runtime_error("Error executing node '" + node->name +
+                                 "': " + std::string(e.what()));
       }
     }
   }
@@ -409,13 +387,13 @@ void Graph::topologicalSortDFS(Node::Ptr node,
 
   temp_visited.insert(node.get());
 
-  // Visit all dependent nodes (nodes that consume this node's outputs)
-  for (const auto &consumer : m_nodes) {
-    for (const auto &input_edge : consumer->getInputEdges()) {
-      for (const auto &output_edge : node->getOutputEdges()) {
-        if (input_edge == output_edge) {
-          topologicalSortDFS(consumer, visited, temp_visited, result);
-        }
+  // Visit all dependent nodes (nodes that consume this node's output)
+  // In the new architecture, each node has only one output edge
+  if (node->getOutputEdge()) {
+    // Find all nodes that use this node's output as their input
+    for (const auto &consumer : m_nodes) {
+      if (consumer->getInputEdge() == node->getOutputEdge()) {
+        topologicalSortDFS(consumer, visited, temp_visited, result);
       }
     }
   }
@@ -438,24 +416,15 @@ std::vector<Node::Ptr> Graph::findLeafNodes() const {
   for (const auto &node : m_nodes) {
     bool isLeaf = true;
 
-    // Check if this node has any output edges that are connected to other nodes
-    for (const auto &output_edge : node->getOutputEdges()) {
-      if (output_edge) {
-        // Check if any other node uses this output edge as input
-        for (const auto &other_node : m_nodes) {
-          if (other_node != node) {
-            for (const auto &input_edge : other_node->getInputEdges()) {
-              if (input_edge == output_edge) {
-                isLeaf = false;
-                break;
-              }
-            }
-            if (!isLeaf)
-              break;
-          }
-        }
-        if (!isLeaf)
+    // Check if this node's output edge is connected to any other node
+    if (node->getOutputEdge()) {
+      // Check if any other node uses this node's output edge as input
+      for (const auto &other_node : m_nodes) {
+        if (other_node != node &&
+            other_node->getInputEdge() == node->getOutputEdge()) {
+          isLeaf = false;
           break;
+        }
       }
     }
 
@@ -538,15 +507,15 @@ void Graph::mergeBranches(const std::string &merge_name,
         }
 
         Node::Ptr merge_node = NodeFactory::createNode(
-            NodeType::MERGE, merge_step_name, 2, 1, merge_func);
+            NodeType::MERGE, merge_step_name, merge_func);
 
         // Add directly to graph without going through addNode
         m_nodes.push_back(merge_node);
         m_node_map[merge_node->name] = merge_node;
 
         // Connect the pair to this merge node
-        current_level[i]->connectTo(0, merge_node, 0);
-        current_level[i + 1]->connectTo(0, merge_node, 1);
+        current_level[i]->connectTo(merge_node);
+        current_level[i + 1]->connectTo(merge_node);
 
         next_level.push_back(merge_node);
       } else {

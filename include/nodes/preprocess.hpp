@@ -7,8 +7,7 @@ namespace mainera {
 
 class PreprocessNode : public Node {
 public:
-  PreprocessNode(const std::string &name, size_t numInputs, size_t numOutputs,
-                 py::object py_func);
+  PreprocessNode(const std::string &name, py::object py_func);
   void execute() override;
 };
 

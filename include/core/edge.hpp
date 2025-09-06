@@ -8,19 +8,22 @@ namespace py = pybind11;
 
 namespace mainera {
 
+// Forward declaration to avoid circular dependency
+class InputNode;
+
 class __attribute__((visibility("default"))) Edge {
 public:
   Edge();
   ~Edge();
 
-  py::object getData();
-  void setData(py::object data);
+  std::shared_ptr<InputNode> getData();
+  void setData(std::shared_ptr<InputNode> data);
 
   bool isReady() const;
   void setReady(bool status);
 
 private:
-  py::object m_data;
+  std::shared_ptr<InputNode> m_data = nullptr;
   bool m_isReady;
 };
 

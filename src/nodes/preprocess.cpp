@@ -1,41 +1,34 @@
 #include "nodes/preprocess.hpp"
-#include <iostream>
+#include "nodes/input.hpp"
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
 
 namespace mainera {
 
-PreprocessNode::PreprocessNode(const std::string &name, size_t numInputs,
-                               size_t numOutputs, py::object py_func)
-    : Node(NodeType::PREPROCESS, name, numInputs, numOutputs, py_func) {}
+PreprocessNode::PreprocessNode(const std::string &name, py::object py_func)
+    : Node(NodeType::PREPROCESS, name, py_func) {}
 
 void PreprocessNode::execute() {
   // Incomplete node (it should check for instance
   // with transform method as well)
 
   try {
-    py::list inputs = collectInputs();
+    std::shared_ptr<InputNode> input = getInput();
 
-    if (inputs.size() < 1) {
+    if (!input) {
       throw std::runtime_error("Preprocess node '" + name +
-                               "' requires at least 1 input");
+                               "' requires a valid input");
     }
 
-    py::object X = inputs[0];
-    py::object y;
-    if (inputs.size() > 1) {
-      y = inputs[1];
-    } else {
-      y = py::none();
-    }
+    py::object X = input->getX();
+    py::object y = input->getY();
 
     if (X.is_none()) {
       throw std::runtime_error("Preprocess node '" + name +
                                "' received None for X input");
     }
 
-    // Apply preprocessing function to X
     py::object preprocessed_X;
     try {
       preprocessed_X = py_func(X);
@@ -44,12 +37,13 @@ void PreprocessNode::execute() {
                                std::string(e.what()));
     }
 
-    // Set outputs directly to edges
-    if (m_outputEdges.size() >= 2) {
-      m_outputEdges[0]->setData(preprocessed_X);
-      m_outputEdges[1]->setData(y);
+    if (should_create_new_data) {
+      auto new_input = std::make_shared<InputNode>();
+      new_input->setInputData(preprocessed_X, y);
+      setOutput(new_input);
     } else {
-      setOutputs(preprocessed_X);
+      input->setInputData(preprocessed_X, y);
+      setOutput(input);
     }
 
   } catch (const std::exception &e) {

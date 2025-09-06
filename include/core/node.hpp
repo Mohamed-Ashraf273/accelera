@@ -11,7 +11,8 @@ namespace py = pybind11;
 
 namespace mainera {
 
-class Graph; // Forward declaration
+class Graph;     // Forward declaration
+class InputNode; // Forward declaration
 
 enum class NodeType {
   INPUT,
@@ -27,8 +28,7 @@ class __attribute__((visibility("default"))) Node
 public:
   using Ptr = std::shared_ptr<Node>;
 
-  Node(NodeType type, const std::string &name, size_t numInputs,
-       size_t numOutputs, py::object py_func);
+  Node(NodeType type, const std::string &name, py::object py_func);
   virtual ~Node();
 
   // Graph access
@@ -40,21 +40,27 @@ public:
   std::string name;
   py::object py_func;
   bool dirty = true;
+  bool should_create_new_data = false;
 
   virtual void execute() = 0;
 
   // Graph connectivity methods
-  const std::vector<std::shared_ptr<Edge>> &getInputEdges() const;
-  const std::vector<std::shared_ptr<Edge>> &getOutputEdges() const;
-  void connectTo(size_t myOutputIndex, Node::Ptr targetNode,
-                 size_t targetInputIndex);
+  const std::shared_ptr<Edge> &getInputEdge() const;
+  const std::shared_ptr<Edge> &getOutputEdge() const;
+  void connectTo(Node::Ptr targetNode);
+
+  // Memory optimization methods
+  void setShouldCreateNewData(bool should_create);
+  bool getShouldCreateNewData() const;
 
 protected:
   py::list collectInputs();
   void setOutputs(py::object result);
+  std::shared_ptr<InputNode> getInput();
+  void setOutput(std::shared_ptr<InputNode> result);
 
-  std::vector<std::shared_ptr<Edge>> m_inputEdges;
-  std::vector<std::shared_ptr<Edge>> m_outputEdges;
+  std::shared_ptr<Edge> m_inputEdge;
+  std::shared_ptr<Edge> m_outputEdge;
   Graph *m_graph = nullptr; // Pointer to parent graph
 };
 

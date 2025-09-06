@@ -6,11 +6,11 @@ Edge::Edge() : m_isReady(false) {}
 
 Edge::~Edge() {}
 
-py::object Edge::getData() { return m_data; }
+std::shared_ptr<InputNode> Edge::getData() { return m_data; }
 
-void Edge::setData(py::object data) {
+void Edge::setData(std::shared_ptr<InputNode> data) {
   m_data = data;
-  m_isReady = !data.is_none();
+  m_isReady = (data != nullptr);
 }
 
 bool Edge::isReady() const { return m_isReady; }

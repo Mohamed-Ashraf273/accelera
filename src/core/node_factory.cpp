@@ -9,20 +9,18 @@
 namespace mainera {
 
 Node::Ptr NodeFactory::createNode(NodeType type, const std::string &name,
-                                  size_t numInputs, size_t numOutputs,
                                   py::object py_func) {
   switch (type) {
   case NodeType::PREPROCESS:
-    return std::make_shared<PreprocessNode>(name, numInputs, numOutputs,
-                                            py_func);
+    return std::make_shared<PreprocessNode>(name, py_func);
   case NodeType::FEATURE:
-    return std::make_shared<FeatureNode>(name, numInputs, numOutputs, py_func);
+    return std::make_shared<FeatureNode>(name, py_func);
   case NodeType::MODEL:
-    return std::make_shared<ModelNode>(name, numInputs, numOutputs, py_func);
+    return std::make_shared<ModelNode>(name, py_func);
   case NodeType::PREDICT:
-    return std::make_shared<PredictNode>(name, numInputs, numOutputs, py_func);
+    return std::make_shared<PredictNode>(name, py_func);
   case NodeType::MERGE:
-    return std::make_shared<MergeNode>(name, numInputs, numOutputs, py_func);
+    return std::make_shared<MergeNode>(name, py_func);
   default:
     throw std::invalid_argument("Unknown node type: " +
                                 std::to_string(static_cast<int>(type)));
