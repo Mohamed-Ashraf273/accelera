@@ -83,7 +83,7 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
     if (node->getOutputEdge()) {
       file << "\t\t\t<output>\n";
       file << "\t\t\t\t<port id=\"1\" precision=\"FP32\">\n";
-      file << "\t\t\t\t\t<dim>1</dim>\n";  // Batch size
+      file << "\t\t\t\t\t<dim>-1</dim>\n"; // Batch size
       file << "\t\t\t\t\t<dim>-1</dim>\n"; // Dynamic dimension
       file << "\t\t\t\t</port>\n";
       file << "\t\t\t</output>\n";

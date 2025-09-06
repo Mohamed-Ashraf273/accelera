@@ -29,13 +29,11 @@ void PredictNode::execute() {
     py::object y = input->getY();
     py::object fitted_model = input->getFittedModel();
 
-    // Use test data from py_func (the test data provided to predict node)
     py::object test_data = py_func;
     if (test_data.is_none()) {
       throw std::runtime_error("PredictNode: No test data provided");
     }
 
-    // Apply preprocessing to test data using graph's preprocessing functions
     py::object preprocessed_test_data = test_data;
     if (getGraph()) {
       const auto &preprocess_functions =
