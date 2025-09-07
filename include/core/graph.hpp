@@ -61,6 +61,11 @@ private:
   bool shouldReplaceFirstNode(Node::Ptr node) const;
   Node::Ptr findNodeByName(const std::string &name) const;
 
+  // Parallel execution utility methods
+  std::vector<std::vector<Node::Ptr>> extractBranches() const;
+  std::vector<std::vector<Node::Ptr>> groupNodesByLevel() const;
+  void executeNodesInParallel(const std::vector<Node::Ptr> &nodes);
+
   // Core data members
   std::vector<Node::Ptr> m_nodes;
   std::vector<Node::Ptr> m_execution_order;

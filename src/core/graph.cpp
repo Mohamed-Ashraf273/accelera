@@ -8,6 +8,7 @@
 #include <exception>
 #include <fstream>
 #include <future>
+#include <iostream>
 #include <queue>
 #include <stdexcept>
 #include <thread>
@@ -298,17 +299,27 @@ void Graph::setMulticoreThreshold(size_t threshold) {
 }
 
 void Graph::runParallel() {
+  std::cout << "DEBUG: runParallel() called" << std::endl;
+
   if (!m_parallel_enabled) {
+    std::cout << "DEBUG: Parallel not enabled, using sequential" << std::endl;
     run();
     return;
   }
 
-  if (!m_compiled)
+  if (!m_compiled) {
+    std::cout << "DEBUG: Graph not compiled, compiling..." << std::endl;
     compile();
+  }
 
   // Check if we have enough nodes AND they're compute-heavy enough to justify
   // parallel overhead
+  std::cout << "DEBUG: Execution order size: " << m_execution_order.size()
+            << ", threshold: " << m_multicore_threshold << std::endl;
   if (m_execution_order.size() < m_multicore_threshold) {
+    std::cout
+        << "DEBUG: Not enough nodes for parallel execution, using sequential"
+        << std::endl;
     run();
     return;
   }
@@ -317,18 +328,54 @@ void Graph::runParallel() {
   // Only use parallel for genuinely compute-intensive operations
   bool has_heavy_computation = false;
   for (const auto &node : m_execution_order) {
-    if (node->type == NodeType::MODEL && node->dirty) {
+    if ((node->type == NodeType::MODEL || node->type == NodeType::PREPROCESS) &&
+        node->dirty) {
       has_heavy_computation = true;
       break;
     }
   }
 
+  std::cout << "DEBUG: Has heavy computation: " << has_heavy_computation
+            << std::endl;
   if (!has_heavy_computation) {
+    std::cout << "DEBUG: No heavy computation detected, using sequential"
+              << std::endl;
     run();
     return;
   }
 
-  throw std::runtime_error("Parallel graph execution is not yet implemented.");
+  std::cout << "DEBUG: Starting parallel execution..." << std::endl;
+
+  // Group nodes by execution levels (respecting dependencies)
+  auto execution_levels = groupNodesByLevel();
+
+  // Execute each level in sequence, but nodes within each level in parallel
+  for (const auto &level : execution_levels) {
+    std::cout << "DEBUG: Executing level with " << level.size() << " nodes"
+              << std::endl;
+    if (level.size() == 1) {
+      // Single node - execute sequentially
+      auto &node = level[0];
+      std::cout << "DEBUG: Single node execution: " << node->name << std::endl;
+      if (node->dirty) {
+        try {
+          node->execute();
+          node->dirty = false;
+        } catch (const std::exception &e) {
+          throw std::runtime_error("Error executing node '" + node->name +
+                                   "': " + std::string(e.what()));
+        }
+      }
+    } else {
+      // Multiple nodes - execute in parallel
+      std::cout << "DEBUG: Parallel execution of " << level.size() << " nodes"
+                << std::endl;
+      // Release GIL for the main thread so worker threads can acquire it
+      py::gil_scoped_release release;
+      executeNodesInParallel(level);
+      // GIL is automatically re-acquired when release goes out of scope
+    }
+  }
 }
 
 void Graph::run() {
@@ -540,6 +587,161 @@ void Graph::mergeBranches(const std::string &merge_name,
   m_branch_tails.clear();
   m_sequential_nodes.push_back(merge_name);
   m_compiled = false; // Mark for recompilation
+}
+
+std::vector<std::vector<Node::Ptr>> Graph::extractBranches() const {
+  std::vector<std::vector<Node::Ptr>> branches;
+  std::unordered_set<Node *> visited;
+
+  // Find all nodes with multiple outgoing connections (branch points)
+  std::vector<Node::Ptr> branch_points;
+  for (const auto &node : m_nodes) {
+    int output_count = 0;
+    if (node->getOutputEdge()) {
+      // Count how many nodes use this node's output
+      for (const auto &other_node : m_nodes) {
+        if (other_node != node &&
+            other_node->getInputEdge() == node->getOutputEdge()) {
+          output_count++;
+        }
+      }
+    }
+    if (output_count > 1) {
+      branch_points.push_back(node);
+    }
+  }
+
+  // For each branch point, trace all paths
+  for (const auto &branch_point : branch_points) {
+    if (branch_point->getOutputEdge()) {
+      for (const auto &consumer : m_nodes) {
+        if (consumer->getInputEdge() == branch_point->getOutputEdge() &&
+            visited.find(consumer.get()) == visited.end()) {
+
+          std::vector<Node::Ptr> branch;
+          Node::Ptr current = consumer;
+
+          // Trace the branch until we hit a merge point or leaf
+          while (current && visited.find(current.get()) == visited.end()) {
+            branch.push_back(current);
+            visited.insert(current.get());
+
+            // Find next node in this branch
+            Node::Ptr next = nullptr;
+            if (current->getOutputEdge()) {
+              for (const auto &next_consumer : m_nodes) {
+                if (next_consumer->getInputEdge() == current->getOutputEdge()) {
+                  next = next_consumer;
+                  break;
+                }
+              }
+            }
+            current = next;
+          }
+
+          if (!branch.empty()) {
+            branches.push_back(branch);
+          }
+        }
+      }
+    }
+  }
+
+  return branches;
+}
+
+std::vector<std::vector<Node::Ptr>> Graph::groupNodesByLevel() const {
+  std::vector<std::vector<Node::Ptr>> levels;
+  std::unordered_map<Node *, int> node_levels;
+  std::unordered_set<Node *> processed;
+
+  // Calculate the level of each node based on dependencies
+  std::function<int(Node::Ptr)> calculateLevel = [&](Node::Ptr node) -> int {
+    if (node_levels.find(node.get()) != node_levels.end()) {
+      return node_levels[node.get()];
+    }
+
+    int max_dependency_level = -1;
+
+    // Find all nodes that this node depends on
+    if (node->getInputEdge()) {
+      for (const auto &dependency : m_nodes) {
+        if (dependency->getOutputEdge() == node->getInputEdge()) {
+          max_dependency_level =
+              std::max(max_dependency_level, calculateLevel(dependency));
+          break;
+        }
+      }
+    }
+
+    int level = max_dependency_level + 1;
+    node_levels[node.get()] = level;
+    return level;
+  };
+
+  // Calculate levels for all nodes
+  int max_level = 0;
+  for (const auto &node : m_execution_order) {
+    int level = calculateLevel(node);
+    max_level = std::max(max_level, level);
+  }
+
+  // Group nodes by level
+  levels.resize(max_level + 1);
+  for (const auto &node : m_execution_order) {
+    int level = node_levels[node.get()];
+    levels[level].push_back(node);
+  }
+
+  // Remove empty levels
+  levels.erase(std::remove_if(levels.begin(), levels.end(),
+                              [](const std::vector<Node::Ptr> &level) {
+                                return level.empty();
+                              }),
+               levels.end());
+
+  return levels;
+}
+
+void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
+  std::vector<std::future<void>> futures;
+  std::vector<std::exception_ptr> exceptions(nodes.size());
+
+  // Launch parallel execution for each node
+  for (size_t i = 0; i < nodes.size(); ++i) {
+    const auto &node = nodes[i];
+    if (node->dirty) {
+      futures.emplace_back(
+          std::async(std::launch::async, [node, &exceptions, i]() {
+            try {
+              // Acquire GIL for this thread since we're working with Python
+              // objects
+              py::gil_scoped_acquire acquire;
+              node->execute();
+              node->dirty = false;
+            } catch (...) {
+              exceptions[i] = std::current_exception();
+            }
+          }));
+    }
+  }
+
+  // Wait for all futures to complete
+  for (auto &future : futures) {
+    future.wait();
+  }
+
+  // Check for exceptions and rethrow the first one found
+  for (size_t i = 0; i < exceptions.size(); ++i) {
+    if (exceptions[i]) {
+      try {
+        std::rethrow_exception(exceptions[i]);
+      } catch (const std::exception &e) {
+        throw std::runtime_error("Error executing node '" + nodes[i]->name +
+                                 "' in parallel: " + std::string(e.what()));
+      }
+    }
+  }
 }
 
 } // namespace mainera
