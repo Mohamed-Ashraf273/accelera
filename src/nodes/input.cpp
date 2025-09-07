@@ -28,12 +28,4 @@ void InputNode::setInputData(py::object X, py::object y) {
   m_data_set = true;
 }
 
-void InputNode::setInputData(py::object X, py::object y,
-                             py::object fitted_model) {
-  m_X = X;
-  m_y = y;
-  m_fitted_model = fitted_model;
-  m_data_set = true;
-}
-
 } // namespace mainera
