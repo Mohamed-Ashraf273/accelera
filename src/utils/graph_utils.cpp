@@ -1,7 +1,9 @@
 #include "core/graph.hpp"
 #include "core/node.hpp"
 #include <fstream>
+#include <map>
 #include <pybind11/pybind11.h>
+#include <set>
 #include <stdexcept>
 #include <string>
 
@@ -17,7 +19,7 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
   }
 
   file << "<?xml version=\"1.0\"?>\n";
-  file << "<net name=\"AI_Studio_Pipeline\" version=\"11\">\n";
+  file << "<net name=\"AI_Studio_Pipeline\" version=\"10\">\n";
 
   file << "\t<layers>\n";
   for (size_t i = 0; i < m_nodes.size(); ++i) {
@@ -49,43 +51,47 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
     }
 
     file << "\t\t<layer id=\"" << i << "\" name=\"" << node->name
-         << "\" type=\"" << layer_type << "\">\n";
+         << "\" type=\"" << layer_type << "\" version=\"opset1\">\n";
+    file << "\t\t\t<data/>\n";
 
-    if (!node->py_func.is_none() && py::hasattr(node->py_func, "get_params")) {
-      try {
-        py::dict params = node->py_func.attr("get_params")();
-        file << "\t\t\t<data";
-        for (auto item : params) {
-          std::string key = py::str(item.first).cast<std::string>();
-          std::string value = py::str(item.second).cast<std::string>();
-          // Clean up value for XML
-          if (value != "None") {
-            file << " " << key << "=\"" << value << "\"";
-          }
-        }
-        file << "/>\n";
-      } catch (...) {
-        file << "\t\t\t<data/>\n";
-      }
-    } else {
-      file << "\t\t\t<data/>\n";
-    }
-
+    // Input ports (start from 0)
     if (node->getInputEdge()) {
       file << "\t\t\t<input>\n";
       file << "\t\t\t\t<port id=\"0\" precision=\"FP32\">\n";
-      file << "\t\t\t\t\t<dim>1</dim>\n";  // Batch size
-      file << "\t\t\t\t\t<dim>-1</dim>\n"; // Dynamic dimension
+      file << "\t\t\t\t\t<dim>1</dim>\n";
+      file << "\t\t\t\t\t<dim>-1</dim>\n";
       file << "\t\t\t\t</port>\n";
       file << "\t\t\t</input>\n";
     }
 
+    // Output ports (start from next available port number)
     if (node->getOutputEdge()) {
+      // Count connections to determine how many output ports needed
+      int num_outputs = 0;
+      for (size_t j = 0; j < m_nodes.size(); ++j) {
+        if (i == j)
+          continue;
+        const auto &target_node = m_nodes[j];
+        const auto &input_edge = target_node->getInputEdge();
+        if (input_edge && input_edge.get() == node->getOutputEdge().get()) {
+          num_outputs++;
+        }
+      }
+
       file << "\t\t\t<output>\n";
-      file << "\t\t\t\t<port id=\"1\" precision=\"FP32\">\n";
-      file << "\t\t\t\t\t<dim>-1</dim>\n"; // Batch size
-      file << "\t\t\t\t\t<dim>-1</dim>\n"; // Dynamic dimension
-      file << "\t\t\t\t</port>\n";
+
+      // For INPUT nodes, start output ports from 0
+      // For other nodes with input, start output ports from 1
+      int start_port = (node->getInputEdge()) ? 1 : 0;
+
+      // Create only the exact number of output ports needed
+      for (int port = 0; port < std::max(1, num_outputs); ++port) {
+        file << "\t\t\t\t<port id=\"" << (start_port + port)
+             << "\" precision=\"FP32\">\n";
+        file << "\t\t\t\t\t<dim>1</dim>\n";
+        file << "\t\t\t\t\t<dim>-1</dim>\n";
+        file << "\t\t\t\t</port>\n";
+      }
       file << "\t\t\t</output>\n";
     }
 
@@ -94,36 +100,49 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
   file << "\t</layers>\n";
 
   file << "\t<edges>\n";
-  for (size_t i = 0; i < m_nodes.size(); ++i) {
-    const auto &node = m_nodes[i];
-    const auto &output_edge = node->getOutputEdge();
 
-    if (output_edge) {
-      // Find which node this edge connects to
+  // Build connections
+  std::map<size_t, std::vector<size_t>> node_connections;
+  for (size_t i = 0; i < m_nodes.size(); ++i) {
+    const auto &source_node = m_nodes[i];
+    const auto &source_output = source_node->getOutputEdge();
+
+    if (source_output) {
       for (size_t j = 0; j < m_nodes.size(); ++j) {
         if (i == j)
-          continue; // Skip self
-        const auto &target_node = m_nodes[j];
-        const auto &input_edge = target_node->getInputEdge();
+          continue;
 
-        if (input_edge && input_edge == output_edge) {
-          // In single-edge architecture: output port is 1, input port is 0
-          file << "\t\t<edge from-layer=\"" << i << "\" from-port=\"1\" "
-               << "to-layer=\"" << j << "\" to-port=\"0\"/>\n";
+        const auto &target_node = m_nodes[j];
+        const auto &target_input = target_node->getInputEdge();
+
+        if (target_input && target_input.get() == source_output.get()) {
+          node_connections[i].push_back(j);
         }
       }
     }
   }
+
+  // Generate edges with correct port numbering
+  for (const auto &conn : node_connections) {
+    size_t from_node = conn.first;
+    const auto &targets = conn.second;
+
+    // Determine starting port for source node
+    int source_start_port = (m_nodes[from_node]->getInputEdge()) ? 1 : 0;
+
+    for (size_t idx = 0; idx < targets.size(); ++idx) {
+      size_t to_node = targets[idx];
+
+      int from_port = source_start_port + idx;
+      int to_port = 0; // Target always uses port 0 for input
+
+      file << "\t\t<edge from-layer=\"" << from_node << "\" from-port=\""
+           << from_port << "\" " << "to-layer=\"" << to_node << "\" to-port=\""
+           << to_port << "\"/>\n";
+    }
+  }
+
   file << "\t</edges>\n";
-
-  file << "\t<meta_data>\n";
-  file << "\t\t<MO_version value=\"AI Studio Graph Serializer\"/>\n";
-  file << "\t\t<cli_parameters>\n";
-  file << "\t\t\t<input_shape value=\"[1,-1]\"/>\n";
-  file << "\t\t\t<transform value=\"\"/>\n";
-  file << "\t\t</cli_parameters>\n";
-  file << "\t</meta_data>\n";
-
   file << "</net>\n";
 
   file.close();
