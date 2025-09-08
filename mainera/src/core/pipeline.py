@@ -16,30 +16,31 @@ class NodeWrapper:
 
 class Pipeline:
     def __init__(self):
-        self._graph = graph.Graph()
+        self.__graph = graph.Graph()
+        self.__graph.enableParallelExecution(True)
 
     def __call__(self, X, y=None):
-        return self._graph.execute(X, y)
+        return self.__graph.execute(X, y)
 
     def preprocess(self, name, func, branch=False):
         if branch:
             return NodeWrapper("preprocess", name, func)
 
-        self._graph.add_node(graph.NodeType.PREPROCESS, name, func)
+        self.__graph.add_node(graph.NodeType.PREPROCESS, name, func)
         return self
 
     def model(self, name, model, branch=False):
         if branch:
             return NodeWrapper("model", name, model)
 
-        self._graph.add_node(graph.NodeType.MODEL, name, model)
+        self.__graph.add_node(graph.NodeType.MODEL, name, model)
         return self
 
     def predict(self, name, test_data, branch=False):
         if branch:
             return NodeWrapper("predict", name, test_data)
 
-        self._graph.add_node(graph.NodeType.PREDICT, name, test_data)
+        self.__graph.add_node(graph.NodeType.PREDICT, name, test_data)
         return self
 
     def branch(self, name, *branch_nodes):
@@ -57,18 +58,22 @@ class Pipeline:
                 node_types.append("MODEL")
                 node_names.append(f"auto_{len(branch_objects)}")
 
-        self._graph.split(name, branch_objects, node_types, node_names)
+        self.__graph.split(name, branch_objects, node_types, node_names)
         return self
 
     def merge(self, name, merge_func):
         raise NotImplementedError("Merge functionality not yet implemented")
-        self._graph.mergeBranches(name, merge_func)
+        self.__graph.mergeBranches(name, merge_func)
         return self
 
     def set_multicore_threshold(self, threshold):
-        self._graph.setMulticoreThreshold(threshold)
+        self.__graph.setMulticoreThreshold(threshold)
+        return self
+
+    def disable_parallel_execution(self):
+        self.__graph.enableParallelExecution(False)
         return self
 
     def serialize(self, filepath):
-        graph.serialize_graph(self._graph, filepath)
+        graph.serialize_graph(self.__graph, filepath)
         return self

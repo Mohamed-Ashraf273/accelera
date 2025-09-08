@@ -1,7 +1,6 @@
 #include "core/node.hpp"
 #include "core/graph.hpp"
 #include "nodes/input.hpp"
-#include <iostream>
 #include <stdexcept>
 
 namespace mainera {
