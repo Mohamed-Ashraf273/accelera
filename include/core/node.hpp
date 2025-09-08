@@ -1,7 +1,6 @@
 #ifndef NODE_HPP
 #define NODE_HPP
 
-#include "edge.hpp"
 #include <memory>
 #include <pybind11/pybind11.h>
 #include <string>
@@ -11,8 +10,8 @@ namespace py = pybind11;
 
 namespace mainera {
 
-class Graph;     // Forward declaration
-class InputNode; // Forward declaration
+class Graph;
+class InputNode;
 
 enum class NodeType {
   INPUT,
@@ -45,23 +44,21 @@ public:
   virtual void execute() = 0;
 
   // Graph connectivity methods
-  const std::shared_ptr<Edge> &getInputEdge() const;
-  const std::shared_ptr<Edge> &getOutputEdge() const;
-  void connectTo(Node::Ptr targetNode);
+  std::shared_ptr<Node> getSourceNode() const { return m_sourceNode; }
+  void setSourceNode(std::shared_ptr<Node> source) { m_sourceNode = source; }
 
   // Memory optimization methods
   void setShouldCreateNewData(bool should_create);
   bool getShouldCreateNewData() const;
 
-protected:
-  py::list collectInputs();
-  void setOutputs(py::object result);
   std::shared_ptr<InputNode> getInput();
   void setOutput(std::shared_ptr<InputNode> result);
+  std::shared_ptr<InputNode> getOutput();
 
-  std::shared_ptr<Edge> m_inputEdge;
-  std::shared_ptr<Edge> m_outputEdge;
+protected:
+  std::shared_ptr<InputNode> m_data;
   Graph *m_graph = nullptr; // Pointer to parent graph
+  std::shared_ptr<Node> m_sourceNode = nullptr;
 };
 
 } // namespace mainera

@@ -24,25 +24,37 @@ void PreprocessNode::execute() {
     py::object X = input->getX();
     py::object y = input->getY();
 
-    if (X.is_none()) {
-      throw std::runtime_error("Preprocess node '" + name +
-                               "' received None for X input");
-    }
-
-    py::object preprocessed_X;
-    try {
-      preprocessed_X = py_func(X);
-    } catch (const py::error_already_set &e) {
-      throw std::runtime_error("Python error in preprocessing: " +
-                               std::string(e.what()));
-    }
-
     if (should_create_new_data) {
+      py::object X_copy = X.attr("copy")();
+      py::object y_copy = y.attr("copy")();
+      if (X_copy.is_none()) {
+        throw std::runtime_error("Preprocess node '" + name +
+                                 "' received None for X input");
+      }
+
+      try {
+        X_copy = py_func(X_copy);
+      } catch (const py::error_already_set &e) {
+        throw std::runtime_error("Python error in preprocessing: " +
+                                 std::string(e.what()));
+      }
       auto new_input = std::make_shared<InputNode>();
-      new_input->setInputData(preprocessed_X, y);
+      new_input->setInputData(X_copy, y_copy);
       setOutput(new_input);
     } else {
-      input->setInputData(preprocessed_X, y);
+
+      if (X.is_none()) {
+        throw std::runtime_error("Preprocess node '" + name +
+                                 "' received None for X input");
+      }
+
+      try {
+        X = py_func(X);
+      } catch (const py::error_already_set &e) {
+        throw std::runtime_error("Python error in preprocessing: " +
+                                 std::string(e.what()));
+      }
+      input->setInputData(X, y);
       setOutput(input);
     }
 

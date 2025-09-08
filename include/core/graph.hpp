@@ -42,7 +42,7 @@ public:
   bool isCompiled() const;
 
   // Preprocessing function access
-  const std::vector<py::object> &getPreprocessingFunctions() const;
+  std::vector<py::object> getPreprocessingFunctions(Node::Ptr node) const;
 
 private:
   // Core execution methods
@@ -51,15 +51,16 @@ private:
 
   // Topological sorting
   std::vector<Node::Ptr> topologicalSort();
-  void topologicalSortDFS(Node::Ptr node, std::unordered_set<Node *> &visited,
-                          std::unordered_set<Node *> &temp_visited,
-                          std::vector<Node::Ptr> &result);
 
   // Utility methods
   void optimizeGraph();
   std::vector<Node::Ptr> findLeafNodes() const;
   bool shouldReplaceFirstNode(Node::Ptr node) const;
   Node::Ptr findNodeByName(const std::string &name) const;
+
+  // Parallel execution utility methods
+  std::vector<std::vector<Node::Ptr>> groupNodesByLevel() const;
+  void executeNodesInParallel(const std::vector<Node::Ptr> &nodes);
 
   // Core data members
   std::vector<Node::Ptr> m_nodes;
@@ -76,9 +77,6 @@ private:
   bool m_is_branched = false;
   std::vector<std::string> m_branch_tails;
   int m_node_counter = 0;
-
-  // Preprocessing functions storage for test data preprocessing
-  std::vector<py::object> m_preprocessing_functions;
 };
 
 } // namespace mainera

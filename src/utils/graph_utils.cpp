@@ -21,6 +21,12 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
   file << "<?xml version=\"1.0\"?>\n";
   file << "<net name=\"AI_Studio_Pipeline\" version=\"10\">\n";
 
+  // Create node ID mapping
+  std::map<Node *, size_t> node_to_id;
+  for (size_t i = 0; i < m_nodes.size(); ++i) {
+    node_to_id[m_nodes[i].get()] = i;
+  }
+
   file << "\t<layers>\n";
   for (size_t i = 0; i < m_nodes.size(); ++i) {
     const auto &node = m_nodes[i];
@@ -54,8 +60,8 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
          << "\" type=\"" << layer_type << "\" version=\"opset1\">\n";
     file << "\t\t\t<data/>\n";
 
-    // Input ports (start from 0)
-    if (node->getInputEdge()) {
+    // Input ports (only if node has a source)
+    if (node->getSourceNode()) {
       file << "\t\t\t<input>\n";
       file << "\t\t\t\t<port id=\"0\" precision=\"FP32\">\n";
       file << "\t\t\t\t\t<dim>1</dim>\n";
@@ -64,30 +70,18 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
       file << "\t\t\t</input>\n";
     }
 
-    // Output ports (start from next available port number)
-    if (node->getOutputEdge()) {
-      // Count connections to determine how many output ports needed
-      int num_outputs = 0;
-      for (size_t j = 0; j < m_nodes.size(); ++j) {
-        if (i == j)
-          continue;
-        const auto &target_node = m_nodes[j];
-        const auto &input_edge = target_node->getInputEdge();
-        if (input_edge && input_edge.get() == node->getOutputEdge().get()) {
-          num_outputs++;
-        }
+    // Output ports (count how many nodes use this node as source)
+    int num_outputs = 0;
+    for (const auto &other_node : m_nodes) {
+      if (other_node->getSourceNode() == node) {
+        num_outputs++;
       }
+    }
 
+    if (num_outputs > 0) {
       file << "\t\t\t<output>\n";
-
-      // For INPUT nodes, start output ports from 0
-      // For other nodes with input, start output ports from 1
-      int start_port = (node->getInputEdge()) ? 1 : 0;
-
-      // Create only the exact number of output ports needed
-      for (int port = 0; port < std::max(1, num_outputs); ++port) {
-        file << "\t\t\t\t<port id=\"" << (start_port + port)
-             << "\" precision=\"FP32\">\n";
+      for (int port = 0; port < num_outputs; ++port) {
+        file << "\t\t\t\t<port id=\"" << port << "\" precision=\"FP32\">\n";
         file << "\t\t\t\t\t<dim>1</dim>\n";
         file << "\t\t\t\t\t<dim>-1</dim>\n";
         file << "\t\t\t\t</port>\n";
@@ -101,44 +95,32 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
 
   file << "\t<edges>\n";
 
-  // Build connections
-  std::map<size_t, std::vector<size_t>> node_connections;
+  // Build connections based on source node relationships
   for (size_t i = 0; i < m_nodes.size(); ++i) {
-    const auto &source_node = m_nodes[i];
-    const auto &source_output = source_node->getOutputEdge();
+    const auto &target_node = m_nodes[i];
+    const auto &source_node = target_node->getSourceNode();
 
-    if (source_output) {
-      for (size_t j = 0; j < m_nodes.size(); ++j) {
-        if (i == j)
-          continue;
+    if (source_node) {
+      // Find source node ID
+      auto source_it = node_to_id.find(source_node.get());
+      if (source_it != node_to_id.end()) {
+        size_t source_id = source_it->second;
 
-        const auto &target_node = m_nodes[j];
-        const auto &target_input = target_node->getInputEdge();
-
-        if (target_input && target_input.get() == source_output.get()) {
-          node_connections[i].push_back(j);
+        // Count how many outputs the source node has to determine port number
+        int source_output_port = 0;
+        for (const auto &other_node : m_nodes) {
+          if (other_node->getSourceNode() == source_node) {
+            if (other_node == target_node) {
+              break; // Found our target, use current port
+            }
+            source_output_port++;
+          }
         }
+
+        file << "\t\t<edge from-layer=\"" << source_id << "\" from-port=\""
+             << source_output_port << "\" to-layer=\"" << i
+             << "\" to-port=\"0\"/>\n";
       }
-    }
-  }
-
-  // Generate edges with correct port numbering
-  for (const auto &conn : node_connections) {
-    size_t from_node = conn.first;
-    const auto &targets = conn.second;
-
-    // Determine starting port for source node
-    int source_start_port = (m_nodes[from_node]->getInputEdge()) ? 1 : 0;
-
-    for (size_t idx = 0; idx < targets.size(); ++idx) {
-      size_t to_node = targets[idx];
-
-      int from_port = source_start_port + idx;
-      int to_port = 0; // Target always uses port 0 for input
-
-      file << "\t\t<edge from-layer=\"" << from_node << "\" from-port=\""
-           << from_port << "\" " << "to-layer=\"" << to_node << "\" to-port=\""
-           << to_port << "\"/>\n";
     }
   }
 
