@@ -43,22 +43,37 @@ class Pipeline:
         self.__graph.add_node(graph.NodeType.PREDICT, name, test_data)
         return self
 
-    def branch(self, name, *branch_nodes):
-        branch_objects = []
+    def branch(self, name, *branches):
+        branches_to_send = []
         node_types = []
         node_names = []
 
-        for node in branch_nodes:
-            if isinstance(node, NodeWrapper):
-                branch_objects.append(node.obj)
-                node_types.append(node.node_type.upper())
-                node_names.append(node.name)
-            else:
-                branch_objects.append(node)
-                node_types.append("MODEL")
-                node_names.append(f"auto_{len(branch_objects)}")
+        for branch in branches:
+            branch_objects = []
 
-        self.__graph.split(name, branch_objects, node_types, node_names)
+            if isinstance(branch, (list, tuple)):
+                branch_iter = branch
+            elif hasattr(branch, "__iter__") and not isinstance(branch, str):
+                branch_iter = branch
+            else:
+                branch_iter = [branch]
+
+            for node in branch_iter:
+                if isinstance(node, NodeWrapper):
+                    branch_objects.append(node.obj)
+                    node_types.append(node.node_type.upper())
+                    node_names.append(node.name)
+                else:
+                    raise ValueError(
+                        "All arguments to branch() must be"
+                        " NodeWrapper instances. Use the 'branch=True' "
+                        "argument when adding nodes. "
+                        f"Got: {type(node).__name__}"
+                    )
+
+            branches_to_send.append(branch_objects)
+
+        self.__graph.split(name, branches_to_send, node_types, node_names)
         return self
 
     def merge(self, name, merge_func):

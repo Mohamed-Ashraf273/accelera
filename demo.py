@@ -52,11 +52,17 @@ def p_common(x):
     return np.clip(x, -5, 5)
 
 
+def p2(x):
+    return np.sign(x) * np.power(np.abs(x), 0.8)
+
+
 m1 = LogisticRegression(random_state=42, max_iter=1000)
 m2 = SVC(probability=True, random_state=42, kernel="rbf")
 m3 = RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10)
-pre_processed = p_common(p1(X))
-m3.fit(pre_processed, y)
+
+
+pre_processed = p_common(p2(p1(X)))
+m1.fit(pre_processed, y)
 
 p = Pipeline()
 
@@ -64,7 +70,14 @@ p = Pipeline()
 
 p.branch(
     "preprocessing",
-    p.preprocess("standard_scaler", scaler.transform, branch=True),
+    [
+        p.preprocess("standard_scaler", scaler.transform, branch=True),
+        p.preprocess(
+            "power_transform",
+            lambda x: np.sign(x) * np.power(np.abs(x), 0.8),
+            branch=True,
+        ),
+    ],
     p.preprocess(
         "normalize",
         lambda x: x / (np.linalg.norm(x, axis=1, keepdims=True) + 1e-8),
@@ -104,5 +117,7 @@ print(f"Pipeline execution time: {end - start:.4f} seconds")
 
 print(
     "Pipeline matches: "
-    f"{np.all(m3.predict(p_common(p1(test_data))) == simple_predictions[2])}"
+    f"{
+        np.all(m1.predict(p_common(p2(p1(test_data)))) == simple_predictions[0])
+    }"
 )

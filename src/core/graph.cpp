@@ -18,6 +18,7 @@
 #include "nodes/preprocess.hpp"
 #include "passes/node_fusion.hpp"
 #include "utils/graph_utils.hpp"
+#include <iostream>
 
 namespace mainera {
 
@@ -113,11 +114,6 @@ void Graph::split(const std::string &branch_name,
                   const std::vector<py::object> &branch_objects,
                   const std::vector<std::string> &node_types,
                   const std::vector<std::string> &node_names) {
-  if (branch_objects.size() != node_types.size() ||
-      branch_objects.size() != node_names.size()) {
-    throw std::runtime_error(
-        "branch_objects, node_types, and node_names must have the same size");
-  }
 
   if (branch_objects.empty()) {
     throw std::runtime_error("At least one branch node must be specified");
@@ -133,49 +129,108 @@ void Graph::split(const std::string &branch_name,
   m_branch_tails.clear();
   m_is_branched = true;
 
-  // For each leaf, create all the specified nodes and connect them
+  // For each leaf, create parallel branches
   for (size_t leaf_idx = 0; leaf_idx < leaves.size(); ++leaf_idx) {
     Node::Ptr leaf = leaves[leaf_idx];
 
-    for (size_t node_idx = 0; node_idx < branch_objects.size(); ++node_idx) {
-      NodeType nodeType;
-      if (node_types[node_idx] == "INPUT") {
-        nodeType = NodeType::INPUT;
-      } else if (node_types[node_idx] == "PREPROCESS") {
-        nodeType = NodeType::PREPROCESS;
-      } else if (node_types[node_idx] == "FEATURE") {
-        nodeType = NodeType::FEATURE;
-      } else if (node_types[node_idx] == "MODEL") {
-        nodeType = NodeType::MODEL;
-      } else if (node_types[node_idx] == "PREDICT") {
-        nodeType = NodeType::PREDICT;
-      } else {
-        throw std::runtime_error("Unknown node type: " + node_types[node_idx]);
+    // Store the tail nodes for each parallel branch
+    std::vector<Node::Ptr> branch_tails;
+
+    for (size_t branch_idx = 0; branch_idx < branch_objects.size();
+         ++branch_idx) {
+      Node::Ptr current_source = leaf;
+
+      // Check if this branch object is a list of nodes
+      try {
+        py::list node_list = py::cast<py::list>(branch_objects[branch_idx]);
+
+        // It's a list - create a chain of nodes for this branch
+        for (size_t list_idx = 0; list_idx < node_list.size(); ++list_idx) {
+          NodeType nodeType;
+          if (node_types[branch_idx + list_idx] == "INPUT") {
+            nodeType = NodeType::INPUT;
+          } else if (node_types[branch_idx + list_idx] == "PREPROCESS") {
+            nodeType = NodeType::PREPROCESS;
+          } else if (node_types[branch_idx + list_idx] == "FEATURE") {
+            nodeType = NodeType::FEATURE;
+          } else if (node_types[branch_idx + list_idx] == "MODEL") {
+            nodeType = NodeType::MODEL;
+          } else if (node_types[branch_idx + list_idx] == "PREDICT") {
+            nodeType = NodeType::PREDICT;
+          } else {
+            throw std::runtime_error("Unknown node type: " +
+                                     node_types[branch_idx + list_idx]);
+          }
+
+          std::string uniqueName;
+          if (leaves.size() == 1) {
+            uniqueName = node_names[branch_idx + list_idx] + "_chain_" +
+                         std::to_string(list_idx);
+          } else {
+            uniqueName = node_names[branch_idx + list_idx] + "_leaf_" +
+                         std::to_string(leaf_idx) + "_chain_" +
+                         std::to_string(list_idx);
+          }
+
+          py::object node_obj = node_list[list_idx];
+          Node::Ptr branchNode =
+              NodeFactory::createNode(nodeType, uniqueName, node_obj);
+
+          // Only the first node in each branch should create new data
+          branchNode->setShouldCreateNewData(list_idx == 0);
+
+          m_nodes.push_back(branchNode);
+          m_node_map[branchNode->name] = branchNode;
+
+          // Connect to the current source in the chain
+          branchNode->setSourceNode(current_source);
+          current_source = branchNode;
+        }
+
+      } catch (const py::cast_error &) {
+        NodeType nodeType;
+        if (node_types[branch_idx] == "INPUT") {
+          nodeType = NodeType::INPUT;
+        } else if (node_types[branch_idx] == "PREPROCESS") {
+          nodeType = NodeType::PREPROCESS;
+        } else if (node_types[branch_idx] == "FEATURE") {
+          nodeType = NodeType::FEATURE;
+        } else if (node_types[branch_idx] == "MODEL") {
+          nodeType = NodeType::MODEL;
+        } else if (node_types[branch_idx] == "PREDICT") {
+          nodeType = NodeType::PREDICT;
+        } else {
+          throw std::runtime_error("Unknown node type: " +
+                                   node_types[branch_idx]);
+        }
+
+        std::string uniqueName;
+        if (leaves.size() == 1) {
+          uniqueName = node_names[branch_idx];
+        } else {
+          uniqueName =
+              node_names[branch_idx] + "_leaf_" + std::to_string(leaf_idx);
+        }
+
+        Node::Ptr branchNode = NodeFactory::createNode(
+            nodeType, uniqueName, branch_objects[branch_idx]);
+        branchNode->setShouldCreateNewData(true);
+
+        m_nodes.push_back(branchNode);
+        m_node_map[branchNode->name] = branchNode;
+
+        // Connect to the leaf
+        branchNode->setSourceNode(leaf);
+        current_source = branchNode;
       }
 
-      // Create unique name for this branch node
-      std::string uniqueName;
-      if (leaves.size() == 1) {
-        // If only one leaf, use the original name
-        uniqueName = node_names[node_idx];
-      } else {
-        // If multiple leaves, append leaf index to make unique
-        uniqueName = node_names[node_idx] + "_leaf_" + std::to_string(leaf_idx);
-      }
+      // Store the final node of this branch
+      branch_tails.push_back(current_source);
+    }
 
-      Node::Ptr branchNode = NodeFactory::createNode(nodeType, uniqueName,
-                                                     branch_objects[node_idx]);
-
-      // Mark this as a branch head node - should create new data for memory
-      // optimization
-      branchNode->setShouldCreateNewData(true);
-
-      m_nodes.push_back(branchNode);
-      m_node_map[branchNode->name] = branchNode;
-
-      branchNode->setSourceNode(leaf);
-
-      m_branch_tails.push_back(branchNode->name);
+    // Store all tail nodes for this leaf
+    for (const auto &tail : branch_tails) {
+      m_branch_tails.push_back(tail->name);
     }
   }
 
@@ -199,7 +254,7 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
     m_input_node->setOutput(m_input_node);
   }
 
-  if (m_parallel_enabled) {
+  if (m_parallel_enabled && m_execution_order.size() >= m_multicore_threshold) {
     runParallel();
   } else {
     run();
@@ -279,23 +334,6 @@ void Graph::setMulticoreThreshold(size_t threshold) {
 }
 
 void Graph::runParallel() {
-
-  if (!m_parallel_enabled) {
-    run();
-    return;
-  }
-
-  if (!m_compiled) {
-    compile();
-  }
-
-  // Check if we have enough nodes AND they're compute-heavy enough to justify
-  // parallel overhead
-  if (m_execution_order.size() < m_multicore_threshold) {
-    run();
-    return;
-  }
-
   // Group nodes by execution levels (respecting dependencies)
   auto execution_levels = groupNodesByLevel();
 
@@ -489,7 +527,7 @@ void Graph::mergeBranches(const std::string &merge_name,
 
 std::vector<std::vector<Node::Ptr>> Graph::groupNodesByLevel() const {
   if (m_nodes.empty())
-    return {};
+    throw std::runtime_error("No nodes in graph");
 
   std::vector<std::vector<Node::Ptr>> levels;
   std::unordered_map<Node *, int> levels_map;
