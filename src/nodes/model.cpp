@@ -40,20 +40,27 @@ void ModelNode::execute() {
     }
 
     py::object model_instance = py_func;
-    try {
-      model_instance.attr("fit")(X, y);
-    } catch (const py::error_already_set &e) {
-      throw std::runtime_error("Python error in model fitting: " +
-                               std::string(e.what()));
-    }
 
     if (should_create_new_data) {
+      py::object X_copy = X.attr("copy")();
+      py::object y_copy = y.attr("copy")();
+      try {
+        model_instance.attr("fit")(X_copy, y_copy);
+      } catch (const py::error_already_set &e) {
+        throw std::runtime_error("Python error in model fitting: " +
+                                 std::string(e.what()));
+      }
       auto new_input = std::make_shared<InputNode>();
-      new_input->setInputData(X, y);
+      new_input->setInputData(X_copy, y_copy);
       new_input->setFittedModel(model_instance);
       setOutput(new_input);
     } else {
-      input->setInputData(X, y);
+      try {
+        model_instance.attr("fit")(X, y);
+      } catch (const py::error_already_set &e) {
+        throw std::runtime_error("Python error in model fitting: " +
+                                 std::string(e.what()));
+      }
       input->setFittedModel(model_instance);
       setOutput(input);
     }

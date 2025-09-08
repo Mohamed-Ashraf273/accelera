@@ -61,6 +61,7 @@ class Pipeline:
         return self
 
     def merge(self, name, merge_func):
+        raise NotImplementedError("Merge functionality not yet implemented")
         self._graph.mergeBranches(name, merge_func)
         return self
 

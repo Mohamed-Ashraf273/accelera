@@ -2,6 +2,7 @@
 #include "core/graph.hpp"
 #include "nodes/input.hpp"
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
@@ -24,8 +25,6 @@ void PredictNode::execute() {
                                "' requires a valid input");
     }
 
-    py::object X = input->getX();
-    py::object y = input->getY();
     py::object fitted_model = input->getFittedModel();
 
     py::object test_data = py_func;
@@ -35,8 +34,8 @@ void PredictNode::execute() {
 
     py::object preprocessed_test_data = test_data;
     if (getGraph()) {
-      const auto &preprocess_functions =
-          getGraph()->getPreprocessingFunctions();
+      const auto preprocess_functions =
+          getGraph()->getPreprocessingFunctions(shared_from_this());
 
       // Apply each preprocessing function in order
       for (const auto &preprocess_func : preprocess_functions) {
@@ -73,16 +72,10 @@ void PredictNode::execute() {
                                std::string(e.what()));
     }
 
-    if (should_create_new_data) {
-      auto new_input = std::make_shared<InputNode>();
-      new_input->setInputData(preprocessed_test_data, predictions);
-      new_input->setFittedModel(fitted_model);
-      setOutput(new_input);
-    } else {
-      input->setInputData(preprocessed_test_data, predictions);
-      input->setFittedModel(fitted_model);
-      setOutput(input);
-    }
+    auto new_input = std::make_shared<InputNode>();
+    new_input->setInputData(preprocessed_test_data, predictions);
+    new_input->setFittedModel(fitted_model);
+    setOutput(new_input);
 
   } catch (const std::exception &e) {
     throw std::runtime_error("Error in PredictNode::execute(): " +

@@ -25,9 +25,7 @@ PYBIND11_MODULE(graph, m) {
   py::class_<Node, Node::Ptr>(m, "Node")
       .def_readonly("name", &Node::name)
       .def_readonly("type", &Node::type)
-      .def_readonly("dirty", &Node::dirty)
-      .def("connectTo", &Node::connectTo, py::arg("targetNode"),
-           "Connect this node's output to target node's input");
+      .def_readonly("dirty", &Node::dirty);
 
   // Graph binding with streamlined interface
   py::class_<Graph>(m, "Graph")

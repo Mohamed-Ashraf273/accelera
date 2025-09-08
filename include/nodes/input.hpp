@@ -17,9 +17,7 @@ public:
 
   // Set the input data when execution begins
   void setInputData(py::object X, py::object y = py::object());
-  void setInputData(py::object X, py::object y, py::object fitted_model);
 
-  // Getter methods for accessing data
   py::object getX() const { return m_X; }
   py::object getY() const { return m_y; }
   py::object getFittedModel() const { return m_fitted_model; }
