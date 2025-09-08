@@ -130,4 +130,7 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
   file.close();
 }
 
+void log_warning(const std::string &message) {
+  std::fprintf(stderr, "WARNING: %s\n", message.c_str());
+}
 } // namespace mainera

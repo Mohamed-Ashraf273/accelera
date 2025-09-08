@@ -1,3 +1,14 @@
+#include <algorithm>
+#include <chrono>
+#include <exception>
+#include <fstream>
+#include <future>
+#include <queue>
+#include <stdexcept>
+#include <thread>
+#include <unordered_map>
+#include <unordered_set>
+
 #include "core/graph.hpp"
 #include "core/node_factory.hpp"
 #include "nodes/input.hpp"
@@ -6,17 +17,7 @@
 #include "nodes/predict.hpp"
 #include "nodes/preprocess.hpp"
 #include "passes/node_fusion.hpp"
-#include <algorithm>
-#include <chrono>
-#include <exception>
-#include <fstream>
-#include <future>
-#include <iostream>
-#include <queue>
-#include <stdexcept>
-#include <thread>
-#include <unordered_map>
-#include <unordered_set>
+#include "utils/graph_utils.hpp"
 
 namespace mainera {
 
@@ -122,7 +123,6 @@ void Graph::split(const std::string &branch_name,
     throw std::runtime_error("At least one branch node must be specified");
   }
 
-  // Get all current leaf nodes
   std::vector<Node::Ptr> leaves = findLeafNodes();
 
   if (leaves.empty()) {
@@ -241,8 +241,8 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
               std::to_string(static_cast<int>(leaf->type)));
         }
       } catch (const std::exception &e) {
-        std::cerr << "Warning: Error collecting results from node '"
-                  << leaf->name << "': " << e.what() << std::endl;
+        log_warning("Error collecting results from node '" + leaf->name +
+                    "': " + e.what());
       }
     }
   }
@@ -279,64 +279,31 @@ void Graph::setMulticoreThreshold(size_t threshold) {
 }
 
 void Graph::runParallel() {
-  std::cout << "DEBUG: runParallel() called" << std::endl;
 
   if (!m_parallel_enabled) {
-    std::cout << "DEBUG: Parallel not enabled, using sequential" << std::endl;
     run();
     return;
   }
 
   if (!m_compiled) {
-    std::cout << "DEBUG: Graph not compiled, compiling..." << std::endl;
     compile();
   }
 
   // Check if we have enough nodes AND they're compute-heavy enough to justify
   // parallel overhead
-  std::cout << "DEBUG: Execution order size: " << m_execution_order.size()
-            << ", threshold: " << m_multicore_threshold << std::endl;
   if (m_execution_order.size() < m_multicore_threshold) {
-    std::cout
-        << "DEBUG: Not enough nodes for parallel execution, using sequential"
-        << std::endl;
     run();
     return;
   }
-
-  // For small/fast operations, threading overhead > benefit, so use sequential
-  // Only use parallel for genuinely compute-intensive operations
-  bool has_heavy_computation = false;
-  for (const auto &node : m_execution_order) {
-    if ((node->type == NodeType::MODEL || node->type == NodeType::PREPROCESS) &&
-        node->dirty) {
-      has_heavy_computation = true;
-      break;
-    }
-  }
-
-  std::cout << "DEBUG: Has heavy computation: " << has_heavy_computation
-            << std::endl;
-  if (!has_heavy_computation) {
-    std::cout << "DEBUG: No heavy computation detected, using sequential"
-              << std::endl;
-    run();
-    return;
-  }
-
-  std::cout << "DEBUG: Starting parallel execution..." << std::endl;
 
   // Group nodes by execution levels (respecting dependencies)
   auto execution_levels = groupNodesByLevel();
 
   // Execute each level in sequence, but nodes within each level in parallel
   for (const auto &level : execution_levels) {
-    std::cout << "DEBUG: Executing level with " << level.size() << " nodes"
-              << std::endl;
     if (level.size() == 1) {
       // Single node - execute sequentially
       auto &node = level[0];
-      std::cout << "DEBUG: Single node execution: " << node->name << std::endl;
       if (node->dirty) {
         try {
           node->execute();
@@ -348,8 +315,6 @@ void Graph::runParallel() {
       }
     } else {
       // Multiple nodes - execute in parallel
-      std::cout << "DEBUG: Parallel execution of " << level.size() << " nodes"
-                << std::endl;
       // Release GIL for the main thread so worker threads can acquire it
       py::gil_scoped_release release;
       executeNodesInParallel(level);

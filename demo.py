@@ -26,7 +26,7 @@ def sample_data():
     )
 
     # Create test data (subset of training data)
-    test_data = X[:500]  # Use first 500 samples for testing
+    test_data = X[:500]  # Use first 50 samples for testing
 
     print(
         f"Dataset created: {X.shape} "
@@ -40,13 +40,27 @@ def sample_data():
 
 X, y, test_data = sample_data()
 
-p = Pipeline()
-# p._graph.enableParallelExecution(True) # not working yet
-
 
 print("\nSetting up preprocessing branches...")
 scaler = StandardScaler()
 scaler.fit(X)  # Pre-fit the scaler
+
+p1 = scaler.transform
+
+
+def p_common(x):
+    return np.clip(x, -5, 5)
+
+
+m1 = LogisticRegression(random_state=42, max_iter=1000)
+m2 = SVC(probability=True, random_state=42, kernel="rbf")
+m3 = RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10)
+pre_processed = p_common(p1(X))
+m3.fit(pre_processed, y)
+
+p = Pipeline()
+
+# p.disable_parallel_execution()
 
 p.branch(
     "preprocessing",
@@ -62,8 +76,7 @@ p.branch(
         branch=True,
     ),
 )
-
-p.preprocess("feature_engineering", lambda x: np.clip(x, -5, 5))
+p.preprocess("clip", lambda x: np.clip(x, -5, 5))
 
 p.branch(
     "models",
@@ -83,52 +96,13 @@ p.branch(
 )
 
 p.predict("predict", test_data)
-# p.merge("ensemble_average", lambda preds: np.mean(preds, axis=0)
-# if isinstance(preds, list) and len(preds) > 1 else
-# (preds[0] if isinstance(preds, list) else preds))
-
-p.serialize("big_data_pipeline_no_merge.xml")
-
-print("\nExecuting big data pipeline...")
+p.serialize("test.xml")
 start = time.time()
-predictions = p(X, y)
+simple_predictions = p(X, y)
 end = time.time()
+print(f"Pipeline execution time: {end - start:.4f} seconds")
 
-print("\nResults:")
 print(
-    "Predictions shape: "
-    f"{
-        predictions[0].shape
-        if predictions and hasattr(predictions[0], 'shape')
-        else 'Unknown'
-    }"
+    "Pipeline matches: "
+    f"{np.all(m3.predict(p_common(p1(test_data))) == simple_predictions[2])}"
 )
-print(
-    "Sample predictions: "
-    f"{
-        predictions[0][:10]
-        if predictions and hasattr(predictions[0], '__getitem__')
-        else predictions
-    }"
-)
-print(f"Execution time: {end - start:.3f} seconds")
-print(f"Throughput: {len(X) / (end - start):.0f} samples/second")
-
-# Performance analysis
-if end - start > 0:
-    print("\nPerformance Analysis:")
-    print(f"- Dataset size: {X.shape}")
-    print("- Models trained: 3 (LogisticRegression, SVM, RandomForest)")
-    print(
-        "- Preprocessing steps: 4 (scaling, "
-        "normalization, power transform, clipping)"
-    )
-    print(f"- Parallel execution: {'Enabled' if p._graph else 'Disabled'}")
-    print(f"- Total time: {end - start:.3f}s")
-
-    if end - start < 10:
-        print("🚀 Excellent performance!")
-    elif end - start < 30:
-        print("✅ Good performance")
-    else:
-        print("⚠️  Consider optimization for this dataset size")

@@ -39,7 +39,8 @@ void ModelNode::execute() {
                                "' inputs must be array-like objects");
     }
 
-    py::object model_instance = py_func;
+    py::object model_instance =
+        py::module::import("copy").attr("deepcopy")(py_func);
 
     if (should_create_new_data) {
       py::object X_copy = X.attr("copy")();
