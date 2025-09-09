@@ -5,7 +5,7 @@
 
 namespace mainera {
 
-class ModelNode : public Node {
+class MAINERA_API ModelNode : public Node {
 public:
   ModelNode(const std::string &name, py::object py_func);
   void execute() override;

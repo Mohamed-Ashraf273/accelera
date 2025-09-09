@@ -5,7 +5,7 @@
 
 namespace mainera {
 
-class PredictNode : public Node {
+class MAINERA_API PredictNode : public Node {
 public:
   PredictNode(const std::string &name, py::object py_func);
   void execute() override;

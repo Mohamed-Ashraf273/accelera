@@ -56,7 +56,6 @@ void Graph::addNode(Node::Ptr node) {
     Node::Ptr nodeToAdd;
 
     if (i == 0) {
-      // Use the original node for the first leaf
       nodeToAdd = node;
     } else {
       // Create a copy for subsequent leaves
@@ -66,7 +65,6 @@ void Graph::addNode(Node::Ptr node) {
       nodeToAdd->setGraph(this);
     }
 
-    // Add the node to the graph
     m_nodes.push_back(nodeToAdd);
     m_node_map[nodeToAdd->name] = nodeToAdd; // Fast lookup
 
@@ -219,7 +217,6 @@ void Graph::split(const std::string &branch_name,
         m_nodes.push_back(branchNode);
         m_node_map[branchNode->name] = branchNode;
 
-        // Connect to the leaf
         branchNode->setSourceNode(leaf);
         current_source = branchNode;
       }
