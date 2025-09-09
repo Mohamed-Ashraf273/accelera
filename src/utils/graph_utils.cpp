@@ -1,5 +1,6 @@
 #include "core/graph.hpp"
 #include "core/node.hpp"
+#include "utils/graph_utils.hpp"
 #include <fstream>
 #include <map>
 #include <pybind11/pybind11.h>

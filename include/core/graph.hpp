@@ -2,6 +2,7 @@
 #define GRAPH_HPP
 
 #include "node.hpp"
+#include "core/visibility.hpp"
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -12,7 +13,7 @@ namespace mainera {
 
 class InputNode; // Forward declaration
 
-class __attribute__((visibility("default"))) Graph {
+class MAINERA_API Graph {
 public:
   Graph();
   ~Graph();

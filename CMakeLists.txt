@@ -22,10 +22,18 @@ file(GLOB_RECURSE NODE_SOURCES "${CMAKE_SOURCE_DIR}/src/nodes/*.cpp")
 file(GLOB_RECURSE UTILS_SOURCES "${CMAKE_SOURCE_DIR}/src/utils/*.cpp")
 file(GLOB_RECURSE PASSES_SOURCES "${CMAKE_SOURCE_DIR}/src/passes/*.cpp")
 
-add_library(mainera_core STATIC ${CORE_SOURCES} ${NODE_SOURCES} ${UTILS_SOURCES} ${PASSES_SOURCES})
+add_library(mainera_core SHARED
+    ${CORE_SOURCES}
+    ${NODE_SOURCES}
+    ${UTILS_SOURCES}
+    ${PASSES_SOURCES}
+)
+
 target_include_directories(mainera_core PUBLIC "${CMAKE_SOURCE_DIR}/include")
 target_link_libraries(mainera_core PUBLIC pybind11::module)
 set_target_properties(mainera_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+target_compile_definitions(mainera_core PUBLIC MAINERA_BUILD_DLL)
 
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bindings")
 
@@ -51,7 +59,22 @@ foreach(binding_file ${BINDINGS_SOURCES})
     
     set_target_properties(${module_name} PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bindings"
+        LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bindings"
+        LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bindings"
+        LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/bindings"
+        LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/bindings"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bindings"
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bindings"
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bindings"
+        RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/bindings"
+        RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/bindings"
         OUTPUT_NAME ${module_name}
+    )
+
+    add_custom_command(TARGET ${module_name} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:mainera_core>
+        "${CMAKE_BINARY_DIR}/bindings"
     )
 endforeach()
 
@@ -60,9 +83,10 @@ message(STATUS "Generated ${BINDINGS_SOURCES} Python modules in ${CMAKE_BINARY_D
 install(TARGETS mainera_core
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
 )
 
 install(DIRECTORY "${CMAKE_BINARY_DIR}/bindings/"
     DESTINATION lib/python/site-packages
-    FILES_MATCHING PATTERN "*.so"
+    FILES_MATCHING PATTERN "*.so" PATTERN "*.pyd"
 )
