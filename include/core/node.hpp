@@ -1,11 +1,11 @@
 #ifndef NODE_HPP
 #define NODE_HPP
 
+#include "core/visibility.hpp"
 #include <memory>
 #include <pybind11/pybind11.h>
 #include <string>
 #include <vector>
-#include "core/visibility.hpp"
 
 namespace py = pybind11;
 
@@ -23,8 +23,7 @@ enum class NodeType {
   MERGE,
 };
 
-class MAINERA_API Node
-    : public std::enable_shared_from_this<Node> {
+class MAINERA_API Node : public std::enable_shared_from_this<Node> {
 public:
   using Ptr = std::shared_ptr<Node>;
 
