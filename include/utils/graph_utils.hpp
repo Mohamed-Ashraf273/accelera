@@ -2,14 +2,16 @@
 #define GRAPH_UTILS_HPP
 
 #include <string>
+#include "core/visibility.hpp"
 
 namespace mainera {
 
 class Graph; // Forward declaration
 
 // Serialize a graph to XML format
-void serialize_graph(const Graph &graph, const std::string &filepath);
-void log_warning(const std::string &message);
+MAINERA_API void serialize_graph(const Graph &graph, const std::string &filepath);
+MAINERA_API void log_warning(const std::string &message);
+
 } // namespace mainera
 
 #endif // GRAPH_UTILS_HPP

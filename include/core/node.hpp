@@ -5,6 +5,7 @@
 #include <pybind11/pybind11.h>
 #include <string>
 #include <vector>
+#include "core/visibility.hpp"
 
 namespace py = pybind11;
 
@@ -22,7 +23,7 @@ enum class NodeType {
   MERGE,
 };
 
-class __attribute__((visibility("default"))) Node
+class MAINERA_API Node
     : public std::enable_shared_from_this<Node> {
 public:
   using Ptr = std::shared_ptr<Node>;
