@@ -56,7 +56,6 @@ private:
   // Utility methods
   void optimizeGraph();
   std::vector<Node::Ptr> findLeafNodes() const;
-  bool shouldReplaceFirstNode(Node::Ptr node) const;
   Node::Ptr findNodeByName(const std::string &name) const;
 
   // Parallel execution utility methods
@@ -70,7 +69,6 @@ private:
   bool m_compiled = false;
   bool m_parallel_enabled = false;
   size_t m_multicore_threshold = 3; // Minimum tasks to use multicore
-  Node::Ptr m_first_node = nullptr;
   std::shared_ptr<InputNode> m_input_node = nullptr; // Automatic input node
 
   // Pipeline state management
