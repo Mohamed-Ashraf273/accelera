@@ -8,7 +8,7 @@ namespace py = pybind11;
 
 namespace mainera {
 
-class MergeNode : public Node {
+class MAINERA_API MergeNode : public Node {
 public:
   MergeNode(const std::string &name, py::object py_func);
 
