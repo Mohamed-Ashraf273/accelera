@@ -1,8 +1,8 @@
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 
-#include "node.hpp"
 #include "core/visibility.hpp"
+#include "node.hpp"
 #include <memory>
 #include <string>
 #include <unordered_map>
