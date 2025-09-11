@@ -22,15 +22,13 @@
 
 namespace mainera {
 
-Graph::Graph()
-    : m_compiled(false), m_parallel_enabled(false), m_first_node(nullptr) {
+Graph::Graph() : m_compiled(false), m_parallel_enabled(false) {
   // Automatically create an input node as the starting point
   m_input_node = std::make_shared<InputNode>();
   auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
   input_as_node->setSourceNode(nullptr);
   m_nodes.push_back(input_as_node);
   m_node_map[m_input_node->name] = input_as_node;
-  m_first_node = input_as_node;
 }
 
 Graph::~Graph() { clear(); }
@@ -56,7 +54,6 @@ void Graph::addNode(Node::Ptr node) {
     Node::Ptr nodeToAdd;
 
     if (i == 0) {
-      // Use the original node for the first leaf
       nodeToAdd = node;
     } else {
       // Create a copy for subsequent leaves
@@ -66,7 +63,6 @@ void Graph::addNode(Node::Ptr node) {
       nodeToAdd->setGraph(this);
     }
 
-    // Add the node to the graph
     m_nodes.push_back(nodeToAdd);
     m_node_map[nodeToAdd->name] = nodeToAdd; // Fast lookup
 
@@ -103,11 +99,6 @@ void Graph::addNode(Node::Ptr node) {
   }
 
   m_compiled = false;
-
-  // Track first node with priority: INPUT > PREPROCESS > MODEL
-  if (!m_first_node || shouldReplaceFirstNode(node)) {
-    m_first_node = node;
-  }
 }
 
 void Graph::split(const std::string &branch_name,
@@ -219,7 +210,6 @@ void Graph::split(const std::string &branch_name,
         m_nodes.push_back(branchNode);
         m_node_map[branchNode->name] = branchNode;
 
-        // Connect to the leaf
         branchNode->setSourceNode(leaf);
         current_source = branchNode;
       }
@@ -313,7 +303,6 @@ void Graph::clear() {
   m_branch_tails.clear();
   m_compiled = false;
   m_is_branched = false;
-  m_first_node = nullptr;
   m_input_node = nullptr;
   m_node_counter = 0;
 
@@ -322,7 +311,6 @@ void Graph::clear() {
   auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
   m_nodes.push_back(input_as_node);
   m_node_map[m_input_node->name] = input_as_node;
-  m_first_node = input_as_node;
 }
 
 void Graph::enableParallelExecution(bool enable) {
@@ -483,28 +471,6 @@ std::vector<Node::Ptr> Graph::findLeafNodes() const {
   }
 
   return leaves;
-}
-
-bool Graph::shouldReplaceFirstNode(Node::Ptr node) const {
-  if (!m_first_node)
-    return true;
-
-  // Priority: INPUT > PREPROCESS > MODEL > others
-  if (node->type == NodeType::INPUT)
-    return true;
-  if (m_first_node->type == NodeType::INPUT)
-    return false;
-
-  if (node->type == NodeType::PREPROCESS)
-    return true;
-  if (m_first_node->type == NodeType::PREPROCESS)
-    return false;
-
-  if (node->type == NodeType::MODEL &&
-      m_first_node->type != NodeType::PREPROCESS)
-    return true;
-
-  return false;
 }
 
 Node::Ptr Graph::findNodeByName(const std::string &name) const {

@@ -8,7 +8,7 @@ namespace py = pybind11;
 
 namespace mainera {
 
-class InputNode : public Node {
+class MAINERA_API InputNode : public Node {
 public:
   InputNode();
   virtual ~InputNode() = default;

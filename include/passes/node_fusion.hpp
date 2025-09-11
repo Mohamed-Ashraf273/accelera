@@ -5,7 +5,7 @@
 namespace mainera {
 namespace passes {
 
-class NodeFusion {
+class MAINERA_API NodeFusion {
 public:
   static void apply(Graph &graph);
 };
