@@ -3,24 +3,24 @@ project(ai_studio LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# ========== ADD THIS SECTION ==========
-# Force CMake to use your virtual environment Python
+
+# ========== THIS IS A CRITICAL SECTION ==========
 if(DEFINED ENV{VIRTUAL_ENV})
-    # Use virtual environment Python
-    set(Python_EXECUTABLE "$ENV{VIRTUAL_ENV}/Scripts/python.exe")
+    if(WIN32)
+        set(Python_EXECUTABLE "$ENV{VIRTUAL_ENV}/Scripts/python.exe")
+    else()
+        set(Python_EXECUTABLE "$ENV{VIRTUAL_ENV}/bin/python")
+    endif()
     message(STATUS "Using virtual environment Python: ${Python_EXECUTABLE}")
 else()
-    # Fallback: try to find Python in common locations
     find_program(PYTHON_EXECUTABLE NAMES python python3)
     if(PYTHON_EXECUTABLE)
         set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
     endif()
 endif()
 
-# Modern Python detection - MUST COME BEFORE pybind11
 find_package(Python COMPONENTS Interpreter Development REQUIRED)
 
-# Set variables that pybind11 expects
 set(PYTHON_EXECUTABLE ${Python_EXECUTABLE})
 set(PYTHON_INCLUDE_DIR ${Python_INCLUDE_DIRS})
 set(PYTHON_LIBRARY ${Python_LIBRARIES})
@@ -28,8 +28,7 @@ set(PYTHON_LIBRARY ${Python_LIBRARIES})
 message(STATUS "Python executable: ${Python_EXECUTABLE}")
 message(STATUS "Python include dir: ${Python_INCLUDE_DIRS}")
 message(STATUS "Python libraries: ${Python_LIBRARIES}")
-# ========== END OF ADDED SECTION ==========
-
+# =============== END OF THE SECTION ==============
 
 find_package(pybind11 QUIET)
 
