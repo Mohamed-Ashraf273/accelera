@@ -4,6 +4,32 @@ project(ai_studio LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# ========== THIS IS A CRITICAL SECTION ==========
+if(DEFINED ENV{VIRTUAL_ENV})
+    if(WIN32)
+        set(Python_EXECUTABLE "$ENV{VIRTUAL_ENV}/Scripts/python.exe")
+    else()
+        set(Python_EXECUTABLE "$ENV{VIRTUAL_ENV}/bin/python")
+    endif()
+    message(STATUS "Using virtual environment Python: ${Python_EXECUTABLE}")
+else()
+    find_program(PYTHON_EXECUTABLE NAMES python python3)
+    if(PYTHON_EXECUTABLE)
+        set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+    endif()
+endif()
+
+find_package(Python COMPONENTS Interpreter Development REQUIRED)
+
+set(PYTHON_EXECUTABLE ${Python_EXECUTABLE})
+set(PYTHON_INCLUDE_DIR ${Python_INCLUDE_DIRS})
+set(PYTHON_LIBRARY ${Python_LIBRARIES})
+
+message(STATUS "Python executable: ${Python_EXECUTABLE}")
+message(STATUS "Python include dir: ${Python_INCLUDE_DIRS}")
+message(STATUS "Python libraries: ${Python_LIBRARIES}")
+# =============== END OF THE SECTION ==============
+
 find_package(pybind11 QUIET)
 
 if(NOT pybind11_FOUND)
