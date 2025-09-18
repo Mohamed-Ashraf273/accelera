@@ -1,6 +1,7 @@
 import time
 
 import numpy as np
+import psutil
 from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -8,6 +9,21 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
 from mainera.src.core.pipeline import Pipeline
+
+
+def get_memory_info():
+    """Get detailed memory information including swap"""
+    process = psutil.Process()
+    memory_info = process.memory_info()
+    memory_full = process.memory_full_info()
+
+    return {
+        "rss_mb": memory_info.rss / 1024 / 1024,  # Resident Set Size
+        "vms_mb": memory_info.vms / 1024 / 1024,  # Virtual Memory Size
+        "swap_mb": memory_full.swap / 1024 / 1024
+        if hasattr(memory_full, "swap")
+        else 0,
+    }
 
 
 def sample_data():
@@ -110,11 +126,15 @@ p.branch(
 
 p.predict("predict", test_data)
 p.serialize("test.xml")
+start_mem = get_memory_info()
 start = time.time()
 simple_predictions = p(X, y)
 end = time.time()
-print(f"Pipeline execution time: {end - start:.4f} seconds")
+end_mem = get_memory_info()
 
+print(f"Pipeline execution time: {end - start:.4f} seconds")
+print(f"RSS memory: {end_mem['rss_mb'] - start_mem['rss_mb']:.2f} MB increase")
+print(f"Swap memory used: {end_mem['swap_mb']:.2f} MB")
 print(
     "Pipeline matches: "
     f"{
