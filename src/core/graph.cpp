@@ -282,7 +282,6 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
 void Graph::clear() {
   m_nodes.clear();
   m_execution_order.clear();
-  m_sequential_nodes.clear();
   m_compiled = false;
   m_is_branched = false;
   m_input_node = nullptr;
