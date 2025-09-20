@@ -28,7 +28,6 @@ Graph::Graph() : m_compiled(false), m_parallel_enabled(false) {
   auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
   input_as_node->setSourceNode(nullptr);
   m_nodes.push_back(input_as_node);
-  m_node_map[m_input_node->name] = input_as_node;
 }
 
 Graph::~Graph() { clear(); }
@@ -64,7 +63,6 @@ void Graph::addNode(Node::Ptr node) {
     }
 
     m_nodes.push_back(nodeToAdd);
-    m_node_map[nodeToAdd->name] = nodeToAdd; // Fast lookup
 
     // Check if this is the first node after input (should create new data)
     bool is_first_after_input = false;
@@ -92,12 +90,6 @@ void Graph::addNode(Node::Ptr node) {
       new_branch_tails.push_back(nodeToAdd->name);
     }
   }
-
-  // Update branch tails if we're in branched mode
-  if (m_is_branched && !new_branch_tails.empty()) {
-    m_branch_tails = new_branch_tails;
-  }
-
   m_compiled = false;
 }
 
@@ -117,7 +109,6 @@ void Graph::split(const std::string &branch_name,
   }
 
   // Clear any previous branch state
-  m_branch_tails.clear();
   m_is_branched = true;
 
   // For each leaf, create parallel branches
@@ -171,7 +162,6 @@ void Graph::split(const std::string &branch_name,
           branchNode->setShouldCreateNewData(list_idx == 0);
 
           m_nodes.push_back(branchNode);
-          m_node_map[branchNode->name] = branchNode;
 
           // Connect to the current source in the chain
           branchNode->setSourceNode(current_source);
@@ -208,7 +198,6 @@ void Graph::split(const std::string &branch_name,
         branchNode->setShouldCreateNewData(true);
 
         m_nodes.push_back(branchNode);
-        m_node_map[branchNode->name] = branchNode;
 
         branchNode->setSourceNode(leaf);
         current_source = branchNode;
@@ -216,11 +205,6 @@ void Graph::split(const std::string &branch_name,
 
       // Store the final node of this branch
       branch_tails.push_back(current_source);
-    }
-
-    // Store all tail nodes for this leaf
-    for (const auto &tail : branch_tails) {
-      m_branch_tails.push_back(tail->name);
     }
   }
 
@@ -298,19 +282,15 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
 void Graph::clear() {
   m_nodes.clear();
   m_execution_order.clear();
-  m_node_map.clear();
   m_sequential_nodes.clear();
-  m_branch_tails.clear();
   m_compiled = false;
   m_is_branched = false;
   m_input_node = nullptr;
-  m_node_counter = 0;
 
   // Recreate the input node
   m_input_node = std::make_shared<InputNode>();
   auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
   m_nodes.push_back(input_as_node);
-  m_node_map[m_input_node->name] = input_as_node;
 }
 
 void Graph::enableParallelExecution(bool enable) {
@@ -473,19 +453,10 @@ std::vector<Node::Ptr> Graph::findLeafNodes() const {
   return leaves;
 }
 
-Node::Ptr Graph::findNodeByName(const std::string &name) const {
-  auto it = m_node_map.find(name);
-  return (it != m_node_map.end()) ? it->second : nullptr;
-}
-
 void Graph::mergeBranches(const std::string &merge_name,
                           py::object merge_func) {
   if (!m_is_branched) {
     throw std::runtime_error("Not in branched mode - nothing to merge");
-  }
-
-  if (m_branch_tails.size() < 2) {
-    throw std::runtime_error("Need at least 2 branches to merge");
   }
 
   throw std::runtime_error("Merge functionality not yet implemented");

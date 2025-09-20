@@ -56,7 +56,6 @@ private:
   // Utility methods
   void optimizeGraph();
   std::vector<Node::Ptr> findLeafNodes() const;
-  Node::Ptr findNodeByName(const std::string &name) const;
 
   // Parallel execution utility methods
   std::vector<std::vector<Node::Ptr>> groupNodesByLevel() const;
@@ -65,17 +64,13 @@ private:
   // Core data members
   std::vector<Node::Ptr> m_nodes;
   std::vector<Node::Ptr> m_execution_order;
-  std::unordered_map<std::string, Node::Ptr> m_node_map; // Fast node lookup
   bool m_compiled = false;
   bool m_parallel_enabled = false;
   size_t m_multicore_threshold = 3; // Minimum tasks to use multicore
   std::shared_ptr<InputNode> m_input_node = nullptr; // Automatic input node
 
   // Pipeline state management
-  std::vector<std::string> m_sequential_nodes;
   bool m_is_branched = false;
-  std::vector<std::string> m_branch_tails;
-  int m_node_counter = 0;
 };
 
 } // namespace mainera
