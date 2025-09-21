@@ -5,4 +5,6 @@ since your modifications would be overwritten.
 """
 
 from mainera.src import core as core
+from mainera.src import custom as custom
+from mainera.src import utils as utils
 from mainera.src.version import __version__ as __version__
