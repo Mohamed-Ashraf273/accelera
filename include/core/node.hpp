@@ -14,13 +14,15 @@ namespace mainera {
 class Graph;
 class InputNode;
 
-enum class NodeType {
+enum class NodeType
+{
   INPUT,
   PREPROCESS,
   FEATURE,
   MODEL,
   PREDICT,
   MERGE,
+  METRIC
 };
 
 class MAINERA_API Node : public std::enable_shared_from_this<Node> {

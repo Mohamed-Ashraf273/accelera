@@ -42,7 +42,14 @@ class Pipeline:
 
         self.__graph.add_node(graph.NodeType.PREDICT, name, test_data)
         return self
-
+    # enable attribute will be modified later
+    def metric(self,name,metric_func,enable=True,y_true=None,branch=False):
+        metric_params={"enable":enable,"func":metric_func,"y_true":y_true}
+        if branch:
+            return NodeWrapper("metric",name,metric_params)
+        self.__graph.add_node(graph.NodeType.METRIC,name,metric_params)
+        return self
+    
     def branch(self, name, *branches):
         branches_to_send = []
         node_types = []

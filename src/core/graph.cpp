@@ -16,6 +16,7 @@
 #include "nodes/model.hpp"
 #include "nodes/predict.hpp"
 #include "nodes/preprocess.hpp"
+#include "node/metric.hpp"
 #include "passes/node_fusion.hpp"
 #include "utils/graph_utils.hpp"
 #include <iostream>
@@ -139,9 +140,14 @@ void Graph::split(const std::string &branch_name,
             nodeType = NodeType::MODEL;
           } else if (node_types[branch_idx + list_idx] == "PREDICT") {
             nodeType = NodeType::PREDICT;
-          } else {
-            throw std::runtime_error("Unknown node type: " +
-                                     node_types[branch_idx + list_idx]);
+          }
+          else if (node_types[branch_idx + list_idx] == "METRIC"){
+            nodeType = NodeType::METRIC;
+          }
+          else
+          {
+              throw std::runtime_error("Unknown node type: " +
+                                       node_types[branch_idx + list_idx]);
           }
 
           std::string uniqueName;
@@ -180,7 +186,11 @@ void Graph::split(const std::string &branch_name,
           nodeType = NodeType::MODEL;
         } else if (node_types[branch_idx] == "PREDICT") {
           nodeType = NodeType::PREDICT;
-        } else {
+        }
+        else if(node_types[branch_idx]=="METRIC"){
+            nodeType=NodeType::METRIC;
+        }
+        else {
           throw std::runtime_error("Unknown node type: " +
                                    node_types[branch_idx]);
         }
