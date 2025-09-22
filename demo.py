@@ -142,5 +142,5 @@ print(f"Swap memory used: {end_mem['swap_mb']:.2f} MB")
 #         np.all(m1.predict(p_common(p2(p1(test_data)))) == simple_predictions[0])
 #     }"
 # )
-print("Predictions:", simple_predictions)
 print(f"Accuracy: {simple_predictions[0]}")
+
