@@ -7,7 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
-
+from sklearn.metrics import accuracy_score
 from mainera.src.core.pipeline import Pipeline
 
 
@@ -43,7 +43,7 @@ def sample_data():
 
     # Create test data (subset of training data)
     test_data = X[:500]  # Use first 50 samples for testing
-
+    y_test = y[:500]
     print(
         f"Dataset created: {X.shape} "
         f"training samples, {test_data.shape} test samples"
@@ -51,10 +51,10 @@ def sample_data():
     print(f"Feature range: {X.min():.3f} to {X.max():.3f}")
     print(f"Classes: {np.unique(y)}")
 
-    return X, y, test_data
+    return X, y, test_data,y_test
 
 
-X, y, test_data = sample_data()
+X, y, test_data,y_test = sample_data()
 
 
 print("\nSetting up preprocessing branches...")
@@ -125,6 +125,7 @@ p.branch(
 )
 
 p.predict("predict", test_data)
+#p.metric("accuracy",accuracy_score,y_test)
 p.serialize("test.xml")
 start_mem = get_memory_info()
 start = time.time()
@@ -141,3 +142,5 @@ print(
         np.all(m1.predict(p_common(p2(p1(test_data)))) == simple_predictions[0])
     }"
 )
+# print("Predictions:", simple_predictions)
+# print(f"Accuracy: {simple_predictions[0]}")

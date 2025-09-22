@@ -9,59 +9,61 @@
 
 namespace py = pybind11;
 
-namespace mainera {
-
-class Graph;
-class InputNode;
-
-enum class NodeType
+namespace mainera
 {
-  INPUT,
-  PREPROCESS,
-  FEATURE,
-  MODEL,
-  PREDICT,
-  MERGE,
-  METRIC
-};
 
-class MAINERA_API Node : public std::enable_shared_from_this<Node> {
-public:
-  using Ptr = std::shared_ptr<Node>;
+  class Graph;
+  class InputNode;
 
-  Node(NodeType type, const std::string &name, py::object py_func);
-  virtual ~Node();
+  enum class NodeType
+  {
+    INPUT,
+    PREPROCESS,
+    FEATURE,
+    MODEL,
+    PREDICT,
+    MERGE,
+    METRIC
+  };
 
-  // Graph access
-  void setGraph(Graph *graph);
-  Graph *getGraph() const;
+  class MAINERA_API Node : public std::enable_shared_from_this<Node>
+  {
+  public:
+    using Ptr = std::shared_ptr<Node>;
 
-  // Public members for Python access
-  NodeType type;
-  std::string name;
-  py::object py_func;
-  bool dirty = true;
-  bool should_create_new_data = false;
+    Node(NodeType type, const std::string &name, py::object py_func);
+    virtual ~Node();
 
-  virtual void execute() = 0;
+    // Graph access
+    void setGraph(Graph *graph);
+    Graph *getGraph() const;
 
-  // Graph connectivity methods
-  std::shared_ptr<Node> getSourceNode() const { return m_sourceNode; }
-  void setSourceNode(std::shared_ptr<Node> source) { m_sourceNode = source; }
+    // Public members for Python access
+    NodeType type;
+    std::string name;
+    py::object py_func;
+    bool dirty = true;
+    bool should_create_new_data = false;
 
-  // Memory optimization methods
-  void setShouldCreateNewData(bool should_create);
-  bool getShouldCreateNewData() const;
+    virtual void execute() = 0;
 
-  std::shared_ptr<InputNode> getInput();
-  void setOutput(std::shared_ptr<InputNode> result);
-  std::shared_ptr<InputNode> getOutput();
+    // Graph connectivity methods
+    std::shared_ptr<Node> getSourceNode() const { return m_sourceNode; }
+    void setSourceNode(std::shared_ptr<Node> source) { m_sourceNode = source; }
 
-protected:
-  std::shared_ptr<InputNode> m_data;
-  Graph *m_graph = nullptr; // Pointer to parent graph
-  std::shared_ptr<Node> m_sourceNode = nullptr;
-};
+    // Memory optimization methods
+    void setShouldCreateNewData(bool should_create);
+    bool getShouldCreateNewData() const;
+
+    std::shared_ptr<InputNode> getInput();
+    void setOutput(std::shared_ptr<InputNode> result);
+    std::shared_ptr<InputNode> getOutput();
+
+  protected:
+    std::shared_ptr<InputNode> m_data;
+    Graph *m_graph = nullptr; // Pointer to parent graph
+    std::shared_ptr<Node> m_sourceNode = nullptr;
+  };
 
 } // namespace mainera
 

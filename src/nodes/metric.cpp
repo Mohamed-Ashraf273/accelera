@@ -5,11 +5,35 @@
 
 namespace py = pybind11;
 
-namespace mainera{
+namespace mainera
+{
 
-    MetricNode::MetricNode(const std::string &name, py::object py_func):
-     Node(NodeType::METRIC, name, py_func) {}
-    void MetricNode::execute(){
+    MetricNode::MetricNode(const std::string &name, py::object py_func) : Node(NodeType::METRIC, name, py_func) {}
+    void MetricNode::execute()
+    {
+        try
+        {
+            std::shared_ptr<InputNode> input = getInput();
+            if (!input)
+            {
+                throw std::runtime_error("Metric node '" + name + "' requires a valid input");
+            }
+            std::shared_ptr<Node> sourceInput = getSourceNode();
+            if (!sourceInput || sourceInput->type != NodeType::PREDICT)
+            {
+                throw std::runtime_error("Metric node '" + name + "' requires a prediction input");
+            }
 
+            py::object y_pred = input->getY();
+            py::object y_true = py_func["y_true"];
+            py::object metric_obj = py_func["func"];
+            py::object result = metric_obj(y_true, y_pred);
+            input->setMetricResult(result);
+        }
+        catch (const std::exception &e)
+        {
+            throw std::runtime_error("Error in MetricNode::execute(): " +
+                                     std::string(e.what()));
+        }
     }
 }

@@ -43,6 +43,7 @@ class Pipeline:
         self.__graph.add_node(graph.NodeType.PREDICT, name, test_data)
         return self
     def metric(self,name,metric_func,y_true,branch=False):
+        
         metric_params={"func":metric_func,"y_true":y_true}
         if branch:
             return NodeWrapper("metric",name,metric_params)

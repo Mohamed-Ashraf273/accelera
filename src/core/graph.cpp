@@ -187,8 +187,9 @@ void Graph::split(const std::string &branch_name,
         } else if (node_types[branch_idx] == "PREDICT") {
           nodeType = NodeType::PREDICT;
         }
-        else if(node_types[branch_idx]=="METRIC"){
-            nodeType=NodeType::METRIC;
+        else if (node_types[branch_idx] == "METRIC")
+        {
+          nodeType = NodeType::METRIC;
         }
         else {
           throw std::runtime_error("Unknown node type: " +
