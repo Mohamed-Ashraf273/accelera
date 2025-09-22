@@ -266,7 +266,14 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
           if (!result.is_none()) {
             predictions.push_back(result);
           }
-        } else if (leaf->type == NodeType::INPUT) {
+        }
+        else if (leaf->type == NodeType::METRIC) {
+          py::object result = leaf->getOutput()->getMetricResult();
+          if (!result.is_none()) {
+            predictions.push_back(result);
+          }
+        } 
+        else if (leaf->type == NodeType::INPUT) {
           py::object result = py::make_tuple(leaf->getOutput()->getX(),
                                              leaf->getOutput()->getY());
           if (!result.is_none()) {
