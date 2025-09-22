@@ -16,7 +16,7 @@
 #include "nodes/model.hpp"
 #include "nodes/predict.hpp"
 #include "nodes/preprocess.hpp"
-#include "node/metric.hpp"
+#include "nodes/metric.hpp"
 #include "passes/node_fusion.hpp"
 #include "utils/graph_utils.hpp"
 #include <iostream>
