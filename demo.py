@@ -125,7 +125,7 @@ p.branch(
 )
 
 p.predict("predict", test_data)
-#p.metric("accuracy",accuracy_score,y_test)
+p.metric("accuracy",accuracy_score,y_test)
 p.serialize("test.xml")
 start_mem = get_memory_info()
 start = time.time()
@@ -136,11 +136,11 @@ end_mem = get_memory_info()
 print(f"Pipeline execution time: {end - start:.4f} seconds")
 print(f"RSS memory: {end_mem['rss_mb'] - start_mem['rss_mb']:.2f} MB increase")
 print(f"Swap memory used: {end_mem['swap_mb']:.2f} MB")
-print(
-    "Pipeline matches: "
-    f"{
-        np.all(m1.predict(p_common(p2(p1(test_data)))) == simple_predictions[0])
-    }"
-)
-# print("Predictions:", simple_predictions)
-# print(f"Accuracy: {simple_predictions[0]}")
+# print(
+#     "Pipeline matches: "
+#     f"{
+#         np.all(m1.predict(p_common(p2(p1(test_data)))) == simple_predictions[0])
+#     }"
+# )
+print("Predictions:", simple_predictions)
+print(f"Accuracy: {simple_predictions[0]}")

@@ -2,7 +2,6 @@
 #include "nodes/input.hpp"
 #include <pybind11/functional.h>
 #include <pybind11/stl.h>
-
 namespace py = pybind11;
 
 namespace mainera
@@ -23,12 +22,20 @@ namespace mainera
             {
                 throw std::runtime_error("Metric node '" + name + "' requires a prediction input");
             }
+            py::object func_instance =
+                py::module::import("copy").attr("deepcopy")(py_func);
 
             py::object y_pred = input->getY();
-            py::object y_true = py_func["y_true"];
-            py::object metric_obj = py_func["func"];
+            py::object X = input->getX();
+            py::object model = input->getFittedModel();
+            py::object y_true = func_instance["y_true"];
+            py::object metric_obj = func_instance["func"];
             py::object result = metric_obj(y_true, y_pred);
-            input->setMetricResult(result);
+            auto new_input = std::make_shared<InputNode>();
+            new_input->setInputData(X, y_pred);
+            new_input->setFittedModel(model);
+            new_input->setMetricResult(result);
+            setOutput(new_input);
         }
         catch (const std::exception &e)
         {
