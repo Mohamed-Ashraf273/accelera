@@ -46,7 +46,9 @@ class TestPipelineCorrectness:
         manual_result = manual_model.predict(test_scaled)
 
         pipeline_pred = (
-            pipeline_result[0] if isinstance(pipeline_result, list) else pipeline_result
+            pipeline_result[0]
+            if isinstance(pipeline_result, list)
+            else pipeline_result
         )
         assert np.array_equal(pipeline_pred, manual_result)
 
@@ -88,7 +90,9 @@ class TestPipelineCorrectness:
         manual_result = manual_model.predict(test_step2)
 
         pipeline_pred = (
-            pipeline_result[0] if isinstance(pipeline_result, list) else pipeline_result
+            pipeline_result[0]
+            if isinstance(pipeline_result, list)
+            else pipeline_result
         )
         assert np.array_equal(pipeline_pred, manual_result)
 
@@ -127,7 +131,9 @@ class TestPipelineCorrectness:
             ),
             p.model(
                 "rf",
-                RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10),
+                RandomForestClassifier(
+                    n_estimators=50, random_state=42, max_depth=10
+                ),
                 branch=True,
             ),
         )
@@ -149,7 +155,9 @@ class TestPipelineCorrectness:
         models = [
             LogisticRegression(random_state=42, max_iter=1000),
             SVC(probability=True, random_state=42, kernel="rbf"),
-            RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10),
+            RandomForestClassifier(
+                n_estimators=50, random_state=42, max_depth=10
+            ),
         ]
 
         preprocessors = [p1, p2, p3]
@@ -184,7 +192,9 @@ class TestPipelineCorrectness:
         manual_result = manual_model.predict(test_scaled)
 
         pipeline_pred = (
-            pipeline_result[0] if isinstance(pipeline_result, list) else pipeline_result
+            pipeline_result[0]
+            if isinstance(pipeline_result, list)
+            else pipeline_result
         )
         assert np.array_equal(pipeline_pred, manual_result)
 
@@ -234,7 +244,9 @@ class TestPipelineCorrectness:
         manual_result = manual_model.predict(test_scaled)
 
         pipeline_pred = (
-            pipeline_result[0] if isinstance(pipeline_result, list) else pipeline_result
+            pipeline_result[0]
+            if isinstance(pipeline_result, list)
+            else pipeline_result
         )
         assert np.array_equal(pipeline_pred, manual_result)
 
@@ -253,7 +265,9 @@ class TestPipelineCorrectness:
                     self.device = (
                         torch.device("cuda")
                         if torch.cuda.is_available()
-                        else pytest.skip("No GPU available, skipping CUDA test.")
+                        else pytest.skip(
+                            "No GPU available, skipping CUDA test."
+                        )
                     )
                     self.model = nn.Sequential(
                         nn.Linear(input_dim, 64),
@@ -261,12 +275,16 @@ class TestPipelineCorrectness:
                         nn.Linear(64, output_dim),
                     ).to(self.device)
                     self.criterion = nn.CrossEntropyLoss()
-                    self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
+                    self.optimizer = torch.optim.Adam(
+                        self.model.parameters(), lr=0.001
+                    )
                     self.batch_size = 32
                     self.epochs = 10
 
                 def fit(self, X, y):
-                    X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device)
+                    X_tensor = torch.tensor(X, dtype=torch.float32).to(
+                        self.device
+                    )
                     y_tensor = torch.tensor(y, dtype=torch.long).to(self.device)
                     dataset = TensorDataset(X_tensor, y_tensor)
                     dataloader = DataLoader(
@@ -284,7 +302,9 @@ class TestPipelineCorrectness:
 
                 def predict(self, X):
                     self.model.eval()
-                    X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device)
+                    X_tensor = torch.tensor(X, dtype=torch.float32).to(
+                        self.device
+                    )
                     with torch.no_grad():
                         outputs = self.model(X_tensor)
                         _, predicted = torch.max(outputs, 1)
@@ -293,11 +313,11 @@ class TestPipelineCorrectness:
             p = Pipeline()
             p.branch(
                 "preprocessing",
-
                 p.preprocess("standard_scaler", StandardScaler(), branch=True),
                 p.preprocess(
                     "normalize",
-                    lambda x: x / (np.linalg.norm(x, axis=1, keepdims=True) + 1e-8),
+                    lambda x: x
+                    / (np.linalg.norm(x, axis=1, keepdims=True) + 1e-8),
                     branch=True,
                 ),
                 p.preprocess(
