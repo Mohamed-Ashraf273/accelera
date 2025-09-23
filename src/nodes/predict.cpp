@@ -2,6 +2,7 @@
 #include "core/graph.hpp"
 #include "nodes/input.hpp"
 #include "nodes/model.hpp"
+
 #include <functional>
 #include <memory>
 #include <pybind11/numpy.h>
@@ -46,7 +47,12 @@ void PredictNode::execute() {
       for (const auto &preprocess_func : preprocess_functions) {
         if (!preprocess_func.is_none()) {
           try {
-            preprocessed_test_data = preprocess_func(preprocessed_test_data);
+            if (py::hasattr(preprocess_func, "transform")) {
+              preprocessed_test_data = py::cast<py::array_t<double>>(
+                  preprocess_func.attr("transform")(preprocessed_test_data));
+            } else {
+              preprocessed_test_data = preprocess_func(preprocessed_test_data);
+            }
           } catch (const py::error_already_set &e) {
             throw std::runtime_error(
                 "Error applying preprocessing to test data: " +

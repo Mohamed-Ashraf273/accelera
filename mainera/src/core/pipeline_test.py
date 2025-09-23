@@ -104,7 +104,7 @@ class TestPipelineCorrectness:
 
         p.branch(
             "preprocessing",
-            p.preprocess("standard_scaler", self.scaler.transform, branch=True),
+            p.preprocess("standard_scaler", StandardScaler(), branch=True),
             p.preprocess(
                 "normalize",
                 lambda x: x / (np.linalg.norm(x, axis=1, keepdims=True) + 1e-8),
@@ -313,9 +313,7 @@ class TestPipelineCorrectness:
             p = Pipeline()
             p.branch(
                 "preprocessing",
-                p.preprocess(
-                    "standard_scaler", self.scaler.transform, branch=True
-                ),
+                p.preprocess("standard_scaler", StandardScaler(), branch=True),
                 p.preprocess(
                     "normalize",
                     lambda x: x
