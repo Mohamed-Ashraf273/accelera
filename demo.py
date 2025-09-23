@@ -156,7 +156,7 @@ p = Pipeline()
 p.branch(
     "preprocessing",
     [
-        p.preprocess("standard_scaler", scaler.transform, branch=True),
+        p.preprocess("standard_scaler", StandardScaler(), branch=True),
         p.preprocess(
             "power_transform",
             lambda x: np.sign(x) * np.power(np.abs(x), 0.8),

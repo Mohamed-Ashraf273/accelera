@@ -1,7 +1,9 @@
 #include "nodes/metric.hpp"
 #include "nodes/input.hpp"
+
 #include <pybind11/functional.h>
 #include <pybind11/stl.h>
+
 namespace py = pybind11;
 
 namespace mainera {

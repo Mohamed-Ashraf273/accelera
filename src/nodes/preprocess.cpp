@@ -1,5 +1,7 @@
 #include "nodes/preprocess.hpp"
 #include "nodes/input.hpp"
+
+#include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
@@ -59,7 +61,22 @@ void PreprocessNode::execute() {
       }
 
       try {
-        X_copy = py_func(X_copy);
+        if (py::hasattr(py_func, "fit")) {
+          py::object transformer_instance;
+          transformer_instance =
+              py::module::import("copy").attr("deepcopy")(py_func);
+          try {
+            transformer_instance.attr("fit")(X);
+            X_copy = py::cast<py::array_t<double>>(
+                transformer_instance.attr("transform")(X_copy));
+            py_func = transformer_instance;
+          } catch (const py::error_already_set &e) {
+            throw std::runtime_error("Python error in model fitting: " +
+                                     std::string(e.what()));
+          }
+        } else {
+          X_copy = py_func(X_copy);
+        }
       } catch (const py::error_already_set &e) {
         throw std::runtime_error("Python error in preprocessing: " +
                                  std::string(e.what()));
@@ -75,7 +92,22 @@ void PreprocessNode::execute() {
       }
 
       try {
-        X = py_func(X);
+        if (py::hasattr(py_func, "fit")) {
+          py::object transformer_instance;
+          transformer_instance =
+              py::module::import("copy").attr("deepcopy")(py_func);
+          try {
+            transformer_instance.attr("fit")(X);
+            X = py::cast<py::array_t<double>>(
+                transformer_instance.attr("transform")(X));
+            py_func = transformer_instance;
+          } catch (const py::error_already_set &e) {
+            throw std::runtime_error("Python error in model fitting: " +
+                                     std::string(e.what()));
+          }
+        } else {
+          X = py_func(X);
+        }
       } catch (const py::error_already_set &e) {
         throw std::runtime_error("Python error in preprocessing: " +
                                  std::string(e.what()));
