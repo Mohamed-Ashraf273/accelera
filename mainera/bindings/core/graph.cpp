@@ -9,7 +9,7 @@ namespace py = pybind11;
 using namespace mainera;
 
 PYBIND11_MODULE(graph, m) {
-  m.doc() = "Mainera C++ core bindings";
+  m.doc() = "mAInera C++ core bindings";
 
   // Bind NodeType enum
   py::enum_<NodeType>(m, "NodeType")
