@@ -16,9 +16,7 @@
 #include "nodes/model.hpp"
 #include "nodes/predict.hpp"
 #include "nodes/preprocess.hpp"
-#include "passes/node_fusion.hpp"
 #include "utils/graph_utils.hpp"
-#include <iostream>
 
 namespace mainera {
 
@@ -215,7 +213,7 @@ void Graph::compile() {
   if (m_compiled)
     return;
   m_execution_order = topologicalSort();
-  optimizeGraph();
+  setGPUUsage();
   m_compiled = true;
 }
 
@@ -300,6 +298,14 @@ void Graph::setMulticoreThreshold(size_t threshold) {
   m_multicore_threshold = threshold;
 }
 
+void Graph::setGPUUsage() {
+  for (const auto &node : m_nodes) {
+    if (!node->py_func.is_none()) {
+      node->usesGPU();
+    }
+  }
+}
+
 void Graph::runParallel() {
   // Group nodes by execution levels (respecting dependencies)
   auto execution_levels = groupNodesByLevel();
@@ -319,11 +325,9 @@ void Graph::runParallel() {
         }
       }
     } else {
-      // Multiple nodes - execute in parallel
       // Release GIL for the main thread so worker threads can acquire it
       py::gil_scoped_release release;
       executeNodesInParallel(level);
-      // GIL is automatically re-acquired when release goes out of scope
     }
   }
 }
@@ -345,7 +349,6 @@ void Graph::run() {
   }
 }
 
-// Accessors
 const std::vector<Node::Ptr> &Graph::getNodes() const { return m_nodes; }
 
 bool Graph::isCompiled() const { return m_compiled; }
@@ -365,7 +368,6 @@ std::vector<py::object> Graph::getPreprocessingFunctions(Node::Ptr node) const {
   return m_preprocessing_functions;
 }
 
-// Topological sort implementation
 std::vector<Node::Ptr> Graph::topologicalSort() {
   if (m_nodes.empty())
     return {};
@@ -421,13 +423,6 @@ std::vector<Node::Ptr> Graph::topologicalSort() {
   }
 
   return sorted_nodes;
-}
-
-void Graph::optimizeGraph() {
-  // Resources
-  // https://github.com/openvinotoolkit/openvino/blob/master/src/plugins/intel_cpu/docs/internal_cpu_plugin_optimization.md
-  // https://github.com/openvinotoolkit/openvino/tree/master/src/common/transformations
-  passes::NodeFusion::apply(*this);
 }
 
 std::vector<Node::Ptr> Graph::findLeafNodes() const {
@@ -504,19 +499,29 @@ std::vector<std::vector<Node::Ptr>> Graph::groupNodesByLevel() const {
 }
 
 void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
-  std::vector<std::future<void>> futures;
-  std::vector<std::exception_ptr> exceptions(nodes.size());
+  std::vector<Node::Ptr> cpu_nodes;
+  std::vector<Node::Ptr> gpu_nodes;
 
-  // Launch parallel execution for each node
-  for (size_t i = 0; i < nodes.size(); ++i) {
-    const auto &node = nodes[i];
+  for (const auto &node : nodes) {
     if (node->dirty) {
+      if (node->getUsesGPU()) {
+        gpu_nodes.push_back(node);
+      } else {
+        cpu_nodes.push_back(node);
+      }
+    }
+  }
+
+  std::vector<std::exception_ptr> exceptions(nodes.size());
+  std::vector<std::future<void>> futures;
+
+  if (!cpu_nodes.empty()) {
+    for (size_t i = 0; i < cpu_nodes.size(); ++i) {
+      const auto &node = cpu_nodes[i];
       futures.emplace_back(
           std::async(std::launch::async, [node, &exceptions, i]() {
+            py::gil_scoped_acquire acquire; // Acquire GIL at thread start
             try {
-              // Acquire GIL for this thread since we're working with Python
-              // objects
-              py::gil_scoped_acquire acquire;
               node->execute();
               node->dirty = false;
             } catch (...) {
@@ -526,19 +531,58 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
     }
   }
 
-  // Wait for all futures to complete
+  // Launch GPU nodes sequentially BUT CONCURRENTLY with CPU nodes
+  if (!gpu_nodes.empty()) {
+    futures.emplace_back(
+        std::async(std::launch::async,
+                   [gpu_nodes, &exceptions, cpu_count = cpu_nodes.size()]() {
+                     py::gil_scoped_acquire
+                         acquire; // Acquire GIL for the entire GPU sequence
+                     try {
+                       for (size_t i = 0; i < gpu_nodes.size(); ++i) {
+                         gpu_nodes[i]->execute();
+                         gpu_nodes[i]->dirty = false;
+                       }
+                     } catch (...) {
+                       // For GPU nodes, we need to handle exceptions
+                       // differently since we're processing multiple nodes in
+                       // one thread Let's store the exception for the first
+                       // failed GPU node
+                       exceptions[cpu_count] = std::current_exception();
+                     }
+                   }));
+  }
+
+  // Wait for ALL futures (both CPU and GPU) to complete
   for (auto &future : futures) {
     future.wait();
   }
 
-  // Check for exceptions and rethrow the first one found
+  // Check for exceptions
   for (size_t i = 0; i < exceptions.size(); ++i) {
     if (exceptions[i]) {
+      Node::Ptr failed_node;
+      std::string node_type;
+
+      if (i < cpu_nodes.size()) {
+        failed_node = cpu_nodes[i];
+        node_type = "CPU";
+      } else if (i == cpu_nodes.size() && !gpu_nodes.empty()) {
+        // For GPU nodes, we only have one exception slot for the entire
+        // sequence
+        failed_node = gpu_nodes[0];
+        node_type = "GPU";
+      } else {
+        failed_node = nodes[i]; // Fallback
+        node_type = "unknown";
+      }
+
       try {
         std::rethrow_exception(exceptions[i]);
       } catch (const std::exception &e) {
-        throw std::runtime_error("Error executing node '" + nodes[i]->name +
-                                 "' in parallel: " + std::string(e.what()));
+        throw std::runtime_error("Error executing " + node_type + " node '" +
+                                 failed_node->name +
+                                 "': " + std::string(e.what()));
       }
     }
   }

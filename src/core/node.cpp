@@ -27,4 +27,28 @@ void Node::setShouldCreateNewData(bool should_create) {
 
 bool Node::getShouldCreateNewData() const { return should_create_new_data; }
 
+void Node::usesGPU() {
+  try {
+    py::object model = py_func;
+
+    if (py::hasattr(model, "device")) {
+      py::object device_attr = model.attr("device");
+      std::string device_str = device_attr.attr("type").cast<std::string>();
+      setUsesGPU(device_str == "cuda");
+    }
+
+    if (py::hasattr(model, "model")) {
+      py::object inner_model = model.attr("model");
+      if (py::hasattr(inner_model, "device")) {
+        py::object device_attr = inner_model.attr("device");
+        std::string device_str = device_attr.attr("type").cast<std::string>();
+        setUsesGPU(device_str == "cuda");
+      }
+    }
+
+  } catch (const py::error_already_set &e) {
+    PyErr_Clear();
+  }
+}
+
 } // namespace mainera
