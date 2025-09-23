@@ -16,3 +16,5 @@ ruff
 pytest
 pytest-cov
 namex
+torch
+psutil

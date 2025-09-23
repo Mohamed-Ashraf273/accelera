@@ -5,6 +5,7 @@ except ImportError as e:
         "The 'graph' C++ module could not be imported. "
         "Please ensure it is built and available in your PYTHONPATH."
     ) from e
+import sklearn.metrics as metrics
 
 
 class NodeWrapper:
@@ -12,6 +13,20 @@ class NodeWrapper:
         self.node_type = node_type
         self.name = name
         self.obj = obj
+
+
+def get_metric_object(metric_name):
+    metric_func = getattr(metrics, metric_name, None)
+    return metric_func
+
+
+class MetricWrapper:
+    def __init__(self, metric, **params):
+        self.metric = metric
+        self.params = params
+
+    def execute(self, y_true, y_pred):
+        return self.metric(y_true, y_pred, **self.params)
 
 
 class Pipeline:
@@ -43,12 +58,20 @@ class Pipeline:
         self.__graph.add_node(graph.NodeType.PREDICT, name, test_data)
         return self
 
-    def metric(self, name, metric_func, y_true, branch=False):
-        metric_params = {"func": metric_func, "y_true": y_true}
-        if branch:
-            return NodeWrapper("metric", name, metric_params)
-        self.__graph.add_node(graph.NodeType.METRIC, name, metric_params)
-        return self
+    def metric(self, name, metric_name, y_true, branch=False, **params):
+        metric_func = get_metric_object(metric_name)
+
+        if metric_func is not None:
+            metric_obj = MetricWrapper(metric_func, **params)
+            metric_params = {"func": metric_obj, "y_true": y_true}
+
+            if branch:
+                return NodeWrapper("metric", name, metric_params)
+
+            self.__graph.add_node(graph.NodeType.METRIC, name, metric_params)
+            return self
+        else:
+            raise ValueError(f"Metric '{metric_name}' is not recognized.")
 
     def branch(self, name, *branches):
         branches_to_send = []
