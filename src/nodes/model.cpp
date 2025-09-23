@@ -1,5 +1,6 @@
 #include "nodes/model.hpp"
 #include "nodes/input.hpp"
+#include "nodes/preprocess.hpp"
 #include <pybind11/functional.h>
 #include <pybind11/stl.h>
 
@@ -19,15 +20,23 @@ ModelNode::ModelNode(const std::string &name, py::object py_func)
 
 void ModelNode::execute() {
   try {
-    std::shared_ptr<InputNode> input = getInput();
+    std::shared_ptr<Node> input = getSourceNode();
 
-    if (!input) {
+    if (!input && input->type != NodeType::PREPROCESS) {
       throw std::runtime_error("Model node '" + name +
-                               "' requires a valid input");
+                               "' requires a valid preprocess node");
     }
 
-    py::object X = input->getX();
-    py::object y = input->getY();
+    std::shared_ptr<PreprocessNode> input_node =
+        std::dynamic_pointer_cast<PreprocessNode>(input);
+    if (!input_node) {
+      throw std::runtime_error("Failed to cast to PreprocessNode");
+    }
+
+    std::shared_ptr<InputNode> data = input_node->getData();
+
+    py::object X = data->getX();
+    py::object y = data->getY();
 
     if (X.is_none() || y.is_none()) {
       throw std::runtime_error("Model node '" + name +
@@ -41,31 +50,13 @@ void ModelNode::execute() {
 
     py::object model_instance =
         py::module::import("copy").attr("deepcopy")(py_func);
-
-    if (should_create_new_data) {
-      py::object X_copy = X.attr("copy")();
-      py::object y_copy = y.attr("copy")();
-      try {
-        model_instance.attr("fit")(X_copy, y_copy);
-      } catch (const py::error_already_set &e) {
-        throw std::runtime_error("Python error in model fitting: " +
-                                 std::string(e.what()));
-      }
-      auto new_input = std::make_shared<InputNode>();
-      new_input->setInputData(X_copy, y_copy);
-      new_input->setFittedModel(model_instance);
-      setOutput(new_input);
-    } else {
-      try {
-        model_instance.attr("fit")(X, y);
-      } catch (const py::error_already_set &e) {
-        throw std::runtime_error("Python error in model fitting: " +
-                                 std::string(e.what()));
-      }
-      input->setFittedModel(model_instance);
-      setOutput(input);
+    try {
+      model_instance.attr("fit")(X, y);
+    } catch (const py::error_already_set &e) {
+      throw std::runtime_error("Python error in model fitting: " +
+                               std::string(e.what()));
     }
-
+    setData(model_instance);
   } catch (const py::error_already_set &e) {
     throw std::runtime_error("ModelNode: Python error during execution: " +
                              std::string(e.what()));

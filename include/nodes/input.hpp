@@ -20,13 +20,10 @@ public:
 
   py::object getX() const { return m_X; }
   py::object getY() const { return m_y; }
-  py::object getFittedModel() const { return m_fitted_model; }
-  void setFittedModel(py::object model) { m_fitted_model = model; }
 
 private:
   py::object m_X;
   py::object m_y;
-  py::object m_fitted_model = py::none();
   bool m_data_set = false;
 };
 
