@@ -201,6 +201,7 @@ p.serialize("test.xml")
 start_mem = get_memory_info()
 start = time.time()
 simple_predictions = p(X, y)
+print(simple_predictions)
 end = time.time()
 end_mem = get_memory_info()
 

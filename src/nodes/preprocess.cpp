@@ -9,24 +9,50 @@ namespace mainera {
 PreprocessNode::PreprocessNode(const std::string &name, py::object py_func)
     : Node(NodeType::PREPROCESS, name, py_func) {}
 
-void PreprocessNode::execute() {
-  // Incomplete node (it should check for instance
-  // with transform method as well)
+void PreprocessNode::setData(std::shared_ptr<InputNode> input) {
+  m_input = input;
+}
 
+std::shared_ptr<InputNode> PreprocessNode::getData() const { return m_input; }
+
+void PreprocessNode::execute() {
   try {
-    std::shared_ptr<InputNode> input = getInput();
+    std::shared_ptr<Node> input = getSourceNode();
 
     if (!input) {
       throw std::runtime_error("Preprocess node '" + name +
                                "' requires a valid input");
     }
 
-    py::object X = input->getX();
-    py::object y = input->getY();
+    std::shared_ptr<InputNode> data;
+
+    if (input->type != NodeType::INPUT) {
+      auto preprocess_input = std::dynamic_pointer_cast<PreprocessNode>(input);
+      if (preprocess_input) {
+        data = preprocess_input->getData();
+      } else {
+        throw std::runtime_error(
+            "Preprocess node '" + name +
+            "' requires an InputNode or PreprocessNode as input");
+      }
+    } else {
+      data = std::dynamic_pointer_cast<InputNode>(input);
+      if (!data) {
+        throw std::runtime_error("Failed to cast to InputNode");
+      }
+    }
+
+    if (!data) {
+      throw std::runtime_error("No valid data source found");
+    }
+
+    py::object X = data->getX();
+    py::object y = data->getY();
 
     if (should_create_new_data) {
       py::object X_copy = X.attr("copy")();
-      py::object y_copy = y.attr("copy")();
+      py::object y_copy = y.is_none() ? py::none() : y.attr("copy")();
+
       if (X_copy.is_none()) {
         throw std::runtime_error("Preprocess node '" + name +
                                  "' received None for X input");
@@ -38,11 +64,11 @@ void PreprocessNode::execute() {
         throw std::runtime_error("Python error in preprocessing: " +
                                  std::string(e.what()));
       }
+
       auto new_input = std::make_shared<InputNode>();
       new_input->setInputData(X_copy, y_copy);
-      setOutput(new_input);
+      setData(new_input);
     } else {
-
       if (X.is_none()) {
         throw std::runtime_error("Preprocess node '" + name +
                                  "' received None for X input");
@@ -54,8 +80,9 @@ void PreprocessNode::execute() {
         throw std::runtime_error("Python error in preprocessing: " +
                                  std::string(e.what()));
       }
-      input->setInputData(X, y);
-      setOutput(input);
+
+      data->setInputData(X, y);
+      setData(data);
     }
 
   } catch (const std::exception &e) {

@@ -1,6 +1,7 @@
 #include "nodes/predict.hpp"
 #include "core/graph.hpp"
 #include "nodes/input.hpp"
+#include "nodes/model.hpp"
 #include <functional>
 #include <memory>
 #include <pybind11/numpy.h>
@@ -17,14 +18,19 @@ PredictNode::PredictNode(const std::string &name, py::object py_func)
 
 void PredictNode::execute() {
   try {
-    std::shared_ptr<InputNode> input = getInput();
+    std::shared_ptr<Node> input = getSourceNode();
 
-    if (!input) {
+    if (!input && input->type != NodeType::MODEL) {
       throw std::runtime_error("Predict node '" + name +
-                               "' requires a valid input");
+                               "' requires a valid model node");
     }
 
-    py::object fitted_model = input->getFittedModel();
+    py::object fitted_model = input->getData();
+
+    if (fitted_model.is_none() || !py::hasattr(fitted_model, "predict")) {
+      throw std::runtime_error("Predict node '" + name +
+                               "' requires a valid fitted model");
+    }
 
     py::object test_data = py_func;
     if (test_data.is_none()) {
@@ -54,7 +60,6 @@ void PredictNode::execute() {
       throw std::runtime_error("PredictNode: No fitted model found in input");
     }
 
-    // Validate input dimensions if it's a numpy array
     if (py::isinstance<py::array>(preprocessed_test_data)) {
       py::array test_array = preprocessed_test_data.cast<py::array>();
       if (test_array.ndim() < 1) {
@@ -70,12 +75,7 @@ void PredictNode::execute() {
       throw std::runtime_error("Python error in prediction: " +
                                std::string(e.what()));
     }
-
-    auto new_input = std::make_shared<InputNode>();
-    new_input->setInputData(preprocessed_test_data, predictions);
-    new_input->setFittedModel(fitted_model);
-    setOutput(new_input);
-
+    setData(predictions);
   } catch (const std::exception &e) {
     throw std::runtime_error("Error in PredictNode::execute(): " +
                              std::string(e.what()));

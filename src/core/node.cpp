@@ -11,11 +11,15 @@ Node::~Node() {
   // Cleanup handled by shared_ptr
 }
 
-std::shared_ptr<InputNode> Node::getInput() { return m_sourceNode->m_data; }
+void Node::setSourceNode(std::shared_ptr<Node> source) {
+  m_sourceNode = source;
+}
 
-void Node::setOutput(std::shared_ptr<InputNode> result) { m_data = result; }
+std::shared_ptr<Node> Node::getSourceNode() const { return m_sourceNode; }
 
-std::shared_ptr<InputNode> Node::getOutput() { return m_data; }
+void Node::setData(py::object result) { m_data = result; }
+
+py::object Node::getData() const { return m_data; }
 
 void Node::setGraph(Graph *graph) { m_graph = graph; }
 
@@ -26,6 +30,10 @@ void Node::setShouldCreateNewData(bool should_create) {
 }
 
 bool Node::getShouldCreateNewData() const { return should_create_new_data; }
+
+void Node::setUsesGPU(bool uses_gpu) { m_uses_gpu = uses_gpu; }
+
+bool Node::getUsesGPU() const { return m_uses_gpu; }
 
 void Node::usesGPU() {
   try {

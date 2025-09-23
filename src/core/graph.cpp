@@ -227,7 +227,6 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
 
   if (m_input_node) {
     m_input_node->setInputData(X, y);
-    m_input_node->setOutput(m_input_node);
   }
 
   if (m_parallel_enabled && m_execution_order.size() >= m_multicore_threshold) {
@@ -243,38 +242,32 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
   for (const auto &leaf : final_leaves) {
     if (!leaf->dirty) {
       try {
-        if (leaf->type == NodeType::PREDICT) {
-          py::object result = leaf->getOutput()->getY();
-          if (!result.is_none()) {
-            predictions.push_back(result);
+        if (leaf->type == NodeType::PREPROCESS) {
+          std::shared_ptr<PreprocessNode> leaf_node =
+              std::dynamic_pointer_cast<PreprocessNode>(leaf);
+          if (!leaf_node) {
+            throw std::runtime_error("Failed to cast to PreprocessNode");
           }
-        } else if (leaf->type == NodeType::PREPROCESS) {
-          py::object result = leaf->getOutput()->getX();
-          if (!result.is_none()) {
-            predictions.push_back(result);
-          }
-        } else if (leaf->type == NodeType::MODEL) {
-          py::object result = leaf->getOutput()->getFittedModel();
-          if (!result.is_none()) {
-            predictions.push_back(result);
-          }
-        } else if (leaf->type == NodeType::METRIC) {
-          py::object result = leaf->getOutput()->getMetricResult();
+          py::object result = leaf_node->getData()->getX();
           if (!result.is_none()) {
             predictions.push_back(result);
           }
         } else if (leaf->type == NodeType::INPUT) {
-          py::object result = py::make_tuple(leaf->getOutput()->getX(),
-                                             leaf->getOutput()->getY());
+          std::shared_ptr<InputNode> leaf_node =
+              std::dynamic_pointer_cast<InputNode>(leaf);
+          if (!leaf_node) {
+            throw std::runtime_error("Failed to cast to InputNode");
+          }
+          py::object result =
+              py::make_tuple(leaf_node->getX(), leaf_node->getY());
           if (!result.is_none()) {
             predictions.push_back(result);
           }
-        }
-        // Fallback for other node types
-        else {
-          throw std::runtime_error(
-              "Unhandled node type for result collection: " +
-              std::to_string(static_cast<int>(leaf->type)));
+        } else {
+          py::object result = leaf->getData();
+          if (!result.is_none()) {
+            predictions.push_back(result);
+          }
         }
       } catch (const std::exception &e) {
         log_warning("Error collecting results from node '" + leaf->name +
