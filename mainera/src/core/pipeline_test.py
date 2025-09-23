@@ -14,7 +14,7 @@ from mainera.src.custom.classifier import CustomClassifier
 class TestPipelineCorrectness:
     @pytest.fixture(autouse=True)
     def setup(self):
-        self.X, self.y, self.test_data = self.sample_data()
+        self.X, self.y, self.test_data, self.y_test = self.sample_data()
         self.scaler = StandardScaler()
         self.scaler.fit(self.X)
 
@@ -29,7 +29,8 @@ class TestPipelineCorrectness:
             random_state=42,
         )
         test_data = X[:50]
-        return X, y, test_data
+        y_test = y[:50]
+        return X, y, test_data, y_test
 
     def test_preprocessing_correctness(self):
         p = Pipeline()
@@ -50,6 +51,26 @@ class TestPipelineCorrectness:
             else pipeline_result
         )
         assert np.array_equal(pipeline_pred, manual_result)
+
+    def test_metric_node(self):
+        p = Pipeline()
+        p.preprocess("scale", lambda x: x * 2.0)
+        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
+        p.predict("pred", self.test_data)
+        p.metric(
+            "accuracy",
+            lambda y_true, y_pred: np.mean(y_true == y_pred),
+            self.y_test,
+        )
+        pipeline_result = p(self.X, self.y)
+        accuracy = pipeline_result[-1]
+        X_scaled = self.X * 2.0
+        test_scaled = self.test_data * 2.0
+        manual_model = LogisticRegression(random_state=42, max_iter=1000)
+        manual_model.fit(X_scaled, self.y)
+        manual_result = manual_model.predict(test_scaled)
+        manual_accuracy = np.mean(self.y_test == manual_result)
+        assert accuracy == manual_accuracy
 
     def test_multiple_preprocessing_steps(self):
         p = Pipeline()

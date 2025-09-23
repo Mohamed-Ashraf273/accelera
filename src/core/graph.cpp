@@ -13,6 +13,7 @@
 #include "core/node_factory.hpp"
 #include "nodes/input.hpp"
 #include "nodes/merge.hpp"
+#include "nodes/metric.hpp"
 #include "nodes/model.hpp"
 #include "nodes/predict.hpp"
 #include "nodes/preprocess.hpp"
@@ -137,6 +138,8 @@ void Graph::split(const std::string &branch_name,
             nodeType = NodeType::MODEL;
           } else if (node_types[branch_idx + list_idx] == "PREDICT") {
             nodeType = NodeType::PREDICT;
+          } else if (node_types[branch_idx + list_idx] == "METRIC") {
+            nodeType = NodeType::METRIC;
           } else {
             throw std::runtime_error("Unknown node type: " +
                                      node_types[branch_idx + list_idx]);
@@ -165,7 +168,6 @@ void Graph::split(const std::string &branch_name,
           branchNode->setSourceNode(current_source);
           current_source = branchNode;
         }
-
       } catch (const py::cast_error &) {
         NodeType nodeType;
         if (node_types[branch_idx] == "INPUT") {
@@ -178,6 +180,8 @@ void Graph::split(const std::string &branch_name,
           nodeType = NodeType::MODEL;
         } else if (node_types[branch_idx] == "PREDICT") {
           nodeType = NodeType::PREDICT;
+        } else if (node_types[branch_idx] == "METRIC") {
+          nodeType = NodeType::METRIC;
         } else {
           throw std::runtime_error("Unknown node type: " +
                                    node_types[branch_idx]);

@@ -21,6 +21,7 @@ enum class NodeType {
   MODEL,
   PREDICT,
   MERGE,
+  METRIC
 };
 
 class MAINERA_API Node : public std::enable_shared_from_this<Node> {
