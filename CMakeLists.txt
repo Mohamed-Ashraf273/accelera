@@ -46,13 +46,11 @@ endif()
 file(GLOB_RECURSE CORE_SOURCES "${CMAKE_SOURCE_DIR}/src/core/*.cpp")
 file(GLOB_RECURSE NODE_SOURCES "${CMAKE_SOURCE_DIR}/src/nodes/*.cpp")
 file(GLOB_RECURSE UTILS_SOURCES "${CMAKE_SOURCE_DIR}/src/utils/*.cpp")
-file(GLOB_RECURSE PASSES_SOURCES "${CMAKE_SOURCE_DIR}/src/passes/*.cpp")
 
 add_library(mainera_core SHARED
     ${CORE_SOURCES}
     ${NODE_SOURCES}
     ${UTILS_SOURCES}
-    ${PASSES_SOURCES}
 )
 
 target_include_directories(mainera_core PUBLIC "${CMAKE_SOURCE_DIR}/include")

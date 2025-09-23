@@ -65,7 +65,7 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
     if (node->getSourceNode()) {
       file << "\t\t\t<input>\n";
       file << "\t\t\t\t<port id=\"0\" precision=\"FP32\">\n";
-      file << "\t\t\t\t\t<dim>1</dim>\n";
+      file << "\t\t\t\t\t<dim>-1</dim>\n";
       file << "\t\t\t\t\t<dim>-1</dim>\n";
       file << "\t\t\t\t</port>\n";
       file << "\t\t\t</input>\n";
@@ -83,7 +83,7 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
       file << "\t\t\t<output>\n";
       for (int port = 0; port < num_outputs; ++port) {
         file << "\t\t\t\t<port id=\"" << port << "\" precision=\"FP32\">\n";
-        file << "\t\t\t\t\t<dim>1</dim>\n";
+        file << "\t\t\t\t\t<dim>-1</dim>\n";
         file << "\t\t\t\t\t<dim>-1</dim>\n";
         file << "\t\t\t\t</port>\n";
       }
