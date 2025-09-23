@@ -33,7 +33,7 @@ void PredictNode::execute() {
                                "' requires a valid fitted model");
     }
 
-    py::object test_data = py_func;
+    py::object test_data = py_func["test_data"];
     if (test_data.is_none()) {
       throw std::runtime_error("PredictNode: No test data provided");
     }
@@ -76,7 +76,13 @@ void PredictNode::execute() {
 
     py::object predictions;
     try {
-      predictions = fitted_model.attr("predict")(preprocessed_test_data);
+      py::object predict_proba = py_func["predict_proba"];
+      if (py::cast<bool>(predict_proba)) {
+        predictions =
+            fitted_model.attr("predict_proba")(preprocessed_test_data);
+      } else {
+        predictions = fitted_model.attr("predict")(preprocessed_test_data);
+      }
     } catch (const py::error_already_set &e) {
       throw std::runtime_error("Python error in prediction: " +
                                std::string(e.what()));

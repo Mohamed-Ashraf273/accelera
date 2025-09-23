@@ -83,6 +83,18 @@ class TorchDenseModel(CustomClassifier):
 
         return preds
 
+    def predict_proba(self, X):
+        X = np.asarray(X, dtype=np.float32)
+        X_tensor = torch.tensor(X, device=self.device)
+
+        self.model.eval()
+        with torch.no_grad():
+            logits = self.model(X_tensor)
+            # Apply softmax to convert logits to probabilities
+            probabilities = torch.softmax(logits, dim=1).cpu().numpy()
+
+        return probabilities
+
 
 def get_memory_info():
     """Get detailed memory information including swap"""
