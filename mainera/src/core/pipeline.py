@@ -1,3 +1,8 @@
+import sklearn.metrics as metrics
+
+from mainera.src.wrappers.metric_wrapper import MetricWrapper
+from mainera.src.wrappers.node_wrapper import NodeWrapper
+
 try:
     import graph
 except ImportError as e:
@@ -5,28 +10,6 @@ except ImportError as e:
         "The 'graph' C++ module could not be imported. "
         "Please ensure it is built and available in your PYTHONPATH."
     ) from e
-import sklearn.metrics as metrics
-
-
-class NodeWrapper:
-    def __init__(self, node_type, name, obj):
-        self.node_type = node_type
-        self.name = name
-        self.obj = obj
-
-
-def get_metric_object(metric_name):
-    metric_func = getattr(metrics, metric_name, None)
-    return metric_func
-
-
-class MetricWrapper:
-    def __init__(self, metric, **params):
-        self.metric = metric
-        self.params = params
-
-    def execute(self, y_true, y_pred):
-        return self.metric(y_true, y_pred, **self.params)
 
 
 class Pipeline:
@@ -63,6 +46,10 @@ class Pipeline:
         return self
 
     def metric(self, name, metric_name, y_true, branch=False, **params):
+        def get_metric_object(metric_name):
+            metric_func = getattr(metrics, metric_name, None)
+            return metric_func
+
         metric_func = get_metric_object(metric_name)
 
         if metric_func is not None:
