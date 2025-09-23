@@ -8,7 +8,6 @@ import torch.optim as optim
 from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
@@ -105,9 +104,11 @@ def get_memory_info():
     return {
         "rss_mb": memory_info.rss / 1024 / 1024,  # Resident Set Size
         "vms_mb": memory_info.vms / 1024 / 1024,  # Virtual Memory Size
-        "swap_mb": memory_full.swap / 1024 / 1024
-        if hasattr(memory_full, "swap")
-        else 0,
+        "swap_mb": (
+            memory_full.swap / 1024 / 1024
+            if hasattr(memory_full, "swap")
+            else 0
+        ),
     }
 
 
@@ -208,12 +209,11 @@ p.branch(
 )
 
 p.predict("predict", test_data)
-p.metric("accuracy", accuracy_score, y_test)
+p.metric("classification_report", "classification_report", y_test)
 p.serialize("test.xml")
 start_mem = get_memory_info()
 start = time.time()
 simple_predictions = p(X, y)
-print(simple_predictions)
 end = time.time()
 end_mem = get_memory_info()
 

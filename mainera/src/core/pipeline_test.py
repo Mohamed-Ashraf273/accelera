@@ -59,7 +59,7 @@ class TestPipelineCorrectness:
         p.predict("pred", self.test_data)
         p.metric(
             "accuracy",
-            lambda y_true, y_pred: np.mean(y_true == y_pred),
+            "accuracy_score",
             self.y_test,
         )
         pipeline_result = p(self.X, self.y)

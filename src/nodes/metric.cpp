@@ -27,7 +27,7 @@ void MetricNode::execute() {
     py::object y_pred = input->getData();
     py::object y_true = py_func["y_true"];
     py::object metric_obj = py_func["func"];
-    py::object result = metric_obj(y_true, y_pred);
+    py::object result = metric_obj.attr("execute")(y_true, y_pred);
     setData(result);
   } catch (const std::exception &e) {
     throw std::runtime_error("Error in MetricNode::execute(): " +
