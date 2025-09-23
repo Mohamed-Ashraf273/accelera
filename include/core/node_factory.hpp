@@ -5,15 +5,13 @@
 #include "node.hpp"
 #include <memory>
 
-namespace mainera
-{
+namespace mainera {
 
-  class MAINERA_API NodeFactory
-  {
-  public:
-    static Node::Ptr createNode(NodeType type, const std::string &name,
-                                py::object py_func);
-  };
+class MAINERA_API NodeFactory {
+public:
+  static Node::Ptr createNode(NodeType type, const std::string &name,
+                              py::object py_func);
+};
 
 } // namespace mainera
 
