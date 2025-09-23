@@ -51,11 +51,15 @@ class Pipeline:
         self.__graph.add_node(graph.NodeType.MODEL, name, model)
         return self
 
-    def predict(self, name, test_data, branch=False):
+    def predict(self, name, test_data, predict_proba=False, branch=False):
+        predict_params = {
+            "test_data": test_data,
+            "predict_proba": predict_proba,
+        }
         if branch:
-            return NodeWrapper("predict", name, test_data)
+            return NodeWrapper("predict", name, predict_params)
 
-        self.__graph.add_node(graph.NodeType.PREDICT, name, test_data)
+        self.__graph.add_node(graph.NodeType.PREDICT, name, predict_params)
         return self
 
     def metric(self, name, metric_name, y_true, branch=False, **params):

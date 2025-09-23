@@ -96,8 +96,13 @@ class TestPipelineCorrectness:
         )
         assert np.array_equal(pipeline_pred, manual_result)
 
-    @pytest.mark.parametrize("parallel", [False, True])
-    def test_model_prediction_correctness(self, parallel):
+    @pytest.mark.parametrize(
+        "parallel", [False, True], ids=["no_parallel", "parallel"]
+    )
+    @pytest.mark.parametrize(
+        "use_predict_proba", [False, True], ids=["predict", "predict_proba"]
+    )
+    def test_model_prediction_correctness(self, parallel, use_predict_proba):
         p = Pipeline()
         if not parallel:
             p.disable_parallel_execution()
@@ -137,7 +142,9 @@ class TestPipelineCorrectness:
                 branch=True,
             ),
         )
-        p.predict("predict", self.test_data)
+
+        # Use predict_proba parameter based on the test parameter
+        p.predict("predict", self.test_data, predict_proba=use_predict_proba)
         pipeline_result = p(self.X, self.y)
 
         def p1(x):
@@ -169,14 +176,28 @@ class TestPipelineCorrectness:
 
                 model_clone = clone(model)
                 model_clone.fit(X_processed, self.y)
-                manual_result = model_clone.predict(test_processed)
+
+                if use_predict_proba:
+                    manual_result = model_clone.predict_proba(test_processed)
+                else:
+                    manual_result = model_clone.predict(test_processed)
+
                 pipeline_idx = preproc_idx * 3 + model_idx
                 pipeline_pred = pipeline_result[pipeline_idx]
 
-                assert np.array_equal(pipeline_pred, manual_result), (
-                    f"Mismatch for preprocessor {preproc_idx} "
-                    f"with model {model_idx} (parallel={parallel})"
-                )
+                parallel_str = "parallel" if parallel else "no parallel"
+                mode_str = "predict_proba" if use_predict_proba else "predict"
+                error_msg = f"Mismatch: preproc {preproc_idx}, "
+                f"model {model_idx} ({parallel_str}, {mode_str})"
+
+                if use_predict_proba:
+                    assert np.allclose(
+                        pipeline_pred, manual_result, rtol=1e-5, atol=1e-8
+                    ), error_msg
+                else:
+                    assert np.array_equal(pipeline_pred, manual_result), (
+                        error_msg
+                    )
 
     def test_preprocessing_model_chain_correctness(self):
         p = Pipeline()
@@ -250,7 +271,7 @@ class TestPipelineCorrectness:
         )
         assert np.array_equal(pipeline_pred, manual_result)
 
-    def test_pipeline_with_cuda(self):
+    def test_pipeline_with_cuda_correctness(self):
         try:
             import torch
             from torch import nn
