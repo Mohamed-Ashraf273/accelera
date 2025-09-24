@@ -143,9 +143,10 @@ class TestPipelineCorrectness:
             ),
         )
 
-        # Use predict_proba parameter based on the test parameter
         p.predict("predict", self.test_data, predict_proba=use_predict_proba)
         pipeline_result = p(self.X, self.y)
+
+        assert len(pipeline_result) == 9
 
         def p1(x):
             return self.scaler.transform(x)
@@ -185,19 +186,12 @@ class TestPipelineCorrectness:
                 pipeline_idx = preproc_idx * 3 + model_idx
                 pipeline_pred = pipeline_result[pipeline_idx]
 
-                parallel_str = "parallel" if parallel else "no parallel"
-                mode_str = "predict_proba" if use_predict_proba else "predict"
-                error_msg = f"Mismatch: preproc {preproc_idx}, "
-                f"model {model_idx} ({parallel_str}, {mode_str})"
-
                 if use_predict_proba:
                     assert np.allclose(
                         pipeline_pred, manual_result, rtol=1e-5, atol=1e-8
-                    ), error_msg
-                else:
-                    assert np.array_equal(pipeline_pred, manual_result), (
-                        error_msg
                     )
+                else:
+                    assert np.array_equal(pipeline_pred, manual_result)
 
     def test_preprocessing_model_chain_correctness(self):
         p = Pipeline()
@@ -280,85 +274,81 @@ class TestPipelineCorrectness:
         except ImportError:
             pytest.skip("PyTorch is not installed, skipping CUDA test.")
 
-            class TorchDenseModel(CustomClassifier):
-                def __init__(self, input_dim=25, output_dim=4, random_state=42):
-                    torch.manual_seed(random_state)
-                    self.device = (
-                        torch.device("cuda")
-                        if torch.cuda.is_available()
-                        else pytest.skip(
-                            "No GPU available, skipping CUDA test."
-                        )
-                    )
-                    self.model = nn.Sequential(
-                        nn.Linear(input_dim, 64),
-                        nn.ReLU(),
-                        nn.Linear(64, output_dim),
-                    ).to(self.device)
-                    self.criterion = nn.CrossEntropyLoss()
-                    self.optimizer = torch.optim.Adam(
-                        self.model.parameters(), lr=0.001
-                    )
-                    self.batch_size = 32
-                    self.epochs = 10
+        class TorchDenseModel(CustomClassifier):
+            def __init__(self, input_dim=25, output_dim=4, random_state=42):
+                torch.manual_seed(random_state)
+                self.device = (
+                    torch.device("cuda")
+                    if torch.cuda.is_available()
+                    else pytest.skip("No GPU available, skipping CUDA test.")
+                )
+                self.model = nn.Sequential(
+                    nn.Linear(input_dim, 64),
+                    nn.ReLU(),
+                    nn.Linear(64, output_dim),
+                ).to(self.device)
+                self.criterion = nn.CrossEntropyLoss()
+                self.optimizer = torch.optim.Adam(
+                    self.model.parameters(), lr=0.001
+                )
+                self.batch_size = 32
+                self.epochs = 10
 
-                def fit(self, X, y):
-                    X_tensor = torch.tensor(X, dtype=torch.float32).to(
-                        self.device
-                    )
-                    y_tensor = torch.tensor(y, dtype=torch.long).to(self.device)
-                    dataset = TensorDataset(X_tensor, y_tensor)
-                    dataloader = DataLoader(
-                        dataset, batch_size=self.batch_size, shuffle=True
-                    )
+            def fit(self, X, y):
+                X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device)
+                y_tensor = torch.tensor(y, dtype=torch.long).to(self.device)
+                dataset = TensorDataset(X_tensor, y_tensor)
+                dataloader = DataLoader(
+                    dataset, batch_size=self.batch_size, shuffle=True
+                )
 
-                    self.model.train()
-                    for epoch in range(self.epochs):
-                        for batch_X, batch_y in dataloader:
-                            self.optimizer.zero_grad()
-                            outputs = self.model(batch_X)
-                            loss = self.criterion(outputs, batch_y)
-                            loss.backward()
-                            self.optimizer.step()
+                self.model.train()
+                for epoch in range(self.epochs):
+                    for batch_X, batch_y in dataloader:
+                        self.optimizer.zero_grad()
+                        outputs = self.model(batch_X)
+                        loss = self.criterion(outputs, batch_y)
+                        loss.backward()
+                        self.optimizer.step()
 
-                def predict(self, X):
-                    self.model.eval()
-                    X_tensor = torch.tensor(X, dtype=torch.float32).to(
-                        self.device
-                    )
-                    with torch.no_grad():
-                        outputs = self.model(X_tensor)
-                        _, predicted = torch.max(outputs, 1)
-                    return predicted.cpu().numpy()
+            def predict(self, X):
+                self.model.eval()
+                X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device)
+                with torch.no_grad():
+                    outputs = self.model(X_tensor)
+                    _, predicted = torch.max(outputs, 1)
+                return predicted.cpu().numpy()
 
-            p = Pipeline()
-            p.branch(
-                "preprocessing",
-                p.preprocess("standard_scaler", StandardScaler(), branch=True),
-                p.preprocess(
-                    "normalize",
-                    lambda x: x
-                    / (np.linalg.norm(x, axis=1, keepdims=True) + 1e-8),
-                    branch=True,
+        p = Pipeline()
+        p.preprocess("standard_scaler", StandardScaler())
+        p.branch(
+            "models",
+            p.model("torch_model", TorchDenseModel(), branch=True),
+            p.model(
+                "rf",
+                RandomForestClassifier(
+                    n_estimators=50, random_state=42, max_depth=10
                 ),
-                p.preprocess(
-                    "power_transform",
-                    lambda x: np.sign(x) * np.power(np.abs(x), 0.8),
-                    branch=True,
-                ),
-            )
-            p.preprocess("clip", lambda x: np.clip(x, -5, 5))
-            p.branch(
-                "models",
-                p.model("torch_model", TorchDenseModel(), branch=True),
-                p.model(
-                    "rf",
-                    RandomForestClassifier(
-                        n_estimators=50, random_state=42, max_depth=10
-                    ),
-                    branch=True,
-                ),
-            )
-            p.predict("predict", self.test_data)
-            pipeline_result = p(self.X, self.y)
-            assert len(pipeline_result) == 2
+                branch=True,
+            ),
+        )
+        p.predict("predict", self.test_data)
+        pipeline_result = p(self.X, self.y)
+
+        def p1(x):
+            return self.scaler.transform(x)
+
+        m1 = TorchDenseModel()
+        m2 = RandomForestClassifier(
+            n_estimators=50, random_state=42, max_depth=10
+        )
+        x = p1(self.X)
+        m1.fit(x, self.y)
+        m2.fit(x, self.y)
+        r1 = m1.predict(p1(self.test_data))
+        r2 = m2.predict(p1(self.test_data))
+        manual_result = [r1, r2]
+
+        assert len(pipeline_result) == len(manual_result)
+        assert np.array_equal(pipeline_result[0], manual_result[0])
+        assert np.array_equal(pipeline_result[1], manual_result[1])
