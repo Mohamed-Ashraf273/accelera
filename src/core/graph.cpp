@@ -27,6 +27,7 @@ Graph::Graph() : m_compiled(false), m_parallel_enabled(false) {
   auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
   input_as_node->setSourceNode(nullptr);
   m_nodes.push_back(input_as_node);
+  m_names_list.push_back(input_as_node->name);
 }
 
 Graph::~Graph() { clear(); }
@@ -62,6 +63,7 @@ void Graph::addNode(Node::Ptr node) {
     }
 
     m_nodes.push_back(nodeToAdd);
+    m_names_list.push_back(nodeToAdd->name);
 
     // Check if this is the first node after input (should create new data)
     bool is_first_after_input = false;
@@ -163,6 +165,7 @@ void Graph::split(const std::string &branch_name,
           branchNode->setShouldCreateNewData(list_idx == 0);
 
           m_nodes.push_back(branchNode);
+          m_names_list.push_back(branchNode->name);
 
           // Connect to the current source in the chain
           branchNode->setSourceNode(current_source);
@@ -200,6 +203,7 @@ void Graph::split(const std::string &branch_name,
         branchNode->setShouldCreateNewData(true);
 
         m_nodes.push_back(branchNode);
+        m_names_list.push_back(branchNode->name);
 
         branchNode->setSourceNode(leaf);
         current_source = branchNode;
@@ -281,6 +285,7 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
 
 void Graph::clear() {
   m_nodes.clear();
+  m_names_list.clear();
   m_execution_order.clear();
   m_compiled = false;
   m_is_branched = false;
@@ -290,6 +295,7 @@ void Graph::clear() {
   m_input_node = std::make_shared<InputNode>();
   auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
   m_nodes.push_back(input_as_node);
+  m_names_list.push_back(input_as_node->name);
 }
 
 void Graph::enableParallelExecution(bool enable) {

@@ -55,6 +55,7 @@ private:
 
   // Core data members
   std::vector<Node::Ptr> m_nodes;
+  std::vector<std::string> m_names_list;
   std::vector<Node::Ptr> m_execution_order;
   bool m_compiled = false;
   bool m_parallel_enabled = false;

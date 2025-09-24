@@ -208,8 +208,8 @@ p.branch(
     ),
 )
 
-p.predict("predict", test_data)
-p.metric("classification_report", "classification_report", y_test)
+p.predict("predict", test_data,predict_proba=True)
+p.metric("roc_auc_score", "roc_auc_score", y_test,multi_class="ovr")
 p.serialize("test.xml")
 start_mem = get_memory_info()
 start = time.time()
