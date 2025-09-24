@@ -269,86 +269,55 @@ class TestPipelineCorrectness:
         try:
             import torch
             from torch import nn
-            from torch import optim
+            from torch.utils.data import DataLoader
+            from torch.utils.data import TensorDataset
         except ImportError:
             pytest.skip("PyTorch is not installed, skipping CUDA test.")
 
         class TorchDenseModel(CustomClassifier):
-            def __init__(
-                self,
-                input_dim=None,
-                hidden_dim=32,
-                lr=0.01,
-                epochs=100,
-                random_state=None,
-            ):
-                self.input_dim = input_dim
-                self.hidden_dim = hidden_dim
-                self.lr = lr
-                self.epochs = epochs
-                self.random_state = random_state
-
-                self.model = None
-                print("cuda" if torch.cuda.is_available() else "cpu")
-                self.device = torch.device(
-                    "cuda" if torch.cuda.is_available() else "cpu"
+            def __init__(self, input_dim=25, output_dim=4, random_state=42):
+                torch.manual_seed(random_state)
+                self.device = (
+                    torch.device("cuda")
+                    if torch.cuda.is_available()
+                    else pytest.skip("No GPU available, skipping CUDA test.")
                 )
-
-            def _build_model(self, input_dim, num_classes):
-                return nn.Sequential(
-                    nn.Linear(input_dim, self.hidden_dim),
+                self.model = nn.Sequential(
+                    nn.Linear(input_dim, 64),
                     nn.ReLU(),
-                    nn.Linear(self.hidden_dim, num_classes),
+                    nn.Linear(64, output_dim),
                 ).to(self.device)
+                self.criterion = nn.CrossEntropyLoss()
+                self.optimizer = torch.optim.Adam(
+                    self.model.parameters(), lr=0.001
+                )
+                self.batch_size = 32
+                self.epochs = 10
 
             def fit(self, X, y):
-                X = np.asarray(X, dtype=np.float32)
-                y = np.asarray(y, dtype=np.int64)
-
-                n_samples, n_features = X.shape
-                num_classes = len(np.unique(y))
-
-                if self.model is None:
-                    self.model = self._build_model(n_features, num_classes)
-
-                criterion = nn.CrossEntropyLoss()
-                optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
-
-                X_tensor = torch.tensor(X, device=self.device)
-                y_tensor = torch.tensor(y, device=self.device)
+                X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device)
+                y_tensor = torch.tensor(y, dtype=torch.long).to(self.device)
+                dataset = TensorDataset(X_tensor, y_tensor)
+                dataloader = DataLoader(
+                    dataset, batch_size=self.batch_size, shuffle=True
+                )
 
                 self.model.train()
-                for _ in range(self.epochs):
-                    optimizer.zero_grad()
-                    outputs = self.model(X_tensor)
-                    loss = criterion(outputs, y_tensor)
-                    loss.backward()
-                    optimizer.step()
-
-                return self
+                for epoch in range(self.epochs):
+                    for batch_X, batch_y in dataloader:
+                        self.optimizer.zero_grad()
+                        outputs = self.model(batch_X)
+                        loss = self.criterion(outputs, batch_y)
+                        loss.backward()
+                        self.optimizer.step()
 
             def predict(self, X):
-                X = np.asarray(X, dtype=np.float32)
-                X_tensor = torch.tensor(X, device=self.device)
-
                 self.model.eval()
+                X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device)
                 with torch.no_grad():
-                    logits = self.model(X_tensor)
-                    preds = torch.argmax(logits, dim=1).cpu().numpy()
-
-                return preds
-
-            def predict_proba(self, X):
-                X = np.asarray(X, dtype=np.float32)
-                X_tensor = torch.tensor(X, device=self.device)
-
-                self.model.eval()
-                with torch.no_grad():
-                    logits = self.model(X_tensor)
-                    # Apply softmax to convert logits to probabilities
-                    probabilities = torch.softmax(logits, dim=1).cpu().numpy()
-
-                return probabilities
+                    outputs = self.model(X_tensor)
+                    _, predicted = torch.max(outputs, 1)
+                return predicted.cpu().numpy()
 
         p = Pipeline()
         p.preprocess("standard_scaler", StandardScaler())
