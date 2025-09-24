@@ -208,8 +208,12 @@ p.branch(
     ),
 )
 
-p.predict("predict", test_data,predict_proba=True)
-p.metric("roc_auc_score", "roc_auc_score", y_test,multi_class="ovr")
+p.predict("predict", test_data)
+p.branch(
+"metrics",
+p.metric("f1", "f1_score", y_test,branch=True,average="weighted"),
+p.metric("accuracy", "accuracy_score", y_test,branch=True)
+)
 p.serialize("test.xml")
 start_mem = get_memory_info()
 start = time.time()
@@ -220,4 +224,4 @@ end_mem = get_memory_info()
 print(f"Pipeline execution time: {end - start:.4f} seconds")
 print(f"RSS memory: {end_mem['rss_mb'] - start_mem['rss_mb']:.2f} MB increase")
 print(f"Swap memory used: {end_mem['swap_mb']:.2f} MB")
-print(f"Accuracy: {simple_predictions[0]}")
+print(f"Accuracy: {simple_predictions}")
