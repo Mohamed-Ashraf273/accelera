@@ -34,43 +34,48 @@ class TestPipelineCorrectness:
 
     def test_preprocessing_correctness(self):
         p = Pipeline()
-        p.preprocess("scale", lambda x: x * 2.0)
-        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
-        p.predict("pred", self.test_data)
+        p.branch(
+            "preprocessing",
+            p.preprocess("standard_scaler", StandardScaler(), branch=True),
+            p.preprocess(
+                "normalize",
+                lambda x: x / (np.linalg.norm(x, axis=1, keepdims=True) + 1e-8),
+                branch=True,
+            ),
+            p.preprocess(
+                "power_transform",
+                lambda x: np.sign(x) * np.power(np.abs(x), 0.8),
+                branch=True,
+            ),
+        )
+        p.preprocess("clip", lambda x: np.clip(x, -5, 5))
         pipeline_result = p(self.X, self.y)
 
-        X_scaled = self.X * 2.0
-        test_scaled = self.test_data * 2.0
-        manual_model = LogisticRegression(random_state=42, max_iter=1000)
-        manual_model.fit(X_scaled, self.y)
-        manual_result = manual_model.predict(test_scaled)
+        def p1(x):
+            return self.scaler.transform(x)
 
-        pipeline_pred = (
-            pipeline_result[0]
-            if isinstance(pipeline_result, list)
-            else pipeline_result
-        )
-        assert np.array_equal(pipeline_pred, manual_result)
+        def p2(x):
+            return x / (np.linalg.norm(x, axis=1, keepdims=True) + 1e-8)
 
-    def test_metric_node(self):
-        p = Pipeline()
-        p.preprocess("scale", lambda x: x * 2.0)
-        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
-        p.predict("pred", self.test_data)
-        p.metric(
-            "accuracy",
-            "accuracy_score",
-            self.y_test,
+        def p3(x):
+            return np.sign(x) * np.power(np.abs(x), 0.8)
+
+        def p_common(x):
+            return np.clip(x, -5, 5)
+
+        manual_result1 = p_common(p1(self.X))
+        manual_result2 = p_common(p2(self.X))
+        manual_result3 = p_common(p3(self.X))
+
+        assert np.allclose(
+            pipeline_result[0], manual_result1, rtol=1e-5, atol=1e-8
         )
-        pipeline_result = p(self.X, self.y)
-        accuracy = pipeline_result[-1]
-        X_scaled = self.X * 2.0
-        test_scaled = self.test_data * 2.0
-        manual_model = LogisticRegression(random_state=42, max_iter=1000)
-        manual_model.fit(X_scaled, self.y)
-        manual_result = manual_model.predict(test_scaled)
-        manual_accuracy = np.mean(self.y_test == manual_result)
-        assert accuracy == manual_accuracy
+        assert np.allclose(
+            pipeline_result[1], manual_result2, rtol=1e-5, atol=1e-8
+        )
+        assert np.allclose(
+            pipeline_result[2], manual_result3, rtol=1e-5, atol=1e-8
+        )
 
     def test_multiple_preprocessing_steps(self):
         p = Pipeline()
@@ -88,6 +93,26 @@ class TestPipelineCorrectness:
         manual_model = LogisticRegression(random_state=42, max_iter=1000)
         manual_model.fit(X_step2, self.y)
         manual_result = manual_model.predict(test_step2)
+
+        pipeline_pred = (
+            pipeline_result[0]
+            if isinstance(pipeline_result, list)
+            else pipeline_result
+        )
+        assert np.array_equal(pipeline_pred, manual_result)
+
+    def test_preprocessing_model_chain_correctness(self):
+        p = Pipeline()
+        p.preprocess("scale", lambda x: x / 10.0)
+        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
+        p.predict("pred", self.test_data)
+        pipeline_result = p(self.X, self.y)
+
+        X_scaled = self.X / 10.0
+        test_scaled = self.test_data / 10.0
+        manual_model = LogisticRegression(random_state=42, max_iter=1000)
+        manual_model.fit(X_scaled, self.y)
+        manual_result = manual_model.predict(test_scaled)
 
         pipeline_pred = (
             pipeline_result[0]
@@ -193,25 +218,25 @@ class TestPipelineCorrectness:
                 else:
                     assert np.array_equal(pipeline_pred, manual_result)
 
-    def test_preprocessing_model_chain_correctness(self):
+    def test_metric_node(self):
         p = Pipeline()
-        p.preprocess("scale", lambda x: x / 10.0)
+        p.preprocess("scale", lambda x: x * 2.0)
         p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
         p.predict("pred", self.test_data)
+        p.metric(
+            "accuracy",
+            "accuracy_score",
+            self.y_test,
+        )
         pipeline_result = p(self.X, self.y)
-
-        X_scaled = self.X / 10.0
-        test_scaled = self.test_data / 10.0
+        accuracy = pipeline_result[-1]
+        X_scaled = self.X * 2.0
+        test_scaled = self.test_data * 2.0
         manual_model = LogisticRegression(random_state=42, max_iter=1000)
         manual_model.fit(X_scaled, self.y)
         manual_result = manual_model.predict(test_scaled)
-
-        pipeline_pred = (
-            pipeline_result[0]
-            if isinstance(pipeline_result, list)
-            else pipeline_result
-        )
-        assert np.array_equal(pipeline_pred, manual_result)
+        manual_accuracy = np.mean(self.y_test == manual_result)
+        assert accuracy == manual_accuracy
 
     def test_custom_model_integration(self):
         class CustomModel(CustomClassifier):
