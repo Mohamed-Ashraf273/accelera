@@ -9,13 +9,14 @@ namespace py = pybind11;
 using namespace mainera;
 
 PYBIND11_MODULE(graph, m) {
-  m.doc() = "AI Studio C++ core bindings";
+  m.doc() = "mAInera C++ core bindings";
 
   // Bind NodeType enum
   py::enum_<NodeType>(m, "NodeType")
       .value("INPUT", NodeType::INPUT)
       .value("MODEL", NodeType::MODEL)
       .value("PREDICT", NodeType::PREDICT)
+      .value("METRIC", NodeType::METRIC)
       .value("FEATURE", NodeType::FEATURE)
       .value("PREPROCESS", NodeType::PREPROCESS)
       .value("MERGE", NodeType::MERGE)

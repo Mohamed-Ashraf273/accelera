@@ -21,6 +21,7 @@ enum class NodeType {
   MODEL,
   PREDICT,
   MERGE,
+  METRIC
 };
 
 class MAINERA_API Node : public std::enable_shared_from_this<Node> {
@@ -43,22 +44,27 @@ public:
 
   virtual void execute() = 0;
 
+  void setData(py::object input);
+  py::object getData() const;
+
   // Graph connectivity methods
-  std::shared_ptr<Node> getSourceNode() const { return m_sourceNode; }
-  void setSourceNode(std::shared_ptr<Node> source) { m_sourceNode = source; }
+  std::shared_ptr<Node> getSourceNode() const;
+  void setSourceNode(std::shared_ptr<Node> source);
 
   // Memory optimization methods
   void setShouldCreateNewData(bool should_create);
   bool getShouldCreateNewData() const;
 
-  std::shared_ptr<InputNode> getInput();
-  void setOutput(std::shared_ptr<InputNode> result);
-  std::shared_ptr<InputNode> getOutput();
+  // GPU handling methods
+  void usesGPU();
+  void setUsesGPU(bool uses_gpu);
+  bool getUsesGPU() const;
 
 protected:
-  std::shared_ptr<InputNode> m_data;
+  py::object m_data = py::none();
   Graph *m_graph = nullptr; // Pointer to parent graph
   std::shared_ptr<Node> m_sourceNode = nullptr;
+  bool m_uses_gpu = false;
 };
 
 } // namespace mainera

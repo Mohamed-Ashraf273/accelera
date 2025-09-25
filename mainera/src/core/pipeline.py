@@ -1,3 +1,8 @@
+import sklearn.metrics as metrics
+
+from mainera.src.wrappers.metric_wrapper import MetricWrapper
+from mainera.src.wrappers.node_wrapper import NodeWrapper
+
 try:
     import graph
 except ImportError as e:
@@ -5,13 +10,6 @@ except ImportError as e:
         "The 'graph' C++ module could not be imported. "
         "Please ensure it is built and available in your PYTHONPATH."
     ) from e
-
-
-class NodeWrapper:
-    def __init__(self, node_type, name, obj):
-        self.node_type = node_type
-        self.name = name
-        self.obj = obj
 
 
 class Pipeline:
@@ -36,12 +34,35 @@ class Pipeline:
         self.__graph.add_node(graph.NodeType.MODEL, name, model)
         return self
 
-    def predict(self, name, test_data, branch=False):
+    def predict(self, name, test_data, predict_proba=False, branch=False):
+        predict_params = {
+            "test_data": test_data,
+            "predict_proba": predict_proba,
+        }
         if branch:
-            return NodeWrapper("predict", name, test_data)
+            return NodeWrapper("predict", name, predict_params)
 
-        self.__graph.add_node(graph.NodeType.PREDICT, name, test_data)
+        self.__graph.add_node(graph.NodeType.PREDICT, name, predict_params)
         return self
+
+    def metric(self, name, metric_name, y_true, branch=False, **params):
+        def get_metric_object(metric_name):
+            metric_func = getattr(metrics, metric_name, None)
+            return metric_func
+
+        metric_func = get_metric_object(metric_name)
+
+        if metric_func is not None:
+            metric_obj = MetricWrapper(metric_func, **params)
+            metric_params = {"func": metric_obj, "y_true": y_true}
+
+            if branch:
+                return NodeWrapper("metric", name, metric_params)
+
+            self.__graph.add_node(graph.NodeType.METRIC, name, metric_params)
+            return self
+        else:
+            raise ValueError(f"Metric '{metric_name}' is not recognized.")
 
     def branch(self, name, *branches):
         branches_to_send = []

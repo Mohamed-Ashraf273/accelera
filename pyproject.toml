@@ -20,24 +20,20 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Operating System :: Unix",
     "Operating System :: Microsoft :: Windows",
-    "Operating System :: MacOS",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering",
     "Topic :: Software Development",
 ]
 dependencies = [
-    "keras>=3.10",
     "absl-py",
     "numpy",
     "packaging",
     "regex",
     "rich",
-    "kagglehub",
-    "tensorflow-text;platform_system != 'Windows'",
 ]
 
 [project.urls]
-Home = "https://github.com/Mohamed-Ashraf273/ai-studio.git"
+Home = "https://github.com/Mohamed-Ashraf273/mainera.git"
 
 [tool.setuptools.dynamic]
 version = {attr = "mainera.src.version.__version__"}

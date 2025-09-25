@@ -1,4 +1,5 @@
 #include "nodes/input.hpp"
+
 #include <stdexcept>
 
 namespace mainera {

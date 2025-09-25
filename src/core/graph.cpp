@@ -1,3 +1,13 @@
+#include "core/graph.hpp"
+#include "core/node_factory.hpp"
+#include "nodes/input.hpp"
+#include "nodes/merge.hpp"
+#include "nodes/metric.hpp"
+#include "nodes/model.hpp"
+#include "nodes/predict.hpp"
+#include "nodes/preprocess.hpp"
+#include "utils/graph_utils.hpp"
+
 #include <algorithm>
 #include <chrono>
 #include <exception>
@@ -9,17 +19,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "core/graph.hpp"
-#include "core/node_factory.hpp"
-#include "nodes/input.hpp"
-#include "nodes/merge.hpp"
-#include "nodes/model.hpp"
-#include "nodes/predict.hpp"
-#include "nodes/preprocess.hpp"
-#include "passes/node_fusion.hpp"
-#include "utils/graph_utils.hpp"
-#include <iostream>
-
 namespace mainera {
 
 Graph::Graph() : m_compiled(false), m_parallel_enabled(false) {
@@ -28,7 +27,6 @@ Graph::Graph() : m_compiled(false), m_parallel_enabled(false) {
   auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
   input_as_node->setSourceNode(nullptr);
   m_nodes.push_back(input_as_node);
-  m_node_map[m_input_node->name] = input_as_node;
 }
 
 Graph::~Graph() { clear(); }
@@ -64,7 +62,6 @@ void Graph::addNode(Node::Ptr node) {
     }
 
     m_nodes.push_back(nodeToAdd);
-    m_node_map[nodeToAdd->name] = nodeToAdd; // Fast lookup
 
     // Check if this is the first node after input (should create new data)
     bool is_first_after_input = false;
@@ -92,12 +89,6 @@ void Graph::addNode(Node::Ptr node) {
       new_branch_tails.push_back(nodeToAdd->name);
     }
   }
-
-  // Update branch tails if we're in branched mode
-  if (m_is_branched && !new_branch_tails.empty()) {
-    m_branch_tails = new_branch_tails;
-  }
-
   m_compiled = false;
 }
 
@@ -117,7 +108,6 @@ void Graph::split(const std::string &branch_name,
   }
 
   // Clear any previous branch state
-  m_branch_tails.clear();
   m_is_branched = true;
 
   // For each leaf, create parallel branches
@@ -148,6 +138,8 @@ void Graph::split(const std::string &branch_name,
             nodeType = NodeType::MODEL;
           } else if (node_types[branch_idx + list_idx] == "PREDICT") {
             nodeType = NodeType::PREDICT;
+          } else if (node_types[branch_idx + list_idx] == "METRIC") {
+            nodeType = NodeType::METRIC;
           } else {
             throw std::runtime_error("Unknown node type: " +
                                      node_types[branch_idx + list_idx]);
@@ -171,13 +163,11 @@ void Graph::split(const std::string &branch_name,
           branchNode->setShouldCreateNewData(list_idx == 0);
 
           m_nodes.push_back(branchNode);
-          m_node_map[branchNode->name] = branchNode;
 
           // Connect to the current source in the chain
           branchNode->setSourceNode(current_source);
           current_source = branchNode;
         }
-
       } catch (const py::cast_error &) {
         NodeType nodeType;
         if (node_types[branch_idx] == "INPUT") {
@@ -190,6 +180,8 @@ void Graph::split(const std::string &branch_name,
           nodeType = NodeType::MODEL;
         } else if (node_types[branch_idx] == "PREDICT") {
           nodeType = NodeType::PREDICT;
+        } else if (node_types[branch_idx] == "METRIC") {
+          nodeType = NodeType::METRIC;
         } else {
           throw std::runtime_error("Unknown node type: " +
                                    node_types[branch_idx]);
@@ -208,7 +200,6 @@ void Graph::split(const std::string &branch_name,
         branchNode->setShouldCreateNewData(true);
 
         m_nodes.push_back(branchNode);
-        m_node_map[branchNode->name] = branchNode;
 
         branchNode->setSourceNode(leaf);
         current_source = branchNode;
@@ -216,11 +207,6 @@ void Graph::split(const std::string &branch_name,
 
       // Store the final node of this branch
       branch_tails.push_back(current_source);
-    }
-
-    // Store all tail nodes for this leaf
-    for (const auto &tail : branch_tails) {
-      m_branch_tails.push_back(tail->name);
     }
   }
 
@@ -231,7 +217,7 @@ void Graph::compile() {
   if (m_compiled)
     return;
   m_execution_order = topologicalSort();
-  optimizeGraph();
+  setGPUUsage();
   m_compiled = true;
 }
 
@@ -241,7 +227,6 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
 
   if (m_input_node) {
     m_input_node->setInputData(X, y);
-    m_input_node->setOutput(m_input_node);
   }
 
   if (m_parallel_enabled && m_execution_order.size() >= m_multicore_threshold) {
@@ -257,33 +242,32 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
   for (const auto &leaf : final_leaves) {
     if (!leaf->dirty) {
       try {
-        if (leaf->type == NodeType::PREDICT) {
-          py::object result = leaf->getOutput()->getY();
-          if (!result.is_none()) {
-            predictions.push_back(result);
+        if (leaf->type == NodeType::PREPROCESS) {
+          std::shared_ptr<PreprocessNode> leaf_node =
+              std::dynamic_pointer_cast<PreprocessNode>(leaf);
+          if (!leaf_node) {
+            throw std::runtime_error("Failed to cast to PreprocessNode");
           }
-        } else if (leaf->type == NodeType::PREPROCESS) {
-          py::object result = leaf->getOutput()->getX();
-          if (!result.is_none()) {
-            predictions.push_back(result);
-          }
-        } else if (leaf->type == NodeType::MODEL) {
-          py::object result = leaf->getOutput()->getFittedModel();
+          py::object result = leaf_node->getData()->getX();
           if (!result.is_none()) {
             predictions.push_back(result);
           }
         } else if (leaf->type == NodeType::INPUT) {
-          py::object result = py::make_tuple(leaf->getOutput()->getX(),
-                                             leaf->getOutput()->getY());
+          std::shared_ptr<InputNode> leaf_node =
+              std::dynamic_pointer_cast<InputNode>(leaf);
+          if (!leaf_node) {
+            throw std::runtime_error("Failed to cast to InputNode");
+          }
+          py::object result =
+              py::make_tuple(leaf_node->getX(), leaf_node->getY());
           if (!result.is_none()) {
             predictions.push_back(result);
           }
-        }
-        // Fallback for other node types
-        else {
-          throw std::runtime_error(
-              "Unhandled node type for result collection: " +
-              std::to_string(static_cast<int>(leaf->type)));
+        } else {
+          py::object result = leaf->getData();
+          if (!result.is_none()) {
+            predictions.push_back(result);
+          }
         }
       } catch (const std::exception &e) {
         log_warning("Error collecting results from node '" + leaf->name +
@@ -298,19 +282,14 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
 void Graph::clear() {
   m_nodes.clear();
   m_execution_order.clear();
-  m_node_map.clear();
-  m_sequential_nodes.clear();
-  m_branch_tails.clear();
   m_compiled = false;
   m_is_branched = false;
   m_input_node = nullptr;
-  m_node_counter = 0;
 
   // Recreate the input node
   m_input_node = std::make_shared<InputNode>();
   auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
   m_nodes.push_back(input_as_node);
-  m_node_map[m_input_node->name] = input_as_node;
 }
 
 void Graph::enableParallelExecution(bool enable) {
@@ -319,6 +298,14 @@ void Graph::enableParallelExecution(bool enable) {
 
 void Graph::setMulticoreThreshold(size_t threshold) {
   m_multicore_threshold = threshold;
+}
+
+void Graph::setGPUUsage() {
+  for (const auto &node : m_nodes) {
+    if (!node->py_func.is_none()) {
+      node->usesGPU();
+    }
+  }
 }
 
 void Graph::runParallel() {
@@ -340,11 +327,9 @@ void Graph::runParallel() {
         }
       }
     } else {
-      // Multiple nodes - execute in parallel
       // Release GIL for the main thread so worker threads can acquire it
       py::gil_scoped_release release;
       executeNodesInParallel(level);
-      // GIL is automatically re-acquired when release goes out of scope
     }
   }
 }
@@ -366,7 +351,6 @@ void Graph::run() {
   }
 }
 
-// Accessors
 const std::vector<Node::Ptr> &Graph::getNodes() const { return m_nodes; }
 
 bool Graph::isCompiled() const { return m_compiled; }
@@ -386,7 +370,6 @@ std::vector<py::object> Graph::getPreprocessingFunctions(Node::Ptr node) const {
   return m_preprocessing_functions;
 }
 
-// Topological sort implementation
 std::vector<Node::Ptr> Graph::topologicalSort() {
   if (m_nodes.empty())
     return {};
@@ -444,13 +427,6 @@ std::vector<Node::Ptr> Graph::topologicalSort() {
   return sorted_nodes;
 }
 
-void Graph::optimizeGraph() {
-  // Resources
-  // https://github.com/openvinotoolkit/openvino/blob/master/src/plugins/intel_cpu/docs/internal_cpu_plugin_optimization.md
-  // https://github.com/openvinotoolkit/openvino/tree/master/src/common/transformations
-  passes::NodeFusion::apply(*this);
-}
-
 std::vector<Node::Ptr> Graph::findLeafNodes() const {
   std::vector<Node::Ptr> leaves;
 
@@ -473,19 +449,10 @@ std::vector<Node::Ptr> Graph::findLeafNodes() const {
   return leaves;
 }
 
-Node::Ptr Graph::findNodeByName(const std::string &name) const {
-  auto it = m_node_map.find(name);
-  return (it != m_node_map.end()) ? it->second : nullptr;
-}
-
 void Graph::mergeBranches(const std::string &merge_name,
                           py::object merge_func) {
   if (!m_is_branched) {
     throw std::runtime_error("Not in branched mode - nothing to merge");
-  }
-
-  if (m_branch_tails.size() < 2) {
-    throw std::runtime_error("Need at least 2 branches to merge");
   }
 
   throw std::runtime_error("Merge functionality not yet implemented");
@@ -534,19 +501,29 @@ std::vector<std::vector<Node::Ptr>> Graph::groupNodesByLevel() const {
 }
 
 void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
-  std::vector<std::future<void>> futures;
-  std::vector<std::exception_ptr> exceptions(nodes.size());
+  std::vector<Node::Ptr> cpu_nodes;
+  std::vector<Node::Ptr> gpu_nodes;
 
-  // Launch parallel execution for each node
-  for (size_t i = 0; i < nodes.size(); ++i) {
-    const auto &node = nodes[i];
+  for (const auto &node : nodes) {
     if (node->dirty) {
+      if (node->getUsesGPU()) {
+        gpu_nodes.push_back(node);
+      } else {
+        cpu_nodes.push_back(node);
+      }
+    }
+  }
+
+  std::vector<std::exception_ptr> exceptions(nodes.size());
+  std::vector<std::future<void>> futures;
+
+  if (!cpu_nodes.empty()) {
+    for (size_t i = 0; i < cpu_nodes.size(); ++i) {
+      const auto &node = cpu_nodes[i];
       futures.emplace_back(
           std::async(std::launch::async, [node, &exceptions, i]() {
+            py::gil_scoped_acquire acquire; // Acquire GIL at thread start
             try {
-              // Acquire GIL for this thread since we're working with Python
-              // objects
-              py::gil_scoped_acquire acquire;
               node->execute();
               node->dirty = false;
             } catch (...) {
@@ -556,19 +533,58 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
     }
   }
 
-  // Wait for all futures to complete
+  // Launch GPU nodes sequentially BUT CONCURRENTLY with CPU nodes
+  if (!gpu_nodes.empty()) {
+    futures.emplace_back(
+        std::async(std::launch::async,
+                   [gpu_nodes, &exceptions, cpu_count = cpu_nodes.size()]() {
+                     py::gil_scoped_acquire
+                         acquire; // Acquire GIL for the entire GPU sequence
+                     try {
+                       for (size_t i = 0; i < gpu_nodes.size(); ++i) {
+                         gpu_nodes[i]->execute();
+                         gpu_nodes[i]->dirty = false;
+                       }
+                     } catch (...) {
+                       // For GPU nodes, we need to handle exceptions
+                       // differently since we're processing multiple nodes in
+                       // one thread Let's store the exception for the first
+                       // failed GPU node
+                       exceptions[cpu_count] = std::current_exception();
+                     }
+                   }));
+  }
+
+  // Wait for ALL futures (both CPU and GPU) to complete
   for (auto &future : futures) {
     future.wait();
   }
 
-  // Check for exceptions and rethrow the first one found
+  // Check for exceptions
   for (size_t i = 0; i < exceptions.size(); ++i) {
     if (exceptions[i]) {
+      Node::Ptr failed_node;
+      std::string node_type;
+
+      if (i < cpu_nodes.size()) {
+        failed_node = cpu_nodes[i];
+        node_type = "CPU";
+      } else if (i == cpu_nodes.size() && !gpu_nodes.empty()) {
+        // For GPU nodes, we only have one exception slot for the entire
+        // sequence
+        failed_node = gpu_nodes[0];
+        node_type = "GPU";
+      } else {
+        failed_node = nodes[i]; // Fallback
+        node_type = "unknown";
+      }
+
       try {
         std::rethrow_exception(exceptions[i]);
       } catch (const std::exception &e) {
-        throw std::runtime_error("Error executing node '" + nodes[i]->name +
-                                 "' in parallel: " + std::string(e.what()));
+        throw std::runtime_error("Error executing " + node_type + " node '" +
+                                 failed_node->name +
+                                 "': " + std::string(e.what()));
       }
     }
   }
