@@ -12,10 +12,7 @@ class MAINERA_API InputNode : public Node {
 public:
   InputNode();
   virtual ~InputNode() = default;
-
   void execute() override;
-
-  // Set the input data when execution begins
   void setInputData(py::object X, py::object y = py::object());
 
   py::object getX() const { return m_X; }

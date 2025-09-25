@@ -1,5 +1,6 @@
 import sklearn.metrics as metrics
 
+from mainera.src.wrappers.executed_graph_wrapper import ExecutedGraphWrapper
 from mainera.src.wrappers.metric_wrapper import MetricWrapper
 from mainera.src.wrappers.node_wrapper import NodeWrapper
 
@@ -17,8 +18,11 @@ class Pipeline:
         self.__graph = graph.Graph()
         self.__graph.enableParallelExecution(True)
 
-    def __call__(self, X, y=None):
-        return self.__graph.execute(X, y)
+    def __call__(self, X, y, best_path=False):
+        results = self.__graph.execute(X, y, best_path=best_path)
+        executed_graph = ExecutedGraphWrapper(results[0])
+        predictions = results[1:]
+        return predictions, executed_graph
 
     def preprocess(self, name, func, branch=False):
         if branch:

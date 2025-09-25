@@ -13,6 +13,7 @@
 #include <exception>
 #include <fstream>
 #include <future>
+#include <iostream>
 #include <queue>
 #include <stdexcept>
 #include <thread>
@@ -22,12 +23,59 @@
 namespace mainera {
 
 Graph::Graph() : m_compiled(false), m_parallel_enabled(false) {
-  // Automatically create an input node as the starting point
   m_input_node = std::make_shared<InputNode>();
   auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
   input_as_node->setSourceNode(nullptr);
   m_nodes.push_back(input_as_node);
 }
+
+Graph::Graph(const Graph &other) {
+  m_compiled = other.m_compiled;
+  m_parallel_enabled = other.m_parallel_enabled;
+  m_multicore_threshold = other.m_multicore_threshold;
+  m_is_branched = other.m_is_branched;
+
+  std::unordered_map<Node::Ptr, Node::Ptr> node_mapping;
+
+  m_input_node = std::make_shared<InputNode>();
+  auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
+  input_as_node->setSourceNode(nullptr);
+  input_as_node->setGraph(this);
+  m_nodes.push_back(input_as_node);
+
+  Node::Ptr original_input_node = other.m_nodes[0];
+  node_mapping[original_input_node] = input_as_node;
+
+  for (const auto &original_node : other.m_nodes) {
+    if (original_node->type != NodeType::INPUT) {
+      Node::Ptr new_node = original_node->clone();
+      new_node->setGraph(this);
+      node_mapping[original_node] = new_node;
+      m_nodes.push_back(new_node);
+    }
+  }
+
+  for (const auto &original_node : other.m_nodes) {
+    if (original_node->type == NodeType::INPUT)
+      continue;
+
+    Node::Ptr new_node = node_mapping[original_node];
+    Node::Ptr original_source = original_node->getSourceNode();
+
+    if (original_source) {
+      Node::Ptr new_source = node_mapping[original_source];
+      new_node->setSourceNode(new_source);
+    }
+  }
+
+  if (other.m_compiled) {
+    for (const auto &node : other.m_execution_order) {
+      m_execution_order.push_back(node_mapping[node]);
+    }
+  }
+}
+
+Graph *Graph::clone() const { return new Graph(*this); }
 
 Graph::~Graph() { clear(); }
 
@@ -39,25 +87,79 @@ Node::Ptr Graph::add_node(NodeType type, const std::string &name,
   return node;
 }
 
+std::string Graph::nodeTypeToString(NodeType type) const {
+  switch (type) {
+  case NodeType::INPUT:
+    return "INPUT";
+  case NodeType::PREPROCESS:
+    return "PREPROCESS";
+  case NodeType::FEATURE:
+    return "FEATURE";
+  case NodeType::MODEL:
+    return "MODEL";
+  case NodeType::PREDICT:
+    return "PREDICT";
+  case NodeType::MERGE:
+    return "MERGE";
+  case NodeType::METRIC:
+    return "METRIC";
+  default:
+    return "UNKNOWN";
+  }
+}
+
+bool Graph::validateNodeConnection(Node::Ptr newNode,
+                                   Node::Ptr sourceNode) const {
+  switch (newNode->type) {
+  case NodeType::PREPROCESS:
+    return sourceNode->type == NodeType::INPUT ||
+           sourceNode->type == NodeType::PREPROCESS;
+
+  case NodeType::MODEL:
+    return sourceNode->type == NodeType::INPUT ||
+           sourceNode->type == NodeType::PREPROCESS;
+
+  case NodeType::PREDICT:
+    return sourceNode->type == NodeType::MODEL;
+
+  case NodeType::METRIC:
+    return sourceNode->type == NodeType::PREDICT;
+
+  case NodeType::FEATURE:
+  case NodeType::MERGE:
+    return true;
+
+  case NodeType::INPUT:
+    return sourceNode == nullptr;
+
+  default:
+    return false;
+  }
+}
+
 void Graph::addNode(Node::Ptr node) {
   node->setGraph(this);
 
   std::vector<Node::Ptr> leaves = findLeafNodes();
 
   // Create a copy of the node for each leaf and connect them
-  std::vector<std::string>
-      new_branch_tails; // Track new tails if in branched mode
+  std::vector<std::string> new_branch_tails;
 
   for (size_t i = 0; i < leaves.size(); ++i) {
     Node::Ptr nodeToAdd;
 
+    if (!validateNodeConnection(node, leaves[i])) {
+      throw std::runtime_error(
+          "Invalid connection: Cannot connect node of type " +
+          nodeTypeToString(node->type) + " to source node of type " +
+          nodeTypeToString(leaves[i]->type));
+    }
+
     if (i == 0) {
       nodeToAdd = node;
     } else {
-      // Create a copy for subsequent leaves
       std::string copyName = node->name + "_copy_" + std::to_string(i);
       nodeToAdd = NodeFactory::createNode(node->type, copyName, node->py_func);
-      // Set graph pointer for copied node
       nodeToAdd->setGraph(this);
     }
 
@@ -72,19 +174,14 @@ void Graph::addNode(Node::Ptr node) {
       }
     }
 
-    // Only mark for creating new data if it's first after input
-    // Nodes created via split() already have the flag set appropriately
     if (is_first_after_input) {
       nodeToAdd->setShouldCreateNewData(true);
     } else {
-      // Default to false for memory optimization - enable InputNode reuse
       nodeToAdd->setShouldCreateNewData(false);
     }
 
-    // Connect the leaf to this node
     nodeToAdd->setSourceNode(leaves[i]);
 
-    // If in branched mode, track the new node as a potential branch tail
     if (m_is_branched) {
       new_branch_tails.push_back(nodeToAdd->name);
     }
@@ -107,14 +204,12 @@ void Graph::split(const std::string &branch_name,
     throw std::runtime_error("No leaf nodes found to split from");
   }
 
-  // Clear any previous branch state
   m_is_branched = true;
 
   // For each leaf, create parallel branches
   for (size_t leaf_idx = 0; leaf_idx < leaves.size(); ++leaf_idx) {
     Node::Ptr leaf = leaves[leaf_idx];
 
-    // Store the tail nodes for each parallel branch
     std::vector<Node::Ptr> branch_tails;
 
     for (size_t branch_idx = 0; branch_idx < branch_objects.size();
@@ -159,13 +254,19 @@ void Graph::split(const std::string &branch_name,
           Node::Ptr branchNode =
               NodeFactory::createNode(nodeType, uniqueName, node_obj);
 
-          // Only the first node in each branch should create new data
+          if (!validateNodeConnection(branchNode, current_source)) {
+            throw std::runtime_error(
+                "Invalid connection: Cannot connect node of type " +
+                nodeTypeToString(branchNode->type) +
+                " to source node of type " +
+                nodeTypeToString(current_source->type));
+          }
+
           branchNode->setShouldCreateNewData(list_idx == 0);
 
           m_nodes.push_back(branchNode);
-
-          // Connect to the current source in the chain
           branchNode->setSourceNode(current_source);
+          branchNode->setGraph(this);
           current_source = branchNode;
         }
       } catch (const py::cast_error &) {
@@ -197,11 +298,20 @@ void Graph::split(const std::string &branch_name,
 
         Node::Ptr branchNode = NodeFactory::createNode(
             nodeType, uniqueName, branch_objects[branch_idx]);
+
+        if (!validateNodeConnection(branchNode, current_source)) {
+          throw std::runtime_error(
+              "Invalid connection: Cannot connect node of type " +
+              nodeTypeToString(branchNode->type) + " to source node of type " +
+              nodeTypeToString(current_source->type));
+        }
+
         branchNode->setShouldCreateNewData(true);
 
         m_nodes.push_back(branchNode);
 
         branchNode->setSourceNode(leaf);
+        branchNode->setGraph(this);
         current_source = branchNode;
       }
 
@@ -221,7 +331,11 @@ void Graph::compile() {
   m_compiled = true;
 }
 
-std::vector<py::object> Graph::execute(py::object X, py::object y) {
+std::vector<py::object> Graph::execute(py::object X, py::object y,
+                                       py::object best_path) {
+
+  bool use_best_path = py::cast<bool>(best_path);
+
   if (!m_compiled)
     compile();
 
@@ -240,43 +354,51 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
   std::vector<Node::Ptr> final_leaves = findLeafNodes();
 
   for (const auto &leaf : final_leaves) {
-    if (!leaf->dirty) {
-      try {
-        if (leaf->type == NodeType::PREPROCESS) {
-          std::shared_ptr<PreprocessNode> leaf_node =
-              std::dynamic_pointer_cast<PreprocessNode>(leaf);
-          if (!leaf_node) {
-            throw std::runtime_error("Failed to cast to PreprocessNode");
-          }
-          py::object result = leaf_node->getData()->getX();
-          if (!result.is_none()) {
-            predictions.push_back(result);
-          }
-        } else if (leaf->type == NodeType::INPUT) {
-          std::shared_ptr<InputNode> leaf_node =
-              std::dynamic_pointer_cast<InputNode>(leaf);
-          if (!leaf_node) {
-            throw std::runtime_error("Failed to cast to InputNode");
-          }
-          py::object result =
-              py::make_tuple(leaf_node->getX(), leaf_node->getY());
-          if (!result.is_none()) {
-            predictions.push_back(result);
-          }
-        } else {
-          py::object result = leaf->getData();
-          if (!result.is_none()) {
-            predictions.push_back(result);
-          }
+    try {
+      if (leaf->type == NodeType::PREPROCESS) {
+        std::shared_ptr<PreprocessNode> leaf_node =
+            std::dynamic_pointer_cast<PreprocessNode>(leaf);
+        if (!leaf_node) {
+          throw std::runtime_error("Failed to cast to PreprocessNode");
         }
-      } catch (const std::exception &e) {
-        log_warning("Error collecting results from node '" + leaf->name +
-                    "': " + e.what());
+        py::object result = leaf_node->getData()->getX();
+        if (!result.is_none()) {
+          predictions.push_back(result);
+        }
+      } else if (leaf->type == NodeType::INPUT) {
+        std::shared_ptr<InputNode> leaf_node =
+            std::dynamic_pointer_cast<InputNode>(leaf);
+        if (!leaf_node) {
+          throw std::runtime_error("Failed to cast to InputNode");
+        }
+        py::object result =
+            py::make_tuple(leaf_node->getX(), leaf_node->getY());
+        if (!result.is_none()) {
+          predictions.push_back(result);
+        }
+      } else {
+        py::object result = leaf->getData();
+        if (!result.is_none()) {
+          predictions.push_back(result);
+        }
       }
+    } catch (const std::exception &e) {
+      throw std::runtime_error("Error collecting results from node '" +
+                               leaf->name + "': " + e.what());
     }
   }
 
-  return predictions;
+  std::vector<py::object> final_result;
+  if (!getIsExecuted()) {
+    Graph *executed_graph = clone();
+    executed_graph->setIsExecuted(true);
+    py::object executed_graph_obj = py::cast(executed_graph);
+    final_result.push_back(executed_graph_obj);
+  }
+
+  final_result.insert(final_result.end(), predictions.begin(),
+                      predictions.end());
+  return final_result;
 }
 
 void Graph::clear() {
@@ -285,11 +407,6 @@ void Graph::clear() {
   m_compiled = false;
   m_is_branched = false;
   m_input_node = nullptr;
-
-  // Recreate the input node
-  m_input_node = std::make_shared<InputNode>();
-  auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
-  m_nodes.push_back(input_as_node);
 }
 
 void Graph::enableParallelExecution(bool enable) {
@@ -309,22 +426,16 @@ void Graph::setGPUUsage() {
 }
 
 void Graph::runParallel() {
-  // Group nodes by execution levels (respecting dependencies)
   auto execution_levels = groupNodesByLevel();
 
-  // Execute each level in sequence, but nodes within each level in parallel
   for (const auto &level : execution_levels) {
     if (level.size() == 1) {
-      // Single node - execute sequentially
       auto &node = level[0];
-      if (node->dirty) {
-        try {
-          node->execute();
-          node->dirty = false;
-        } catch (const std::exception &e) {
-          throw std::runtime_error("Error executing node '" + node->name +
-                                   "': " + std::string(e.what()));
-        }
+      try {
+        node->execute();
+      } catch (const std::exception &e) {
+        throw std::runtime_error("Error executing node '" + node->name +
+                                 "': " + std::string(e.what()));
       }
     } else {
       // Release GIL for the main thread so worker threads can acquire it
@@ -337,16 +448,12 @@ void Graph::runParallel() {
 void Graph::run() {
   if (!m_compiled)
     compile();
-
   for (auto &node : m_execution_order) {
-    if (node->dirty) {
-      try {
-        node->execute();
-        node->dirty = false;
-      } catch (const std::exception &e) {
-        throw std::runtime_error("Error executing node '" + node->name +
-                                 "': " + std::string(e.what()));
-      }
+    try {
+      node->execute();
+    } catch (const std::exception &e) {
+      throw std::runtime_error("Error executing node '" + node->name +
+                               "': " + std::string(e.what()));
     }
   }
 }
@@ -505,12 +612,10 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
   std::vector<Node::Ptr> gpu_nodes;
 
   for (const auto &node : nodes) {
-    if (node->dirty) {
-      if (node->getUsesGPU()) {
-        gpu_nodes.push_back(node);
-      } else {
-        cpu_nodes.push_back(node);
-      }
+    if (node->getUsesGPU()) {
+      gpu_nodes.push_back(node);
+    } else {
+      cpu_nodes.push_back(node);
     }
   }
 
@@ -522,10 +627,9 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
       const auto &node = cpu_nodes[i];
       futures.emplace_back(
           std::async(std::launch::async, [node, &exceptions, i]() {
-            py::gil_scoped_acquire acquire; // Acquire GIL at thread start
+            py::gil_scoped_acquire acquire;
             try {
               node->execute();
-              node->dirty = false;
             } catch (...) {
               exceptions[i] = std::current_exception();
             }
@@ -538,12 +642,10 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
     futures.emplace_back(
         std::async(std::launch::async,
                    [gpu_nodes, &exceptions, cpu_count = cpu_nodes.size()]() {
-                     py::gil_scoped_acquire
-                         acquire; // Acquire GIL for the entire GPU sequence
+                     py::gil_scoped_acquire acquire;
                      try {
                        for (size_t i = 0; i < gpu_nodes.size(); ++i) {
                          gpu_nodes[i]->execute();
-                         gpu_nodes[i]->dirty = false;
                        }
                      } catch (...) {
                        // For GPU nodes, we need to handle exceptions
@@ -555,12 +657,10 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
                    }));
   }
 
-  // Wait for ALL futures (both CPU and GPU) to complete
   for (auto &future : futures) {
     future.wait();
   }
 
-  // Check for exceptions
   for (size_t i = 0; i < exceptions.size(); ++i) {
     if (exceptions[i]) {
       Node::Ptr failed_node;
@@ -575,7 +675,7 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
         failed_node = gpu_nodes[0];
         node_type = "GPU";
       } else {
-        failed_node = nodes[i]; // Fallback
+        failed_node = nodes[i];
         node_type = "unknown";
       }
 
@@ -585,6 +685,19 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
         throw std::runtime_error("Error executing " + node_type + " node '" +
                                  failed_node->name +
                                  "': " + std::string(e.what()));
+      }
+    }
+  }
+}
+
+void Graph::enableMetrics(py::object y_true) {
+  for (const auto &node : m_nodes) {
+    if (node->type == NodeType::METRIC) {
+      std::shared_ptr<MetricNode> metric_node =
+          std::dynamic_pointer_cast<MetricNode>(node);
+      if (metric_node) {
+        metric_node->setMetricFlag(true);
+        metric_node->setInjectedYTrue(y_true);
       }
     }
   }

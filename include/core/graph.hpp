@@ -18,12 +18,16 @@ public:
   Graph();
   ~Graph();
 
+  Graph(const Graph &other);
+  Graph *clone() const;
+
   Node::Ptr add_node(NodeType type, const std::string &name,
                      py::object py_func);
   void addNode(Node::Ptr node);
 
   void compile();
-  std::vector<py::object> execute(py::object X, py::object y);
+  std::vector<py::object> execute(py::object X, py::object y,
+                                  py::object best_path);
   void clear();
 
   void split(const std::string &branch_name,
@@ -42,27 +46,32 @@ public:
 
   void setGPUUsage();
 
+  void setIsExecuted(bool executed) { m_executed = executed; }
+  bool getIsExecuted() const { return m_executed; }
+
+  std::shared_ptr<InputNode> getInputNode() const { return m_input_node; }
+
+  void enableMetrics(py::object y_true);
+  bool validateNodeConnection(Node::Ptr newNode, Node::Ptr sourceNode) const;
+  std::string nodeTypeToString(NodeType type) const;
+
 private:
-  // Core execution methods
-  void run();
-  void runParallel();
-
-  // Utility methods
-  std::vector<Node::Ptr> findLeafNodes() const;
-  std::vector<Node::Ptr> topologicalSort();
-  std::vector<std::vector<Node::Ptr>> groupNodesByLevel() const;
-  void executeNodesInParallel(const std::vector<Node::Ptr> &nodes);
-
-  // Core data members
   std::vector<Node::Ptr> m_nodes;
   std::vector<Node::Ptr> m_execution_order;
   bool m_compiled = false;
   bool m_parallel_enabled = false;
+  bool m_executed = false;
   size_t m_multicore_threshold = 3; // Minimum tasks to use multicore
   std::shared_ptr<InputNode> m_input_node = nullptr; // Automatic input node
-
-  // Pipeline state management
   bool m_is_branched = false;
+
+  void run();
+  void runParallel();
+
+  std::vector<Node::Ptr> findLeafNodes() const;
+  std::vector<Node::Ptr> topologicalSort();
+  std::vector<std::vector<Node::Ptr>> groupNodesByLevel() const;
+  void executeNodesInParallel(const std::vector<Node::Ptr> &nodes);
 };
 
 } // namespace mainera
