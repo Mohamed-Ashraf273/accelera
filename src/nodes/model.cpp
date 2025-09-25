@@ -69,7 +69,6 @@ void ModelNode::execute() {
     std::string model_path = currentPath + "\\cache\\" + hash_value + ".pkl";
 
     if(fs::exists(model_path)){
-      std::cout<<"load model from "<<model_path << '\n';
       py::object fitted = joblib.attr("load")(model_path);
       setData(fitted);
     }
@@ -81,7 +80,6 @@ void ModelNode::execute() {
                                   std::string(e.what()));
         }
         setData(model_instance);
-        std::cout<<"save model to "<<model_path << '\n';
         joblib.attr("dump")(model_instance, model_path);
       }
     } catch (const py::error_already_set &e) {

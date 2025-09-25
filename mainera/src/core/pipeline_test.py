@@ -241,6 +241,7 @@ class TestPipelineCorrectness:
     def test_custom_model_integration(self):
         class CustomModel(CustomClassifier):
             def __init__(self, random_state=42):
+                super().__init__()
                 self.random_state = random_state
                 self.centroids_ = None
                 self.classes_ = None
