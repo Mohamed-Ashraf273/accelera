@@ -49,7 +49,7 @@ class TestPipelineCorrectness:
             ),
         )
         p.preprocess("clip", lambda x: np.clip(x, -5, 5))
-        pipeline_result = p(self.X, self.y)
+        pipeline_result, _ = p(self.X, self.y)
 
         def p1(x):
             return self.scaler.transform(x)
@@ -83,7 +83,7 @@ class TestPipelineCorrectness:
         p.preprocess("shift", lambda x: x + 1.0)
         p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
         p.predict("pred", self.test_data)
-        pipeline_result = p(self.X, self.y)
+        pipeline_result, _ = p(self.X, self.y)
 
         X_step1 = self.X * 2.0
         X_step2 = X_step1 + 1.0
@@ -106,7 +106,7 @@ class TestPipelineCorrectness:
         p.preprocess("scale", lambda x: x / 10.0)
         p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
         p.predict("pred", self.test_data)
-        pipeline_result = p(self.X, self.y)
+        pipeline_result, _ = p(self.X, self.y)
 
         X_scaled = self.X / 10.0
         test_scaled = self.test_data / 10.0
@@ -169,7 +169,7 @@ class TestPipelineCorrectness:
         )
 
         p.predict("predict", self.test_data, predict_proba=use_predict_proba)
-        pipeline_result = p(self.X, self.y)
+        pipeline_result, _ = p(self.X, self.y)
 
         assert len(pipeline_result) == 9
 
@@ -228,7 +228,7 @@ class TestPipelineCorrectness:
             "accuracy_score",
             self.y_test,
         )
-        pipeline_result = p(self.X, self.y)
+        pipeline_result, _ = p(self.X, self.y)
         accuracy = pipeline_result[-1]
         X_scaled = self.X * 2.0
         test_scaled = self.test_data * 2.0
@@ -275,7 +275,7 @@ class TestPipelineCorrectness:
         p.preprocess("scale", lambda x: x / 10.0)
         p.model("custom_rf", CustomModel(random_state=42))
         p.predict("pred", self.test_data)
-        pipeline_result = p(self.X, self.y)
+        pipeline_result, _ = p(self.X, self.y)
 
         X_scaled = self.X / 10.0
         test_scaled = self.test_data / 10.0
@@ -358,7 +358,7 @@ class TestPipelineCorrectness:
             ),
         )
         p.predict("predict", self.test_data)
-        pipeline_result = p(self.X, self.y)
+        pipeline_result, _ = p(self.X, self.y)
 
         def p1(x):
             return self.scaler.transform(x)

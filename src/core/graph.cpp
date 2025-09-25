@@ -279,9 +279,9 @@ std::vector<py::object> Graph::execute(py::object X, py::object y,
   }
 
   if (m_parallel_enabled && m_execution_order.size() >= m_multicore_threshold) {
-    runParallel(use_best_path);
+    runParallel();
   } else {
-    run(use_best_path);
+    run();
   }
 
   // Collect results from leaf nodes
@@ -360,14 +360,11 @@ void Graph::setGPUUsage() {
   }
 }
 
-void Graph::runParallel(bool use_best_path) {
-  // Group nodes by execution levels (respecting dependencies)
+void Graph::runParallel() {
   auto execution_levels = groupNodesByLevel();
 
-  // Execute each level in sequence, but nodes within each level in parallel
   for (const auto &level : execution_levels) {
     if (level.size() == 1) {
-      // Single node - execute sequentially
       auto &node = level[0];
       try {
         node->execute();
@@ -383,10 +380,9 @@ void Graph::runParallel(bool use_best_path) {
   }
 }
 
-void Graph::run(bool use_best_path) {
+void Graph::run() {
   if (!m_compiled)
     compile();
-  int i = 0;
   for (auto &node : m_execution_order) {
     try {
       node->execute();

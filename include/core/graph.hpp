@@ -61,8 +61,8 @@ private:
   std::shared_ptr<InputNode> m_input_node = nullptr; // Automatic input node
   bool m_is_branched = false;
 
-  void run(bool use_best_path);
-  void runParallel(bool use_best_path);
+  void run();
+  void runParallel();
 
   std::vector<Node::Ptr> findLeafNodes() const;
   std::vector<Node::Ptr> topologicalSort();
