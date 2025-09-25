@@ -1,4 +1,5 @@
 #include "nodes/model.hpp"
+#include "core/graph.hpp"
 #include "nodes/input.hpp"
 #include "nodes/preprocess.hpp"
 
@@ -20,6 +21,9 @@ ModelNode::ModelNode(const std::string &name, py::object py_func)
 }
 
 void ModelNode::execute() {
+  if (getGraph()->getIsExecuted()) {
+    return;
+  }
   try {
     std::shared_ptr<Node> input = getSourceNode();
 

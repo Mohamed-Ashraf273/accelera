@@ -22,12 +22,59 @@
 namespace mainera {
 
 Graph::Graph() : m_compiled(false), m_parallel_enabled(false) {
-  // Automatically create an input node as the starting point
   m_input_node = std::make_shared<InputNode>();
   auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
   input_as_node->setSourceNode(nullptr);
   m_nodes.push_back(input_as_node);
 }
+
+Graph::Graph(const Graph &other) {
+  m_compiled = other.m_compiled;
+  m_parallel_enabled = other.m_parallel_enabled;
+  m_multicore_threshold = other.m_multicore_threshold;
+  m_is_branched = other.m_is_branched;
+
+  std::unordered_map<Node::Ptr, Node::Ptr> node_mapping;
+
+  m_input_node = std::make_shared<InputNode>();
+  auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
+  input_as_node->setSourceNode(nullptr);
+  input_as_node->setGraph(this);
+  m_nodes.push_back(input_as_node);
+
+  Node::Ptr original_input_node = other.m_nodes[0];
+  node_mapping[original_input_node] = input_as_node;
+
+  for (const auto &original_node : other.m_nodes) {
+    if (original_node->type != NodeType::INPUT) {
+      Node::Ptr new_node = original_node->clone();
+      new_node->setGraph(this);
+      node_mapping[original_node] = new_node;
+      m_nodes.push_back(new_node);
+    }
+  }
+
+  for (const auto &original_node : other.m_nodes) {
+    if (original_node->type == NodeType::INPUT)
+      continue;
+
+    Node::Ptr new_node = node_mapping[original_node];
+    Node::Ptr original_source = original_node->getSourceNode();
+
+    if (original_source) {
+      Node::Ptr new_source = node_mapping[original_source];
+      new_node->setSourceNode(new_source);
+    }
+  }
+
+  if (other.m_compiled) {
+    for (const auto &node : other.m_execution_order) {
+      m_execution_order.push_back(node_mapping[node]);
+    }
+  }
+}
+
+Graph *Graph::clone() const { return new Graph(*this); }
 
 Graph::~Graph() { clear(); }
 
@@ -163,9 +210,8 @@ void Graph::split(const std::string &branch_name,
           branchNode->setShouldCreateNewData(list_idx == 0);
 
           m_nodes.push_back(branchNode);
-
-          // Connect to the current source in the chain
           branchNode->setSourceNode(current_source);
+          branchNode->setGraph(this);
           current_source = branchNode;
         }
       } catch (const py::cast_error &) {
@@ -202,6 +248,7 @@ void Graph::split(const std::string &branch_name,
         m_nodes.push_back(branchNode);
 
         branchNode->setSourceNode(leaf);
+        branchNode->setGraph(this);
         current_source = branchNode;
       }
 
@@ -221,7 +268,9 @@ void Graph::compile() {
   m_compiled = true;
 }
 
-std::vector<py::object> Graph::execute(py::object X, py::object y) {
+std::vector<py::object> Graph::execute(py::object X, py::object y,
+                                       py::object best_path) {
+  bool use_best_path = py::cast<bool>(best_path);
   if (!m_compiled)
     compile();
 
@@ -230,9 +279,9 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
   }
 
   if (m_parallel_enabled && m_execution_order.size() >= m_multicore_threshold) {
-    runParallel();
+    runParallel(use_best_path);
   } else {
-    run();
+    run(use_best_path);
   }
 
   // Collect results from leaf nodes
@@ -240,43 +289,51 @@ std::vector<py::object> Graph::execute(py::object X, py::object y) {
   std::vector<Node::Ptr> final_leaves = findLeafNodes();
 
   for (const auto &leaf : final_leaves) {
-    if (!leaf->dirty) {
-      try {
-        if (leaf->type == NodeType::PREPROCESS) {
-          std::shared_ptr<PreprocessNode> leaf_node =
-              std::dynamic_pointer_cast<PreprocessNode>(leaf);
-          if (!leaf_node) {
-            throw std::runtime_error("Failed to cast to PreprocessNode");
-          }
-          py::object result = leaf_node->getData()->getX();
-          if (!result.is_none()) {
-            predictions.push_back(result);
-          }
-        } else if (leaf->type == NodeType::INPUT) {
-          std::shared_ptr<InputNode> leaf_node =
-              std::dynamic_pointer_cast<InputNode>(leaf);
-          if (!leaf_node) {
-            throw std::runtime_error("Failed to cast to InputNode");
-          }
-          py::object result =
-              py::make_tuple(leaf_node->getX(), leaf_node->getY());
-          if (!result.is_none()) {
-            predictions.push_back(result);
-          }
-        } else {
-          py::object result = leaf->getData();
-          if (!result.is_none()) {
-            predictions.push_back(result);
-          }
+    try {
+      if (leaf->type == NodeType::PREPROCESS) {
+        std::shared_ptr<PreprocessNode> leaf_node =
+            std::dynamic_pointer_cast<PreprocessNode>(leaf);
+        if (!leaf_node) {
+          throw std::runtime_error("Failed to cast to PreprocessNode");
         }
-      } catch (const std::exception &e) {
-        log_warning("Error collecting results from node '" + leaf->name +
-                    "': " + e.what());
+        py::object result = leaf_node->getData()->getX();
+        if (!result.is_none()) {
+          predictions.push_back(result);
+        }
+      } else if (leaf->type == NodeType::INPUT) {
+        std::shared_ptr<InputNode> leaf_node =
+            std::dynamic_pointer_cast<InputNode>(leaf);
+        if (!leaf_node) {
+          throw std::runtime_error("Failed to cast to InputNode");
+        }
+        py::object result =
+            py::make_tuple(leaf_node->getX(), leaf_node->getY());
+        if (!result.is_none()) {
+          predictions.push_back(result);
+        }
+      } else {
+        py::object result = leaf->getData();
+        if (!result.is_none()) {
+          predictions.push_back(result);
+        }
       }
+    } catch (const std::exception &e) {
+      throw std::runtime_error("Error collecting results from node '" +
+                               leaf->name + "': " + e.what());
     }
   }
 
-  return predictions;
+  std::vector<py::object> final_result;
+  if (!getIsExecuted()) {
+    Graph *executed_graph = clone();
+    executed_graph->setIsExecuted(true);
+    py::object executed_graph_obj = py::cast(executed_graph);
+    final_result.push_back(executed_graph_obj);
+  }
+
+  final_result.insert(final_result.end(), predictions.begin(),
+                      predictions.end());
+  return final_result;
 }
 
 void Graph::clear() {
@@ -285,11 +342,6 @@ void Graph::clear() {
   m_compiled = false;
   m_is_branched = false;
   m_input_node = nullptr;
-
-  // Recreate the input node
-  m_input_node = std::make_shared<InputNode>();
-  auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
-  m_nodes.push_back(input_as_node);
 }
 
 void Graph::enableParallelExecution(bool enable) {
@@ -308,7 +360,7 @@ void Graph::setGPUUsage() {
   }
 }
 
-void Graph::runParallel() {
+void Graph::runParallel(bool use_best_path) {
   // Group nodes by execution levels (respecting dependencies)
   auto execution_levels = groupNodesByLevel();
 
@@ -317,14 +369,11 @@ void Graph::runParallel() {
     if (level.size() == 1) {
       // Single node - execute sequentially
       auto &node = level[0];
-      if (node->dirty) {
-        try {
-          node->execute();
-          node->dirty = false;
-        } catch (const std::exception &e) {
-          throw std::runtime_error("Error executing node '" + node->name +
-                                   "': " + std::string(e.what()));
-        }
+      try {
+        node->execute();
+      } catch (const std::exception &e) {
+        throw std::runtime_error("Error executing node '" + node->name +
+                                 "': " + std::string(e.what()));
       }
     } else {
       // Release GIL for the main thread so worker threads can acquire it
@@ -334,19 +383,16 @@ void Graph::runParallel() {
   }
 }
 
-void Graph::run() {
+void Graph::run(bool use_best_path) {
   if (!m_compiled)
     compile();
-
+  int i = 0;
   for (auto &node : m_execution_order) {
-    if (node->dirty) {
-      try {
-        node->execute();
-        node->dirty = false;
-      } catch (const std::exception &e) {
-        throw std::runtime_error("Error executing node '" + node->name +
-                                 "': " + std::string(e.what()));
-      }
+    try {
+      node->execute();
+    } catch (const std::exception &e) {
+      throw std::runtime_error("Error executing node '" + node->name +
+                               "': " + std::string(e.what()));
     }
   }
 }
@@ -505,12 +551,10 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
   std::vector<Node::Ptr> gpu_nodes;
 
   for (const auto &node : nodes) {
-    if (node->dirty) {
-      if (node->getUsesGPU()) {
-        gpu_nodes.push_back(node);
-      } else {
-        cpu_nodes.push_back(node);
-      }
+    if (node->getUsesGPU()) {
+      gpu_nodes.push_back(node);
+    } else {
+      cpu_nodes.push_back(node);
     }
   }
 
@@ -525,7 +569,6 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
             py::gil_scoped_acquire acquire; // Acquire GIL at thread start
             try {
               node->execute();
-              node->dirty = false;
             } catch (...) {
               exceptions[i] = std::current_exception();
             }
@@ -543,7 +586,6 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
                      try {
                        for (size_t i = 0; i < gpu_nodes.size(); ++i) {
                          gpu_nodes[i]->execute();
-                         gpu_nodes[i]->dirty = false;
                        }
                      } catch (...) {
                        // For GPU nodes, we need to handle exceptions

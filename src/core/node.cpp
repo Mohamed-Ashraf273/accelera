@@ -1,5 +1,6 @@
 #include "core/node.hpp"
 #include "core/graph.hpp"
+#include "core/node_factory.hpp"
 #include "nodes/input.hpp"
 
 #include <stdexcept>
@@ -8,8 +9,20 @@ namespace mainera {
 
 Node::Node(NodeType type, const std::string &name, py::object py_func)
     : type(type), name(name), py_func(py_func) {}
-Node::~Node() {
-  // Cleanup handled by shared_ptr
+
+Node::Ptr Node::clone() const {
+  auto new_node =
+      NodeFactory::createNode(NodeType(this->type), this->name, this->py_func);
+
+  if (!new_node) {
+    throw std::runtime_error("cloneCommonData: new_node is null");
+  }
+
+  new_node->setData(this->getData());
+  new_node->setShouldCreateNewData(this->getShouldCreateNewData());
+  new_node->setUsesGPU(this->getUsesGPU());
+
+  return new_node;
 }
 
 void Node::setSourceNode(std::shared_ptr<Node> source) {

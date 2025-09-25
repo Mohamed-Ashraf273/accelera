@@ -25,8 +25,7 @@ PYBIND11_MODULE(graph, m) {
   // Node binding
   py::class_<Node, Node::Ptr>(m, "Node")
       .def_readonly("name", &Node::name)
-      .def_readonly("type", &Node::type)
-      .def_readonly("dirty", &Node::dirty);
+      .def_readonly("type", &Node::type);
 
   // Graph binding with streamlined interface
   py::class_<Graph>(m, "Graph")
@@ -40,6 +39,7 @@ PYBIND11_MODULE(graph, m) {
            py::arg("node_names"), "Split the graph into branches")
 
       .def("execute", &Graph::execute, py::arg("X"), py::arg("y"),
+           py::arg("best_path"),
            "Execute graph with inputs and return predictions")
 
       .def("mergeBranches", &Graph::mergeBranches, py::arg("merge_name"),
