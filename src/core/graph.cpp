@@ -270,7 +270,9 @@ void Graph::compile() {
 
 std::vector<py::object> Graph::execute(py::object X, py::object y,
                                        py::object best_path) {
+
   bool use_best_path = py::cast<bool>(best_path);
+
   if (!m_compiled)
     compile();
 
@@ -562,7 +564,7 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
       const auto &node = cpu_nodes[i];
       futures.emplace_back(
           std::async(std::launch::async, [node, &exceptions, i]() {
-            py::gil_scoped_acquire acquire; // Acquire GIL at thread start
+            py::gil_scoped_acquire acquire;
             try {
               node->execute();
             } catch (...) {
@@ -577,8 +579,7 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
     futures.emplace_back(
         std::async(std::launch::async,
                    [gpu_nodes, &exceptions, cpu_count = cpu_nodes.size()]() {
-                     py::gil_scoped_acquire
-                         acquire; // Acquire GIL for the entire GPU sequence
+                     py::gil_scoped_acquire acquire;
                      try {
                        for (size_t i = 0; i < gpu_nodes.size(); ++i) {
                          gpu_nodes[i]->execute();
@@ -593,12 +594,10 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
                    }));
   }
 
-  // Wait for ALL futures (both CPU and GPU) to complete
   for (auto &future : futures) {
     future.wait();
   }
 
-  // Check for exceptions
   for (size_t i = 0; i < exceptions.size(); ++i) {
     if (exceptions[i]) {
       Node::Ptr failed_node;
@@ -613,7 +612,7 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
         failed_node = gpu_nodes[0];
         node_type = "GPU";
       } else {
-        failed_node = nodes[i]; // Fallback
+        failed_node = nodes[i];
         node_type = "unknown";
       }
 
@@ -628,4 +627,16 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
   }
 }
 
+void Graph::enableMetrics(py::object y_true) {
+  for (const auto &node : m_nodes) {
+    if (node->type == NodeType::METRIC) {
+      std::shared_ptr<MetricNode> metric_node =
+          std::dynamic_pointer_cast<MetricNode>(node);
+      if (metric_node) {
+        metric_node->setMetricFlag(true);
+        metric_node->setInjectedYTrue(y_true);
+      }
+    }
+  }
+}
 } // namespace mainera

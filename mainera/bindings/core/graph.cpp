@@ -39,7 +39,7 @@ PYBIND11_MODULE(graph, m) {
            py::arg("node_names"), "Split the graph into branches")
 
       .def("execute", &Graph::execute, py::arg("X"), py::arg("y"),
-           py::arg("best_path"),
+           py::arg("best_path") = false,
            "Execute graph with inputs and return predictions")
 
       .def("mergeBranches", &Graph::mergeBranches, py::arg("merge_name"),
@@ -48,15 +48,12 @@ PYBIND11_MODULE(graph, m) {
       .def("enableParallelExecution", &Graph::enableParallelExecution,
            py::arg("enable") = true, "Enable or disable parallel execution")
 
+      .def("enableMetrics", &Graph::enableMetrics, py::arg("y_true"),
+           "Enable metric nodes with provided true labels")
+
       .def("setMulticoreThreshold", &Graph::setMulticoreThreshold,
            py::arg("threshold"),
-           "Set minimum number of tasks to use multicore execution")
-
-      .def("clear", &Graph::clear, "Clear all nodes from the graph")
-
-      .def("compile", &Graph::compile, "Compile the graph for execution")
-
-      .def("get_nodes", &Graph::getNodes, "Get all nodes in the graph");
+           "Set minimum number of tasks to use multicore execution");
 
   // Utility functions
   m.def("serialize_graph", &serialize_graph, py::arg("graph"),

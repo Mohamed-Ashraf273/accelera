@@ -4,8 +4,10 @@ class ExecutedGraphWrapper:
         self.__executed_graph.enableParallelExecution(True)
 
     def __call__(self, X, y, metrics=False, y_true=None):
-        assert not metrics or y_true is not None, (
-            "If metrics is true then you should provide y_true"
-        )
+        if metrics:
+            if y_true is None:
+                raise ValueError("y_true must be provided when metrics=True")
+
+            self.__executed_graph.enableMetrics(y_true)
         results = self.__executed_graph.execute(X, y, best_path=False)
         return results

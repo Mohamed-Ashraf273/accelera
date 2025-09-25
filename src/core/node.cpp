@@ -2,6 +2,7 @@
 #include "core/graph.hpp"
 #include "core/node_factory.hpp"
 #include "nodes/input.hpp"
+#include "nodes/metric.hpp"
 
 #include <stdexcept>
 
@@ -18,10 +19,19 @@ Node::Ptr Node::clone() const {
     throw std::runtime_error("cloneCommonData: new_node is null");
   }
 
-  new_node->setData(this->getData());
   new_node->setShouldCreateNewData(this->getShouldCreateNewData());
   new_node->setUsesGPU(this->getUsesGPU());
 
+  if (this->type == NodeType::METRIC) {
+    auto metric_node = std::dynamic_pointer_cast<MetricNode>(new_node);
+    if (metric_node) {
+      metric_node->setMetricFlag(false);
+    }
+    metric_node->py_func = this->py_func["func"];
+    return new_node;
+  }
+
+  new_node->setData(this->getData());
   return new_node;
 }
 

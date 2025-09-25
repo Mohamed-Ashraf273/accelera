@@ -51,6 +51,8 @@ public:
 
   std::shared_ptr<InputNode> getInputNode() const { return m_input_node; }
 
+  void enableMetrics(py::object y_true);
+
 private:
   std::vector<Node::Ptr> m_nodes;
   std::vector<Node::Ptr> m_execution_order;
