@@ -8,6 +8,7 @@ class CustomClassifier(BaseEstimator, ClassifierMixin):
         self.random_state = random_state
         self.centroids_ = None
         self.classes_ = None
+        self.n_features_in_ = None
     def fit(self, X, y):
         raise NotImplementedError(
             "CustomClassifier.fit is not implemented yet."
