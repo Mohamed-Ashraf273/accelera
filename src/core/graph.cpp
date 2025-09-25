@@ -13,6 +13,7 @@
 #include <exception>
 #include <fstream>
 #include <future>
+#include <iostream>
 #include <queue>
 #include <stdexcept>
 #include <thread>
@@ -86,25 +87,79 @@ Node::Ptr Graph::add_node(NodeType type, const std::string &name,
   return node;
 }
 
+std::string Graph::nodeTypeToString(NodeType type) const {
+  switch (type) {
+  case NodeType::INPUT:
+    return "INPUT";
+  case NodeType::PREPROCESS:
+    return "PREPROCESS";
+  case NodeType::FEATURE:
+    return "FEATURE";
+  case NodeType::MODEL:
+    return "MODEL";
+  case NodeType::PREDICT:
+    return "PREDICT";
+  case NodeType::MERGE:
+    return "MERGE";
+  case NodeType::METRIC:
+    return "METRIC";
+  default:
+    return "UNKNOWN";
+  }
+}
+
+bool Graph::validateNodeConnection(Node::Ptr newNode,
+                                   Node::Ptr sourceNode) const {
+  switch (newNode->type) {
+  case NodeType::PREPROCESS:
+    return sourceNode->type == NodeType::INPUT ||
+           sourceNode->type == NodeType::PREPROCESS;
+
+  case NodeType::MODEL:
+    return sourceNode->type == NodeType::INPUT ||
+           sourceNode->type == NodeType::PREPROCESS;
+
+  case NodeType::PREDICT:
+    return sourceNode->type == NodeType::MODEL;
+
+  case NodeType::METRIC:
+    return sourceNode->type == NodeType::PREDICT;
+
+  case NodeType::FEATURE:
+  case NodeType::MERGE:
+    return true;
+
+  case NodeType::INPUT:
+    return sourceNode == nullptr;
+
+  default:
+    return false;
+  }
+}
+
 void Graph::addNode(Node::Ptr node) {
   node->setGraph(this);
 
   std::vector<Node::Ptr> leaves = findLeafNodes();
 
   // Create a copy of the node for each leaf and connect them
-  std::vector<std::string>
-      new_branch_tails; // Track new tails if in branched mode
+  std::vector<std::string> new_branch_tails;
 
   for (size_t i = 0; i < leaves.size(); ++i) {
     Node::Ptr nodeToAdd;
 
+    if (!validateNodeConnection(node, leaves[i])) {
+      throw std::runtime_error(
+          "Invalid connection: Cannot connect node of type " +
+          nodeTypeToString(node->type) + " to source node of type " +
+          nodeTypeToString(leaves[i]->type));
+    }
+
     if (i == 0) {
       nodeToAdd = node;
     } else {
-      // Create a copy for subsequent leaves
       std::string copyName = node->name + "_copy_" + std::to_string(i);
       nodeToAdd = NodeFactory::createNode(node->type, copyName, node->py_func);
-      // Set graph pointer for copied node
       nodeToAdd->setGraph(this);
     }
 
@@ -119,19 +174,14 @@ void Graph::addNode(Node::Ptr node) {
       }
     }
 
-    // Only mark for creating new data if it's first after input
-    // Nodes created via split() already have the flag set appropriately
     if (is_first_after_input) {
       nodeToAdd->setShouldCreateNewData(true);
     } else {
-      // Default to false for memory optimization - enable InputNode reuse
       nodeToAdd->setShouldCreateNewData(false);
     }
 
-    // Connect the leaf to this node
     nodeToAdd->setSourceNode(leaves[i]);
 
-    // If in branched mode, track the new node as a potential branch tail
     if (m_is_branched) {
       new_branch_tails.push_back(nodeToAdd->name);
     }
@@ -154,14 +204,12 @@ void Graph::split(const std::string &branch_name,
     throw std::runtime_error("No leaf nodes found to split from");
   }
 
-  // Clear any previous branch state
   m_is_branched = true;
 
   // For each leaf, create parallel branches
   for (size_t leaf_idx = 0; leaf_idx < leaves.size(); ++leaf_idx) {
     Node::Ptr leaf = leaves[leaf_idx];
 
-    // Store the tail nodes for each parallel branch
     std::vector<Node::Ptr> branch_tails;
 
     for (size_t branch_idx = 0; branch_idx < branch_objects.size();
@@ -206,7 +254,14 @@ void Graph::split(const std::string &branch_name,
           Node::Ptr branchNode =
               NodeFactory::createNode(nodeType, uniqueName, node_obj);
 
-          // Only the first node in each branch should create new data
+          if (!validateNodeConnection(branchNode, current_source)) {
+            throw std::runtime_error(
+                "Invalid connection: Cannot connect node of type " +
+                nodeTypeToString(branchNode->type) +
+                " to source node of type " +
+                nodeTypeToString(current_source->type));
+          }
+
           branchNode->setShouldCreateNewData(list_idx == 0);
 
           m_nodes.push_back(branchNode);
@@ -243,6 +298,14 @@ void Graph::split(const std::string &branch_name,
 
         Node::Ptr branchNode = NodeFactory::createNode(
             nodeType, uniqueName, branch_objects[branch_idx]);
+
+        if (!validateNodeConnection(branchNode, current_source)) {
+          throw std::runtime_error(
+              "Invalid connection: Cannot connect node of type " +
+              nodeTypeToString(branchNode->type) + " to source node of type " +
+              nodeTypeToString(current_source->type));
+        }
+
         branchNode->setShouldCreateNewData(true);
 
         m_nodes.push_back(branchNode);
@@ -639,4 +702,5 @@ void Graph::enableMetrics(py::object y_true) {
     }
   }
 }
+
 } // namespace mainera

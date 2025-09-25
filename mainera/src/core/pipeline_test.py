@@ -377,3 +377,23 @@ class TestPipelineCorrectness:
         assert len(pipeline_result) == len(manual_result)
         assert np.array_equal(pipeline_result[0], manual_result[0])
         assert np.array_equal(pipeline_result[1], manual_result[1])
+
+    def test_executed_model_correctness(self):
+        p = Pipeline()
+        p.preprocess("scale", lambda x: x / 10.0)
+        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
+        p.predict("pred", self.test_data)
+        p.metric("accuracy", "accuracy_score", y_true=self.y_test)
+        pipeline_result, executed_graph = p(self.X, self.y)
+        executed_graph_result = executed_graph(self.test_data)[0]
+
+        x = self.X / 10.0
+        model = LogisticRegression(random_state=42, max_iter=1000)
+        model.fit(x, self.y)
+        manual_result = model.predict(self.test_data / 10.0)
+        executed_graph_result_with_metric = executed_graph(
+            self.test_data, metrics=True, y_true=self.y_test
+        )[0]
+
+        assert pipeline_result[0] == executed_graph_result_with_metric
+        assert np.array_equal(executed_graph_result, manual_result)

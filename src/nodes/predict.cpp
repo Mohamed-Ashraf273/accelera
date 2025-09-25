@@ -21,7 +21,7 @@ void PredictNode::execute() {
   try {
     std::shared_ptr<Node> input = getSourceNode();
 
-    if (!input && input->type != NodeType::MODEL) {
+    if (!input) {
       throw std::runtime_error("Predict node '" + name +
                                "' requires a valid model node");
     }

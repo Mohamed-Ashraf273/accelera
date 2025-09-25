@@ -3,11 +3,11 @@ class ExecutedGraphWrapper:
         self.__executed_graph = executed_graph
         self.__executed_graph.enableParallelExecution(True)
 
-    def __call__(self, X, y, metrics=False, y_true=None):
+    def __call__(self, X, metrics=False, y_true=None):
         if metrics:
             if y_true is None:
                 raise ValueError("y_true must be provided when metrics=True")
 
             self.__executed_graph.enableMetrics(y_true)
-        results = self.__executed_graph.execute(X, y, best_path=False)
+        results = self.__executed_graph.execute(X, None, best_path=False)
         return results

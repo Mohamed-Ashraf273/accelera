@@ -32,11 +32,6 @@ void MetricNode::execute() {
                                "' requires a valid input");
     }
 
-    if (!input || input->type != NodeType::PREDICT) {
-      throw std::runtime_error("Metric node '" + name +
-                               "' requires a prediction input");
-    }
-
     py::object y_pred = input->getData();
 
     if (!m_enable) {
