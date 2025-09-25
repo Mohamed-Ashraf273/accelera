@@ -12,6 +12,8 @@ class MAINERA_API NodeFactory {
 public:
   static Node::Ptr createNode(NodeType type, const std::string &name,
                               py::object py_func);
+
+  static Node::Ptr createNodeCopy(Node::Ptr node, int i);
 };
 
 } // namespace mainera

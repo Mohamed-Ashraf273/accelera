@@ -77,6 +77,13 @@ class Pipeline:
         else:
             raise ValueError(f"Metric '{metric_name}' is not recognized.")
 
+    def merge(self, name, strategy="hard_voting", branch=False):
+        if branch:
+            return NodeWrapper("merge", name, strategy)
+
+        self.__graph.add_node(graph.NodeType.MERGE, name, strategy)
+        return self
+
     def branch(self, name, *branches):
         branches_to_send = []
         node_types = []
@@ -108,11 +115,6 @@ class Pipeline:
             branches_to_send.append(branch_objects)
 
         self.__graph.split(name, branches_to_send, node_types, node_names)
-        return self
-
-    def merge(self, name, merge_func):
-        raise NotImplementedError("Merge functionality not yet implemented")
-        self.__graph.mergeBranches(name, merge_func)
         return self
 
     def set_multicore_threshold(self, threshold):

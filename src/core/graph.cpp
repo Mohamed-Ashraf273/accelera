@@ -87,8 +87,6 @@ Node::Ptr Graph::add_node(NodeType type, const std::string &name,
 }
 
 void Graph::addNode(Node::Ptr node) {
-  node->setGraph(this);
-
   std::vector<Node::Ptr> leaves = findLeafNodes();
 
   std::vector<bool> is_connected_to_input;
@@ -98,36 +96,38 @@ void Graph::addNode(Node::Ptr node) {
     is_connected_to_input.push_back(leaf->type == NodeType::INPUT);
   }
 
-  // Create a copy of the node for each leaf and connect them
-  std::vector<std::string> new_branch_tails;
+  switch (node->type) {
+  case NodeType::MERGE:
+    // Multi-source: Connect to ALL leaves
+    node->setSourceNodes(leaves);
+    node->setGraph(this);
+    m_nodes.push_back(node);
+    break;
 
-  for (size_t i = 0; i < leaves.size(); ++i) {
-    Node::Ptr nodeToAdd;
+  case NodeType::INPUT:
+    // No sources
+    node->setSourceNodes({});
+    node->setGraph(this);
+    m_nodes.push_back(node);
+    break;
 
-    if (!validateNodeConnection(node, leaves[i])) {
-      throw std::runtime_error(
-          "Invalid connection: Cannot connect node of type " +
-          nodeTypeToString(node->type) + " to source node of type " +
-          nodeTypeToString(leaves[i]->type));
-    }
-
-    if (i == 0) {
-      nodeToAdd = node;
-    } else {
-      std::string copyName = node->name + "_copy_" + std::to_string(i);
-      nodeToAdd = NodeFactory::createNode(node->type, copyName, node->py_func);
+  default:
+    // Single-source: Create copies for each leaf
+    for (size_t i = 0; i < leaves.size(); ++i) {
+      if (!validateNodeConnection(node, leaves[i])) {
+        throw std::runtime_error(
+            "Invalid connection: Cannot connect node of type " +
+            nodeTypeToString(node->type) + " to source node of type " +
+            nodeTypeToString(leaves[i]->type));
+      }
+      Node::Ptr nodeToAdd =
+          (i == 0) ? node : NodeFactory::createNodeCopy(node, i);
+      nodeToAdd->setShouldCreateNewData(is_connected_to_input[i]);
+      nodeToAdd->setSourceNode(leaves[i]); // Single source
       nodeToAdd->setGraph(this);
+      m_nodes.push_back(nodeToAdd);
     }
-
-    m_nodes.push_back(nodeToAdd);
-
-    nodeToAdd->setShouldCreateNewData(is_connected_to_input[i]);
-
-    nodeToAdd->setSourceNode(leaves[i]);
-
-    if (m_is_branched) {
-      new_branch_tails.push_back(nodeToAdd->name);
-    }
+    break;
   }
   m_compiled = false;
 }
@@ -470,7 +470,9 @@ std::vector<Node::Ptr> Graph::topologicalSort() {
 
   // Check for cycles
   if (sorted_nodes.size() != m_nodes.size()) {
-    throw std::runtime_error("Graph contains cycles - not a DAG");
+    throw std::runtime_error("Graph contains cycles - not a DAG. Processed: " +
+                             std::to_string(sorted_nodes.size()) + "/" +
+                             std::to_string(m_nodes.size()) + " nodes");
   }
 
   return sorted_nodes;
@@ -496,15 +498,6 @@ std::vector<Node::Ptr> Graph::findLeafNodes() const {
   }
 
   return leaves;
-}
-
-void Graph::mergeBranches(const std::string &merge_name,
-                          py::object merge_func) {
-  if (!m_is_branched) {
-    throw std::runtime_error("Not in branched mode - nothing to merge");
-  }
-
-  throw std::runtime_error("Merge functionality not yet implemented");
 }
 
 std::vector<std::vector<Node::Ptr>> Graph::groupNodesByLevel() const {

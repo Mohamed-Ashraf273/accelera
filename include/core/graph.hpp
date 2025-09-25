@@ -35,7 +35,6 @@ public:
              const std::vector<py::object> &branch_objects,
              const std::vector<std::string> &node_types,
              const std::vector<std::string> &node_names);
-  void mergeBranches(const std::string &merge_name, py::object merge_func);
 
   void enableParallelExecution(bool enable = true);
   void setMulticoreThreshold(size_t threshold);

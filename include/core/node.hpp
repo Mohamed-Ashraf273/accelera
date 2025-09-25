@@ -46,8 +46,13 @@ public:
   void setData(py::object input);
   py::object getData() const;
 
+  // Get the result of node execution (default returns stored data)
+  virtual py::object getResult() const { return getData(); }
+
   std::shared_ptr<Node> getSourceNode() const;
+  const std::vector<std::shared_ptr<Node>> getSourceNodes() const;
   void setSourceNode(std::shared_ptr<Node> source);
+  void setSourceNodes(const std::vector<std::shared_ptr<Node>> &source_nodes);
 
   void setShouldCreateNewData(bool should_create);
   bool getShouldCreateNewData() const;
@@ -59,8 +64,8 @@ public:
 
 protected:
   py::object m_data = py::none();
-  Graph *m_graph = nullptr;
-  std::shared_ptr<Node> m_sourceNode = nullptr;
+  Graph *m_graph = nullptr; // Pointer to parent graph
+  std::vector<std::shared_ptr<Node>> m_sourceNode;
   bool m_uses_gpu = false;
 };
 
