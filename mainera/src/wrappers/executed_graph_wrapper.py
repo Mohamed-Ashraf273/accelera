@@ -8,6 +8,10 @@ class ExecutedGraphWrapper:
             if y_true is None:
                 raise ValueError("y_true must be provided when metrics=True")
 
-            self.__executed_graph.enableMetrics(y_true)
-        results = self.__executed_graph.execute(X, None, best_path=False)
+            self.__executed_graph.enableDisableMetrics(
+                y_true=y_true, enable=True
+            )
+        results = self.__executed_graph.execute(X, best_path=False)
+        if metrics:
+            self.__executed_graph.enableDisableMetrics(enable=False)
         return results

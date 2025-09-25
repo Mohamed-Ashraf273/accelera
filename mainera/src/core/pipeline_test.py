@@ -397,3 +397,6 @@ class TestPipelineCorrectness:
 
         assert pipeline_result[0] == executed_graph_result_with_metric
         assert np.array_equal(executed_graph_result, manual_result)
+
+        executed_graph_result = executed_graph(self.test_data)[0]
+        assert np.array_equal(executed_graph_result, manual_result)

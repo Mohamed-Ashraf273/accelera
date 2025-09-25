@@ -18,7 +18,7 @@ class Pipeline:
         self.__graph = graph.Graph()
         self.__graph.enableParallelExecution(True)
 
-    def __call__(self, X, y, best_path=False):
+    def __call__(self, X, y=None, best_path=False):
         results = self.__graph.execute(X, y, best_path=best_path)
         executed_graph = ExecutedGraphWrapper(results[0])
         predictions = results[1:]

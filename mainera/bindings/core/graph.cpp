@@ -38,7 +38,7 @@ PYBIND11_MODULE(graph, m) {
            py::arg("branch_objects"), py::arg("node_types"),
            py::arg("node_names"), "Split the graph into branches")
 
-      .def("execute", &Graph::execute, py::arg("X"), py::arg("y"),
+      .def("execute", &Graph::execute, py::arg("X"), py::arg("y") = py::none(),
            py::arg("best_path") = false,
            "Execute graph with inputs and return predictions")
 
@@ -48,7 +48,8 @@ PYBIND11_MODULE(graph, m) {
       .def("enableParallelExecution", &Graph::enableParallelExecution,
            py::arg("enable") = true, "Enable or disable parallel execution")
 
-      .def("enableMetrics", &Graph::enableMetrics, py::arg("y_true"),
+      .def("enableDisableMetrics", &Graph::enableDisableMetrics,
+           py::arg("y_true") = py::none(), py::arg("enable") = true,
            "Enable metric nodes with provided true labels")
 
       .def("setMulticoreThreshold", &Graph::setMulticoreThreshold,

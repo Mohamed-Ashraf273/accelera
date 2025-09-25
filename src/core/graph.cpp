@@ -690,14 +690,19 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
   }
 }
 
-void Graph::enableMetrics(py::object y_true) {
+void Graph::enableDisableMetrics(py::object y_true, py::object enable) {
+  bool enable_metrics = py::cast<bool>(enable);
   for (const auto &node : m_nodes) {
     if (node->type == NodeType::METRIC) {
       std::shared_ptr<MetricNode> metric_node =
           std::dynamic_pointer_cast<MetricNode>(node);
       if (metric_node) {
-        metric_node->setMetricFlag(true);
-        metric_node->setInjectedYTrue(y_true);
+        metric_node->setMetricFlag(enable_metrics);
+        if (enable_metrics && !y_true.is_none()) {
+          metric_node->setInjectedYTrue(y_true);
+        } else {
+          metric_node->setData(py::none());
+        }
       }
     }
   }
