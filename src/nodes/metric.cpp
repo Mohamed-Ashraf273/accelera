@@ -50,10 +50,10 @@ void MetricNode::execute() {
     }
     metric_obj = py_func["func"];
     metric_name = py_func["metric_name"];
-    py::object result = metric_obj.attr("execute")(y_true, y_pred);
+
     py::dict output;
     output["metric_name"] = metric_name;
-    output["result"] = result;
+    output["result"] = metric_obj.attr("execute")(y_true, y_pred);
 
     setData(output);
   } catch (const std::exception &e) {
