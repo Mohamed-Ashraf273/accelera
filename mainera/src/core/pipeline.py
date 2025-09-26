@@ -1,5 +1,7 @@
-import sklearn.metrics as metrics
 import inspect
+
+import sklearn.metrics as metrics
+
 from mainera.src.wrappers.executed_graph_wrapper import ExecutedGraphWrapper
 from mainera.src.wrappers.metric_wrapper import MetricWrapper
 from mainera.src.wrappers.node_wrapper import NodeWrapper
@@ -63,7 +65,9 @@ class Pipeline:
                 or ("y_prob" not in parameters)
             ):
                 raise ValueError(
-                    f"Metric '{metric_name}' does not take (y_true, y_pred) or (y_true, y_score) or (y_true, y_prob) as arguments."
+                    f"Metric '{metric_name}' "
+                    "does not take (y_true, y_pred) or (y_true, y_score) "
+                    "or (y_true, y_prob) as arguments."
                 )
 
         metric_func = get_metric_object(metric_name)
