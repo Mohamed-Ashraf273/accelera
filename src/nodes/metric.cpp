@@ -51,11 +51,11 @@ void MetricNode::execute() {
     metric_obj = py_func["func"];
     metric_name = py_func["metric_name"];
     py::object result = metric_obj.attr("execute")(y_true, y_pred);
-    py::dict d;
-    d["metric_name"] = metric_name;
-    d["result"] = result;
+    py::dict output;
+    output["metric_name"] = metric_name;
+    output["result"] = result;
 
-    setData(d);
+    setData(output);
   } catch (const std::exception &e) {
     throw std::runtime_error("Error in MetricNode::execute(): " +
                              std::string(e.what()));
