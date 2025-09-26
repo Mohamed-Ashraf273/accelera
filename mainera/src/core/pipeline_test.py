@@ -67,9 +67,15 @@ class TestPipelineCorrectness:
         manual_result2 = p_common(p2(self.X))
         manual_result3 = p_common(p3(self.X))
 
-        assert np.allclose(pipeline_result[0], manual_result1, rtol=1e-5, atol=1e-8)
-        assert np.allclose(pipeline_result[1], manual_result2, rtol=1e-5, atol=1e-8)
-        assert np.allclose(pipeline_result[2], manual_result3, rtol=1e-5, atol=1e-8)
+        assert np.allclose(
+            pipeline_result[0], manual_result1, rtol=1e-5, atol=1e-8
+        )
+        assert np.allclose(
+            pipeline_result[1], manual_result2, rtol=1e-5, atol=1e-8
+        )
+        assert np.allclose(
+            pipeline_result[2], manual_result3, rtol=1e-5, atol=1e-8
+        )
 
     def test_multiple_preprocessing_steps(self):
         p = Pipeline()
@@ -89,7 +95,9 @@ class TestPipelineCorrectness:
         manual_result = manual_model.predict(test_step2)
 
         pipeline_pred = (
-            pipeline_result[0] if isinstance(pipeline_result, list) else pipeline_result
+            pipeline_result[0]
+            if isinstance(pipeline_result, list)
+            else pipeline_result
         )
         assert np.array_equal(pipeline_pred, manual_result)
 
@@ -107,11 +115,15 @@ class TestPipelineCorrectness:
         manual_result = manual_model.predict(test_scaled)
 
         pipeline_pred = (
-            pipeline_result[0] if isinstance(pipeline_result, list) else pipeline_result
+            pipeline_result[0]
+            if isinstance(pipeline_result, list)
+            else pipeline_result
         )
         assert np.array_equal(pipeline_pred, manual_result)
 
-    @pytest.mark.parametrize("parallel", [False, True], ids=["no_parallel", "parallel"])
+    @pytest.mark.parametrize(
+        "parallel", [False, True], ids=["no_parallel", "parallel"]
+    )
     @pytest.mark.parametrize(
         "use_predict_proba", [False, True], ids=["predict", "predict_proba"]
     )
@@ -149,7 +161,9 @@ class TestPipelineCorrectness:
             ),
             p.model(
                 "rf",
-                RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10),
+                RandomForestClassifier(
+                    n_estimators=50, random_state=42, max_depth=10
+                ),
                 branch=True,
             ),
         )
@@ -174,7 +188,9 @@ class TestPipelineCorrectness:
         models = [
             LogisticRegression(random_state=42, max_iter=1000),
             SVC(probability=True, random_state=42, kernel="rbf"),
-            RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10),
+            RandomForestClassifier(
+                n_estimators=50, random_state=42, max_depth=10
+            ),
         ]
 
         preprocessors = [p1, p2, p3]
@@ -268,7 +284,9 @@ class TestPipelineCorrectness:
         manual_result = manual_model.predict(test_scaled)
 
         pipeline_pred = (
-            pipeline_result[0] if isinstance(pipeline_result, list) else pipeline_result
+            pipeline_result[0]
+            if isinstance(pipeline_result, list)
+            else pipeline_result
         )
         assert np.array_equal(pipeline_pred, manual_result)
 
@@ -295,7 +313,9 @@ class TestPipelineCorrectness:
                     nn.Linear(64, output_dim),
                 ).to(self.device)
                 self.criterion = nn.CrossEntropyLoss()
-                self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
+                self.optimizer = torch.optim.Adam(
+                    self.model.parameters(), lr=0.001
+                )
                 self.batch_size = 32
                 self.epochs = 10
 
@@ -331,7 +351,9 @@ class TestPipelineCorrectness:
             p.model("torch_model", TorchDenseModel(), branch=True),
             p.model(
                 "rf",
-                RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10),
+                RandomForestClassifier(
+                    n_estimators=50, random_state=42, max_depth=10
+                ),
                 branch=True,
             ),
         )
@@ -342,7 +364,9 @@ class TestPipelineCorrectness:
             return self.scaler.transform(x)
 
         m1 = TorchDenseModel()
-        m2 = RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10)
+        m2 = RandomForestClassifier(
+            n_estimators=50, random_state=42, max_depth=10
+        )
         x = p1(self.X)
         m1.fit(x, self.y)
         m2.fit(x, self.y)

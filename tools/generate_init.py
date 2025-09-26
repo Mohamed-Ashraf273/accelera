@@ -37,7 +37,9 @@ def generate_init_for_dir(src_dir, api_dir, src_package_prefix, is_root=False):
 
         # Only import version.py at root
         if is_root and name == "version":
-            lines.append("from mainera.src.version import __version__ as __version__\n")
+            lines.append(
+                "from mainera.src.version import __version__ as __version__\n"
+            )
         else:
             lines.append(f"from {src_package_prefix} import {name} as {name}\n")
 
@@ -47,7 +49,9 @@ def generate_init_for_dir(src_dir, api_dir, src_package_prefix, is_root=False):
             continue
         src_path = os.path.join(src_dir, entry)
         if os.path.isdir(src_path) and not entry.startswith("_"):
-            lines.append(f"from {src_package_prefix} import {entry} as {entry}\n")
+            lines.append(
+                f"from {src_package_prefix} import {entry} as {entry}\n"
+            )
 
     os.makedirs(api_dir, exist_ok=True)
     init_file = os.path.join(api_dir, "__init__.py")
