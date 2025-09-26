@@ -27,7 +27,10 @@ Node::Ptr Node::clone() const {
     if (metric_node) {
       metric_node->setMetricFlag(false);
     }
-    metric_node->py_func = this->py_func["func"];
+    py::dict d;
+    d["func"] = this->py_func["func"];
+    d["metric_name"] = this->py_func["metric_name"];
+    metric_node->py_func = d;
     return new_node;
   }
 
