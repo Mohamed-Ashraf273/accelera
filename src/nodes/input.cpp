@@ -1,6 +1,6 @@
-#include "nodes/input.hpp"
-
 #include <stdexcept>
+
+#include "nodes/input.hpp"
 
 namespace mainera {
 

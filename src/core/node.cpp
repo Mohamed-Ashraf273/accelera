@@ -1,10 +1,10 @@
-#include "core/node.hpp"
+#include <stdexcept>
+
 #include "core/graph.hpp"
+#include "core/node.hpp"
 #include "core/node_factory.hpp"
 #include "nodes/input.hpp"
 #include "nodes/metric.hpp"
-
-#include <stdexcept>
 
 namespace mainera {
 

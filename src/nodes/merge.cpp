@@ -1,7 +1,7 @@
-#include "nodes/merge.hpp"
-#include "nodes/input.hpp"
-
 #include <pybind11/pybind11.h>
+
+#include "nodes/input.hpp"
+#include "nodes/merge.hpp"
 
 namespace py = pybind11;
 

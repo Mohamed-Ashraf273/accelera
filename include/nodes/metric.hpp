@@ -1,5 +1,6 @@
 #ifndef METRIC_NODE_HPP
 #define METRIC_NODE_HPP
+
 #include "core/node.hpp"
 
 namespace mainera {
