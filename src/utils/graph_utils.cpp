@@ -52,6 +52,9 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
     case NodeType::MERGE:
       layer_type = "MERGE";
       break;
+    case NodeType::METRIC:
+      layer_type = "METRIC";
+      break;
     default:
       layer_type = "UNKNOWN";
       break;

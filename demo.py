@@ -120,7 +120,7 @@ def sample_data():
     X, y = make_classification(
         n_samples=10000,  # Large dataset
         n_features=25,  # High-dimensional features
-        n_classes=4,  # Multi-class problem
+        n_classes=2,  # Multi-class problem
         n_informative=20,  # Most features are informative
         n_redundant=3,  # Some redundant features
         n_clusters_per_class=2,  # Complex class structure
@@ -208,8 +208,8 @@ p.branch(
     ),
 )
 
-p.predict("predict", test_data, predict_proba=False)
-p.metric("accuracy", "accuracy_score", y_test)
+p.predict("predict", test_data, predict_proba=True)
+p.metric("accuracy", "roc_auc_score", y_test, binary_proba=True)
 p.serialize("test.xml")
 start_mem = get_memory_info()
 start = time.time()
