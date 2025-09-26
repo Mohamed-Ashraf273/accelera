@@ -1,6 +1,8 @@
 #ifndef NODE_FACTORY_HPP
 #define NODE_FACTORY_HPP
 
+#include <memory>
+
 #include "core/visibility.hpp"
 #include "node.hpp"
 

@@ -9,6 +9,12 @@
 #include "nodes/metric.hpp"
 
 #include "nodes/input.hpp"
+#include <pybind11/functional.h>
+#include <pybind11/stl.h>
+
+#include "core/graph.hpp"
+#include "nodes/input.hpp"
+#include "nodes/metric.hpp"
 
 namespace py = pybind11;
 
@@ -46,17 +52,21 @@ void MetricNode::execute() {
 
     py::object y_true;
     py::object metric_obj;
-
+    py::object metric_name;
     if (!getGraph()->getIsExecuted()) {
       y_true = py_func["y_true"];
-      metric_obj = py_func["func"];
+
     } else {
       y_true = m_injected_y_true;
-      metric_obj = py_func;
     }
+    metric_obj = py_func["func"];
+    metric_name = py_func["metric_name"];
 
-    py::object result = metric_obj.attr("execute")(y_true, y_pred);
-    setData(result);
+    py::dict output;
+    output["metric_name"] = metric_name;
+    output["result"] = metric_obj.attr("execute")(y_true, y_pred);
+
+    setData(output);
   } catch (const std::exception &e) {
     throw std::runtime_error("Error in MetricNode::execute(): " +
                              std::string(e.what()));

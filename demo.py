@@ -120,7 +120,7 @@ def sample_data():
     X, y = make_classification(
         n_samples=10000,  # Large dataset
         n_features=25,  # High-dimensional features
-        n_classes=4,  # Multi-class problem
+        n_classes=2,  # Multi-class problem
         n_informative=20,  # Most features are informative
         n_redundant=3,  # Some redundant features
         n_clusters_per_class=2,  # Complex class structure
@@ -208,8 +208,8 @@ p.branch(
     ),
 )
 
-p.predict("predict", test_data)
-p.metric("classification_report", "classification_report", y_test)
+p.predict("predict", test_data, predict_proba=True)
+p.metric("accuracy", "roc_auc_score", y_test, binary_proba=True)
 p.serialize("test.xml")
 start_mem = get_memory_info()
 start = time.time()
@@ -217,9 +217,11 @@ simple_predictions, executed_graph = p(X, y)
 end = time.time()
 end_mem = get_memory_info()
 
+
 print(f"Pipeline execution time: {end - start:.4f} seconds")
 print(f"RSS memory: {end_mem['rss_mb'] - start_mem['rss_mb']:.2f} MB increase")
 print(f"Swap memory used: {end_mem['swap_mb']:.2f} MB")
 print(executed_graph(test_data, y_true=y_test)[0])
 print("Sample predictions: ", executed_graph(test_data)[0])
-print(f"{simple_predictions[0]}")
+print(f"{type(simple_predictions[0])}")
+print(f"{(simple_predictions[0])}")

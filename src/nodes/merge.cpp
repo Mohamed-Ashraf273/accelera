@@ -4,6 +4,9 @@
 
 #include "nodes/input.hpp"
 
+#include "nodes/input.hpp"
+#include "nodes/merge.hpp"
+
 namespace py = pybind11;
 
 namespace mainera {

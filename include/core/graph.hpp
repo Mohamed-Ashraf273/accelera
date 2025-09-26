@@ -10,6 +10,9 @@
 #include <unordered_set>
 #include <vector>
 
+#include "core/visibility.hpp"
+#include "node.hpp"
+
 namespace mainera {
 
 class InputNode; // Forward declaration

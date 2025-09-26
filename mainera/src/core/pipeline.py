@@ -1,5 +1,5 @@
-import sklearn.metrics as metrics
-
+from mainera.src.utils.mainera_utils import get_metric_object
+from mainera.src.utils.mainera_utils import metric_validation
 from mainera.src.wrappers.executed_graph_wrapper import ExecutedGraphWrapper
 from mainera.src.wrappers.metric_wrapper import MetricWrapper
 from mainera.src.wrappers.node_wrapper import NodeWrapper
@@ -49,16 +49,25 @@ class Pipeline:
         self.__graph.add_node(graph.NodeType.PREDICT, name, predict_params)
         return self
 
-    def metric(self, name, metric_name, y_true, branch=False, **params):
-        def get_metric_object(metric_name):
-            metric_func = getattr(metrics, metric_name, None)
-            return metric_func
-
+    def metric(
+        self,
+        name,
+        metric_name,
+        y_true,
+        binary_proba=False,
+        branch=False,
+        **params,
+    ):
         metric_func = get_metric_object(metric_name)
 
         if metric_func is not None:
-            metric_obj = MetricWrapper(metric_func, **params)
-            metric_params = {"func": metric_obj, "y_true": y_true}
+            metric_validation(metric_func, metric_name)
+            metric_obj = MetricWrapper(metric_func, binary_proba, **params)
+            metric_params = {
+                "func": metric_obj,
+                "metric_name": metric_name,
+                "y_true": y_true,
+            }
 
             if branch:
                 return NodeWrapper("metric", name, metric_params)

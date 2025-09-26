@@ -1,3 +1,5 @@
+import re
+
 import numpy as np
 import pytest
 from sklearn.base import clone
@@ -236,7 +238,34 @@ class TestPipelineCorrectness:
         manual_model.fit(X_scaled, self.y)
         manual_result = manual_model.predict(test_scaled)
         manual_accuracy = np.mean(self.y_test == manual_result)
-        assert accuracy == manual_accuracy
+        assert accuracy["result"] == manual_accuracy
+        assert accuracy["metric_name"] == "accuracy_score"
+
+    def test_metric_erros(self):
+        p = Pipeline()
+        p.preprocess("scale", lambda x: x * 2.0)
+        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
+        p.predict("pred", self.test_data)
+        with pytest.raises(
+            ValueError, match="Metric 'accuracy' is not recognized."
+        ):
+            p.metric(
+                "accuracy",
+                "accuracy",
+                self.y_test,
+            )
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "Metric 'get_scorer' does not take (y_true, y_pred) "
+                "or (y_true, y_score) or (y_true, y_prob) as arguments."
+            ),
+        ):
+            p.metric(
+                "invalid_metric",
+                "get_scorer",
+                self.y_test,
+            )
 
     class CustomModel(CustomClassifier):
         def __init__(self, random_state=42):

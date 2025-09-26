@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include "core/visibility.hpp"
+
 namespace py = pybind11;
 
 namespace mainera {

@@ -12,6 +12,11 @@
 #include <memory>
 #include <stdexcept>
 
+#include "core/graph.hpp"
+#include "nodes/input.hpp"
+#include "nodes/model.hpp"
+#include "nodes/predict.hpp"
+
 namespace py = pybind11;
 
 namespace mainera {

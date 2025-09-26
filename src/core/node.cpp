@@ -1,11 +1,11 @@
 #include "core/node.hpp"
+#include <stdexcept>
 
 #include "core/graph.hpp"
+#include "core/node.hpp"
 #include "core/node_factory.hpp"
 #include "nodes/input.hpp"
 #include "nodes/metric.hpp"
-
-#include <stdexcept>
 
 namespace mainera {
 
@@ -28,7 +28,10 @@ Node::Ptr Node::clone() const {
     if (metric_node) {
       metric_node->setMetricFlag(false);
     }
-    metric_node->py_func = this->py_func["func"];
+    py::dict metric_params;
+    metric_params["func"] = this->py_func["func"];
+    metric_params["metric_name"] = this->py_func["metric_name"];
+    metric_node->py_func = metric_params;
     return new_node;
   }
 

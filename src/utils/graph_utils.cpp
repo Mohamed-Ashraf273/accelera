@@ -4,11 +4,15 @@
 
 #include "core/graph.hpp"
 #include "core/node.hpp"
+
 #include <fstream>
 #include <map>
 #include <set>
 #include <stdexcept>
 #include <string>
+
+#include "core/graph.hpp"
+#include "utils/graph_utils.hpp"
 
 namespace py = pybind11;
 namespace mainera {
@@ -53,6 +57,9 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
       break;
     case NodeType::MERGE:
       layer_type = "MERGE";
+      break;
+    case NodeType::METRIC:
+      layer_type = "METRIC";
       break;
     default:
       layer_type = "UNKNOWN";

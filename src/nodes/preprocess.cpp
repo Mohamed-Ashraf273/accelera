@@ -9,6 +9,12 @@
 #include "nodes/preprocess.hpp"
 
 #include "nodes/input.hpp"
+#include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
+
+#include "core/graph.hpp"
+#include "nodes/input.hpp"
+#include "nodes/preprocess.hpp"
 
 namespace py = pybind11;
 
