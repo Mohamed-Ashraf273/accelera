@@ -208,8 +208,8 @@ p.branch(
     ),
 )
 
-p.predict("predict", test_data)
-p.metric("classification_report", "classification_report", y_test)
+p.predict("predict", test_data, predict_proba=False)
+p.metric("accuracy", "accuracy_score", y_test)
 p.serialize("test.xml")
 start_mem = get_memory_info()
 start = time.time()
@@ -217,9 +217,11 @@ simple_predictions, executed_graph = p(X, y)
 end = time.time()
 end_mem = get_memory_info()
 
+
 print(f"Pipeline execution time: {end - start:.4f} seconds")
 print(f"RSS memory: {end_mem['rss_mb'] - start_mem['rss_mb']:.2f} MB increase")
 print(f"Swap memory used: {end_mem['swap_mb']:.2f} MB")
 print(executed_graph(test_data, y_true=y_test)[0])
 print("Sample predictions: ", executed_graph(test_data)[0])
-print(f"{simple_predictions[0]}")
+print(f"{type(simple_predictions[0])}")
+print(f"{(simple_predictions[0])}")

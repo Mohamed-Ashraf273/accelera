@@ -236,7 +236,7 @@ class TestPipelineCorrectness:
         manual_model.fit(X_scaled, self.y)
         manual_result = manual_model.predict(test_scaled)
         manual_accuracy = np.mean(self.y_test == manual_result)
-        assert accuracy == manual_accuracy
+        assert accuracy["result"] == manual_accuracy
 
     def test_custom_model_integration(self):
         class CustomModel(CustomClassifier):
