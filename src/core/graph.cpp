@@ -56,15 +56,14 @@ Graph::Graph(const Graph &other) {
   }
 
   for (const auto &original_node : other.m_nodes) {
-    if (original_node->type == NodeType::INPUT)
-      continue;
+    if (original_node->type != NodeType::INPUT) {
+      Node::Ptr new_node = node_mapping[original_node];
+      Node::Ptr original_source = original_node->getSourceNode();
 
-    Node::Ptr new_node = node_mapping[original_node];
-    Node::Ptr original_source = original_node->getSourceNode();
-
-    if (original_source) {
-      Node::Ptr new_source = node_mapping[original_source];
-      new_node->setSourceNode(new_source);
+      if (original_source) {
+        Node::Ptr new_source = node_mapping[original_source];
+        new_node->setSourceNode(new_source);
+      }
     }
   }
 
@@ -142,6 +141,13 @@ void Graph::addNode(Node::Ptr node) {
 
   std::vector<Node::Ptr> leaves = findLeafNodes();
 
+  std::vector<bool> is_connected_to_input;
+  is_connected_to_input.reserve(leaves.size());
+
+  for (const auto &leaf : leaves) {
+    is_connected_to_input.push_back(leaf->type == NodeType::INPUT);
+  }
+
   // Create a copy of the node for each leaf and connect them
   std::vector<std::string> new_branch_tails;
 
@@ -165,20 +171,7 @@ void Graph::addNode(Node::Ptr node) {
 
     m_nodes.push_back(nodeToAdd);
 
-    // Check if this is the first node after input (should create new data)
-    bool is_first_after_input = false;
-    for (const auto &leaf : leaves) {
-      if (leaf->type == NodeType::INPUT) {
-        is_first_after_input = true;
-        break;
-      }
-    }
-
-    if (is_first_after_input) {
-      nodeToAdd->setShouldCreateNewData(true);
-    } else {
-      nodeToAdd->setShouldCreateNewData(false);
-    }
+    nodeToAdd->setShouldCreateNewData(is_connected_to_input[i]);
 
     nodeToAdd->setSourceNode(leaves[i]);
 
@@ -481,12 +474,11 @@ std::vector<Node::Ptr> Graph::topologicalSort() {
   if (m_nodes.empty())
     return {};
 
-  // Build adjacency list: node -> list of consumers (nodes that have this node
-  // as source)
+  // Build adjacency list: node -> list of consumers (nodes that have this
+  // node as source)
   std::unordered_map<Node *, std::vector<Node::Ptr>> adjacency_list;
   std::unordered_map<Node *, int> in_degrees;
 
-  // Initialize
   for (const auto &node : m_nodes) {
     adjacency_list[node.get()] = {};
     in_degrees[node.get()] = 0;
