@@ -27,7 +27,9 @@ def print_msg(message, line_break=True, level="info"):
             logging.debug(message)
 
 
-def get_metric_object(metric_name):
+def get_metric_object(metric_name: str):
+    if metric_name == "":
+        return None
     metric_func = getattr(metrics, metric_name, None)
     return metric_func
 
@@ -35,11 +37,14 @@ def get_metric_object(metric_name):
 def metric_validation(metric_func, metric_name):
     signature = inspect.signature(metric_func)
     parameters = list(signature.parameters.keys())
-    if ("y_true" not in parameters) and (
-        ("y_pred" not in parameters)
-        or ("y_score" not in parameters)
-        or ("y_prob" not in parameters)
-    ):
+
+    # Check if it has y_true AND at least one of y_pred, y_score, or y_prob
+    has_y_true = "y_true" in parameters
+    has_pred_or_score = any(
+        param in parameters for param in ["y_pred", "y_score", "y_prob"]
+    )
+
+    if not (has_y_true and has_pred_or_score):
         raise ValueError(
             f"Metric '{metric_name}' "
             "does not take (y_true, y_pred) or (y_true, y_score) "
