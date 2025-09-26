@@ -269,9 +269,8 @@ class TestPipelineCorrectness:
                 predictions.append(predicted_class)
 
             return np.array(predictions)
-        
-    def test_custom_model_integration(self):
 
+    def test_custom_model_integration(self):
         p = Pipeline()
         p.preprocess("scale", lambda x: x / 10.0)
         p.model("custom_rf", self.CustomModel(random_state=42))

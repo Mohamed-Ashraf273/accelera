@@ -1,26 +1,32 @@
 #ifndef MERGE_HPP
 #define MERGE_HPP
 
-#include "core/node.hpp"
 #include <pybind11/pybind11.h>
+
+#include "core/node.hpp"
 
 namespace py = pybind11;
 
-namespace mainera {
+namespace mainera
+{
 
-class MAINERA_API MergeNode : public Node {
-public:
-  MergeNode(const std::string &name, py::object py_func);
+class MAINERA_API MergeNode : public Node
+{
+   public:
+    MergeNode(const std::string& name, py::object py_func);
 
-  void execute() override;
+    void execute() override;
 
-  // Get the result of the merge operation
-  py::object getResult() const { return m_result; }
+    // Get the result of the merge operation
+    py::object getResult() const
+    {
+        return m_result;
+    }
 
-private:
-  py::object m_result = py::none(); // Store the merge result
+   private:
+    py::object m_result = py::none();  // Store the merge result
 };
 
-} // namespace mainera
+}  // namespace mainera
 
-#endif // MERGE_HPP
+#endif  // MERGE_HPP
