@@ -1,7 +1,9 @@
 #include "core/node.hpp"
 
 #include "core/graph.hpp"
+#include "core/node_factory.hpp"
 #include "nodes/input.hpp"
+#include "nodes/metric.hpp"
 
 #include <stdexcept>
 
@@ -9,8 +11,29 @@ namespace mainera {
 
 Node::Node(NodeType type, const std::string &name, py::object py_func)
     : type(type), name(name), py_func(py_func) {}
-Node::~Node() {
-  // Cleanup handled by shared_ptr
+
+Node::Ptr Node::clone() const {
+  auto new_node =
+      NodeFactory::createNode(NodeType(this->type), this->name, this->py_func);
+
+  if (!new_node) {
+    throw std::runtime_error("cloneCommonData: new_node is null");
+  }
+
+  new_node->setShouldCreateNewData(this->getShouldCreateNewData());
+  new_node->setUsesGPU(this->getUsesGPU());
+
+  if (this->type == NodeType::METRIC) {
+    auto metric_node = std::dynamic_pointer_cast<MetricNode>(new_node);
+    if (metric_node) {
+      metric_node->setMetricFlag(false);
+    }
+    metric_node->py_func = this->py_func["func"];
+    return new_node;
+  }
+
+  new_node->setData(this->getData());
+  return new_node;
 }
 
 void Node::setSourceNode(std::shared_ptr<Node> source) {

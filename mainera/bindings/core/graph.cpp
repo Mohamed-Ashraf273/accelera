@@ -27,8 +27,7 @@ PYBIND11_MODULE(graph, m) {
   // Node binding
   py::class_<Node, Node::Ptr>(m, "Node")
       .def_readonly("name", &Node::name)
-      .def_readonly("type", &Node::type)
-      .def_readonly("dirty", &Node::dirty);
+      .def_readonly("type", &Node::type);
 
   // Graph binding with streamlined interface
   py::class_<Graph>(m, "Graph")
@@ -41,7 +40,8 @@ PYBIND11_MODULE(graph, m) {
            py::arg("branch_objects"), py::arg("node_types"),
            py::arg("node_names"), "Split the graph into branches")
 
-      .def("execute", &Graph::execute, py::arg("X"), py::arg("y"),
+      .def("execute", &Graph::execute, py::arg("X"), py::arg("y") = py::none(),
+           py::arg("best_path") = false,
            "Execute graph with inputs and return predictions")
 
       .def("mergeBranches", &Graph::mergeBranches, py::arg("merge_name"),
@@ -50,15 +50,13 @@ PYBIND11_MODULE(graph, m) {
       .def("enableParallelExecution", &Graph::enableParallelExecution,
            py::arg("enable") = true, "Enable or disable parallel execution")
 
+      .def("enableDisableMetrics", &Graph::enableDisableMetrics,
+           py::arg("y_true") = py::none(), py::arg("enable") = true,
+           "Enable metric nodes with provided true labels")
+
       .def("setMulticoreThreshold", &Graph::setMulticoreThreshold,
            py::arg("threshold"),
-           "Set minimum number of tasks to use multicore execution")
-
-      .def("clear", &Graph::clear, "Clear all nodes from the graph")
-
-      .def("compile", &Graph::compile, "Compile the graph for execution")
-
-      .def("get_nodes", &Graph::getNodes, "Get all nodes in the graph");
+           "Set minimum number of tasks to use multicore execution");
 
   // Utility functions
   m.def("serialize_graph", &serialize_graph, py::arg("graph"),

@@ -23,7 +23,7 @@ void PredictNode::execute() {
   try {
     std::shared_ptr<Node> input = getSourceNode();
 
-    if (!input && input->type != NodeType::MODEL) {
+    if (!input) {
       throw std::runtime_error("Predict node '" + name +
                                "' requires a valid model node");
     }
@@ -40,7 +40,14 @@ void PredictNode::execute() {
       throw std::runtime_error("PredictNode: No test data provided");
     }
 
-    py::object preprocessed_test_data = test_data;
+    py::object preprocessed_test_data;
+
+    if (getGraph()->getIsExecuted()) {
+      preprocessed_test_data = getGraph()->getInputNode()->getX();
+    } else {
+      preprocessed_test_data = test_data;
+    }
+
     if (getGraph()) {
       const auto preprocess_functions =
           getGraph()->getPreprocessingFunctions(shared_from_this());
