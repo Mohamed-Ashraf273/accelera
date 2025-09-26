@@ -4,7 +4,6 @@
 
 #include "core/graph.hpp"
 #include "core/node.hpp"
-
 #include <fstream>
 #include <map>
 #include <set>
@@ -136,5 +135,54 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
 
 void log_warning(const std::string &message) {
   std::fprintf(stderr, "WARNING: %s\n", message.c_str());
+}
+
+std::string nodeTypeToString(NodeType type) {
+  switch (type) {
+  case NodeType::INPUT:
+    return "INPUT";
+  case NodeType::PREPROCESS:
+    return "PREPROCESS";
+  case NodeType::FEATURE:
+    return "FEATURE";
+  case NodeType::MODEL:
+    return "MODEL";
+  case NodeType::PREDICT:
+    return "PREDICT";
+  case NodeType::MERGE:
+    return "MERGE";
+  case NodeType::METRIC:
+    return "METRIC";
+  default:
+    return "UNKNOWN";
+  }
+}
+
+bool validateNodeConnection(Node::Ptr newNode, Node::Ptr sourceNode) {
+  switch (newNode->type) {
+  case NodeType::PREPROCESS:
+    return sourceNode->type == NodeType::INPUT ||
+           sourceNode->type == NodeType::PREPROCESS;
+
+  case NodeType::MODEL:
+    return sourceNode->type == NodeType::INPUT ||
+           sourceNode->type == NodeType::PREPROCESS;
+
+  case NodeType::PREDICT:
+    return sourceNode->type == NodeType::MODEL;
+
+  case NodeType::METRIC:
+    return sourceNode->type == NodeType::PREDICT;
+
+  case NodeType::FEATURE:
+  case NodeType::MERGE:
+    return true;
+
+  case NodeType::INPUT:
+    return sourceNode == nullptr;
+
+  default:
+    return false;
+  }
 }
 } // namespace mainera

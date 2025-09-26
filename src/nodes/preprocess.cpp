@@ -1,3 +1,8 @@
+
+#include "nodes/preprocess.hpp"
+#include "core/graph.hpp"
+#include "nodes/input.hpp"
+
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 
@@ -29,20 +34,18 @@ void PreprocessNode::execute() {
 
     std::shared_ptr<InputNode> data;
 
-    if (input->type != NodeType::INPUT) {
-      auto preprocess_input = std::dynamic_pointer_cast<PreprocessNode>(input);
-      if (preprocess_input) {
-        data = preprocess_input->getData();
-      } else {
-        throw std::runtime_error(
-            "Preprocess node '" + name +
-            "' requires an InputNode or PreprocessNode as input");
-      }
-    } else {
-      data = std::dynamic_pointer_cast<InputNode>(input);
-      if (!data) {
+    if (input->type == NodeType::INPUT) {
+      auto input_node = std::dynamic_pointer_cast<InputNode>(input);
+      if (!input_node) {
         throw std::runtime_error("Failed to cast to InputNode");
       }
+      data = input_node;
+    } else {
+      auto preprocess_node = std::dynamic_pointer_cast<PreprocessNode>(input);
+      if (!preprocess_node) {
+        throw std::runtime_error("Failed to cast to PreprocessNode");
+      }
+      data = preprocess_node->getData();
     }
 
     if (!data) {
@@ -67,7 +70,9 @@ void PreprocessNode::execute() {
           transformer_instance =
               py::module::import("copy").attr("deepcopy")(py_func);
           try {
-            transformer_instance.attr("fit")(X);
+            if (!getGraph()->getIsExecuted()) {
+              transformer_instance.attr("fit")(X);
+            }
             X_copy = py::cast<py::array_t<double>>(
                 transformer_instance.attr("transform")(X_copy));
             py_func = transformer_instance;
@@ -98,7 +103,9 @@ void PreprocessNode::execute() {
           transformer_instance =
               py::module::import("copy").attr("deepcopy")(py_func);
           try {
-            transformer_instance.attr("fit")(X);
+            if (!getGraph()->getIsExecuted()) {
+              transformer_instance.attr("fit")(X);
+            }
             X = py::cast<py::array_t<double>>(
                 transformer_instance.attr("transform")(X));
             py_func = transformer_instance;

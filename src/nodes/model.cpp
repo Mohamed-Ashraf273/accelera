@@ -6,6 +6,8 @@
 
 #include "nodes/model.hpp"
 
+#include "core/graph.hpp"
+
 #include "nodes/input.hpp"
 #include "nodes/preprocess.hpp"
 
@@ -27,21 +29,36 @@ ModelNode::ModelNode(const std::string &name, py::object py_func)
 }
 
 void ModelNode::execute() {
+  if (getGraph()->getIsExecuted()) {
+    return;
+  }
   try {
     std::shared_ptr<Node> input = getSourceNode();
 
-    if (!input && input->type != NodeType::PREPROCESS) {
+    if (!input) {
       throw std::runtime_error("Model node '" + name +
-                               "' requires a valid preprocess node");
+                               "' requires a valid input node");
     }
 
-    std::shared_ptr<PreprocessNode> input_node =
-        std::dynamic_pointer_cast<PreprocessNode>(input);
-    if (!input_node) {
-      throw std::runtime_error("Failed to cast to PreprocessNode");
+    std::shared_ptr<InputNode> data;
+
+    if (input->type == NodeType::INPUT) {
+      auto input_node = std::dynamic_pointer_cast<InputNode>(input);
+      if (!input_node) {
+        throw std::runtime_error("Failed to cast to InputNode");
+      }
+      data = input_node;
+    } else {
+      auto preprocess_node = std::dynamic_pointer_cast<PreprocessNode>(input);
+      if (!preprocess_node) {
+        throw std::runtime_error("Failed to cast to PreprocessNode");
+      }
+      data = preprocess_node->getData();
     }
 
-    std::shared_ptr<InputNode> data = input_node->getData();
+    if (!data) {
+      throw std::runtime_error("No valid data source found");
+    }
 
     py::object X = data->getX();
     py::object y = data->getY();
