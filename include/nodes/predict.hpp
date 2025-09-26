@@ -3,16 +3,14 @@
 
 #include "core/node.hpp"
 
-namespace mainera
-{
+namespace mainera {
 
-class MAINERA_API PredictNode : public Node
-{
-   public:
-    PredictNode(const std::string& name, py::object py_func);
+class MAINERA_API PredictNode : public Node {
+public:
+    PredictNode(const std::string &name, py::object py_func);
     void execute() override;
 };
 
-}  // namespace mainera
+} // namespace mainera
 
-#endif  // PREDICT_NODE_HPP
+#endif // PREDICT_NODE_HPP

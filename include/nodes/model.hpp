@@ -3,16 +3,14 @@
 
 #include "core/node.hpp"
 
-namespace mainera
-{
+namespace mainera {
 
-class MAINERA_API ModelNode : public Node
-{
-   public:
-    ModelNode(const std::string& name, py::object py_func);
+class MAINERA_API ModelNode : public Node {
+public:
+    ModelNode(const std::string &name, py::object py_func);
     void execute() override;
 };
 
-}  // namespace mainera
+} // namespace mainera
 
-#endif  // MODEL_NODE_HPP
+#endif // MODEL_NODE_HPP

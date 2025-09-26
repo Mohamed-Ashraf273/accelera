@@ -1,20 +1,18 @@
 #ifndef NODE_FACTORY_HPP
 #define NODE_FACTORY_HPP
 
-#include <memory>
-
 #include "core/visibility.hpp"
 #include "node.hpp"
 
-namespace mainera
-{
+#include <memory>
 
-class MAINERA_API NodeFactory
-{
-   public:
-    static Node::Ptr createNode(NodeType type, const std::string& name, py::object py_func);
+namespace mainera {
+
+class MAINERA_API NodeFactory {
+public:
+    static Node::Ptr createNode(NodeType type, const std::string &name, py::object py_func);
 };
 
-}  // namespace mainera
+} // namespace mainera
 
-#endif  // NODE_FACTORY_HPP
+#endif // NODE_FACTORY_HPP

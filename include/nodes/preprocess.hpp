@@ -3,21 +3,19 @@
 
 #include "core/node.hpp"
 
-namespace mainera
-{
+namespace mainera {
 
-class MAINERA_API PreprocessNode : public Node
-{
-   public:
-    PreprocessNode(const std::string& name, py::object py_func);
+class MAINERA_API PreprocessNode : public Node {
+public:
+    PreprocessNode(const std::string &name, py::object py_func);
     void execute() override;
     void setData(std::shared_ptr<InputNode> input);
     std::shared_ptr<InputNode> getData() const;
 
-   private:
+private:
     std::shared_ptr<InputNode> m_input;
 };
 
-}  // namespace mainera
+} // namespace mainera
 
-#endif  // PREPROCESS_NODE_HPP
+#endif // PREPROCESS_NODE_HPP

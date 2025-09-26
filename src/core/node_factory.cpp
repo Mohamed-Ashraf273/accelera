@@ -1,7 +1,5 @@
 #include "core/node_factory.hpp"
 
-#include <stdexcept>
-
 #include "nodes/feature.hpp"
 #include "nodes/merge.hpp"
 #include "nodes/metric.hpp"
@@ -9,13 +7,12 @@
 #include "nodes/predict.hpp"
 #include "nodes/preprocess.hpp"
 
-namespace mainera
-{
+#include <stdexcept>
 
-Node::Ptr NodeFactory::createNode(NodeType type, const std::string& name, py::object py_func)
-{
-    switch (type)
-    {
+namespace mainera {
+
+Node::Ptr NodeFactory::createNode(NodeType type, const std::string &name, py::object py_func) {
+    switch (type) {
         case NodeType::PREPROCESS:
             return std::make_shared<PreprocessNode>(name, py_func);
         case NodeType::FEATURE:
@@ -29,9 +26,9 @@ Node::Ptr NodeFactory::createNode(NodeType type, const std::string& name, py::ob
         case NodeType::METRIC:
             return std::make_shared<MetricNode>(name, py_func);
         default:
-            throw std::invalid_argument("Unknown node type: " +
-                                        std::to_string(static_cast<int>(type)));
+            throw std::invalid_argument("Unknown node type: "
+                                        + std::to_string(static_cast<int>(type)));
     }
 }
 
-}  // namespace mainera
+} // namespace mainera
