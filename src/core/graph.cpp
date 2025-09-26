@@ -86,56 +86,6 @@ Node::Ptr Graph::add_node(NodeType type, const std::string &name,
   return node;
 }
 
-std::string Graph::nodeTypeToString(NodeType type) const {
-  switch (type) {
-  case NodeType::INPUT:
-    return "INPUT";
-  case NodeType::PREPROCESS:
-    return "PREPROCESS";
-  case NodeType::FEATURE:
-    return "FEATURE";
-  case NodeType::MODEL:
-    return "MODEL";
-  case NodeType::PREDICT:
-    return "PREDICT";
-  case NodeType::MERGE:
-    return "MERGE";
-  case NodeType::METRIC:
-    return "METRIC";
-  default:
-    return "UNKNOWN";
-  }
-}
-
-bool Graph::validateNodeConnection(Node::Ptr newNode,
-                                   Node::Ptr sourceNode) const {
-  switch (newNode->type) {
-  case NodeType::PREPROCESS:
-    return sourceNode->type == NodeType::INPUT ||
-           sourceNode->type == NodeType::PREPROCESS;
-
-  case NodeType::MODEL:
-    return sourceNode->type == NodeType::INPUT ||
-           sourceNode->type == NodeType::PREPROCESS;
-
-  case NodeType::PREDICT:
-    return sourceNode->type == NodeType::MODEL;
-
-  case NodeType::METRIC:
-    return sourceNode->type == NodeType::PREDICT;
-
-  case NodeType::FEATURE:
-  case NodeType::MERGE:
-    return true;
-
-  case NodeType::INPUT:
-    return sourceNode == nullptr;
-
-  default:
-    return false;
-  }
-}
-
 void Graph::addNode(Node::Ptr node) {
   node->setGraph(this);
 
