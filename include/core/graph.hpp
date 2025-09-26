@@ -1,13 +1,14 @@
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 
-#include "core/visibility.hpp"
-#include "node.hpp"
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+#include "core/visibility.hpp"
+#include "node.hpp"
 
 namespace mainera {
 

@@ -1,8 +1,9 @@
 #ifndef MERGE_HPP
 #define MERGE_HPP
 
-#include "core/node.hpp"
 #include <pybind11/pybind11.h>
+
+#include "core/node.hpp"
 
 namespace py = pybind11;
 

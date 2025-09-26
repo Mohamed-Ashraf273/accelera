@@ -1,11 +1,12 @@
 #ifndef NODE_HPP
 #define NODE_HPP
 
-#include "core/visibility.hpp"
 #include <memory>
 #include <pybind11/pybind11.h>
 #include <string>
 #include <vector>
+
+#include "core/visibility.hpp"
 
 namespace py = pybind11;
 

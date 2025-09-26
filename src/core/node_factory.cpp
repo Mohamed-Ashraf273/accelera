@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include "core/node_factory.hpp"
 #include "nodes/feature.hpp"
 #include "nodes/merge.hpp"
@@ -5,8 +7,6 @@
 #include "nodes/model.hpp"
 #include "nodes/predict.hpp"
 #include "nodes/preprocess.hpp"
-
-#include <stdexcept>
 
 namespace mainera {
 

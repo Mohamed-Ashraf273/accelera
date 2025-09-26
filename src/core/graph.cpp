@@ -1,13 +1,3 @@
-#include "core/graph.hpp"
-#include "core/node_factory.hpp"
-#include "nodes/input.hpp"
-#include "nodes/merge.hpp"
-#include "nodes/metric.hpp"
-#include "nodes/model.hpp"
-#include "nodes/predict.hpp"
-#include "nodes/preprocess.hpp"
-#include "utils/graph_utils.hpp"
-
 #include <algorithm>
 #include <chrono>
 #include <exception>
@@ -19,6 +9,16 @@
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
+
+#include "core/graph.hpp"
+#include "core/node_factory.hpp"
+#include "nodes/input.hpp"
+#include "nodes/merge.hpp"
+#include "nodes/metric.hpp"
+#include "nodes/model.hpp"
+#include "nodes/predict.hpp"
+#include "nodes/preprocess.hpp"
+#include "utils/graph_utils.hpp"
 
 namespace mainera {
 

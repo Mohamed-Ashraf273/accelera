@@ -1,11 +1,12 @@
-#include "utils/graph_utils.hpp"
-#include "core/graph.hpp"
 #include <fstream>
 #include <map>
 #include <pybind11/pybind11.h>
 #include <set>
 #include <stdexcept>
 #include <string>
+
+#include "core/graph.hpp"
+#include "utils/graph_utils.hpp"
 
 namespace py = pybind11;
 namespace mainera {

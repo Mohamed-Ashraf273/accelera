@@ -1,6 +1,6 @@
-#include "nodes/feature.hpp"
-
 #include <pybind11/pybind11.h>
+
+#include "nodes/feature.hpp"
 
 namespace py = pybind11;
 

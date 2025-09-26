@@ -3,7 +3,6 @@
 
 #include "core/node.hpp"
 #include "core/visibility.hpp"
-#include <string>
 
 namespace mainera {
 
