@@ -392,7 +392,7 @@ class TestPipelineCorrectness:
         model.fit(x, self.y)
         manual_result = model.predict(self.test_data / 10.0)
         executed_graph_result_with_metric = executed_graph(
-            self.test_data, metrics=True, y_true=self.y_test
+            self.test_data, y_true=self.y_test
         )[0]
 
         assert pipeline_result[0] == executed_graph_result_with_metric
