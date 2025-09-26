@@ -32,9 +32,7 @@ class TorchDenseModel(CustomClassifier):
 
         self.model = None
         print("cuda" if torch.cuda.is_available() else "cpu")
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu"
-        )
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def _build_model(self, input_dim, num_classes):
         return nn.Sequential(
@@ -51,9 +49,7 @@ class TorchDenseModel(CustomClassifier):
         num_classes = len(np.unique(y))
 
         if self.model is None:
-            self.model = self._build_model(n_features, num_classes).to(
-                self.device
-            )
+            self.model = self._build_model(n_features, num_classes).to(self.device)
 
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
@@ -105,9 +101,7 @@ def get_memory_info():
         "rss_mb": memory_info.rss / 1024 / 1024,  # Resident Set Size
         "vms_mb": memory_info.vms / 1024 / 1024,  # Virtual Memory Size
         "swap_mb": (
-            memory_full.swap / 1024 / 1024
-            if hasattr(memory_full, "swap")
-            else 0
+            memory_full.swap / 1024 / 1024 if hasattr(memory_full, "swap") else 0
         ),
     }
 
@@ -120,7 +114,7 @@ def sample_data():
     X, y = make_classification(
         n_samples=10000,  # Large dataset
         n_features=25,  # High-dimensional features
-        n_classes=4,  # Multi-class problem
+        n_classes=2,  # Multi-class problem
         n_informative=20,  # Most features are informative
         n_redundant=3,  # Some redundant features
         n_clusters_per_class=2,  # Complex class structure
@@ -208,8 +202,8 @@ p.branch(
     ),
 )
 
-p.predict("predict", test_data, predict_proba=False)
-p.metric("accuracy", "accuracy_score", y_test)
+p.predict("predict", test_data, predict_proba=True)
+p.metric("accuracy", "roc_auc_score", y_test, binary_proba=True)
 p.serialize("test.xml")
 start_mem = get_memory_info()
 start = time.time()
