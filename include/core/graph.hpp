@@ -52,8 +52,6 @@ public:
   std::shared_ptr<InputNode> getInputNode() const { return m_input_node; }
 
   void enableDisableMetrics(py::object y_true, py::object enable);
-  bool validateNodeConnection(Node::Ptr newNode, Node::Ptr sourceNode) const;
-  std::string nodeTypeToString(NodeType type) const;
 
 private:
   std::vector<Node::Ptr> m_nodes;
