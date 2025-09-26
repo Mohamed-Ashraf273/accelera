@@ -1,6 +1,3 @@
-import numpy as np
-
-
 class MetricWrapper:
     def __init__(self, metric, binary_proba, **params):
         self.metric = metric
@@ -9,7 +6,9 @@ class MetricWrapper:
 
     def execute(self, y_true, y_pred):
         y_pred = (
-            self.__handel_binary_proba(y_pred, y_true) if self.binary_proba else y_pred
+            self.__handel_binary_proba(y_pred, y_true)
+            if self.binary_proba
+            else y_pred
         )
         return self.metric(y_true, y_pred, **self.params)
 
