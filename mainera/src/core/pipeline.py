@@ -1,5 +1,5 @@
 import sklearn.metrics as metrics
-
+import inspect
 from mainera.src.wrappers.executed_graph_wrapper import ExecutedGraphWrapper
 from mainera.src.wrappers.metric_wrapper import MetricWrapper
 from mainera.src.wrappers.node_wrapper import NodeWrapper
@@ -54,9 +54,22 @@ class Pipeline:
             metric_func = getattr(metrics, metric_name, None)
             return metric_func
 
+        def metric_validation(metric_func):
+            signature = inspect.signature(metric_func)
+            parameters = list(signature.parameters.keys())
+            if ("y_true" not in parameters) and (
+                ("y_pred" not in parameters)
+                or ("y_score" not in parameters)
+                or ("y_prob" not in parameters)
+            ):
+                raise ValueError(
+                    f"Metric '{metric_name}' does not take (y_true, y_pred) or (y_true, y_score) or (y_true, y_prob) as arguments."
+                )
+
         metric_func = get_metric_object(metric_name)
 
         if metric_func is not None:
+            metric_validation(metric_func)
             metric_obj = MetricWrapper(metric_func, **params)
             metric_params = {"func": metric_obj, "y_true": y_true}
 

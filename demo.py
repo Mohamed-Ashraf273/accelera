@@ -32,9 +32,7 @@ class TorchDenseModel(CustomClassifier):
 
         self.model = None
         print("cuda" if torch.cuda.is_available() else "cpu")
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu"
-        )
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def _build_model(self, input_dim, num_classes):
         return nn.Sequential(
@@ -51,9 +49,7 @@ class TorchDenseModel(CustomClassifier):
         num_classes = len(np.unique(y))
 
         if self.model is None:
-            self.model = self._build_model(n_features, num_classes).to(
-                self.device
-            )
+            self.model = self._build_model(n_features, num_classes).to(self.device)
 
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
@@ -105,9 +101,7 @@ def get_memory_info():
         "rss_mb": memory_info.rss / 1024 / 1024,  # Resident Set Size
         "vms_mb": memory_info.vms / 1024 / 1024,  # Virtual Memory Size
         "swap_mb": (
-            memory_full.swap / 1024 / 1024
-            if hasattr(memory_full, "swap")
-            else 0
+            memory_full.swap / 1024 / 1024 if hasattr(memory_full, "swap") else 0
         ),
     }
 
@@ -208,14 +202,15 @@ p.branch(
     ),
 )
 
-p.predict("predict", test_data)
-p.metric("classification_report", "classification_report", y_test)
+p.predict("predict", test_data, predict_proba=False)
+p.metric("roc_auc_score", "accuracy_score", y_test)
 p.serialize("test.xml")
 start_mem = get_memory_info()
 start = time.time()
 simple_predictions, executed_graph = p(X, y)
 end = time.time()
 end_mem = get_memory_info()
+
 
 print(f"Pipeline execution time: {end - start:.4f} seconds")
 print(f"RSS memory: {end_mem['rss_mb'] - start_mem['rss_mb']:.2f} MB increase")
