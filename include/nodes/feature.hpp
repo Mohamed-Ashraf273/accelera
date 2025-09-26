@@ -7,8 +7,8 @@ namespace mainera {
 
 class MAINERA_API FeatureNode : public Node {
 public:
-    FeatureNode(const std::string &name, py::object py_func);
-    void execute() override;
+  FeatureNode(const std::string &name, py::object py_func);
+  void execute() override;
 };
 
 } // namespace mainera

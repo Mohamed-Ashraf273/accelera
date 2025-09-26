@@ -16,49 +16,57 @@ namespace mainera {
 class Graph;
 class InputNode;
 
-enum class NodeType { INPUT, PREPROCESS, FEATURE, MODEL, PREDICT, MERGE, METRIC };
+enum class NodeType {
+  INPUT,
+  PREPROCESS,
+  FEATURE,
+  MODEL,
+  PREDICT,
+  MERGE,
+  METRIC
+};
 
 class MAINERA_API Node : public std::enable_shared_from_this<Node> {
 public:
-    using Ptr = std::shared_ptr<Node>;
+  using Ptr = std::shared_ptr<Node>;
 
-    Node(NodeType type, const std::string &name, py::object py_func);
-    virtual ~Node();
+  Node(NodeType type, const std::string &name, py::object py_func);
+  virtual ~Node();
 
-    // Graph access
-    void setGraph(Graph *graph);
-    Graph *getGraph() const;
+  // Graph access
+  void setGraph(Graph *graph);
+  Graph *getGraph() const;
 
-    // Public members for Python access
-    NodeType type;
-    std::string name;
-    py::object py_func;
-    bool dirty = true;
-    bool should_create_new_data = false;
+  // Public members for Python access
+  NodeType type;
+  std::string name;
+  py::object py_func;
+  bool dirty = true;
+  bool should_create_new_data = false;
 
-    virtual void execute() = 0;
+  virtual void execute() = 0;
 
-    void setData(py::object input);
-    py::object getData() const;
+  void setData(py::object input);
+  py::object getData() const;
 
-    // Graph connectivity methods
-    std::shared_ptr<Node> getSourceNode() const;
-    void setSourceNode(std::shared_ptr<Node> source);
+  // Graph connectivity methods
+  std::shared_ptr<Node> getSourceNode() const;
+  void setSourceNode(std::shared_ptr<Node> source);
 
-    // Memory optimization methods
-    void setShouldCreateNewData(bool should_create);
-    bool getShouldCreateNewData() const;
+  // Memory optimization methods
+  void setShouldCreateNewData(bool should_create);
+  bool getShouldCreateNewData() const;
 
-    // GPU handling methods
-    void usesGPU();
-    void setUsesGPU(bool uses_gpu);
-    bool getUsesGPU() const;
+  // GPU handling methods
+  void usesGPU();
+  void setUsesGPU(bool uses_gpu);
+  bool getUsesGPU() const;
 
 protected:
-    py::object m_data = py::none();
-    Graph *m_graph = nullptr; // Pointer to parent graph
-    std::shared_ptr<Node> m_sourceNode = nullptr;
-    bool m_uses_gpu = false;
+  py::object m_data = py::none();
+  Graph *m_graph = nullptr; // Pointer to parent graph
+  std::shared_ptr<Node> m_sourceNode = nullptr;
+  bool m_uses_gpu = false;
 };
 
 } // namespace mainera

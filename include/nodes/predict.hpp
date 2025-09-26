@@ -7,8 +7,8 @@ namespace mainera {
 
 class MAINERA_API PredictNode : public Node {
 public:
-    PredictNode(const std::string &name, py::object py_func);
-    void execute() override;
+  PredictNode(const std::string &name, py::object py_func);
+  void execute() override;
 };
 
 } // namespace mainera
