@@ -96,23 +96,11 @@ void Graph::addNode(Node::Ptr node) {
     is_connected_to_input.push_back(leaf->type == NodeType::INPUT);
   }
 
-  switch (node->type) {
-  case NodeType::MERGE:
-    // Multi-source: Connect to ALL leaves
+  if (node->type == NodeType::MERGE) {
     node->setSourceNodes(leaves);
     node->setGraph(this);
     m_nodes.push_back(node);
-    break;
-
-  case NodeType::INPUT:
-    // No sources
-    node->setSourceNodes({});
-    node->setGraph(this);
-    m_nodes.push_back(node);
-    break;
-
-  default:
-    // Single-source: Create copies for each leaf
+  } else {
     for (size_t i = 0; i < leaves.size(); ++i) {
       if (!validateNodeConnection(node, leaves[i])) {
         throw std::runtime_error(
@@ -123,11 +111,10 @@ void Graph::addNode(Node::Ptr node) {
       Node::Ptr nodeToAdd =
           (i == 0) ? node : NodeFactory::createNodeCopy(node, i);
       nodeToAdd->setShouldCreateNewData(is_connected_to_input[i]);
-      nodeToAdd->setSourceNode(leaves[i]); // Single source
+      nodeToAdd->setSourceNode(leaves[i]);
       nodeToAdd->setGraph(this);
       m_nodes.push_back(nodeToAdd);
     }
-    break;
   }
   m_compiled = false;
 }
