@@ -58,11 +58,24 @@ Graph::Graph(const Graph &other) {
   for (const auto &original_node : other.m_nodes) {
     if (original_node->type != NodeType::INPUT) {
       Node::Ptr new_node = node_mapping[original_node];
-      Node::Ptr original_source = original_node->getSourceNode();
 
-      if (original_source) {
-        Node::Ptr new_source = node_mapping[original_source];
-        new_node->setSourceNode(new_source);
+      // Handle nodes with multiple source nodes
+      const std::vector<Node::Ptr> &original_sources =
+          original_node->getSourceNodes();
+      if (!original_sources.empty()) {
+        std::vector<Node::Ptr> new_sources;
+        new_sources.reserve(original_sources.size());
+        for (const auto &original_source : original_sources) {
+          new_sources.push_back(node_mapping[original_source]);
+        }
+        new_node->setSourceNodes(new_sources);
+      } else {
+        // Handle nodes with single source node
+        Node::Ptr original_source = original_node->getSourceNode();
+        if (original_source) {
+          Node::Ptr new_source = node_mapping[original_source];
+          new_node->setSourceNode(new_source);
+        }
       }
     }
   }
@@ -96,11 +109,22 @@ void Graph::addNode(Node::Ptr node) {
     is_connected_to_input.push_back(leaf->type == NodeType::INPUT);
   }
 
-  if (node->type == NodeType::MERGE) {
+  switch (node->type) {
+  case NodeType::MERGE:
+    // Multi-source: Connect to ALL leaves
+    for (auto leaf : leaves) {
+      if (!validateNodeConnection(node, leaf)) {
+        throw std::runtime_error(
+            "Invalid connection: Cannot connect node of type " +
+            nodeTypeToString(node->type) + " to source node of type " +
+            nodeTypeToString(leaf->type));
+      }
+    }
     node->setSourceNodes(leaves);
     node->setGraph(this);
     m_nodes.push_back(node);
-  } else {
+    break;
+  default:
     for (size_t i = 0; i < leaves.size(); ++i) {
       if (!validateNodeConnection(node, leaves[i])) {
         throw std::runtime_error(
@@ -115,6 +139,7 @@ void Graph::addNode(Node::Ptr node) {
       nodeToAdd->setGraph(this);
       m_nodes.push_back(nodeToAdd);
     }
+    break;
   }
   m_compiled = false;
 }
@@ -472,7 +497,7 @@ std::vector<Node::Ptr> Graph::findLeafNodes() const {
   std::unordered_set<Node::Ptr> source_nodes;
 
   for (const auto &node : m_nodes) {
-    if (auto source = node->getSourceNode()) {
+    for (auto source : node->getSourceNodes()) {
       source_nodes.insert(source);
     }
   }
