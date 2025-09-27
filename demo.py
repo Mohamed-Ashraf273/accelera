@@ -5,6 +5,7 @@ import psutil
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from sklearn.cluster import KMeans
 from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -200,7 +201,7 @@ p.branch(
         LogisticRegression(random_state=42, max_iter=1000),
         branch=True,
     ),
-    p.model("custom", TorchDenseModel(random_state=42), branch=True),
+    p.model("custom", KMeans(n_clusters=3), branch=True),
     p.model(
         "rf",
         RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10),

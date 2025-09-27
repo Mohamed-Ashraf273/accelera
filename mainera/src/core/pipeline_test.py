@@ -3,11 +3,11 @@ import re
 import numpy as np
 import pytest
 from sklearn.base import clone
+from sklearn.cluster import KMeans
 from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
 
 from mainera.src.core.pipeline import Pipeline
 from mainera.src.custom.classifier import CustomClassifier
@@ -158,7 +158,7 @@ class TestPipelineCorrectness:
             ),
             p.model(
                 "svm",
-                SVC(probability=True, random_state=42, kernel="rbf"),
+                KMeans(n_clusters=3, random_state=42),
                 branch=True,
             ),
             p.model(
@@ -189,7 +189,7 @@ class TestPipelineCorrectness:
 
         models = [
             LogisticRegression(random_state=42, max_iter=1000),
-            SVC(probability=True, random_state=42, kernel="rbf"),
+            KMeans(n_clusters=3, random_state=42),
             RandomForestClassifier(
                 n_estimators=50, random_state=42, max_depth=10
             ),
@@ -203,9 +203,12 @@ class TestPipelineCorrectness:
                 test_processed = p_common(preprocessor(self.test_data))
 
                 model_clone = clone(model)
-                model_clone.fit(X_processed, self.y)
+                if isinstance(model_clone, KMeans):
+                    model_clone.fit(X_processed)
+                else:
+                    model_clone.fit(X_processed, self.y)
 
-                if use_predict_proba:
+                if use_predict_proba and hasattr(model_clone, "predict_proba"):
                     manual_result = model_clone.predict_proba(test_processed)
                 else:
                     manual_result = model_clone.predict(test_processed)
@@ -241,7 +244,7 @@ class TestPipelineCorrectness:
         assert accuracy["result"] == manual_accuracy
         assert accuracy["metric_name"] == "accuracy_score"
 
-    def test_metric_erros(self):
+    def test_metric_errors(self):
         p = Pipeline()
         p.preprocess("scale", lambda x: x * 2.0)
         p.model("lr", LogisticRegression(random_state=42, max_iter=1000))

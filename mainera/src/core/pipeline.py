@@ -1,3 +1,4 @@
+from mainera.src.utils.mainera_utils import get_learning_type
 from mainera.src.utils.mainera_utils import get_metric_object
 from mainera.src.utils.mainera_utils import metric_validation
 from mainera.src.wrappers.executed_graph_wrapper import ExecutedGraphWrapper
@@ -32,10 +33,12 @@ class Pipeline:
         return self
 
     def model(self, name, model, branch=False):
+        model_type = get_learning_type(model)
+        model_params = {"model": model, "model_type": model_type}
         if branch:
-            return NodeWrapper("model", name, model)
+            return NodeWrapper("model", name, model_params)
 
-        self.__graph.add_node(graph.NodeType.MODEL, name, model)
+        self.__graph.add_node(graph.NodeType.MODEL, name, model_params)
         return self
 
     def predict(self, name, test_data, predict_proba=False, branch=False):

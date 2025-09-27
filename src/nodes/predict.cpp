@@ -84,7 +84,8 @@ void PredictNode::execute() {
     py::object predictions;
     try {
       py::object predict_proba = py_func["predict_proba"];
-      if (py::cast<bool>(predict_proba)) {
+      if (py::cast<bool>(predict_proba) &&
+          py::hasattr(fitted_model, "predict_proba")) {
         predictions =
             fitted_model.attr("predict_proba")(preprocessed_test_data);
       } else {
