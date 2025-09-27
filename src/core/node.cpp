@@ -39,10 +39,21 @@ Node::Ptr Node::clone() const {
 }
 
 void Node::setSourceNode(std::shared_ptr<Node> source) {
-  m_sourceNode = source;
+  m_sourceNode = {source};
 }
 
-std::shared_ptr<Node> Node::getSourceNode() const { return m_sourceNode; }
+void Node::setSourceNodes(
+    const std::vector<std::shared_ptr<Node>> &source_nodes) {
+  m_sourceNode = source_nodes;
+}
+
+std::shared_ptr<Node> Node::getSourceNode() const {
+  return m_sourceNode.empty() ? nullptr : m_sourceNode[0];
+}
+
+const std::vector<std::shared_ptr<Node>> Node::getSourceNodes() const {
+  return m_sourceNode;
+}
 
 void Node::setData(py::object result) { m_data = result; }
 
