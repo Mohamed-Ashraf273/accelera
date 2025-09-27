@@ -13,7 +13,7 @@ namespace mainera {
 ModelNode::ModelNode(const std::string &name, py::object py_func)
     : Node(NodeType::MODEL, name, py_func) {
 
-  if (!py::hasattr(py_func["model"], "fit")) {
+  if (!py::hasattr(py_func, "fit")) {
     throw std::runtime_error("Model node '" + name +
                              "' must have a 'fit' method");
   }
@@ -52,38 +52,23 @@ void ModelNode::execute() {
     }
 
     py::object X = data->getX();
-    std::string model_type = py_func["model_type"].cast<std::string>();
+    py::object y = data->getY();
 
     if (X.is_none()) {
       throw std::runtime_error("Model node '" + name +
                                "' received None inputs (X)");
     }
 
+    if (!py::hasattr(X, "shape") || !(y.is_none() || py::hasattr(y, "shape"))) {
+      throw std::runtime_error("Model node '" + name +
+                               "' inputs must be array-like objects");
+    }
+
     py::object model_instance =
-        py::module::import("copy").attr("deepcopy")(py_func["model"]);
+        py::module::import("copy").attr("deepcopy")(py_func);
 
     try {
-      if (model_type == "supervised") {
-        py::object y = data->getY();
-        if (y.is_none()) {
-          throw std::runtime_error("Model node '" + name +
-                                   "' received None inputs (y)");
-        }
-        if (!py::hasattr(X, "shape") || !py::hasattr(y, "shape")) {
-          throw std::runtime_error("Model node '" + name +
-                                   "' inputs must be array-like objects");
-        }
-        model_instance.attr("fit")(X, y);
-      } else if (model_type == "unsupervised") {
-        if (!py::hasattr(X, "shape")) {
-          throw std::runtime_error("Model node '" + name +
-                                   "' inputs must be array-like objects");
-        }
-        model_instance.attr("fit")(X);
-      } else {
-        throw std::runtime_error("Model node '" + name +
-                                 "' has unknown model type");
-      }
+      model_instance.attr("fit")(X, y);
     } catch (const py::error_already_set &e) {
       throw std::runtime_error("Python error in model fitting: " +
                                std::string(e.what()));
