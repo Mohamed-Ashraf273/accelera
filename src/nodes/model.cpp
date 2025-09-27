@@ -13,8 +13,7 @@ namespace mainera {
 ModelNode::ModelNode(const std::string &name, py::object py_func)
     : Node(NodeType::MODEL, name, py_func) {
 
-  // Validate that this is a model object with fit method
-  if (!py::hasattr(py_func, "fit")) {
+  if (!py::hasattr(py_func["model"], "fit")) {
     throw std::runtime_error("Model node '" + name +
                              "' must have a 'fit' method");
   }
@@ -53,22 +52,38 @@ void ModelNode::execute() {
     }
 
     py::object X = data->getX();
-    py::object y = data->getY();
+    std::string model_type = py_func["model_type"].cast<std::string>();
 
-    if (X.is_none() || y.is_none()) {
+    if (X.is_none()) {
       throw std::runtime_error("Model node '" + name +
-                               "' received None inputs (X or y)");
-    }
-
-    if (!py::hasattr(X, "shape") || !py::hasattr(y, "shape")) {
-      throw std::runtime_error("Model node '" + name +
-                               "' inputs must be array-like objects");
+                               "' received None inputs (X)");
     }
 
     py::object model_instance =
-        py::module::import("copy").attr("deepcopy")(py_func);
+        py::module::import("copy").attr("deepcopy")(py_func["model"]);
+
     try {
-      model_instance.attr("fit")(X, y);
+      if (model_type == "supervised") {
+        py::object y = data->getY();
+        if (y.is_none()) {
+          throw std::runtime_error("Model node '" + name +
+                                   "' received None inputs (y)");
+        }
+        if (!py::hasattr(X, "shape") || !py::hasattr(y, "shape")) {
+          throw std::runtime_error("Model node '" + name +
+                                   "' inputs must be array-like objects");
+        }
+        model_instance.attr("fit")(X, y);
+      } else if (model_type == "unsupervised") {
+        if (!py::hasattr(X, "shape")) {
+          throw std::runtime_error("Model node '" + name +
+                                   "' inputs must be array-like objects");
+        }
+        model_instance.attr("fit")(X);
+      } else {
+        throw std::runtime_error("Model node '" + name +
+                                 "' has unknown model type");
+      }
     } catch (const py::error_already_set &e) {
       throw std::runtime_error("Python error in model fitting: " +
                                std::string(e.what()));

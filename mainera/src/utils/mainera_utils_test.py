@@ -4,7 +4,15 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
+from sklearn.cluster import KMeans
+from sklearn.datasets import make_classification
+from sklearn.decomposition import PCA
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LinearRegression
+from sklearn.mixture import GaussianMixture
+from sklearn.preprocessing import StandardScaler
 
+from mainera.src.utils.mainera_utils import get_learning_type
 from mainera.src.utils.mainera_utils import get_metric_object
 from mainera.src.utils.mainera_utils import metric_validation
 from mainera.src.utils.mainera_utils import print_msg
@@ -61,7 +69,6 @@ def test_print_msg(
     ],
 )
 def test_get_metric_object(metric_name, expected_result, mock_metrics_attr):
-    """Test get_metric_object function with various metric names."""
     with patch("mainera.src.utils.mainera_utils.metrics") as mock_metrics:
         if mock_metrics_attr:
             setattr(mock_metrics, metric_name, mock_metrics_attr)
@@ -215,3 +222,198 @@ def test_metric_validation_function_with_defaults():
         return sum(1 for a, b in zip(y_true, y_pred) if a == b) / len(y_true)
 
     metric_validation(func_with_defaults, "defaults_func")
+
+
+@pytest.mark.parametrize(
+    "model, expected_type, description",
+    [
+        # Supervised models (have 'y' parameter in fit)
+        (RandomForestClassifier(), "supervised", "RandomForestClassifier"),
+        (LinearRegression(), "supervised", "LinearRegression"),
+        # Unsupervised models (no 'y' parameter in fit)
+        (KMeans(), "unsupervised", "KMeans"),
+        (PCA(), "unsupervised", "PCA"),
+        (GaussianMixture(), "unsupervised", "GaussianMixture"),
+        (StandardScaler(), "unsupervised", "StandardScaler"),
+    ],
+)
+def test_get_learning_type_with_sklearn_models(
+    model, expected_type, description
+):
+    result = get_learning_type(model)
+    assert result == expected_type, f"Failed for {description}"
+
+
+@pytest.mark.parametrize(
+    "fit_params, expected_type, description",
+    [
+        # Supervised signatures
+        (["X", "y"], "supervised", "basic supervised"),
+        (
+            ["X", "y", "sample_weight"],
+            "supervised",
+            "supervised with sample_weight",
+        ),
+        (["self", "X", "y"], "supervised", "with self parameter"),
+        (["cls", "X", "y"], "supervised", "with cls parameter"),
+        (["X", "y", "kwargs"], "supervised", "with kwargs"),
+        # Unsupervised signatures
+        (["X"], "unsupervised", "basic unsupervised"),
+        (["X", "y=None"], "unsupervised", "y as optional parameter"),
+        (["self", "X"], "unsupervised", "unsupervised with self"),
+        (
+            ["X", "sample_weight"],
+            "unsupervised",
+            "unsupervised with sample_weight",
+        ),
+        (["X", "kwargs"], "unsupervised", "unsupervised with kwargs"),
+        # Edge cases
+        (["X", "Y"], "unsupervised", "capital Y instead of y"),
+        (["X", "target"], "unsupervised", "target instead of y"),
+        (["X", "labels"], "unsupervised", "labels instead of y"),
+        (["features", "y"], "supervised", "X named features"),
+    ],
+)
+def test_get_learning_type_with_mock_models(
+    fit_params, expected_type, description
+):
+    mock_model = MagicMock()
+
+    params = []
+    for param_name in fit_params:
+        if "=" in param_name:
+            name, default = param_name.split("=")
+            param = inspect.Parameter(
+                name, inspect.Parameter.POSITIONAL_OR_KEYWORD, default=default
+            )
+        else:
+            param = inspect.Parameter(
+                param_name, inspect.Parameter.POSITIONAL_OR_KEYWORD
+            )
+        params.append(param)
+
+    mock_model.fit.__signature__ = inspect.Signature(params)
+
+    result = get_learning_type(mock_model)
+    assert result == expected_type, f"Failed for {description}"
+
+
+@pytest.mark.parametrize(
+    "model, expected_type, description",
+    [
+        (None, "unknown", "None object"),
+        ("not_a_model", "unknown", "string instead of model"),
+        (123, "unknown", "integer instead of model"),
+        ([], "unknown", "list instead of model"),
+        ({}, "unknown", "dict instead of model"),
+    ],
+)
+def test_get_learning_type_with_non_model_objects(
+    model, expected_type, description
+):
+    result = get_learning_type(model)
+    assert result == expected_type, f"Failed for {description}"
+
+
+def test_get_learning_type_with_broken_signature():
+    mock_model = MagicMock()
+    mock_model.fit = "not_a_callable"
+
+    result = get_learning_type(mock_model)
+    assert result == "unknown"
+
+
+def test_get_learning_type_with_exception_during_inspection():
+    mock_model = MagicMock()
+
+    def broken_fit():
+        pass
+
+    with patch("inspect.signature", side_effect=TypeError("Cannot inspect")):
+        result = get_learning_type(mock_model)
+        assert result == "unknown"
+
+
+@pytest.mark.parametrize(
+    "model_attributes, expected_type, description",
+    [
+        ({"fit": True}, "unknown", "fit exists but not callable"),
+        ({}, "unknown", "no fit method"),
+        ({"train": True}, "unknown", "has train instead of fit"),
+    ],
+)
+def test_get_learning_type_with_alternative_models(
+    model_attributes, expected_type, description
+):
+    class CustomModel:
+        def __init__(self, attributes):
+            for attr, value in attributes.items():
+                setattr(self, attr, value)
+
+    model = CustomModel(model_attributes)
+    result = get_learning_type(model)
+    assert result == expected_type, f"Failed for {description}"
+
+
+@pytest.mark.parametrize(
+    "fit_params, expected_type, description",
+    [
+        (
+            ["X", "y", "sample_weight", "other_param"],
+            "supervised",
+            "supervised with extra params",
+        ),
+        (["X", "y", "kwargs"], "supervised", "supervised with kwargs"),
+        (
+            ["X", "param1", "param2"],
+            "unsupervised",
+            "unsupervised with multiple params",
+        ),
+        (["data", "y"], "supervised", "different X parameter name"),
+    ],
+)
+def test_get_learning_type_parameter_variations(
+    fit_params, expected_type, description
+):
+    class TestModel:
+        def fit(self, *args, **kwargs):
+            pass
+
+    params = [
+        inspect.Parameter(name, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+        for name in fit_params
+    ]
+    TestModel.fit.__signature__ = inspect.Signature(params)
+
+    model = TestModel()
+    result = get_learning_type(model)
+    assert result == expected_type, f"Failed for {description}"
+
+
+def test_get_learning_type_integration_with_real_workflow():
+    X, y = make_classification(n_samples=100, n_features=4, random_state=42)
+
+    rf_model = RandomForestClassifier()
+    rf_type = get_learning_type(rf_model)
+    assert rf_type == "supervised"
+
+    rf_model.fit(X, y)
+
+    kmeans_model = KMeans()
+    kmeans_type = get_learning_type(kmeans_model)
+    assert kmeans_type == "unsupervised"
+
+    kmeans_model.fit(X)
+
+
+@pytest.mark.parametrize(
+    "model_class, expected_type",
+    [
+        (RandomForestClassifier, "supervised"),
+        (KMeans, "supervised"),
+        (PCA, "supervised"),
+    ],
+)
+def test_get_learning_type_with_model_classes(model_class, expected_type):
+    result = get_learning_type(model_class())
+    assert result in ["supervised", "unsupervised", "unknown"]

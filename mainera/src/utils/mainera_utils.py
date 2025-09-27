@@ -50,3 +50,24 @@ def metric_validation(metric_func, metric_name):
             "does not take (y_true, y_pred) or (y_true, y_score) "
             "or (y_true, y_prob) as arguments."
         )
+
+
+def get_learning_type(model) -> str:
+    if not hasattr(model, "fit") or not callable(getattr(model, "fit")):
+        return "unknown"
+
+    try:
+        sig = inspect.signature(model.fit)
+
+        has_required_y = any(
+            param_name == "y" and param.default is param.empty
+            for param_name, param in sig.parameters.items()
+        )
+
+        if has_required_y:
+            return "supervised"
+        else:
+            return "unsupervised"
+
+    except (ValueError, TypeError):
+        return "unknown"
