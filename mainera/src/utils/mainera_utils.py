@@ -1,8 +1,12 @@
 import inspect
 import logging
 import sys
-
+import numpy as np
 import sklearn.metrics as metrics
+from mainera.src.wrappers.metric_wrapper import (
+    SupervisedMetricWrapper,
+    UnSupervisedMetricWrapper,
+)
 
 interactive = True
 
@@ -34,19 +38,19 @@ def get_metric_object(metric_name: str):
     return metric_func
 
 
-def metric_validation(metric_func, metric_name):
-    signature = inspect.signature(metric_func)
+def get_correct_metric_class(metric_name, metric, y_true=None, X=None, **params):
+    signature = inspect.signature(metric)
     parameters = list(signature.parameters.keys())
     print(parameters)
-    # Check if it has y_true AND at least one of y_pred, y_score, or y_prob
-    has_y_true = "y_true" in parameters
-    has_pred_or_score = any(
-        param in parameters for param in ["y_pred", "y_score", "y_proba"]
+    has_true_labels = any(param in parameters for param in ["y_true", "labels_true"])
+    has_predictions = any(
+        param in parameters for param in ["y_pred", "y_score", "y_proba", "labels_pred"]
     )
-
-    if not (has_y_true and has_pred_or_score):
-        raise ValueError(
-            f"Metric '{metric_name}' "
-            "does not take (y_true, y_pred) or (y_true, y_score) "
-            "or (y_true, y_proba) as arguments."
-        )
+    supervised = has_true_labels and has_predictions
+    unsupervised = "X" in parameters and "labels" in parameters
+    if supervised:
+        return SupervisedMetricWrapper(metric_name, metric, y_true, X, **params)
+    elif unsupervised:
+        return UnSupervisedMetricWrapper(metric_name, metric, y_true, X, **params)
+    else:
+        return None

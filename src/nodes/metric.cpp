@@ -41,15 +41,15 @@ void MetricNode::execute() {
 
     py::object y_true;
     py::object metric_obj;
-    if (!getGraph()->getIsExecuted()) {
-      y_true = py_func["y_true"];
+    // if (!getGraph()->getIsExecuted()) {
+    //   y_true = py_func["y_true"];
 
-    } else {
-      y_true = m_injected_y_true;
-    }
+    // } else {
+    //   y_true = m_injected_y_true;
+    // }
     metric_obj = py_func["func"];
 
-    py::object output = metric_obj.attr("execute")(y_true, y_pred);
+    py::object output = metric_obj.attr("execute")(y_pred);
 
     setData(output);
   } catch (const std::exception &e) {

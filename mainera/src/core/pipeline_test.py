@@ -242,8 +242,7 @@ class TestPipelineCorrectness:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "Metric 'get_scorer' does not take (y_true, y_pred) "
-                "or (y_true, y_score) or (y_true, y_proba) as arguments."
+                "Metric 'get_scorer' is incompatible with the supervised or unsupervised metric structure."
             ),
         ):
             p.metric(
