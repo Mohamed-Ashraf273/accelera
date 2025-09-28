@@ -54,7 +54,6 @@ class Pipeline:
         name,
         metric_name,
         y_true,
-        binary_proba=False,
         branch=False,
         **params,
     ):
@@ -62,10 +61,9 @@ class Pipeline:
 
         if metric_func is not None:
             metric_validation(metric_func, metric_name)
-            metric_obj = MetricWrapper(metric_func, binary_proba, **params)
+            metric_obj = MetricWrapper(metric_name, metric_func, **params)
             metric_params = {
                 "func": metric_obj,
-                "metric_name": metric_name,
                 "y_true": y_true,
             }
 

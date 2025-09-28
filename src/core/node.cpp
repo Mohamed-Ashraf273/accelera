@@ -29,7 +29,6 @@ Node::Ptr Node::clone() const {
     }
     py::dict metric_params;
     metric_params["func"] = this->py_func["func"];
-    metric_params["metric_name"] = this->py_func["metric_name"];
     metric_node->py_func = metric_params;
     return new_node;
   }

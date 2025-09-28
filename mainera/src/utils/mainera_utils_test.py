@@ -84,7 +84,7 @@ def test_get_metric_object(metric_name, expected_result, mock_metrics_attr):
         # Valid metric functions
         (["y_true", "y_pred"], "accuracy", False, None),
         (["y_true", "y_score"], "roc_auc", False, None),
-        (["y_true", "y_prob"], "log_loss", False, None),
+        (["y_true", "y_proba"], "log_loss", False, None),
         (
             ["y_true", "y_pred", "sample_weight"],
             "weighted_accuracy",

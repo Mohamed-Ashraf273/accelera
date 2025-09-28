@@ -5,7 +5,6 @@ import psutil
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from sklearn.cluster import KMeans
 from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -33,9 +32,7 @@ class TorchDenseModel(CustomClassifier):
 
         self.model = None
         print("cuda" if torch.cuda.is_available() else "cpu")
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu"
-        )
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def _build_model(self, input_dim, num_classes):
         return nn.Sequential(
@@ -52,9 +49,7 @@ class TorchDenseModel(CustomClassifier):
         num_classes = len(np.unique(y))
 
         if self.model is None:
-            self.model = self._build_model(n_features, num_classes).to(
-                self.device
-            )
+            self.model = self._build_model(n_features, num_classes).to(self.device)
 
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
@@ -106,9 +101,7 @@ def get_memory_info():
         "rss_mb": memory_info.rss / 1024 / 1024,  # Resident Set Size
         "vms_mb": memory_info.vms / 1024 / 1024,  # Virtual Memory Size
         "swap_mb": (
-            memory_full.swap / 1024 / 1024
-            if hasattr(memory_full, "swap")
-            else 0
+            memory_full.swap / 1024 / 1024 if hasattr(memory_full, "swap") else 0
         ),
     }
 
@@ -201,7 +194,7 @@ p.branch(
         LogisticRegression(random_state=42, max_iter=1000),
         branch=True,
     ),
-    p.model("custom", KMeans(n_clusters=3), branch=True),
+    p.model("custom", TorchDenseModel(random_state=42), branch=True),
     p.model(
         "rf",
         RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10),
@@ -210,7 +203,7 @@ p.branch(
 )
 
 p.predict("predict", test_data, predict_proba=True)
-p.metric("accuracy", "roc_auc_score", y_test, binary_proba=True)
+p.metric("accuracy", "silhouette_score", y_test)
 p.serialize("test.xml")
 start_mem = get_memory_info()
 start = time.time()

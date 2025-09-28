@@ -37,16 +37,16 @@ def get_metric_object(metric_name: str):
 def metric_validation(metric_func, metric_name):
     signature = inspect.signature(metric_func)
     parameters = list(signature.parameters.keys())
-
+    print(parameters)
     # Check if it has y_true AND at least one of y_pred, y_score, or y_prob
     has_y_true = "y_true" in parameters
     has_pred_or_score = any(
-        param in parameters for param in ["y_pred", "y_score", "y_prob"]
+        param in parameters for param in ["y_pred", "y_score", "y_proba"]
     )
 
     if not (has_y_true and has_pred_or_score):
         raise ValueError(
             f"Metric '{metric_name}' "
             "does not take (y_true, y_pred) or (y_true, y_score) "
-            "or (y_true, y_prob) as arguments."
+            "or (y_true, y_proba) as arguments."
         )
