@@ -1,14 +1,3 @@
-
-#include "nodes/preprocess.hpp"
-#include "core/graph.hpp"
-#include "nodes/input.hpp"
-
-#include <pybind11/numpy.h>
-#include <pybind11/pybind11.h>
-
-#include "nodes/preprocess.hpp"
-
-#include "nodes/input.hpp"
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 
@@ -130,6 +119,7 @@ void PreprocessNode::execute() {
       data->setInputData(X, y);
       setData(data);
     }
+
   } catch (const std::exception &e) {
     throw std::runtime_error("Error in preprocess node '" + name +
                              "': " + e.what());

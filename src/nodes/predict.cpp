@@ -1,15 +1,8 @@
+#include <functional>
+#include <memory>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-
-#include "nodes/predict.hpp"
-
-#include "core/graph.hpp"
-#include "nodes/input.hpp"
-#include "nodes/model.hpp"
-
-#include <functional>
-#include <memory>
 #include <stdexcept>
 
 #include "core/graph.hpp"
@@ -91,7 +84,8 @@ void PredictNode::execute() {
     py::object predictions;
     try {
       py::object predict_proba = py_func["predict_proba"];
-      if (py::cast<bool>(predict_proba)) {
+      if (py::cast<bool>(predict_proba) &&
+          py::hasattr(fitted_model, "predict_proba")) {
         predictions =
             fitted_model.attr("predict_proba")(preprocessed_test_data);
       } else {

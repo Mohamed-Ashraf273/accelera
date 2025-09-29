@@ -11,6 +11,7 @@ from sklearn.svm import SVC
 
 from mainera.src.core.pipeline import Pipeline
 from mainera.src.custom.classifier import CustomClassifier
+from mainera.src.custom.custom_class import CustomModel
 
 
 class TestPipelineCorrectness:
@@ -302,13 +303,13 @@ class TestPipelineCorrectness:
     def test_custom_model_integration(self):
         p = Pipeline()
         p.preprocess("scale", lambda x: x / 10.0)
-        p.model("custom_rf", self.CustomModel(random_state=42))
+        p.model("custom_rf", CustomModel(random_state=42))
         p.predict("pred", self.test_data)
         pipeline_result, _ = p(self.X, self.y)
 
         X_scaled = self.X / 10.0
         test_scaled = self.test_data / 10.0
-        manual_model = self.CustomModel(random_state=42)
+        manual_model = CustomModel(random_state=42)
         manual_model.fit(X_scaled, self.y)
         manual_result = manual_model.predict(test_scaled)
 
