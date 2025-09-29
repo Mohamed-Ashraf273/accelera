@@ -1,5 +1,5 @@
 import numpy as np
-from classifier import CustomClassifier
+from mainera.src.custom.classifier import CustomClassifier
 
 
 class CustomModel(CustomClassifier):
