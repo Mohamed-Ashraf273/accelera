@@ -1,12 +1,11 @@
 import inspect
 import logging
 import sys
-import numpy as np
+
 import sklearn.metrics as metrics
-from mainera.src.wrappers.metric_wrapper import (
-    SupervisedMetricWrapper,
-    UnSupervisedMetricWrapper,
-)
+
+from mainera.src.wrappers.metric_wrapper import SupervisedMetricWrapper
+from mainera.src.wrappers.metric_wrapper import UnSupervisedMetricWrapper
 
 interactive = True
 
@@ -31,26 +30,36 @@ def print_msg(message, line_break=True, level="info"):
             logging.debug(message)
 
 
-def get_metric_object(metric_name: str):
+def get_metric_object(
+    metric_name: str,
+):  # TODO (4): add tests for this in mainera_utils_test
     if metric_name == "":
         return None
     metric_func = getattr(metrics, metric_name, None)
     return metric_func
 
 
-def get_correct_metric_class(metric_name, metric, y_true=None, X=None, **params):
+# TODO (5): add tests for this in mainera_utils_test as well
+def get_correct_metric_class(
+    metric_name, metric, y_true=None, X=None, **params
+):
     signature = inspect.signature(metric)
     parameters = list(signature.parameters.keys())
     print(parameters)
-    has_true_labels = any(param in parameters for param in ["y_true", "labels_true"])
+    has_true_labels = any(
+        param in parameters for param in ["y_true", "labels_true"]
+    )
     has_predictions = any(
-        param in parameters for param in ["y_pred", "y_score", "y_proba", "labels_pred"]
+        param in parameters
+        for param in ["y_pred", "y_score", "y_proba", "labels_pred"]
     )
     supervised = has_true_labels and has_predictions
     unsupervised = "X" in parameters and "labels" in parameters
     if supervised:
         return SupervisedMetricWrapper(metric_name, metric, y_true, X, **params)
     elif unsupervised:
-        return UnSupervisedMetricWrapper(metric_name, metric, y_true, X, **params)
+        return UnSupervisedMetricWrapper(
+            metric_name, metric, y_true, X, **params
+        )
     else:
         return None

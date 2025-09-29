@@ -165,8 +165,6 @@ void Graph::split(const std::string &branch_name,
   for (size_t leaf_idx = 0; leaf_idx < leaves.size(); ++leaf_idx) {
     Node::Ptr leaf = leaves[leaf_idx];
 
-    std::vector<Node::Ptr> branch_tails;
-
     for (size_t branch_idx = 0; branch_idx < branch_objects.size();
          ++branch_idx) {
       Node::Ptr current_source = leaf;
@@ -269,9 +267,6 @@ void Graph::split(const std::string &branch_name,
         branchNode->setGraph(this);
         current_source = branchNode;
       }
-
-      // Store the final node of this branch
-      branch_tails.push_back(current_source);
     }
   }
 
@@ -311,14 +306,13 @@ std::vector<py::object> Graph::execute(py::object X, py::object y,
   for (const auto &leaf : final_leaves) {
     try {
       if (leaf->type == NodeType::PREPROCESS) {
-        std::shared_ptr<PreprocessNode> leaf_node =
-            std::dynamic_pointer_cast<PreprocessNode>(leaf);
-        if (!leaf_node) {
-          throw std::runtime_error("Failed to cast to PreprocessNode");
-        }
-        py::object result = leaf_node->getData()->getX();
-        if (!result.is_none()) {
-          predictions.push_back(result);
+        std::shared_ptr<py::object> data_ptr = leaf->getData();
+        if (data_ptr && !data_ptr->is_none()) {
+          auto dict = data_ptr->cast<py::dict>();
+          py::object result = dict["X"];
+          if (!result.is_none()) {
+            predictions.push_back(result);
+          }
         }
       } else if (leaf->type == NodeType::INPUT) {
         std::shared_ptr<InputNode> leaf_node =
@@ -332,9 +326,9 @@ std::vector<py::object> Graph::execute(py::object X, py::object y,
           predictions.push_back(result);
         }
       } else {
-        py::object result = leaf->getData();
-        if (!result.is_none()) {
-          predictions.push_back(result);
+        std::shared_ptr<py::object> result_ptr = leaf->getData();
+        if (result_ptr && !result_ptr->is_none()) {
+          predictions.push_back(*result_ptr);
         }
       }
     } catch (const std::exception &e) {
@@ -648,7 +642,7 @@ void Graph::enableDisableMetrics(py::object y_true, py::object enable) {
         if (enable_metrics && !y_true.is_none()) {
           metric_node->setInjectedYTrue(y_true);
         } else {
-          metric_node->setData(py::none());
+          metric_node->setData(std::make_shared<py::object>(py::none()));
         }
       }
     }

@@ -26,7 +26,7 @@ void PredictNode::execute() {
                                "' requires a valid model node");
     }
 
-    py::object fitted_model = input->getData();
+    py::object fitted_model = *(input->getData());
 
     if (fitted_model.is_none() || !py::hasattr(fitted_model, "predict")) {
       throw std::runtime_error("Predict node '" + name +
@@ -95,7 +95,9 @@ void PredictNode::execute() {
       throw std::runtime_error("Python error in prediction: " +
                                std::string(e.what()));
     }
-    setData(predictions);
+    std::shared_ptr<py::object> predictions_ptr =
+        std::make_shared<py::object>(predictions);
+    setData(predictions_ptr);
   } catch (const std::exception &e) {
     throw std::runtime_error("Error in PredictNode::execute(): " +
                              std::string(e.what()));

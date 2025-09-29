@@ -54,9 +54,9 @@ const std::vector<std::shared_ptr<Node>> Node::getSourceNodes() const {
   return m_sourceNode;
 }
 
-void Node::setData(py::object result) { m_data = result; }
+void Node::setData(std::shared_ptr<py::object> result) { m_data = result; }
 
-py::object Node::getData() const { return m_data; }
+std::shared_ptr<py::object> Node::getData() const { return m_data; }
 
 void Node::setGraph(Graph *graph) { m_graph = graph; }
 

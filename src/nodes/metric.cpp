@@ -32,7 +32,7 @@ void MetricNode::execute() {
                                "' requires a valid input");
     }
 
-    py::object y_pred = input->getData();
+    std::shared_ptr<py::object> y_pred = input->getData();
 
     if (!m_enable) {
       setData(y_pred);
@@ -49,9 +49,11 @@ void MetricNode::execute() {
     // }
     metric_obj = py_func["func"];
 
-    py::object output = metric_obj.attr("execute")(y_pred);
+    py::object output = metric_obj.attr("execute")(*y_pred);
 
-    setData(output);
+    std::shared_ptr<py::object> output_ptr =
+        std::make_shared<py::object>(output);
+    setData(output_ptr);
   } catch (const std::exception &e) {
     throw std::runtime_error("Error in MetricNode::execute(): " +
                              std::string(e.what()));

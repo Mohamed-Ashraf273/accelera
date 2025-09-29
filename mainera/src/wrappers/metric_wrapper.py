@@ -1,8 +1,12 @@
+from abc import ABC
+from abc import abstractmethod
+
 import numpy as np
-from abc import ABC, abstractmethod
+
+# TODO (1): make each class in a file
 
 
-def convert_to_array(x):
+def convert_to_array(x):  # TODO (2): move to mainera_utils
     if x is None:
         return None
     return np.asarray(x)
@@ -27,11 +31,16 @@ class BaseMetricWrapper(ABC):
     def execute(self, y_pred):
         pass
 
-    def _validate_shape(self, y_pred, expected_shape, names):
+    def _validate_shape(
+        self, y_pred, expected_shape, names
+    ):  # TODO (3): move to mainera_utils and
+        # make it more general (array, expected_shape, names=None)
         if y_pred.shape[0] != expected_shape:
             raise ValueError(
-                f"{names[0]} , {names[1]} must have the same nubmer of samples. "
-                f"Got {names[0]} has {y_pred.shape[0]} samples and {names[1]} has {expected_shape} samples."
+                f"{names[0]} , {names[1]} must have the same "
+                f"number of samples. "
+                f"Got {names[0]} has {y_pred.shape[0]} "
+                f"samples and {names[1]} has {expected_shape} samples."
             )
 
 

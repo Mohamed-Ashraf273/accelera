@@ -1,5 +1,5 @@
-from mainera.src.utils.mainera_utils import get_metric_object
 from mainera.src.utils.mainera_utils import get_correct_metric_class
+from mainera.src.utils.mainera_utils import get_metric_object
 from mainera.src.wrappers.executed_graph_wrapper import ExecutedGraphWrapper
 from mainera.src.wrappers.node_wrapper import NodeWrapper
 
@@ -65,7 +65,8 @@ class Pipeline:
             )
             if metric_obj is None:
                 raise ValueError(
-                    f"Metric '{metric_name}' is incompatible with the supervised or unsupervised metric structure."
+                    f"Metric '{metric_name}' is incompatible with "
+                    "the supervised or unsupervised metric structure."
                 )
             metric_params = {
                 "func": metric_obj,

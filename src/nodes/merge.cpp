@@ -1,4 +1,3 @@
-#include <iostream>
 #include <pybind11/pybind11.h>
 #include <stdexcept>
 
@@ -20,9 +19,6 @@ py::object hardVoting(const py::list &predictions) {
   try {
     // Use numpy from Python to handle the voting
     py::module_ np = py::module_::import("numpy");
-
-    std::cout << "Hard voting with " << predictions.size() << " models"
-              << std::endl;
 
     // Convert predictions to numpy arrays
     py::list np_predictions = py::list();
@@ -71,18 +67,15 @@ py::object hardVoting(const py::list &predictions) {
     }
 
   } catch (const py::error_already_set &e) {
-    std::cerr << "Python error in hardVoting: " << e.what() << std::endl;
     throw std::runtime_error("Python error in hard voting: " +
                              std::string(e.what()));
   } catch (const std::exception &e) {
-    std::cerr << "Error in hardVoting: " << e.what() << std::endl;
     throw;
   }
 }
 
 void MergeNode::execute() {
   try {
-    // Collect results from all source nodes (branches)
     py::list branch_results = py::list();
 
     // Get all source nodes (these should be the terminal nodes of each branch)
@@ -95,31 +88,29 @@ void MergeNode::execute() {
     // Collect results from each branch
     for (auto &source : sources) {
       if (source) {
-        // Get the result from each source node
-        py::object source_result = source->getData();
-        branch_results.append(source_result);
+        std::shared_ptr<py::object> source_result = source->getData();
+        if (source_result && !source_result->is_none()) {
+          branch_results.append(*source_result);
+        }
       }
     }
 
-    // Get the merge strategy string
     if (py_func.is_none()) {
       throw std::runtime_error("Merge strategy is not set");
     }
 
-    // Cast py_func to string to get the strategy
     std::string strategy;
     if (py::isinstance<py::str>(py_func)) {
       strategy = py_func.cast<std::string>();
     } else {
-      strategy = "hard_voting"; // Default fallback
+      strategy = "hard_voting";
     }
 
-    std::cout << "Applying merge strategy: " << strategy << " with "
-              << branch_results.size() << " models" << std::endl;
-
-    // Apply the specified merge strategy
     if (strategy == "hard_voting" || strategy == "majority_voting") {
-      setData(hardVoting(branch_results));
+      py::object result = hardVoting(branch_results);
+      std::shared_ptr<py::object> result_ptr =
+          std::make_shared<py::object>(result);
+      setData(result_ptr);
     } else {
       throw std::runtime_error(
           "Only 'hard_voting' strategy is currently supported. Got: " +
@@ -127,10 +118,9 @@ void MergeNode::execute() {
     }
 
   } catch (const std::exception &e) {
-    std::cerr << "Error in MergeNode::execute(): " << e.what() << std::endl;
-    throw;
+    throw std::runtime_error("Error in MergeNode::execute(): " +
+                             std::string(e.what()));
   } catch (...) {
-    std::cerr << "Unknown error in MergeNode::execute()" << std::endl;
     throw std::runtime_error("Unknown error in merge execution");
   }
 }
