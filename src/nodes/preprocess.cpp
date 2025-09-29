@@ -70,7 +70,6 @@ void PreprocessNode::storeResults(std::shared_ptr<Node> input,
     new_input["y"] = processed_y;
     setData(std::make_shared<py::object>(new_input));
   } else {
-    // FIX: Use getData() and modify the existing data
     std::shared_ptr<py::object> data_ptr = input->getData();
     if (!data_ptr || data_ptr->is_none()) {
       throw std::runtime_error("Input node data is None");
@@ -78,7 +77,7 @@ void PreprocessNode::storeResults(std::shared_ptr<Node> input,
     auto dict = data_ptr->cast<py::dict>();
     dict["X"] = processed_X;
     dict["y"] = processed_y;
-    setData(data_ptr); // Share the same modified data
+    setData(data_ptr);
   }
 }
 
