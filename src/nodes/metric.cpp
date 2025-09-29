@@ -33,11 +33,10 @@ void MetricNode::execute() {
       return;
     }
 
-    py::object output = py_func.attr("execute")(*y_pred);
+    auto output =
+        std::make_shared<py::object>(py_func.attr("execute")(*y_pred));
 
-    std::shared_ptr<py::object> output_ptr =
-        std::make_shared<py::object>(output);
-    setData(output_ptr);
+    setData(output);
   } catch (const std::exception &e) {
     throw std::runtime_error("Error in MetricNode::execute(): " +
                              std::string(e.what()));

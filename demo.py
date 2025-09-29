@@ -208,10 +208,11 @@ p.branch(
     ),
 )
 
-p.predict("predict", test_data, predict_proba=False)
+p.predict("predict", test_data, predict_proba=True)
 
 p.merge("merge_node", "hard_voting")
 p.metric("accuracy", "accuracy_score", y_true=y_test)
+
 p.serialize("test.xml")
 start_mem = get_memory_info()
 start = time.time()

@@ -3,11 +3,11 @@ import re
 import numpy as np
 import pytest
 from sklearn.base import clone
-from sklearn.cluster import KMeans
 from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
 
 from mainera.src.core.pipeline import Pipeline
 from mainera.src.custom.classifier import CustomClassifier
@@ -158,7 +158,7 @@ class TestPipelineCorrectness:
             ),
             p.model(
                 "svm",
-                KMeans(n_clusters=3, random_state=42),
+                SVC(random_state=42, probability=True),
                 branch=True,
             ),
             p.model(
@@ -189,7 +189,7 @@ class TestPipelineCorrectness:
 
         models = [
             LogisticRegression(random_state=42, max_iter=1000),
-            KMeans(n_clusters=3, random_state=42),
+            SVC(random_state=42, probability=True),
             RandomForestClassifier(
                 n_estimators=50, random_state=42, max_depth=10
             ),
@@ -203,12 +203,9 @@ class TestPipelineCorrectness:
                 test_processed = p_common(preprocessor(self.test_data))
 
                 model_clone = clone(model)
-                if isinstance(model_clone, KMeans):
-                    model_clone.fit(X_processed)
-                else:
-                    model_clone.fit(X_processed, self.y)
+                model_clone.fit(X_processed, self.y)
 
-                if use_predict_proba and hasattr(model_clone, "predict_proba"):
+                if use_predict_proba:
                     manual_result = model_clone.predict_proba(test_processed)
                 else:
                     manual_result = model_clone.predict(test_processed)
@@ -269,58 +266,6 @@ class TestPipelineCorrectness:
                 "get_scorer",
                 self.y_test,
             )
-
-    def test_custom_model_integration(self):
-        class CustomModel(CustomClassifier):
-            def __init__(self, random_state=42):
-                self.random_state = random_state
-                self.centroids_ = None
-                self.classes_ = None
-
-            def fit(self, X, y):
-                np.random.seed(self.random_state)
-                self.classes_ = np.unique(y)
-
-                self.centroids_ = []
-                for class_label in self.classes_:
-                    class_points = X[y == class_label]
-                    centroid = np.mean(class_points, axis=0)
-                    self.centroids_.append(centroid)
-
-                self.centroids_ = np.array(self.centroids_)
-                return self
-
-            def predict(self, X):
-                predictions = []
-                for sample in X:
-                    distances = []
-                    for centroid in self.centroids_:
-                        distance = np.sqrt(np.sum((sample - centroid) ** 2))
-                        distances.append(distance)
-
-                    predicted_class = self.classes_[np.argmin(distances)]
-                    predictions.append(predicted_class)
-
-                return np.array(predictions)
-
-        p = Pipeline()
-        p.preprocess("scale", lambda x: x / 10.0)
-        p.model("custom_rf", CustomModel(random_state=42))
-        p.predict("pred", self.test_data)
-        pipeline_result, _ = p(self.X, self.y)
-
-        X_scaled = self.X / 10.0
-        test_scaled = self.test_data / 10.0
-        manual_model = CustomModel(random_state=42)
-        manual_model.fit(X_scaled, self.y)
-        manual_result = manual_model.predict(test_scaled)
-
-        pipeline_pred = (
-            pipeline_result[0]
-            if isinstance(pipeline_result, list)
-            else pipeline_result
-        )
-        assert np.array_equal(pipeline_pred, manual_result)
 
     def test_pipeline_with_cuda_correctness(self):
         try:

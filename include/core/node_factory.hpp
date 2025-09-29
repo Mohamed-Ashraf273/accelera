@@ -6,6 +6,8 @@
 #include "core/visibility.hpp"
 #include "node.hpp"
 
+#include <memory>
+
 namespace mainera {
 
 class MAINERA_API NodeFactory {

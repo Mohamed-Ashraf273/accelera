@@ -18,7 +18,11 @@ fi
 
 # Run generate_init.py script first (relative to repo root)
 echo "Generating __init__.py files..."
-python3 "${base_dir}/tools/generate_init.py"
+if command -v python3 >/dev/null 2>&1; then
+    python3 "${base_dir}/tools/generate_init.py"
+else
+    python "${base_dir}/tools/generate_init.py"
+fi
 
 # Format code because generate_init.py might reorder imports
 echo "Formatting api directory..."
