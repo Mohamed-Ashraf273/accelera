@@ -5,6 +5,9 @@ since your modifications would be overwritten.
 """
 
 from mainera.src.custom import classifier as classifier
+
 from mainera.src.custom import custom_class as custom_class
+from mainera.src.custom import clusterer as clusterer
+
 from mainera.src.custom import regressor as regressor
 from mainera.src.custom import transformer as transformer

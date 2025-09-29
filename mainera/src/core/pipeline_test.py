@@ -3,11 +3,11 @@ import re
 import numpy as np
 import pytest
 from sklearn.base import clone
+from sklearn.cluster import KMeans
 from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
 
 from mainera.src.core.pipeline import Pipeline
 from mainera.src.custom.classifier import CustomClassifier
@@ -159,7 +159,7 @@ class TestPipelineCorrectness:
             ),
             p.model(
                 "svm",
-                SVC(probability=True, random_state=42, kernel="rbf"),
+                KMeans(n_clusters=3, random_state=42),
                 branch=True,
             ),
             p.model(
@@ -190,7 +190,7 @@ class TestPipelineCorrectness:
 
         models = [
             LogisticRegression(random_state=42, max_iter=1000),
-            SVC(probability=True, random_state=42, kernel="rbf"),
+            KMeans(n_clusters=3, random_state=42),
             RandomForestClassifier(
                 n_estimators=50, random_state=42, max_depth=10
             ),
@@ -204,9 +204,12 @@ class TestPipelineCorrectness:
                 test_processed = p_common(preprocessor(self.test_data))
 
                 model_clone = clone(model)
-                model_clone.fit(X_processed, self.y)
+                if isinstance(model_clone, KMeans):
+                    model_clone.fit(X_processed)
+                else:
+                    model_clone.fit(X_processed, self.y)
 
-                if use_predict_proba:
+                if use_predict_proba and hasattr(model_clone, "predict_proba"):
                     manual_result = model_clone.predict_proba(test_processed)
                 else:
                     manual_result = model_clone.predict(test_processed)
@@ -242,7 +245,7 @@ class TestPipelineCorrectness:
         assert accuracy["result"] == manual_accuracy
         assert accuracy["metric_name"] == "accuracy_score"
 
-    def test_metric_erros(self):
+    def test_metric_errors(self):
         p = Pipeline()
         p.preprocess("scale", lambda x: x * 2.0)
         p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
@@ -430,3 +433,225 @@ class TestPipelineCorrectness:
 
         executed_graph_result = executed_graph(self.test_data)[0]
         assert np.array_equal(executed_graph_result, manual_result)
+
+    def test_hard_voting_merge_correctness(self):
+        p = Pipeline()
+        p.preprocess("scale", StandardScaler())
+
+        # Branch with multiple models
+        p.branch(
+            "models",
+            p.model(
+                "lr",
+                LogisticRegression(random_state=42, max_iter=1000),
+                branch=True,
+            ),
+            p.model(
+                "rf",
+                RandomForestClassifier(n_estimators=10, random_state=42),
+                branch=True,
+            ),
+        )
+
+        p.predict("predict", self.test_data)
+        p.merge("merge_node", "hard_voting")
+
+        pipeline_result, _ = p(self.X, self.y)
+
+        # Manual hard voting calculation
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(self.X)
+        test_scaled = scaler.transform(self.test_data)
+
+        # Train models manually
+        lr = LogisticRegression(random_state=42, max_iter=1000)
+        rf = RandomForestClassifier(n_estimators=10, random_state=42)
+
+        lr.fit(X_scaled, self.y)
+        rf.fit(X_scaled, self.y)
+
+        # Get predictions from each model
+        lr_pred = lr.predict(test_scaled)
+        rf_pred = rf.predict(test_scaled)
+
+        # Manual hard voting (majority vote)
+        from scipy import stats
+
+        predictions_stack = np.column_stack([lr_pred, rf_pred])
+        manual_hard_vote = stats.mode(predictions_stack, axis=1)[0].flatten()
+
+        # Pipeline should return the merged result
+        assert len(pipeline_result) == 1, "Merge should produce single result"
+        assert np.array_equal(pipeline_result[0], manual_hard_vote)
+
+    def test_merge_with_preprocessing_branches(self):
+        """Test merge with multiple preprocessing and model branches"""
+        p = Pipeline()
+
+        # Multiple preprocessing branches
+        p.branch(
+            "preprocessing",
+            p.preprocess("scale1", StandardScaler(), branch=True),
+            p.preprocess("scale2", lambda x: x * 2.0, branch=True),
+        )
+
+        # Single model applied to each preprocessing branch
+        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
+        p.predict("predict", self.test_data)
+        p.merge("merge_node", "hard_voting")
+
+        pipeline_result, _ = p(self.X, self.y)
+
+        # Manual calculation
+        scaler = StandardScaler()
+        X_scaled1 = scaler.fit_transform(self.X)
+        test_scaled1 = scaler.transform(self.test_data)
+
+        X_scaled2 = self.X * 2.0
+        test_scaled2 = self.test_data * 2.0
+
+        lr1 = LogisticRegression(random_state=42, max_iter=1000)
+        lr2 = LogisticRegression(random_state=42, max_iter=1000)
+
+        lr1.fit(X_scaled1, self.y)
+        lr2.fit(X_scaled2, self.y)
+
+        pred1 = lr1.predict(test_scaled1)
+        pred2 = lr2.predict(test_scaled2)
+
+        # Hard voting between the two predictions
+        from scipy import stats
+
+        predictions_stack = np.column_stack([pred1, pred2])
+        manual_hard_vote = stats.mode(predictions_stack, axis=1)[0].flatten()
+
+        assert len(pipeline_result) == 1
+        assert np.array_equal(pipeline_result[0], manual_hard_vote)
+
+    def test_merge_with_predict_proba(self):
+        """Test merge with probability predictions"""
+        p = Pipeline()
+        p.preprocess("scale", StandardScaler())
+
+        p.branch(
+            "models",
+            p.model(
+                "lr",
+                LogisticRegression(random_state=42, max_iter=1000),
+                branch=True,
+            ),
+            p.model(
+                "rf",
+                RandomForestClassifier(n_estimators=10, random_state=42),
+                branch=True,
+            ),
+        )
+
+        p.predict("predict", self.test_data, predict_proba=True)
+        p.merge("merge_node", "hard_voting")
+
+        pipeline_result, _ = p(self.X, self.y)
+
+        # Manual calculation with probabilities
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(self.X)
+        test_scaled = scaler.transform(self.test_data)
+
+        lr = LogisticRegression(random_state=42, max_iter=1000)
+        rf = RandomForestClassifier(n_estimators=10, random_state=42)
+
+        lr.fit(X_scaled, self.y)
+        rf.fit(X_scaled, self.y)
+
+        # Get class predictions (not probabilities) for hard voting
+        lr_pred = lr.predict(test_scaled)
+        rf_pred = rf.predict(test_scaled)
+
+        from scipy import stats
+
+        predictions_stack = np.column_stack([lr_pred, rf_pred])
+        manual_hard_vote = stats.mode(predictions_stack, axis=1)[0].flatten()
+
+        assert len(pipeline_result) == 1
+        assert np.array_equal(pipeline_result[0], manual_hard_vote)
+
+    def test_merge_single_model(self):
+        """Test merge behavior with only one model (edge case)"""
+        p = Pipeline()
+        p.preprocess("scale", StandardScaler())
+        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
+        p.predict("predict", self.test_data)
+        p.merge("merge_node", "hard_voting")
+
+        pipeline_result, _ = p(self.X, self.y)
+
+        # Manual calculation
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(self.X)
+        test_scaled = scaler.transform(self.test_data)
+
+        lr = LogisticRegression(random_state=42, max_iter=1000)
+        lr.fit(X_scaled, self.y)
+        manual_pred = lr.predict(test_scaled)
+
+        # With single model, merge should return the same prediction
+        assert len(pipeline_result) == 1
+        assert np.array_equal(pipeline_result[0], manual_pred)
+
+    def test_executed_graph_with_merge(self):
+        """Test that executed graph works correctly with merge nodes"""
+        p = Pipeline()
+        p.preprocess("scale", StandardScaler())
+
+        p.branch(
+            "models",
+            p.model(
+                "lr",
+                LogisticRegression(random_state=42, max_iter=1000),
+                branch=True,
+            ),
+            p.model(
+                "rf",
+                RandomForestClassifier(n_estimators=10, random_state=42),
+                branch=True,
+            ),
+        )
+
+        p.predict("predict", self.test_data)
+        p.merge("merge_node", "hard_voting")
+
+        # First execution
+        pipeline_result, executed_graph = p(self.X, self.y)
+
+        # Second execution using executed graph
+        executed_result = executed_graph(self.test_data)
+
+        # Results should be identical
+        assert len(pipeline_result) == 1
+        assert len(executed_result) == 1
+        assert np.array_equal(pipeline_result[0], executed_result[0])
+
+        # Test with new data
+        new_test_data = self.test_data[:10]  # Smaller subset
+        new_executed_result = executed_graph(new_test_data)
+
+        # Manual verification with new data
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(self.X)
+        new_test_scaled = scaler.transform(new_test_data)
+
+        lr = LogisticRegression(random_state=42, max_iter=1000)
+        rf = RandomForestClassifier(n_estimators=10, random_state=42)
+
+        lr.fit(X_scaled, self.y)
+        rf.fit(X_scaled, self.y)
+
+        lr_pred = lr.predict(new_test_scaled)
+        rf_pred = rf.predict(new_test_scaled)
+
+        from scipy import stats
+
+        predictions_stack = np.column_stack([lr_pred, rf_pred])
+        manual_hard_vote = stats.mode(predictions_stack, axis=1)[0].flatten()
+
+        assert np.array_equal(new_executed_result[0], manual_hard_vote)

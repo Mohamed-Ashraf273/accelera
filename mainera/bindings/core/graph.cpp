@@ -44,9 +44,6 @@ PYBIND11_MODULE(graph, m) {
            py::arg("best_path") = false,
            "Execute graph with inputs and return predictions")
 
-      .def("mergeBranches", &Graph::mergeBranches, py::arg("merge_name"),
-           py::arg("merge_func"), "Merge all branches back to sequential mode")
-
       .def("enableParallelExecution", &Graph::enableParallelExecution,
            py::arg("enable") = true, "Enable or disable parallel execution")
 

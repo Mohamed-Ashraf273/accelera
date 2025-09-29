@@ -32,4 +32,9 @@ Node::Ptr NodeFactory::createNode(NodeType type, const std::string &name,
   }
 }
 
+Node::Ptr NodeFactory::createNodeCopy(Node::Ptr node, int i) {
+  std::string copyName = node->name + "_copy_" + std::to_string(i);
+  return NodeFactory::createNode(node->type, copyName, node->py_func);
+}
+
 } // namespace mainera

@@ -25,7 +25,6 @@ namespace mainera {
 
 ModelNode::ModelNode(const std::string &name, py::object py_func)
     : Node(NodeType::MODEL, name, py_func) {
-  // Validate that this is a model object with fit method
   if (!py::hasattr(py_func, "fit")) {
     throw std::runtime_error("Model node '" + name +
                              "' must have a 'fit' method");
@@ -67,12 +66,12 @@ void ModelNode::execute() {
     py::object X = data->getX();
     py::object y = data->getY();
 
-    if (X.is_none() || y.is_none()) {
+    if (X.is_none()) {
       throw std::runtime_error("Model node '" + name +
-                               "' received None inputs (X or y)");
+                               "' received None inputs (X)");
     }
 
-    if (!py::hasattr(X, "shape") || !py::hasattr(y, "shape")) {
+    if (!py::hasattr(X, "shape") || !(y.is_none() || py::hasattr(y, "shape"))) {
       throw std::runtime_error("Model node '" + name +
                                "' inputs must be array-like objects");
     }
@@ -102,6 +101,7 @@ void ModelNode::execute() {
       }
       setData(model_instance);
       joblib.attr("dump")(model_instance, model_path);
+
     }
   } catch (const py::error_already_set &e) {
     throw std::runtime_error("ModelNode: Python error during execution: " +

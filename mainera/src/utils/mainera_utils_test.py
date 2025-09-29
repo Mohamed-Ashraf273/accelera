@@ -61,7 +61,6 @@ def test_print_msg(
     ],
 )
 def test_get_metric_object(metric_name, expected_result, mock_metrics_attr):
-    """Test get_metric_object function with various metric names."""
     with patch("mainera.src.utils.mainera_utils.metrics") as mock_metrics:
         if mock_metrics_attr:
             setattr(mock_metrics, metric_name, mock_metrics_attr)
