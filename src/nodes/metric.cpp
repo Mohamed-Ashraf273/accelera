@@ -16,12 +16,6 @@ void MetricNode::setMetricFlag(bool flag) { m_enable = flag; }
 
 bool MetricNode::getMetricFlag() { return m_enable; }
 
-void MetricNode::setInjectedYTrue(py::object y_true) {
-  m_injected_y_true = y_true;
-}
-
-py::object MetricNode::getInjectedYTrue() const { return m_injected_y_true; }
-
 void MetricNode::execute() {
 
   try {
@@ -39,17 +33,7 @@ void MetricNode::execute() {
       return;
     }
 
-    py::object y_true;
-    py::object metric_obj;
-    // if (!getGraph()->getIsExecuted()) {
-    //   y_true = py_func["y_true"];
-
-    // } else {
-    //   y_true = m_injected_y_true;
-    // }
-    metric_obj = py_func["func"];
-
-    py::object output = metric_obj.attr("execute")(*y_pred);
+    py::object output = py_func.attr("execute")(*y_pred);
 
     std::shared_ptr<py::object> output_ptr =
         std::make_shared<py::object>(output);

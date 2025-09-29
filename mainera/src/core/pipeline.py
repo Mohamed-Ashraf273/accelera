@@ -68,14 +68,11 @@ class Pipeline:
                     f"Metric '{metric_name}' is incompatible with "
                     "the supervised or unsupervised metric structure."
                 )
-            metric_params = {
-                "func": metric_obj,
-            }
 
             if branch:
-                return NodeWrapper("metric", name, metric_params)
+                return NodeWrapper("metric", name, metric_obj)
 
-            self.__graph.add_node(graph.NodeType.METRIC, name, metric_params)
+            self.__graph.add_node(graph.NodeType.METRIC, name, metric_obj)
             return self
         else:
             raise ValueError(f"Metric '{metric_name}' is not recognized.")

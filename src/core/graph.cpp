@@ -640,7 +640,7 @@ void Graph::enableDisableMetrics(py::object y_true, py::object enable) {
       if (metric_node) {
         metric_node->setMetricFlag(enable_metrics);
         if (enable_metrics && !y_true.is_none()) {
-          metric_node->setInjectedYTrue(y_true);
+          metric_node->py_func.attr("set_y_true")(y_true);
         } else {
           metric_node->setData(std::make_shared<py::object>(py::none()));
         }
