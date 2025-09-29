@@ -11,6 +11,7 @@ from sklearn.preprocessing import StandardScaler
 
 from mainera.src.core.pipeline import Pipeline
 from mainera.src.custom.classifier import CustomClassifier
+from mainera.src.custom.custom_class import CustomModel
 
 
 class TestPipelineCorrectness:
@@ -270,39 +271,39 @@ class TestPipelineCorrectness:
                 self.y_test,
             )
 
+    class CustomModel(CustomClassifier):
+        def __init__(self, random_state=42):
+            self.random_state = random_state
+            self.centroids_ = None
+            self.classes_ = None
+
+        def fit(self, X, y):
+            np.random.seed(self.random_state)
+            self.classes_ = np.unique(y)
+
+            self.centroids_ = []
+            for class_label in self.classes_:
+                class_points = X[y == class_label]
+                centroid = np.mean(class_points, axis=0)
+                self.centroids_.append(centroid)
+
+            self.centroids_ = np.array(self.centroids_)
+            return self
+
+        def predict(self, X):
+            predictions = []
+            for sample in X:
+                distances = []
+                for centroid in self.centroids_:
+                    distance = np.sqrt(np.sum((sample - centroid) ** 2))
+                    distances.append(distance)
+
+                predicted_class = self.classes_[np.argmin(distances)]
+                predictions.append(predicted_class)
+
+            return np.array(predictions)
+
     def test_custom_model_integration(self):
-        class CustomModel(CustomClassifier):
-            def __init__(self, random_state=42):
-                self.random_state = random_state
-                self.centroids_ = None
-                self.classes_ = None
-
-            def fit(self, X, y):
-                np.random.seed(self.random_state)
-                self.classes_ = np.unique(y)
-
-                self.centroids_ = []
-                for class_label in self.classes_:
-                    class_points = X[y == class_label]
-                    centroid = np.mean(class_points, axis=0)
-                    self.centroids_.append(centroid)
-
-                self.centroids_ = np.array(self.centroids_)
-                return self
-
-            def predict(self, X):
-                predictions = []
-                for sample in X:
-                    distances = []
-                    for centroid in self.centroids_:
-                        distance = np.sqrt(np.sum((sample - centroid) ** 2))
-                        distances.append(distance)
-
-                    predicted_class = self.classes_[np.argmin(distances)]
-                    predictions.append(predicted_class)
-
-                return np.array(predictions)
-
         p = Pipeline()
         p.preprocess("scale", lambda x: x / 10.0)
         p.model("custom_rf", CustomModel(random_state=42))

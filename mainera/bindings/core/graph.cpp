@@ -1,9 +1,11 @@
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
 #include "core/graph.hpp"
+
 #include "core/node.hpp"
 #include "core/node_factory.hpp"
 #include "utils/graph_utils.hpp"
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
 
 namespace py = pybind11;
 using namespace mainera;
