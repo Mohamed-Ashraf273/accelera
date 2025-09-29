@@ -21,7 +21,6 @@ PreprocessNode::getInputData(std::shared_ptr<Node> input) {
     }
     return {input_node->getX(), input_node->getY()};
   } else {
-    // FIX: Use getData() and dereference the pointer
     std::shared_ptr<py::object> data_ptr = input->getData();
     if (!data_ptr || data_ptr->is_none()) {
       throw std::runtime_error("Input node data is None");
