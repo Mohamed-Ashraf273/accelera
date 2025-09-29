@@ -85,12 +85,16 @@ void ModelNode::execute() {
     py::object hash_obj =
         joblib.attr("hash")(py::make_tuple(model_instance, X, y));
     std::string hash_value = hash_obj.cast<std::string>();
-    std::string currentPath = fs::current_path().string();
-    fs::create_directory(currentPath + "\\cache");
-    std::string model_path = currentPath + "\\cache\\" + hash_value + ".pkl";
+    fs::path currentPath = fs::current_path();
+    fs::path cacheDir = currentPath / "cache";
+    fs::create_directory(cacheDir);
 
-    if (fs::exists(model_path)) {
-      py::object fitted = joblib.attr("load")(model_path);
+    fs::path model_path = cacheDir / (hash_value + ".pkl");
+
+    std::string modelPathStr = model_path.string();
+
+    if (fs::exists(modelPathStr)) {
+      py::object fitted = joblib.attr("load")(modelPathStr);
       setData(fitted);
     } else {
       try {
@@ -100,8 +104,7 @@ void ModelNode::execute() {
                                  std::string(e.what()));
       }
       setData(model_instance);
-      joblib.attr("dump")(model_instance, model_path);
-
+      joblib.attr("dump")(model_instance, modelPathStr);
     }
   } catch (const py::error_already_set &e) {
     throw std::runtime_error("ModelNode: Python error during execution: " +
