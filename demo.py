@@ -32,7 +32,9 @@ class TorchDenseModel(CustomClassifier):
 
         self.model = None
         print("cuda" if torch.cuda.is_available() else "cpu")
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu"
+        )
 
     def _build_model(self, input_dim, num_classes):
         return nn.Sequential(
@@ -49,7 +51,9 @@ class TorchDenseModel(CustomClassifier):
         num_classes = len(np.unique(y))
 
         if self.model is None:
-            self.model = self._build_model(n_features, num_classes).to(self.device)
+            self.model = self._build_model(n_features, num_classes).to(
+                self.device
+            )
 
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
@@ -101,7 +105,9 @@ def get_memory_info():
         "rss_mb": memory_info.rss / 1024 / 1024,  # Resident Set Size
         "vms_mb": memory_info.vms / 1024 / 1024,  # Virtual Memory Size
         "swap_mb": (
-            memory_full.swap / 1024 / 1024 if hasattr(memory_full, "swap") else 0
+            memory_full.swap / 1024 / 1024
+            if hasattr(memory_full, "swap")
+            else 0
         ),
     }
 
@@ -204,7 +210,7 @@ p.branch(
 
 p.predict("predict", test_data, output_func="predict_proba", positive_class=1)
 
-# p.merge("merge_node", "hard_voting")
+p.merge("merge_node", "hard_voting")
 p.metric("accuracy", "roc_auc_score", y_true=y_test)
 
 p.serialize("test.xml")

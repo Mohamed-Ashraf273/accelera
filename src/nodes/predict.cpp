@@ -9,7 +9,7 @@
 #include "nodes/input.hpp"
 #include "nodes/model.hpp"
 #include "nodes/predict.hpp"
-#include<iostream>
+
 namespace py = pybind11;
 
 namespace mainera {
@@ -82,22 +82,23 @@ void PredictNode::execute() {
 
     py::object predictions;
     try {
-      py::object output_func =py_func["output_func"];
-      int positive_class =py::cast<int>(py_func["positive_class"]);
+      py::object output_func = py_func["output_func"];
+      int positive_class = py::cast<int>(py_func["positive_class"]);
       if (py::hasattr(fitted_model, output_func)) {
-          predictions = fitted_model.attr(output_func)(preprocessed_test_data);
-          if (output_func.equal(py::str("predict_proba")) && positive_class != -1) {
-            py::array proba_array = predictions.cast<py::array>();
-            if(positive_class <0 || positive_class >= proba_array.shape(1)){
-                throw std::runtime_error("PredictNode: positive_class index is out of bounds");
-            }
-            py::ssize_t n_rows = py::len(proba_array);
-            py::slice all_rows(0, n_rows, 1);
-            auto idx = py::make_tuple(all_rows, py::int_(positive_class));
-            predictions = proba_array.attr("__getitem__")(idx);
-        } 
-      }
-      else {
+        predictions = fitted_model.attr(output_func)(preprocessed_test_data);
+        if (output_func.equal(py::str("predict_proba")) &&
+            positive_class != -1) {
+          py::array proba_array = predictions.cast<py::array>();
+          if (positive_class < 0 || positive_class >= proba_array.shape(1)) {
+            throw std::runtime_error(
+                "PredictNode: positive_class index is out of bounds");
+          }
+          py::ssize_t n_rows = py::len(proba_array);
+          py::slice all_rows(0, n_rows, 1);
+          auto idx = py::make_tuple(all_rows, py::int_(positive_class));
+          predictions = proba_array.attr("__getitem__")(idx);
+        }
+      } else {
         throw std::runtime_error(
             "PredictNode: The model does not have the method '" +
             std::string(py::str(output_func)) + "' as function for prediction");

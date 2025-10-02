@@ -295,6 +295,10 @@
 					<dim>-1</dim>
 					<dim>-1</dim>
 				</port>
+				<port id="1" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
 			</output>
 		</layer>
 		<layer id="18" name="predict_copy_1" type="PREDICT" version="opset1">
@@ -417,79 +421,54 @@
 				</port>
 			</output>
 		</layer>
-		<layer id="26" name="accuracy" type="METRIC" version="opset1">
+		<layer id="26" name="merge_node" type="MERGE" version="opset1">
 			<data/>
 			<input>
 				<port id="0" precision="FP32">
 					<dim>-1</dim>
 					<dim>-1</dim>
 				</port>
-			</input>
-		</layer>
-		<layer id="27" name="accuracy_copy_1" type="METRIC" version="opset1">
-			<data/>
-			<input>
-				<port id="0" precision="FP32">
+				<port id="1" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+				<port id="2" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+				<port id="3" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+				<port id="4" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+				<port id="5" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+				<port id="6" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+				<port id="7" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+				<port id="8" precision="FP32">
 					<dim>-1</dim>
 					<dim>-1</dim>
 				</port>
 			</input>
-		</layer>
-		<layer id="28" name="accuracy_copy_2" type="METRIC" version="opset1">
-			<data/>
-			<input>
+			<output>
 				<port id="0" precision="FP32">
 					<dim>-1</dim>
 					<dim>-1</dim>
 				</port>
-			</input>
+			</output>
 		</layer>
-		<layer id="29" name="accuracy_copy_3" type="METRIC" version="opset1">
-			<data/>
-			<input>
-				<port id="0" precision="FP32">
-					<dim>-1</dim>
-					<dim>-1</dim>
-				</port>
-			</input>
-		</layer>
-		<layer id="30" name="accuracy_copy_4" type="METRIC" version="opset1">
-			<data/>
-			<input>
-				<port id="0" precision="FP32">
-					<dim>-1</dim>
-					<dim>-1</dim>
-				</port>
-			</input>
-		</layer>
-		<layer id="31" name="accuracy_copy_5" type="METRIC" version="opset1">
-			<data/>
-			<input>
-				<port id="0" precision="FP32">
-					<dim>-1</dim>
-					<dim>-1</dim>
-				</port>
-			</input>
-		</layer>
-		<layer id="32" name="accuracy_copy_6" type="METRIC" version="opset1">
-			<data/>
-			<input>
-				<port id="0" precision="FP32">
-					<dim>-1</dim>
-					<dim>-1</dim>
-				</port>
-			</input>
-		</layer>
-		<layer id="33" name="accuracy_copy_7" type="METRIC" version="opset1">
-			<data/>
-			<input>
-				<port id="0" precision="FP32">
-					<dim>-1</dim>
-					<dim>-1</dim>
-				</port>
-			</input>
-		</layer>
-		<layer id="34" name="accuracy_copy_8" type="METRIC" version="opset1">
+		<layer id="27" name="accuracy" type="METRIC" version="opset1">
 			<data/>
 			<input>
 				<port id="0" precision="FP32">
@@ -526,13 +505,14 @@
 		<edge from-layer="15" from-port="0" to-layer="24" to-port="0"/>
 		<edge from-layer="16" from-port="0" to-layer="25" to-port="0"/>
 		<edge from-layer="17" from-port="0" to-layer="26" to-port="0"/>
-		<edge from-layer="18" from-port="0" to-layer="27" to-port="0"/>
-		<edge from-layer="19" from-port="0" to-layer="28" to-port="0"/>
-		<edge from-layer="20" from-port="0" to-layer="29" to-port="0"/>
-		<edge from-layer="21" from-port="0" to-layer="30" to-port="0"/>
-		<edge from-layer="22" from-port="0" to-layer="31" to-port="0"/>
-		<edge from-layer="23" from-port="0" to-layer="32" to-port="0"/>
-		<edge from-layer="24" from-port="0" to-layer="33" to-port="0"/>
-		<edge from-layer="25" from-port="0" to-layer="34" to-port="0"/>
+		<edge from-layer="18" from-port="0" to-layer="26" to-port="1"/>
+		<edge from-layer="19" from-port="0" to-layer="26" to-port="2"/>
+		<edge from-layer="20" from-port="0" to-layer="26" to-port="3"/>
+		<edge from-layer="21" from-port="0" to-layer="26" to-port="4"/>
+		<edge from-layer="22" from-port="0" to-layer="26" to-port="5"/>
+		<edge from-layer="23" from-port="0" to-layer="26" to-port="6"/>
+		<edge from-layer="24" from-port="0" to-layer="26" to-port="7"/>
+		<edge from-layer="25" from-port="0" to-layer="26" to-port="8"/>
+		<edge from-layer="26" from-port="0" to-layer="27" to-port="0"/>
 	</edges>
 </net>

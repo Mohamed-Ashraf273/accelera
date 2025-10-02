@@ -2,8 +2,6 @@
 #include <filesystem>
 #include <pybind11/embed.h>
 #include <pybind11/functional.h>
-#include <pybind11/numpy.h>
-#include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 #include "core/graph.hpp"
@@ -60,12 +58,11 @@ py::object ModelNode::fitModel(py::object X, py::object y) {
       py::module::import("copy").attr("deepcopy")(py_func);
 
   py::module_ joblib = py::module_::import("joblib");
-  py::module_ np = py::module_::import("numpy");
   py::object hash_obj =
       joblib.attr("hash")(py::make_tuple(model_instance, X, y));
   std::string hash_value = hash_obj.cast<std::string>();
   fs::path currentPath = fs::current_path();
-  fs::path cacheDir = currentPath / "cache";
+  fs::path cacheDir = currentPath / ".mainera_cache";
   fs::create_directory(cacheDir);
 
   fs::path model_path = cacheDir / (hash_value + ".pkl");

@@ -59,7 +59,9 @@ class TestCustomModelIntegration:
         manual_result = manual_model.predict(test_scaled)
 
         pipeline_pred = (
-            pipeline_result[0] if isinstance(pipeline_result, list) else pipeline_result
+            pipeline_result[0]
+            if isinstance(pipeline_result, list)
+            else pipeline_result
         )
 
         assert pipeline_pred.shape == manual_result.shape, (

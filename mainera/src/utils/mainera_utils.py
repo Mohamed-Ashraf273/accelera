@@ -4,14 +4,17 @@ import sys
 
 import sklearn.metrics as metrics
 
-from mainera.src.wrappers.metric_wrapper import SupervisedMetricWrapper
-from mainera.src.wrappers.metric_wrapper import UnSupervisedMetricWrapper
+from mainera.src.wrappers.supervised_metric_wrapper import (
+    SupervisedMetricWrapper,
+)
+from mainera.src.wrappers.unsupervised_metric_wrapper import (
+    UnSupervisedMetricWrapper,
+)
 
 interactive = True
 
 
 def print_msg(message, line_break=True, level="info"):
-    """Print an mAInera message to stdout or logging."""
     global interactive
     if interactive:
         if line_break:
@@ -39,13 +42,18 @@ def get_metric_object(
     return metric_func
 
 
-def get_correct_metric_class(metric_name, metric, y_true=None, X=None, **params):
+def get_correct_metric_class(
+    metric_name, metric, y_true=None, X=None, **params
+):
     signature = inspect.signature(metric)
     parameters = list(signature.parameters.keys())
     print(parameters)
-    has_true_labels = any(param in parameters for param in ["y_true", "labels_true"])
+    has_true_labels = any(
+        param in parameters for param in ["y_true", "labels_true"]
+    )
     has_predictions = any(
-        param in parameters for param in ["y_pred", "y_score", "y_proba", "labels_pred"]
+        param in parameters
+        for param in ["y_pred", "y_score", "y_proba", "labels_pred"]
     )
     supervised = has_true_labels and has_predictions
     unsupervised = "X" in parameters and "labels" in parameters

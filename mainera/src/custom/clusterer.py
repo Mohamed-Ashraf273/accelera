@@ -7,7 +7,11 @@ class CustomClusterer(BaseEstimator, ClusterMixin):
         raise NotImplementedError("CustomClusterer.fit is not implemented yet.")
 
     def predict(self, X):
-        raise NotImplementedError("CustomClusterer.predict is not implemented yet.")
+        raise NotImplementedError(
+            "CustomClusterer.predict is not implemented yet."
+        )
 
     def fit_predict(self, X, y=None):
-        raise NotImplementedError("CustomClusterer.fit_predict is not implemented yet.")
+        raise NotImplementedError(
+            "CustomClusterer.fit_predict is not implemented yet."
+        )

@@ -38,7 +38,12 @@ class Pipeline:
         return self
 
     def predict(
-        self, name, test_data, output_func="predict", positive_class=-1, branch=False
+        self,
+        name,
+        test_data,
+        output_func="predict",
+        positive_class=-1,
+        branch=False,
     ):
         predict_params = {
             "test_data": test_data,
