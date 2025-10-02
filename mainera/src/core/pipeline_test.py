@@ -127,7 +127,9 @@ class TestPipelineCorrectness:
         "parallel", [False, True], ids=["no_parallel", "parallel"]
     )
     @pytest.mark.parametrize(
-        "use_predict_proba", [False, True], ids=["predict", "predict_proba"]
+        "use_predict_proba",
+        ["predict", "predict_proba"],
+        ids=["predict", "predict_proba"],
     )
     def test_model_prediction_correctness(self, parallel, use_predict_proba):
         p = Pipeline()
@@ -170,7 +172,7 @@ class TestPipelineCorrectness:
             ),
         )
 
-        p.predict("predict", self.test_data, predict_proba=use_predict_proba)
+        p.predict("predict", self.test_data, output_func=use_predict_proba)
         pipeline_result, _ = p(self.X, self.y)
 
         assert len(pipeline_result) == 9
@@ -205,7 +207,7 @@ class TestPipelineCorrectness:
                 model_clone = clone(model)
                 model_clone.fit(X_processed, self.y)
 
-                if use_predict_proba:
+                if use_predict_proba == "predict_proba":
                     manual_result = model_clone.predict_proba(test_processed)
                 else:
                     manual_result = model_clone.predict(test_processed)
@@ -213,18 +215,37 @@ class TestPipelineCorrectness:
                 pipeline_idx = preproc_idx * 3 + model_idx
                 pipeline_pred = pipeline_result[pipeline_idx]
 
-                if use_predict_proba:
+                if use_predict_proba == "predict_proba":
                     assert np.allclose(
                         pipeline_pred, manual_result, rtol=1e-5, atol=1e-8
                     )
                 else:
                     assert np.array_equal(pipeline_pred, manual_result)
 
+    def test_prediction_output_fun(self):
+        p = Pipeline()
+        p.preprocess("scale", StandardScaler())
+        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
+        p.predict(
+            "pred",
+            self.test_data,
+            output_func="predict_proba",
+            positive_class=1,
+        )
+        pipeline_result, _ = p(self.X, self.y)
+
+        X_scaled = self.scaler.fit_transform(self.X)
+        test_scaled = self.scaler.transform(self.test_data)
+        manual_model = LogisticRegression(random_state=42, max_iter=1000)
+        manual_model.fit(X_scaled, self.y)
+        manual_result = manual_model.predict_proba(test_scaled)[:, 1]
+        assert np.allclose(pipeline_result, manual_result, rtol=1e-5, atol=1e-8)
+
     def test_metric_node(self):
         p = Pipeline()
         p.preprocess("scale", lambda x: x * 2.0)
         p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
-        p.predict("pred", self.test_data)
+        p.predict("pred", self.test_data, output_func="predict")
         p.metric(
             "accuracy",
             "accuracy_score",
@@ -245,7 +266,7 @@ class TestPipelineCorrectness:
         p = Pipeline()
         p.preprocess("scale", lambda x: x * 2.0)
         p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
-        p.predict("pred", self.test_data)
+        p.predict("pred", self.test_data, output_func="predict")
         with pytest.raises(
             ValueError, match="Metric 'accuracy' is not recognized."
         ):
@@ -334,7 +355,7 @@ class TestPipelineCorrectness:
                 branch=True,
             ),
         )
-        p.predict("predict", self.test_data)
+        p.predict("predict", self.test_data, output_func="predict")
         pipeline_result, _ = p(self.X, self.y)
 
         def p1(x):
@@ -359,7 +380,7 @@ class TestPipelineCorrectness:
         p = Pipeline()
         p.preprocess("scale", lambda x: x / 10.0)
         p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
-        p.predict("pred", self.test_data)
+        p.predict("pred", self.test_data, output_func="predict")
         p.metric("accuracy", "accuracy_score", y_true=self.y_test)
         pipeline_result, executed_graph = p(self.X, self.y)
         executed_graph_result = executed_graph(self.test_data)[0]
@@ -397,7 +418,7 @@ class TestPipelineCorrectness:
             ),
         )
 
-        p.predict("predict", self.test_data)
+        p.predict("predict", self.test_data, output_func="predict")
         p.merge("merge_node", "hard_voting")
 
         pipeline_result, _ = p(self.X, self.y)
@@ -441,7 +462,7 @@ class TestPipelineCorrectness:
 
         # Single model applied to each preprocessing branch
         p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
-        p.predict("predict", self.test_data)
+        p.predict("predict", self.test_data, output_func="predict")
         p.merge("merge_node", "hard_voting")
 
         pipeline_result, _ = p(self.X, self.y)
@@ -491,7 +512,7 @@ class TestPipelineCorrectness:
             ),
         )
 
-        p.predict("predict", self.test_data, predict_proba=True)
+        p.predict("predict", self.test_data, output_func="predict_proba")
         p.merge("merge_node", "hard_voting")
 
         pipeline_result, _ = p(self.X, self.y)
@@ -524,7 +545,7 @@ class TestPipelineCorrectness:
         p = Pipeline()
         p.preprocess("scale", StandardScaler())
         p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
-        p.predict("predict", self.test_data)
+        p.predict("predict", self.test_data, output_func="predict")
         p.merge("merge_node", "hard_voting")
 
         pipeline_result, _ = p(self.X, self.y)
@@ -561,7 +582,7 @@ class TestPipelineCorrectness:
             ),
         )
 
-        p.predict("predict", self.test_data)
+        p.predict("predict", self.test_data, output_func="predict")
         p.merge("merge_node", "hard_voting")
 
         # First execution
