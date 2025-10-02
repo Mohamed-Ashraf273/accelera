@@ -53,14 +53,13 @@ class SupervisedMetricWrapper(BaseMetricWrapper):
         metric_name,
         metric,
         y_true=None,
-        X=None,
         **params,
     ):
         super().__init__(
             metric_name,
             metric,
             y_true=y_true,
-            X=X,
+            X=None,
             **params,
         )
         self.__need_1d_probability = [
@@ -98,14 +97,13 @@ class UnSupervisedMetricWrapper(BaseMetricWrapper):
         self,
         metric_name,
         metric,
-        y_true=None,
         X=None,
         **params,
     ):
         super().__init__(
             metric_name,
             metric,
-            y_true=y_true,
+            y_true=None,
             X=X,
             **params,
         )

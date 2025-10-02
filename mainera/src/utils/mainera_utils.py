@@ -32,14 +32,13 @@ def print_msg(message, line_break=True, level="info"):
 
 def get_metric_object(
     metric_name: str,
-):  # TODO (4): add tests for this in mainera_utils_test
+):
     if metric_name == "":
         return None
     metric_func = getattr(metrics, metric_name, None)
     return metric_func
 
 
-# TODO (5): add tests for this in mainera_utils_test as well
 def get_correct_metric_class(
     metric_name, metric, y_true=None, X=None, **params
 ):
@@ -56,10 +55,10 @@ def get_correct_metric_class(
     supervised = has_true_labels and has_predictions
     unsupervised = "X" in parameters and "labels" in parameters
     if supervised:
-        return SupervisedMetricWrapper(metric_name, metric, y_true, X, **params)
+        return SupervisedMetricWrapper(metric_name, metric, y_true, **params)
     elif unsupervised:
         return UnSupervisedMetricWrapper(
-            metric_name, metric, y_true, X, **params
+            metric_name, metric, X, **params
         )
     else:
         return None
