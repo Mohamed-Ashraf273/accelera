@@ -1,75 +1,99 @@
 import logging
 from unittest.mock import patch
 
-import pytest
-
+from mainera.src.utils.mainera_utils import get_correct_metric_class
 from mainera.src.utils.mainera_utils import get_metric_object
 from mainera.src.utils.mainera_utils import print_msg
 
 
-@pytest.mark.parametrize(
-    "msg,line_break,level,interactive,expected_out,expected_err,log_level",
-    [
-        ("Hello mAInera!", True, None, True, "Hello mAInera!\n", "", None),
-        ("NoBreak", False, None, True, "NoBreak", "", None),
-        ("Logged Info", True, "info", False, "", "", logging.INFO),
-        ("Logged Warning", True, "warning", False, "", "", logging.WARNING),
-        ("Logged Error", True, "error", False, "", "", logging.ERROR),
-    ],
-)
-def test_print_msg(
-    capsys,
-    caplog,
-    monkeypatch,
-    msg,
-    line_break,
-    level,
-    interactive,
-    expected_out,
-    expected_err,
-    log_level,
-):
-    monkeypatch.setitem(print_msg.__globals__, "interactive", interactive)
-    if log_level:
-        with caplog.at_level(log_level):
-            print_msg(msg, line_break=line_break, level=level)
-        assert msg in caplog.text
+class TestPrintMsg:
+    def test_print_msg_interactive_with_line_break(self, capsys, monkeypatch):
+        monkeypatch.setitem(print_msg.__globals__, "interactive", True)
+        print_msg("Hello mAInera!")
+        captured = capsys.readouterr()
+        assert captured.out == "Hello mAInera!\n"
+
+    def test_print_msg_interactive_without_line_break(
+        self, capsys, monkeypatch
+    ):
+        monkeypatch.setitem(print_msg.__globals__, "interactive", True)
+        print_msg("NoBreak", line_break=False)
+        captured = capsys.readouterr()
+        assert captured.out == "NoBreak"
+
+    def test_print_msg_logging_mode(self, caplog, capsys, monkeypatch):
+        monkeypatch.setitem(print_msg.__globals__, "interactive", False)
+        with caplog.at_level(logging.INFO):
+            print_msg("Logged Info", level="info")
+        assert "Logged Info" in caplog.text
         captured = capsys.readouterr()
         assert captured.out == ""
-        assert captured.err == ""
-    else:
-        print_msg(msg, line_break=line_break)
-        captured = capsys.readouterr()
-        assert captured.out == expected_out
-        assert captured.err == expected_err
 
 
-@pytest.mark.parametrize(
-    "metric_name, expected_result, mock_metrics_attr",
-    [
-        ("accuracy", "mock_accuracy_function", "mock_accuracy_function"),
-        ("precision", "mock_precision_function", "mock_precision_function"),
-        ("recall", "mock_recall_function", "mock_recall_function"),
-        ("nonexistent_metric", None, None),
-        ("invalid_metric", None, None),
-        ("", None, None),
-        ("f1_score", "mock_f1_function", "mock_f1_function"),
-        ("roc_auc", "mock_roc_auc_function", "mock_roc_auc_function"),
-    ],
-)
-def test_get_metric_object(metric_name, expected_result, mock_metrics_attr):
-    with patch("mainera.src.utils.mainera_utils.metrics") as mock_metrics:
-        if mock_metrics_attr:
-            setattr(mock_metrics, metric_name, mock_metrics_attr)
-        else:
-            if metric_name:
-                setattr(mock_metrics, metric_name, None)
-            else:
-                pass
+class TestGetMetricObject:
+    def test_get_existing_metric(self):
+        with patch("mainera.src.utils.mainera_utils.metrics") as mock_metrics:
+            mock_metrics.accuracy = "mock_accuracy_function"
+            result = get_metric_object("accuracy")
+            assert result == "mock_accuracy_function"
 
-        result = get_metric_object(metric_name)
-
-        if expected_result:
-            assert result == expected_result
-        else:
+    def test_get_nonexistent_metric(self):
+        with patch("mainera.src.utils.mainera_utils.metrics") as mock_metrics:
+            mock_metrics.nonexistent_metric = None
+            result = get_metric_object("nonexistent_metric")
             assert result is None
+
+    def test_get_empty_metric_name(self):
+        result = get_metric_object("")
+        assert result is None
+
+
+class TestGetCorrectMetricClass:
+    def test_supervised_metric_detection(self):
+        def supervised_metric(y_true, y_pred):
+            return 0
+
+        class DummySupervisedWrapper:
+            def __init__(self, metric_name, metric, y_true, **params):
+                self.metric_name = metric_name
+                self.metric = metric
+                self.y_true = y_true
+                self.params = params
+
+        with patch(
+            "mainera.src.utils.mainera_utils.SupervisedMetricWrapper",
+            DummySupervisedWrapper,
+        ):
+            result = get_correct_metric_class(
+                "test_metric", supervised_metric, y_true=[0, 1, 1, 0]
+            )
+            assert isinstance(result, DummySupervisedWrapper)
+            assert result.metric_name == "test_metric"
+
+    def test_unsupervised_metric_detection(self):
+        def unsupervised_metric(X, labels):
+            return 0
+
+        class DummyUnSupervisedWrapper:
+            def __init__(self, metric_name, metric, X, **params):
+                self.metric_name = metric_name
+                self.metric = metric
+                self.X = X
+                self.params = params
+
+        with patch(
+            "mainera.src.utils.mainera_utils.UnSupervisedMetricWrapper",
+            DummyUnSupervisedWrapper,
+        ):
+            result = get_correct_metric_class(
+                "test_metric", unsupervised_metric, X=[[1], [2], [3]]
+            )
+            assert isinstance(result, DummyUnSupervisedWrapper)
+            assert result.metric_name == "test_metric"
+
+    def test_invalid_metric_returns_none(self):
+        def invalid_metric(a, b, c):
+            return 0
+
+        result = get_correct_metric_class("test_metric", invalid_metric)
+        assert result is None

@@ -4,14 +4,17 @@ import sys
 
 import sklearn.metrics as metrics
 
-from mainera.src.wrappers.metric_wrapper import SupervisedMetricWrapper
-from mainera.src.wrappers.metric_wrapper import UnSupervisedMetricWrapper
+from mainera.src.wrappers.supervised_metric_wrapper import (
+    SupervisedMetricWrapper,
+)
+from mainera.src.wrappers.unsupervised_metric_wrapper import (
+    UnSupervisedMetricWrapper,
+)
 
 interactive = True
 
 
 def print_msg(message, line_break=True, level="info"):
-    """Print an mAInera message to stdout or logging."""
     global interactive
     if interactive:
         if line_break:
@@ -32,14 +35,13 @@ def print_msg(message, line_break=True, level="info"):
 
 def get_metric_object(
     metric_name: str,
-):  # TODO (4): add tests for this in mainera_utils_test
+):
     if metric_name == "":
         return None
     metric_func = getattr(metrics, metric_name, None)
     return metric_func
 
 
-# TODO (5): add tests for this in mainera_utils_test as well
 def get_correct_metric_class(
     metric_name, metric, y_true=None, X=None, **params
 ):
@@ -56,10 +58,8 @@ def get_correct_metric_class(
     supervised = has_true_labels and has_predictions
     unsupervised = "X" in parameters and "labels" in parameters
     if supervised:
-        return SupervisedMetricWrapper(metric_name, metric, y_true, X, **params)
+        return SupervisedMetricWrapper(metric_name, metric, y_true, **params)
     elif unsupervised:
-        return UnSupervisedMetricWrapper(
-            metric_name, metric, y_true, X, **params
-        )
+        return UnSupervisedMetricWrapper(metric_name, metric, X, **params)
     else:
         return None
