@@ -1,7 +1,6 @@
+from mainera.src.utils.mainera_utils import get_correct_metric_class
 from mainera.src.utils.mainera_utils import get_metric_object
-from mainera.src.utils.mainera_utils import metric_validation
 from mainera.src.wrappers.executed_graph_wrapper import ExecutedGraphWrapper
-from mainera.src.wrappers.metric_wrapper import MetricWrapper
 from mainera.src.wrappers.node_wrapper import NodeWrapper
 
 try:
@@ -53,26 +52,27 @@ class Pipeline:
         self,
         name,
         metric_name,
-        y_true,
-        binary_proba=False,
+        y_true=None,
+        X=None,
         branch=False,
         **params,
     ):
         metric_func = get_metric_object(metric_name)
 
         if metric_func is not None:
-            metric_validation(metric_func, metric_name)
-            metric_obj = MetricWrapper(metric_func, binary_proba, **params)
-            metric_params = {
-                "func": metric_obj,
-                "metric_name": metric_name,
-                "y_true": y_true,
-            }
+            metric_obj = get_correct_metric_class(
+                metric_name, metric_func, y_true, X, **params
+            )
+            if metric_obj is None:
+                raise ValueError(
+                    f"Metric '{metric_name}' is incompatible with "
+                    "the supervised or unsupervised metric structure."
+                )
 
             if branch:
-                return NodeWrapper("metric", name, metric_params)
+                return NodeWrapper("metric", name, metric_obj)
 
-            self.__graph.add_node(graph.NodeType.METRIC, name, metric_params)
+            self.__graph.add_node(graph.NodeType.METRIC, name, metric_obj)
             return self
         else:
             raise ValueError(f"Metric '{metric_name}' is not recognized.")

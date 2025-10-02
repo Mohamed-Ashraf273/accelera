@@ -4,11 +4,17 @@ import sys
 
 import sklearn.metrics as metrics
 
+from mainera.src.wrappers.supervised_metric_wrapper import (
+    SupervisedMetricWrapper,
+)
+from mainera.src.wrappers.unsupervised_metric_wrapper import (
+    UnSupervisedMetricWrapper,
+)
+
 interactive = True
 
 
 def print_msg(message, line_break=True, level="info"):
-    """Print an mAInera message to stdout or logging."""
     global interactive
     if interactive:
         if line_break:
@@ -27,26 +33,33 @@ def print_msg(message, line_break=True, level="info"):
             logging.debug(message)
 
 
-def get_metric_object(metric_name: str):
+def get_metric_object(
+    metric_name: str,
+):
     if metric_name == "":
         return None
     metric_func = getattr(metrics, metric_name, None)
     return metric_func
 
 
-def metric_validation(metric_func, metric_name):
-    signature = inspect.signature(metric_func)
+def get_correct_metric_class(
+    metric_name, metric, y_true=None, X=None, **params
+):
+    signature = inspect.signature(metric)
     parameters = list(signature.parameters.keys())
-
-    # Check if it has y_true AND at least one of y_pred, y_score, or y_prob
-    has_y_true = "y_true" in parameters
-    has_pred_or_score = any(
-        param in parameters for param in ["y_pred", "y_score", "y_prob"]
+    print(parameters)
+    has_true_labels = any(
+        param in parameters for param in ["y_true", "labels_true"]
     )
-
-    if not (has_y_true and has_pred_or_score):
-        raise ValueError(
-            f"Metric '{metric_name}' "
-            "does not take (y_true, y_pred) or (y_true, y_score) "
-            "or (y_true, y_prob) as arguments."
-        )
+    has_predictions = any(
+        param in parameters
+        for param in ["y_pred", "y_score", "y_proba", "labels_pred"]
+    )
+    supervised = has_true_labels and has_predictions
+    unsupervised = "X" in parameters and "labels" in parameters
+    if supervised:
+        return SupervisedMetricWrapper(metric_name, metric, y_true, **params)
+    elif unsupervised:
+        return UnSupervisedMetricWrapper(metric_name, metric, X, **params)
+    else:
+        return None

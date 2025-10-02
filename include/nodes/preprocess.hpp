@@ -9,11 +9,13 @@ class MAINERA_API PreprocessNode : public Node {
 public:
   PreprocessNode(const std::string &name, py::object py_func);
   void execute() override;
-  void setData(std::shared_ptr<InputNode> input);
-  std::shared_ptr<InputNode> getData() const;
 
 private:
-  std::shared_ptr<InputNode> m_input;
+  std::tuple<py::object, py::object> getInputData(std::shared_ptr<Node> input);
+  void validateInputData(const py::object &X);
+  std::tuple<py::object, py::object> processData(py::object X, py::object y);
+  void storeResults(std::shared_ptr<Node> input, py::object processed_X,
+                    py::object processed_y);
 };
 
 } // namespace mainera

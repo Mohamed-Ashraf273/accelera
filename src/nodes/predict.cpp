@@ -26,7 +26,7 @@ void PredictNode::execute() {
                                "' requires a valid model node");
     }
 
-    py::object fitted_model = input->getData();
+    py::object fitted_model = *(input->getData());
 
     if (fitted_model.is_none() || !py::hasattr(fitted_model, "predict")) {
       throw std::runtime_error("Predict node '" + name +
@@ -50,7 +50,6 @@ void PredictNode::execute() {
       const auto preprocess_functions =
           getGraph()->getPreprocessingFunctions(shared_from_this());
 
-      // Apply each preprocessing function in order
       for (const auto &preprocess_func : preprocess_functions) {
         if (!preprocess_func.is_none()) {
           try {
@@ -84,8 +83,7 @@ void PredictNode::execute() {
     py::object predictions;
     try {
       py::object predict_proba = py_func["predict_proba"];
-      if (py::cast<bool>(predict_proba) &&
-          py::hasattr(fitted_model, "predict_proba")) {
+      if (py::cast<bool>(predict_proba)) {
         predictions =
             fitted_model.attr("predict_proba")(preprocessed_test_data);
       } else {
@@ -95,7 +93,8 @@ void PredictNode::execute() {
       throw std::runtime_error("Python error in prediction: " +
                                std::string(e.what()));
     }
-    setData(predictions);
+    auto predictions_ptr = std::make_shared<py::object>(predictions);
+    setData(predictions_ptr);
   } catch (const std::exception &e) {
     throw std::runtime_error("Error in PredictNode::execute(): " +
                              std::string(e.what()));

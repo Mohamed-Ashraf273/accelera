@@ -5,7 +5,6 @@ import psutil
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from sklearn.cluster import KMeans
 from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -201,7 +200,7 @@ p.branch(
         LogisticRegression(random_state=42, max_iter=1000),
         branch=True,
     ),
-    p.model("custom", KMeans(n_clusters=3), branch=True),
+    p.model("custom", TorchDenseModel(random_state=42), branch=True),
     p.model(
         "rf",
         RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10),
@@ -209,9 +208,11 @@ p.branch(
     ),
 )
 
-p.predict("predict", test_data)
-# p.merge("merge_node", "hard_voting")
-p.metric("accuracy", "roc_auc_score", y_test)
+p.predict("predict", test_data, predict_proba=False)
+
+p.merge("merge_node", "hard_voting")
+p.metric("accuracy", "accuracy_score", y_true=y_test)
+
 p.serialize("test.xml")
 start_mem = get_memory_info()
 start = time.time()

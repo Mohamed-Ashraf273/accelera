@@ -1,19 +1,27 @@
-class MetricWrapper:
-    def __init__(self, metric, binary_proba, **params):
+from abc import ABC
+from abc import abstractmethod
+
+from mainera.src.utils.array_utils import convert_to_array
+
+
+class BaseMetricWrapper(ABC):
+    def __init__(
+        self,
+        metric_name,
+        metric,
+        y_true=None,
+        X=None,
+        **params,
+    ):
         self.metric = metric
         self.params = params
-        self.binary_proba = binary_proba
+        self.metric_name = metric_name
+        self.y_true = convert_to_array(y_true)
+        self.X = convert_to_array(X)
 
-    def execute(self, y_true, y_pred):
-        y_pred = (
-            self.__handel_binary_proba(y_pred, y_true)
-            if self.binary_proba
-            else y_pred
-        )
-        return self.metric(y_true, y_pred, **self.params)
+    def set_y_true(self, new_y_true):
+        self.y_true = convert_to_array(new_y_true)
 
-    def __handel_binary_proba(self, y_pred, y_true):
-        if y_pred.ndim == 2 and y_pred.shape[1] == 2:
-            y_pred = y_pred[:, 1]
-            return y_pred
-        return y_pred
+    @abstractmethod
+    def execute(self, y_pred):
+        pass

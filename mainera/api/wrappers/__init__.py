@@ -10,3 +10,9 @@ from mainera.src.wrappers import (
 from mainera.src.wrappers import merge_wrapper as merge_wrapper
 from mainera.src.wrappers import metric_wrapper as metric_wrapper
 from mainera.src.wrappers import node_wrapper as node_wrapper
+from mainera.src.wrappers import (
+    supervised_metric_wrapper as supervised_metric_wrapper,
+)
+from mainera.src.wrappers import (
+    unsupervised_metric_wrapper as unsupervised_metric_wrapper,
+)

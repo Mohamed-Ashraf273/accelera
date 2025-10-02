@@ -16,12 +16,6 @@ void MetricNode::setMetricFlag(bool flag) { m_enable = flag; }
 
 bool MetricNode::getMetricFlag() { return m_enable; }
 
-void MetricNode::setInjectedYTrue(py::object y_true) {
-  m_injected_y_true = y_true;
-}
-
-py::object MetricNode::getInjectedYTrue() const { return m_injected_y_true; }
-
 void MetricNode::execute() {
 
   try {
@@ -32,28 +26,15 @@ void MetricNode::execute() {
                                "' requires a valid input");
     }
 
-    py::object y_pred = input->getData();
+    std::shared_ptr<py::object> y_pred = input->getData();
 
     if (!m_enable) {
       setData(y_pred);
       return;
     }
 
-    py::object y_true;
-    py::object metric_obj;
-    py::object metric_name;
-    if (!getGraph()->getIsExecuted()) {
-      y_true = py_func["y_true"];
-
-    } else {
-      y_true = m_injected_y_true;
-    }
-    metric_obj = py_func["func"];
-    metric_name = py_func["metric_name"];
-
-    py::dict output;
-    output["metric_name"] = metric_name;
-    output["result"] = metric_obj.attr("execute")(y_true, y_pred);
+    auto output =
+        std::make_shared<py::object>(py_func.attr("execute")(*y_pred));
 
     setData(output);
   } catch (const std::exception &e) {
