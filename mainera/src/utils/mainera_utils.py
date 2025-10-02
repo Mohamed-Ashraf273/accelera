@@ -39,26 +39,19 @@ def get_metric_object(
     return metric_func
 
 
-def get_correct_metric_class(
-    metric_name, metric, y_true=None, X=None, **params
-):
+def get_correct_metric_class(metric_name, metric, y_true=None, X=None, **params):
     signature = inspect.signature(metric)
     parameters = list(signature.parameters.keys())
     print(parameters)
-    has_true_labels = any(
-        param in parameters for param in ["y_true", "labels_true"]
-    )
+    has_true_labels = any(param in parameters for param in ["y_true", "labels_true"])
     has_predictions = any(
-        param in parameters
-        for param in ["y_pred", "y_score", "y_proba", "labels_pred"]
+        param in parameters for param in ["y_pred", "y_score", "y_proba", "labels_pred"]
     )
     supervised = has_true_labels and has_predictions
     unsupervised = "X" in parameters and "labels" in parameters
     if supervised:
         return SupervisedMetricWrapper(metric_name, metric, y_true, **params)
     elif unsupervised:
-        return UnSupervisedMetricWrapper(
-            metric_name, metric, X, **params
-        )
+        return UnSupervisedMetricWrapper(metric_name, metric, X, **params)
     else:
         return None

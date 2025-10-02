@@ -36,9 +36,7 @@ def export_version_string(api_init_fname):
     with open(api_init_fname) as f:
         contents = f.read()
     with open(api_init_fname, "w") as f:
-        contents += (
-            "from mainera.src.version import __version__ as __version__\n"
-        )
+        contents += "from mainera.src.version import __version__ as __version__\n"
         f.write(contents)
 
 

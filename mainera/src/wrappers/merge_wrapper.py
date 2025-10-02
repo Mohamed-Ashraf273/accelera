@@ -13,9 +13,7 @@ class MergeWrapper:
             else:
                 return self.merge_func(branch_results)
         except Exception as e:
-            raise RuntimeError(
-                f"Error executing merge function: {str(e)}"
-            ) from e
+            raise RuntimeError(f"Error executing merge function: {str(e)}") from e
 
     def __call__(self, branch_results):
         return self.execute(branch_results)

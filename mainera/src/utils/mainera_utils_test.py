@@ -76,18 +76,30 @@ def test_get_metric_object(metric_name, expected_result, mock_metrics_attr):
 
 
 # test for get_correct_metric_class
-def supervised_metric_test1(y_true,y_pred):
+def supervised_metric_test1(y_true, y_pred):
     return 0
-def supervised_metric_test2(y_true,y_proba):
+
+
+def supervised_metric_test2(y_true, y_proba):
     return 1
-def supervised_metric_test3(y_true,y_score):
+
+
+def supervised_metric_test3(y_true, y_score):
     return 2
-def supervised_metric_test4(labels_true,labels_pred):
+
+
+def supervised_metric_test4(labels_true, labels_pred):
     return 3
-def unsupervised_metric(X,labels):
+
+
+def unsupervised_metric(X, labels):
     return 4
-def unvalid_metric(a,b,c):
+
+
+def unvalid_metric(a, b, c):
     return 5
+
+
 class DummySupervisedWrapper:
     def __init__(self, metric_name, metric, y_true, **params):
         self.metric_name = metric_name
@@ -95,14 +107,15 @@ class DummySupervisedWrapper:
         self.y_true = y_true
         self.params = params
 
+
 class DummyUnSupervisedWrapper:
     def __init__(self, metric_name, metric, X, **params):
         self.metric_name = metric_name
         self.metric = metric
         self.X = X
         self.params = params
-        
-        
+
+
 @pytest.mark.parametrize(
     "metric, expected_class",
     [
@@ -111,22 +124,28 @@ class DummyUnSupervisedWrapper:
         (supervised_metric_test3, DummySupervisedWrapper),
         (supervised_metric_test4, DummySupervisedWrapper),
         (unsupervised_metric, DummyUnSupervisedWrapper),
-        (unvalid_metric,None)
+        (unvalid_metric, None),
     ],
 )
-
 def test_get_correct_metric_class(metric, expected_class):
-    with patch(
-        "mainera.src.utils.mainera_utils.SupervisedMetricWrapper", DummySupervisedWrapper
-    ), patch(
-        "mainera.src.utils.mainera_utils.UnSupervisedMetricWrapper", DummyUnSupervisedWrapper
+    with (
+        patch(
+            "mainera.src.utils.mainera_utils.SupervisedMetricWrapper",
+            DummySupervisedWrapper,
+        ),
+        patch(
+            "mainera.src.utils.mainera_utils.UnSupervisedMetricWrapper",
+            DummyUnSupervisedWrapper,
+        ),
     ):
         metric_name = "test_metric"
         y_true = [0, 1, 1, 0]
         X = [[1], [2], [3], [4]]
         params = {"param1": "1"}
 
-        result = get_correct_metric_class(metric_name, metric, y_true=y_true, X=X, **params)
+        result = get_correct_metric_class(
+            metric_name, metric, y_true=y_true, X=X, **params
+        )
 
         if expected_class is None:
             assert result is None

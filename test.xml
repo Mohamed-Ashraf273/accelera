@@ -1,0 +1,538 @@
+<?xml version="1.0"?>
+<net name="AI_Studio_Pipeline" version="10">
+	<layers>
+		<layer id="0" name="input_node" type="INPUT" version="opset1">
+			<data/>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+				<port id="1" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+				<port id="2" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="1" name="standard_scaler_chain_0" type="PREPROCESS" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="2" name="power_transform_chain_1" type="PREPROCESS" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="3" name="power_transform_chain_0" type="PREPROCESS" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="4" name="normalize_chain_0" type="PREPROCESS" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="5" name="clip" type="PREPROCESS" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+				<port id="1" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+				<port id="2" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="6" name="clip_copy_1" type="PREPROCESS" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+				<port id="1" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+				<port id="2" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="7" name="clip_copy_2" type="PREPROCESS" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+				<port id="1" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+				<port id="2" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="8" name="logreg_leaf_0_chain_0" type="MODEL" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="9" name="custom_leaf_0_chain_0" type="MODEL" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="10" name="rf_leaf_0_chain_0" type="MODEL" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="11" name="logreg_leaf_1_chain_0" type="MODEL" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="12" name="custom_leaf_1_chain_0" type="MODEL" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="13" name="rf_leaf_1_chain_0" type="MODEL" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="14" name="logreg_leaf_2_chain_0" type="MODEL" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="15" name="custom_leaf_2_chain_0" type="MODEL" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="16" name="rf_leaf_2_chain_0" type="MODEL" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="17" name="predict" type="PREDICT" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="18" name="predict_copy_1" type="PREDICT" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="19" name="predict_copy_2" type="PREDICT" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="20" name="predict_copy_3" type="PREDICT" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="21" name="predict_copy_4" type="PREDICT" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="22" name="predict_copy_5" type="PREDICT" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="23" name="predict_copy_6" type="PREDICT" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="24" name="predict_copy_7" type="PREDICT" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="25" name="predict_copy_8" type="PREDICT" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="26" name="accuracy" type="METRIC" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+		</layer>
+		<layer id="27" name="accuracy_copy_1" type="METRIC" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+		</layer>
+		<layer id="28" name="accuracy_copy_2" type="METRIC" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+		</layer>
+		<layer id="29" name="accuracy_copy_3" type="METRIC" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+		</layer>
+		<layer id="30" name="accuracy_copy_4" type="METRIC" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+		</layer>
+		<layer id="31" name="accuracy_copy_5" type="METRIC" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+		</layer>
+		<layer id="32" name="accuracy_copy_6" type="METRIC" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+		</layer>
+		<layer id="33" name="accuracy_copy_7" type="METRIC" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+		</layer>
+		<layer id="34" name="accuracy_copy_8" type="METRIC" version="opset1">
+			<data/>
+			<input>
+				<port id="0" precision="FP32">
+					<dim>-1</dim>
+					<dim>-1</dim>
+				</port>
+			</input>
+		</layer>
+	</layers>
+	<edges>
+		<edge from-layer="0" from-port="0" to-layer="1" to-port="0"/>
+		<edge from-layer="1" from-port="0" to-layer="2" to-port="0"/>
+		<edge from-layer="0" from-port="1" to-layer="3" to-port="0"/>
+		<edge from-layer="0" from-port="2" to-layer="4" to-port="0"/>
+		<edge from-layer="2" from-port="0" to-layer="5" to-port="0"/>
+		<edge from-layer="3" from-port="0" to-layer="6" to-port="0"/>
+		<edge from-layer="4" from-port="0" to-layer="7" to-port="0"/>
+		<edge from-layer="5" from-port="0" to-layer="8" to-port="0"/>
+		<edge from-layer="5" from-port="1" to-layer="9" to-port="0"/>
+		<edge from-layer="5" from-port="2" to-layer="10" to-port="0"/>
+		<edge from-layer="6" from-port="0" to-layer="11" to-port="0"/>
+		<edge from-layer="6" from-port="1" to-layer="12" to-port="0"/>
+		<edge from-layer="6" from-port="2" to-layer="13" to-port="0"/>
+		<edge from-layer="7" from-port="0" to-layer="14" to-port="0"/>
+		<edge from-layer="7" from-port="1" to-layer="15" to-port="0"/>
+		<edge from-layer="7" from-port="2" to-layer="16" to-port="0"/>
+		<edge from-layer="8" from-port="0" to-layer="17" to-port="0"/>
+		<edge from-layer="9" from-port="0" to-layer="18" to-port="0"/>
+		<edge from-layer="10" from-port="0" to-layer="19" to-port="0"/>
+		<edge from-layer="11" from-port="0" to-layer="20" to-port="0"/>
+		<edge from-layer="12" from-port="0" to-layer="21" to-port="0"/>
+		<edge from-layer="13" from-port="0" to-layer="22" to-port="0"/>
+		<edge from-layer="14" from-port="0" to-layer="23" to-port="0"/>
+		<edge from-layer="15" from-port="0" to-layer="24" to-port="0"/>
+		<edge from-layer="16" from-port="0" to-layer="25" to-port="0"/>
+		<edge from-layer="17" from-port="0" to-layer="26" to-port="0"/>
+		<edge from-layer="18" from-port="0" to-layer="27" to-port="0"/>
+		<edge from-layer="19" from-port="0" to-layer="28" to-port="0"/>
+		<edge from-layer="20" from-port="0" to-layer="29" to-port="0"/>
+		<edge from-layer="21" from-port="0" to-layer="30" to-port="0"/>
+		<edge from-layer="22" from-port="0" to-layer="31" to-port="0"/>
+		<edge from-layer="23" from-port="0" to-layer="32" to-port="0"/>
+		<edge from-layer="24" from-port="0" to-layer="33" to-port="0"/>
+		<edge from-layer="25" from-port="0" to-layer="34" to-port="0"/>
+	</edges>
+</net>

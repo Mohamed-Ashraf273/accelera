@@ -37,10 +37,13 @@ class Pipeline:
         self.__graph.add_node(graph.NodeType.MODEL, name, model)
         return self
 
-    def predict(self, name, test_data, predict_proba=False, branch=False):
+    def predict(
+        self, name, test_data, output_func="predict", positive_class=-1, branch=False
+    ):
         predict_params = {
             "test_data": test_data,
-            "predict_proba": predict_proba,
+            "output_func": output_func,
+            "positive_class": positive_class,
         }
         if branch:
             return NodeWrapper("predict", name, predict_params)
