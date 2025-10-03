@@ -8,16 +8,18 @@ class UnSupervisedMetricWrapper(BaseMetricWrapper):
         self,
         metric_name,
         metric,
-        X=None,
         **params,
     ):
         super().__init__(
             metric_name,
             metric,
             y_true=None,
-            X=X,
             **params,
         )
+        self.X = None
+
+    def set_X(self, X):
+        self.X = convert_to_array(X)
 
     def execute(self, y_pred):
         y_pred = convert_to_array(y_pred)

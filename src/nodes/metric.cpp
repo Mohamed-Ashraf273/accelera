@@ -4,6 +4,7 @@
 #include "core/graph.hpp"
 #include "nodes/input.hpp"
 #include "nodes/metric.hpp"
+#include "nodes/predict.hpp"
 
 namespace py = pybind11;
 
@@ -31,6 +32,13 @@ void MetricNode::execute() {
     if (!m_enable) {
       setData(y_pred);
       return;
+    }
+
+    if (py::hasattr(py_func, "set_X")) {
+      auto predict_node = std::dynamic_pointer_cast<PredictNode>(input);
+      py_func.attr("set_X")(predict_node->getPreprocessedData()
+                                ? *predict_node->getPreprocessedData()
+                                : py::none());
     }
 
     auto output =

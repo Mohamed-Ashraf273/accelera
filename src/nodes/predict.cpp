@@ -17,6 +17,14 @@ namespace mainera {
 PredictNode::PredictNode(const std::string &name, py::object py_func)
     : Node(NodeType::PREDICT, name, py_func) {}
 
+void PredictNode::setPreprocessedData(std::shared_ptr<py::object> data) {
+  m_preprocessed_data = data;
+}
+
+std::shared_ptr<py::object> PredictNode::getPreprocessedData() const {
+  return m_preprocessed_data;
+}
+
 void PredictNode::execute() {
   try {
     std::shared_ptr<Node> input = getSourceNode();
@@ -79,6 +87,8 @@ void PredictNode::execute() {
             "PredictNode: Test data must be at least 1-dimensional");
       }
     }
+
+    setPreprocessedData(std::make_shared<py::object>(preprocessed_test_data));
 
     py::object predictions;
     try {

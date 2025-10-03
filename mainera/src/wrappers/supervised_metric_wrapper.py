@@ -19,6 +19,9 @@ class SupervisedMetricWrapper(BaseMetricWrapper):
             **params,
         )
 
+    def set_y_true(self, new_y_true):
+        self.y_true = convert_to_array(new_y_true)
+
     def execute(self, y_pred):
         y_pred = convert_to_array(y_pred)
         if self.y_true is None:
