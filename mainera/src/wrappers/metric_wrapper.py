@@ -19,9 +19,6 @@ class BaseMetricWrapper(ABC):
         self.y_true = convert_to_array(y_true)
         self.X = convert_to_array(X)
 
-    def set_y_true(self, new_y_true):
-        self.y_true = convert_to_array(new_y_true)
-
     @abstractmethod
     def execute(self, y_pred):
         pass

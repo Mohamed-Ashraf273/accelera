@@ -42,12 +42,9 @@ def get_metric_object(
     return metric_func
 
 
-def get_correct_metric_class(
-    metric_name, metric, y_true=None, X=None, **params
-):
+def get_correct_metric_class(metric_name, metric, y_true=None, **params):
     signature = inspect.signature(metric)
     parameters = list(signature.parameters.keys())
-    print(parameters)
     has_true_labels = any(
         param in parameters for param in ["y_true", "labels_true"]
     )
@@ -60,6 +57,12 @@ def get_correct_metric_class(
     if supervised:
         return SupervisedMetricWrapper(metric_name, metric, y_true, **params)
     elif unsupervised:
-        return UnSupervisedMetricWrapper(metric_name, metric, X, **params)
+        print_msg(
+            f"Using unsupervised metric '{metric_name}' "
+            "doesn't require y_true. "
+            "y_true will be ignored.",
+            level="warning",
+        )
+        return UnSupervisedMetricWrapper(metric_name, metric, **params)
     else:
         return None
