@@ -120,7 +120,7 @@ def sample_data():
     X, y = make_classification(
         n_samples=10000,  # Large dataset
         n_features=25,  # High-dimensional features
-        n_classes=2,  # Multi-class problem
+        n_classes=4,  # Multi-class problem
         n_informative=20,  # Most features are informative
         n_redundant=3,  # Some redundant features
         n_clusters_per_class=2,  # Complex class structure
@@ -208,16 +208,27 @@ p.branch(
     ),
 )
 
-p.predict("predict", test_data, output_func="predict_proba", positive_class=1)
+p.predict("predict", test_data, positive_class=1)
 
-p.merge("merge_node", "hard_voting")
-p.metric("accuracy", "roc_auc_score", y_true=y_test)
+# p.merge("merge_node", "hard_voting")
+p.metric("accuracy", "f1_score", y_true=y_test, average=None)
 
 
 p.serialize("test.xml")
+
+
+def func(node_names, executed_graph):
+    print("Custom strategy function called with nodes:", node_names)
+    # Example: Select only the branch with 'logreg' model
+    if "logreg" in node_names:
+        return ["logreg"]
+    return node_names  # Default to all if 'logreg' not found
+
+
 start_mem = get_memory_info()
 start = time.time()
-simple_predictions, executed_graph = p(X, y)
+simple_predictions, executed_graph = p(X, y, select_strategy="min")
+predictions = executed_graph(test_data, y_true=y_test)
 end = time.time()
 end_mem = get_memory_info()
 
@@ -225,7 +236,6 @@ end_mem = get_memory_info()
 print(f"Pipeline execution time: {end - start:.4f} seconds")
 print(f"RSS memory: {end_mem['rss_mb'] - start_mem['rss_mb']:.2f} MB increase")
 print(f"Swap memory used: {end_mem['swap_mb']:.2f} MB")
-print(executed_graph(test_data, y_true=y_test)[0])
-print("Sample predictions: ", executed_graph(test_data)[0])
-print(f"{type(simple_predictions[0])}")
-print(f"{(simple_predictions[0])}")
+print("length of predictions: ", predictions)
+for pred in simple_predictions:
+    print(pred)

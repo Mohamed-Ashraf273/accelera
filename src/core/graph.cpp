@@ -3,18 +3,14 @@
 #include <exception>
 #include <fstream>
 #include <future>
-#include <iostream>
 #include <queue>
 #include <stdexcept>
 #include <thread>
-#include <unordered_map>
-#include <unordered_set>
 
 #include "core/graph.hpp"
 #include "core/node_factory.hpp"
 #include "nodes/input.hpp"
 #include "nodes/merge.hpp"
-#include "nodes/metric.hpp"
 #include "nodes/model.hpp"
 #include "nodes/predict.hpp"
 #include "nodes/preprocess.hpp"
@@ -47,16 +43,20 @@ Graph::Graph(const Graph &other) {
   node_mapping[original_input_node] = input_as_node;
 
   for (const auto &original_node : other.m_nodes) {
-    if (original_node->type != NodeType::INPUT) {
+    if (original_node->type != NodeType::INPUT &&
+        original_node->selected_in_path) {
       Node::Ptr new_node = original_node->clone();
       new_node->setGraph(this);
       node_mapping[original_node] = new_node;
       m_nodes.push_back(new_node);
+      if (original_node->type == NodeType::METRIC)
+        m_metric_nodes.push_back(new_node);
     }
   }
 
   for (const auto &original_node : other.m_nodes) {
-    if (original_node->type != NodeType::INPUT) {
+    if (original_node->type != NodeType::INPUT &&
+        original_node->selected_in_path) {
       Node::Ptr new_node = node_mapping[original_node];
 
       // Handle nodes with multiple source nodes
@@ -138,6 +138,8 @@ void Graph::addNode(Node::Ptr node) {
       nodeToAdd->setSourceNode(leaves[i]);
       nodeToAdd->setGraph(this);
       m_nodes.push_back(nodeToAdd);
+      if (nodeToAdd->type == NodeType::METRIC)
+        m_metric_nodes.push_back(nodeToAdd);
     }
     break;
   }
@@ -169,7 +171,6 @@ void Graph::split(const std::string &branch_name,
          ++branch_idx) {
       Node::Ptr current_source = leaf;
 
-      // Check if this branch object is a list of nodes
       try {
         py::list node_list = py::cast<py::list>(branch_objects[branch_idx]);
 
@@ -218,6 +219,8 @@ void Graph::split(const std::string &branch_name,
           branchNode->setShouldCreateNewData(list_idx == 0);
 
           m_nodes.push_back(branchNode);
+          if (branchNode->type == NodeType::METRIC)
+            m_metric_nodes.push_back(branchNode);
           branchNode->setSourceNode(current_source);
           branchNode->setGraph(this);
           current_source = branchNode;
@@ -262,6 +265,8 @@ void Graph::split(const std::string &branch_name,
         branchNode->setShouldCreateNewData(true);
 
         m_nodes.push_back(branchNode);
+        if (branchNode->type == NodeType::METRIC)
+          m_metric_nodes.push_back(branchNode);
 
         branchNode->setSourceNode(leaf);
         branchNode->setGraph(this);
@@ -282,9 +287,9 @@ void Graph::compile() {
 }
 
 std::vector<py::object> Graph::execute(py::object X, py::object y,
-                                       py::object best_path) {
+                                       py::object select_strategy) {
 
-  bool use_best_path = py::cast<bool>(best_path);
+  std::string use_select_strategy = py::cast<std::string>(select_strategy);
 
   if (!m_compiled)
     compile();
@@ -299,7 +304,6 @@ std::vector<py::object> Graph::execute(py::object X, py::object y,
     run();
   }
 
-  // Collect results from leaf nodes
   std::vector<py::object> predictions;
   std::vector<Node::Ptr> final_leaves = findLeafNodes();
 
@@ -337,6 +341,12 @@ std::vector<py::object> Graph::execute(py::object X, py::object y,
     }
   }
 
+  if (m_is_branched) {
+    setSelectedPath(use_select_strategy);
+  } else {
+    selectAllPath(*this);
+  }
+
   std::vector<py::object> final_result;
   if (!getIsExecuted()) {
     Graph *executed_graph = clone();
@@ -350,8 +360,112 @@ std::vector<py::object> Graph::execute(py::object X, py::object y,
   return final_result;
 }
 
+void Graph::setSelectedPath(const std::string &strategy) {
+  if (strategy == "max") {
+    selectMaxPath(*this);
+  } else if (strategy == "min") {
+    selectMinPath(*this);
+  } else if (strategy == "custom") {
+    selectCustomPath(*this);
+  } else if (strategy == "all") {
+    selectAllPath(*this);
+  } else {
+    throw std::runtime_error("Unknown selection strategy: " + strategy);
+  }
+}
+
+void Graph::selectMinPath(Graph &graph) { findMaxMinMetricNode(false); }
+
+void Graph::selectMaxPath(Graph &graph) { findMaxMinMetricNode(true); }
+
+void Graph::selectCustomPath(Graph &graph) {
+  // Custom path selection logic can be implemented here
+}
+
+void Graph::selectAllPath(Graph &graph) {
+  for (const auto &node : graph.m_nodes) {
+    node->selected_in_path = true;
+  }
+}
+
+void Graph::findMaxMinMetricNode(bool find_max) {
+  double best_metric = find_max ? -std::numeric_limits<double>::infinity()
+                                : std::numeric_limits<double>::infinity();
+  std::shared_ptr<MetricNode> best_metric_node = nullptr;
+
+  for (const auto &node : m_metric_nodes) {
+    std::shared_ptr<MetricNode> metric_node =
+        std::dynamic_pointer_cast<MetricNode>(node);
+    if (metric_node) {
+      auto data = metric_node->getData();
+      if (data && !data->is_none()) {
+        try {
+          py::dict metric_dict = py::cast<py::dict>(*data);
+          py::object result_obj = metric_dict["result"];
+
+          // Check if the result can be cast to double
+          if (!py::isinstance<py::float_>(result_obj) &&
+              !py::isinstance<py::int_>(result_obj)) {
+            throw std::runtime_error(
+                "Built-in strategies (max/min) only support numeric (double) "
+                "metric results. "
+                "Node '" +
+                metric_node->name + "' has result of type '" +
+                std::string(py::str(result_obj.get_type())) + "'. " +
+                "Please use 'custom' strategy for non-numeric metric "
+                "comparisons.");
+          }
+
+          double metric_value = py::cast<double>(result_obj);
+
+          bool is_better = find_max ? (metric_value > best_metric)
+                                    : (metric_value < best_metric);
+
+          if (is_better) {
+            best_metric = metric_value;
+            best_metric_node = metric_node;
+          }
+        } catch (const py::cast_error &e) {
+          throw std::runtime_error("Built-in strategies (max/min) only support "
+                                   "numeric (double) metric results. "
+                                   "Failed to cast result from node '" +
+                                   metric_node->name + "' to double. " +
+                                   "Please use 'custom' strategy for "
+                                   "non-numeric metric comparisons. "
+                                   "Cast error: " +
+                                   std::string(e.what()));
+        } catch (const std::exception &e) {
+          throw std::runtime_error("Error processing metric data for node '" +
+                                   metric_node->name + "': " + e.what());
+        }
+      }
+    } else {
+      throw std::runtime_error("Failed to cast to MetricNode while selecting " +
+                               std::string(find_max ? "max" : "min") +
+                               " path for node '" + node->name + "'");
+    }
+  }
+
+  if (!best_metric_node) {
+    throw std::runtime_error("No valid metric nodes found for " +
+                             std::string(find_max ? "max" : "min") +
+                             " path selection");
+  }
+
+  selectPathByMetric(best_metric_node);
+}
+
+void Graph::selectPathByMetric(std::shared_ptr<MetricNode> best_metric_node) {
+  Node::Ptr current_node = best_metric_node;
+  while (current_node) {
+    current_node->selected_in_path = true;
+    current_node = current_node->getSourceNode();
+  }
+}
+
 void Graph::clear() {
   m_nodes.clear();
+  m_metric_nodes.clear();
   m_execution_order.clear();
   m_compiled = false;
   m_is_branched = false;
@@ -633,22 +747,20 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
 
 void Graph::enableDisableMetrics(py::object y_true, py::object enable) {
   bool enable_metrics = py::cast<bool>(enable);
-  for (const auto &node : m_nodes) {
-    if (node->type == NodeType::METRIC) {
-      std::shared_ptr<MetricNode> metric_node =
-          std::dynamic_pointer_cast<MetricNode>(node);
-      if (metric_node) {
-        metric_node->setMetricFlag(enable_metrics);
-        if (enable_metrics && !y_true.is_none()) {
-          if (!py::hasattr(metric_node->py_func, "set_y_true")) {
-            throw std::runtime_error("UnSupervised Metric function " +
-                                     metric_node->name +
-                                     " has no 'set_y_true' method");
-          }
-          metric_node->py_func.attr("set_y_true")(y_true);
-        } else {
-          metric_node->setData(std::make_shared<py::object>(py::none()));
+  for (const auto &node : m_metric_nodes) {
+    std::shared_ptr<MetricNode> metric_node =
+        std::dynamic_pointer_cast<MetricNode>(node);
+    if (metric_node) {
+      metric_node->setMetricFlag(enable_metrics);
+      if (enable_metrics && !y_true.is_none()) {
+        if (!py::hasattr(metric_node->py_func, "set_y_true")) {
+          throw std::runtime_error("UnSupervised Metric function " +
+                                   metric_node->name +
+                                   " has no 'set_y_true' method");
         }
+        metric_node->py_func.attr("set_y_true")(y_true);
+      } else {
+        metric_node->setData(std::make_shared<py::object>(py::none()));
       }
     }
   }

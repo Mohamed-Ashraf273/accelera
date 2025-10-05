@@ -21,6 +21,7 @@ Node::Ptr Node::clone() const {
 
   new_node->setShouldCreateNewData(this->getShouldCreateNewData());
   new_node->setUsesGPU(this->getUsesGPU());
+  new_node->selected_in_path = this->selected_in_path;
 
   if (this->type == NodeType::METRIC) {
     auto metric_node = std::dynamic_pointer_cast<MetricNode>(new_node);
