@@ -75,9 +75,9 @@ private:
   void selectMaxPath(Graph &graph);
   void selectMinPath(Graph &graph);
   void selectCustomPath(Graph &graph, py::object custom_strategy);
-  void selectAllPath(Graph &graph);
+  void selectAllPaths(Graph &graph);
   void findMaxMinMetricNode(bool find_max);
-  void selectPathByMetric(std::shared_ptr<MetricNode> best_metric_node);
+  void getPath(std::shared_ptr<MetricNode> best_metric_node);
 };
 } // namespace mainera
 

@@ -350,7 +350,7 @@ std::vector<py::object> Graph::execute(py::object X, py::object y,
   if (m_is_branched) {
     setSelectedPath(use_select_strategy, custom_strategy);
   } else {
-    selectAllPath(*this);
+    selectAllPaths(*this);
   }
 
   std::vector<py::object> final_result;
@@ -375,7 +375,7 @@ void Graph::setSelectedPath(const std::string &strategy,
   } else if (strategy == "custom") {
     selectCustomPath(*this, custom_strategy);
   } else if (strategy == "all") {
-    selectAllPath(*this);
+    selectAllPaths(*this);
   } else {
     throw std::runtime_error("Unknown selection strategy: " + strategy);
   }
@@ -425,7 +425,7 @@ void Graph::selectCustomPath(Graph &graph, py::object custom_strategy) {
                                "' not found");
     }
 
-    selectPathByMetric(selected_metric_node);
+    getPath(selected_metric_node);
 
   } catch (const py::error_already_set &e) {
     throw std::runtime_error("Error in custom strategy: " +
@@ -433,7 +433,7 @@ void Graph::selectCustomPath(Graph &graph, py::object custom_strategy) {
   }
 }
 
-void Graph::selectAllPath(Graph &graph) {
+void Graph::selectAllPaths(Graph &graph) {
   for (const auto &node : graph.m_nodes) {
     node->selected_in_path = true;
   }
@@ -500,10 +500,10 @@ void Graph::findMaxMinMetricNode(bool find_max) {
                              " path selection");
   }
 
-  selectPathByMetric(best_metric_node);
+  getPath(best_metric_node);
 }
 
-void Graph::selectPathByMetric(std::shared_ptr<MetricNode> best_metric_node) {
+void Graph::getPath(std::shared_ptr<MetricNode> best_metric_node) {
   Node::Ptr current_node = best_metric_node;
   while (current_node) {
     current_node->selected_in_path = true;

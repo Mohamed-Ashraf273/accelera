@@ -219,20 +219,17 @@ p.serialize("test.xml")
 
 def custom_metric_selector(metrics):
     best_model_name = None
-    best_average_score = -1
+    best_first_class_score = -1
 
-    for result in metrics:
-        model_name = result["node name"]
-        f1_scores = result["result"]
+    f1_scores = [
+        d["result"][0] for d in metrics if d["metric name"] == "f1_score"
+    ]
+    print("F1 scores for each model:", f1_scores)
 
-        if hasattr(f1_scores, "__iter__"):
-            average_f1 = sum(f1_scores) / len(f1_scores)
-        else:
-            average_f1 = float(f1_scores)
-
-        if average_f1 > best_average_score:
-            best_average_score = average_f1
-            best_model_name = model_name
+    for i, f1_score in enumerate(f1_scores):
+        if f1_score > best_first_class_score:
+            best_first_class_score = f1_score
+            best_model_name = metrics[i]["node name"]
 
     return best_model_name
 
