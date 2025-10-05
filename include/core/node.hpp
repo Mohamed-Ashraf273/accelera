@@ -32,6 +32,7 @@ public:
   std::string name;
   py::object py_func;
   bool should_create_new_data = false;
+  bool selected_in_path = false;
 
   Node(NodeType type, const std::string &name, py::object py_func);
   virtual ~Node() = default;

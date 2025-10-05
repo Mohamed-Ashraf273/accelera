@@ -620,3 +620,163 @@ class TestPipelineCorrectness:
         manual_hard_vote = stats.mode(predictions_stack, axis=1)[0].flatten()
 
         assert np.array_equal(new_executed_result[0], manual_hard_vote)
+
+
+class TestPipelinePathSelection:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.X, self.y, self.test_data, self.y_test = self.sample_data()
+
+    def sample_data(self):
+        X, y = make_classification(
+            n_samples=500,
+            n_features=20,
+            n_classes=3,
+            n_informative=15,
+            n_redundant=2,
+            n_clusters_per_class=1,
+            random_state=42,
+        )
+        test_data = X[:50]
+        y_test = y[:50]
+        return X, y, test_data, y_test
+
+    def create_branched_pipeline(self):
+        p = Pipeline()
+
+        p.branch(
+            "preprocessing",
+            p.preprocess("standard_scaler", StandardScaler(), branch=True),
+            p.preprocess(
+                "normalize",
+                lambda x: x / (np.linalg.norm(x, axis=1, keepdims=True) + 1e-8),
+                branch=True,
+            ),
+        )
+
+        p.branch(
+            "models",
+            p.model(
+                "logreg",
+                LogisticRegression(random_state=42, max_iter=1000),
+                branch=True,
+            ),
+            p.model(
+                "rf",
+                RandomForestClassifier(
+                    n_estimators=10, random_state=42, max_depth=5
+                ),
+                branch=True,
+            ),
+        )
+
+        p.predict("predict", self.test_data)
+        p.metric("accuracy", "accuracy_score", y_true=self.y_test)
+
+        return p
+
+    def test_path_selection_all_strategy(self):
+        p = self.create_branched_pipeline()
+
+        pipeline_result, executed_graph = p(
+            self.X, self.y, select_strategy="all"
+        )
+
+        predictions = executed_graph(self.test_data, y_true=self.y_test)
+
+        assert len(predictions) == 4
+
+        for i in range(len(pipeline_result)):
+            assert np.array_equal(pipeline_result[i], predictions[i])
+
+    def test_path_selection_max_strategy(self):
+        p = self.create_branched_pipeline()
+
+        pipeline_result, executed_graph = p(
+            self.X, self.y, select_strategy="max"
+        )
+
+        predictions = executed_graph(self.test_data, y_true=self.y_test)
+
+        assert len(predictions) == 1
+
+        max_accuracy = -1
+        best_prediction = None
+
+        for i in range(len(pipeline_result)):
+            accuracy = pipeline_result[i]["result"]
+            if accuracy > max_accuracy:
+                max_accuracy = accuracy
+                best_prediction = pipeline_result[i]["result"]
+
+        assert np.array_equal(predictions[0]["result"], best_prediction)
+
+    def test_path_selection_min_strategy(self):
+        p = self.create_branched_pipeline()
+
+        pipeline_result, executed_graph = p(
+            self.X, self.y, select_strategy="min"
+        )
+
+        predictions = executed_graph(self.test_data, y_true=self.y_test)
+        assert len(predictions) == 1
+
+        min_accuracy = float("inf")
+        worst_prediction = None
+
+        for i in range(len(pipeline_result)):
+            accuracy = pipeline_result[i]["result"]
+            if accuracy < min_accuracy:
+                min_accuracy = accuracy
+                worst_prediction = pipeline_result[i]["result"]
+
+        assert np.array_equal(predictions[0]["result"], worst_prediction)
+
+    def test_path_selection_custom_strategy(self):
+        p = self.create_branched_pipeline()
+
+        def custom_selector(metrics):
+            best_node_name = None
+            best_score = -1
+
+            for metric in metrics:
+                if "node name" in metric:
+                    node_name = metric["node name"]
+                elif "metric name" in metric:
+                    node_name = metric["metric name"]
+                else:
+                    node_name = str(list(metric.values())[0])
+
+                result = metric["result"]
+                score = (
+                    float(result)
+                    if not hasattr(result, "__iter__")
+                    else float(result)
+                )
+
+                if score > best_score:
+                    best_score = score
+                    best_node_name = node_name
+
+            return best_node_name
+
+        pipeline_result, executed_graph = p(
+            self.X,
+            self.y,
+            select_strategy="custom",
+            custom_strategy=custom_selector,
+        )
+
+        predictions = executed_graph(self.test_data, y_true=self.y_test)
+        assert len(predictions) == 1
+
+        max_accuracy = -1
+        best_prediction = None
+
+        for i in range(len(pipeline_result)):
+            accuracy = pipeline_result[i]["result"]
+            if accuracy > max_accuracy:
+                max_accuracy = accuracy
+                best_prediction = pipeline_result[i]["result"]
+
+        assert np.array_equal(predictions[0]["result"], best_prediction)

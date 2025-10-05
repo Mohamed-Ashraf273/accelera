@@ -7,9 +7,9 @@
 #include <unordered_set>
 #include <vector>
 
+#include "core/node.hpp"
 #include "core/visibility.hpp"
-#include "node.hpp"
-
+#include "nodes/metric.hpp"
 namespace mainera {
 
 class InputNode; // Forward declaration
@@ -28,7 +28,8 @@ public:
 
   void compile();
   std::vector<py::object> execute(py::object X, py::object y,
-                                  py::object best_path);
+                                  py::object best_path,
+                                  py::object custom_strategy);
   void clear();
 
   void split(const std::string &branch_name,
@@ -54,24 +55,30 @@ public:
   void enableDisableMetrics(py::object y_true, py::object enable);
 
 private:
-  std::vector<Node::Ptr> m_nodes;
   std::vector<Node::Ptr> m_execution_order;
+  std::vector<Node::Ptr> m_nodes;
+  std::vector<std::shared_ptr<MetricNode>> m_metric_nodes;
   bool m_compiled = false;
-  bool m_parallel_enabled = false;
   bool m_executed = false;
-  size_t m_multicore_threshold = 3; // Minimum tasks to use multicore
-  std::shared_ptr<InputNode> m_input_node = nullptr; // Automatic input node
   bool m_is_branched = false;
-
-  void run();
-  void runParallel();
+  bool m_parallel_enabled = false;
+  size_t m_multicore_threshold = 3; // Minimum tasks to use multicore
+  std::shared_ptr<InputNode> m_input_node = nullptr;
 
   std::vector<Node::Ptr> findLeafNodes() const;
-  std::vector<Node::Ptr> topologicalSort();
   std::vector<std::vector<Node::Ptr>> groupNodesByLevel() const;
+  std::vector<Node::Ptr> topologicalSort();
   void executeNodesInParallel(const std::vector<Node::Ptr> &nodes);
+  void run();
+  void runParallel();
+  void setSelectedPath(const std::string &strategy, py::object custom_strategy);
+  void selectMaxPath(Graph &graph);
+  void selectMinPath(Graph &graph);
+  void selectCustomPath(Graph &graph, py::object custom_strategy);
+  void selectAllPath(Graph &graph);
+  void findMaxMinMetricNode(bool find_max);
+  void selectPathByMetric(std::shared_ptr<MetricNode> best_metric_node);
 };
-
 } // namespace mainera
 
 #endif // GRAPH_HPP

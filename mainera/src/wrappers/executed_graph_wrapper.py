@@ -9,7 +9,7 @@ class ExecutedGraphWrapper:
                 y_true=y_true, enable=True
             )
 
-        results = self.__executed_graph.execute(X, best_path=False)
+        results = self.__executed_graph.execute(X)
 
         if y_true is not None:
             self.__executed_graph.enableDisableMetrics(enable=False)

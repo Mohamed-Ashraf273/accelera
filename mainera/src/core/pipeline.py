@@ -17,8 +17,15 @@ class Pipeline:
         self.__graph = graph.Graph()
         self.__graph.enableParallelExecution(True)
 
-    def __call__(self, X, y=None, best_path=False):
-        results = self.__graph.execute(X, y, best_path=best_path)
+    def __call__(
+        self, X, y=None, select_strategy: str = "all", custom_strategy=None
+    ):
+        results = self.__graph.execute(
+            X,
+            y=y,
+            select_strategy=select_strategy,
+            custom_strategy=custom_strategy,
+        )
         executed_graph = ExecutedGraphWrapper(results[0])
         predictions = results[1:]
         return predictions, executed_graph
@@ -109,6 +116,12 @@ class Pipeline:
             for node in branch_iter:
                 if isinstance(node, NodeWrapper):
                     branch_objects.append(node.obj)
+                    if node.node_type == "merge":
+                        raise ValueError(
+                            "Branching with Merge nodes is not "
+                            "implemented yet. Please add merge nodes "
+                            "outside of branches."
+                        )
                     node_types.append(node.node_type.upper())
                     node_names.append(node.name)
                 else:
