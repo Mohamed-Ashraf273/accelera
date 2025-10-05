@@ -1,7 +1,7 @@
 import inspect
 import logging
 import sys
-
+import os
 import sklearn.metrics as metrics
 
 from mainera.src.wrappers.supervised_metric_wrapper import (
@@ -66,3 +66,13 @@ def get_correct_metric_class(metric_name, metric, y_true=None, **params):
         return UnSupervisedMetricWrapper(metric_name, metric, **params)
     else:
         return None
+
+def check_path_exist(path):
+    if os.path.exists(path):
+        return True
+    else:
+        return False
+    
+def create_folder(folder_path):
+    if not check_path_exist(folder_path):
+        os.makedirs(folder_path, exist_ok=True)

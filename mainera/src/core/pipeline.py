@@ -148,3 +148,5 @@ class Pipeline:
     def serialize(self, filepath):
         graph.serialize_graph(self.__graph, filepath)
         return self
+
+    

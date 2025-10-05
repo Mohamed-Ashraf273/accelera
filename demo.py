@@ -13,7 +13,7 @@ from sklearn.svm import SVC
 
 from mainera.src.core.pipeline import Pipeline
 from mainera.src.custom.classifier import CustomClassifier
-
+from mainera.src.utils.report_utils import Report
 
 class TorchDenseModel(CustomClassifier):
     def __init__(
@@ -216,7 +216,6 @@ p.metric("accuracy", "f1_score", y_true=y_test, average=None)
 
 p.serialize("test.xml")
 
-
 def custom_metric_selector(metrics):
     best_model_name = None
     best_average_score = -1
@@ -253,3 +252,5 @@ print(f"Swap memory used: {end_mem['swap_mb']:.2f} MB")
 print("length of predictions: ", predictions)
 for pred in simple_predictions:
     print(pred)
+report=Report("report","test.xml")
+img_path=report.create_graph_img()
