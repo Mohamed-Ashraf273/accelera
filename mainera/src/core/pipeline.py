@@ -17,8 +17,15 @@ class Pipeline:
         self.__graph = graph.Graph()
         self.__graph.enableParallelExecution(True)
 
-    def __call__(self, X, y=None, select_strategy: str = "all"):
-        results = self.__graph.execute(X, y=y, select_strategy=select_strategy)
+    def __call__(
+        self, X, y=None, select_strategy: str = "all", custom_strategy=None
+    ):
+        results = self.__graph.execute(
+            X,
+            y=y,
+            select_strategy=select_strategy,
+            custom_strategy=custom_strategy,
+        )
         executed_graph = ExecutedGraphWrapper(results[0])
         predictions = results[1:]
         return predictions, executed_graph

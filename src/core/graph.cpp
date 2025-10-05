@@ -11,6 +11,7 @@
 #include "core/node_factory.hpp"
 #include "nodes/input.hpp"
 #include "nodes/merge.hpp"
+#include "nodes/metric.hpp"
 #include "nodes/model.hpp"
 #include "nodes/predict.hpp"
 #include "nodes/preprocess.hpp"
@@ -287,7 +288,8 @@ void Graph::compile() {
 }
 
 std::vector<py::object> Graph::execute(py::object X, py::object y,
-                                       py::object select_strategy) {
+                                       py::object select_strategy,
+                                       py::object custom_strategy) {
 
   std::string use_select_strategy = py::cast<std::string>(select_strategy);
 
@@ -342,7 +344,7 @@ std::vector<py::object> Graph::execute(py::object X, py::object y,
   }
 
   if (m_is_branched) {
-    setSelectedPath(use_select_strategy);
+    setSelectedPath(use_select_strategy, custom_strategy);
   } else {
     selectAllPath(*this);
   }
@@ -360,13 +362,14 @@ std::vector<py::object> Graph::execute(py::object X, py::object y,
   return final_result;
 }
 
-void Graph::setSelectedPath(const std::string &strategy) {
+void Graph::setSelectedPath(const std::string &strategy,
+                            py::object custom_strategy) {
   if (strategy == "max") {
     selectMaxPath(*this);
   } else if (strategy == "min") {
     selectMinPath(*this);
   } else if (strategy == "custom") {
-    selectCustomPath(*this);
+    selectCustomPath(*this, custom_strategy);
   } else if (strategy == "all") {
     selectAllPath(*this);
   } else {
@@ -378,8 +381,117 @@ void Graph::selectMinPath(Graph &graph) { findMaxMinMetricNode(false); }
 
 void Graph::selectMaxPath(Graph &graph) { findMaxMinMetricNode(true); }
 
-void Graph::selectCustomPath(Graph &graph) {
-  // Custom path selection logic can be implemented here
+void Graph::selectCustomPath(Graph &graph, py::object custom_strategy) {
+  if (custom_strategy.is_none()) {
+    throw std::runtime_error("Custom strategy function not set. Please provide "
+                             "a custom_strategy function "
+                             "that takes (metric_nodes_info, executed_graph) "
+                             "and returns the name of the "
+                             "best metric node to select.");
+  }
+
+  if (m_metric_nodes.empty()) {
+    throw std::runtime_error("No metric nodes found for custom path selection");
+  }
+
+  try {
+    // Prepare metric nodes information for the custom function
+    py::list metric_nodes_info = py::list();
+
+    for (const auto &node : m_metric_nodes) {
+      std::shared_ptr<MetricNode> metric_node =
+          std::dynamic_pointer_cast<MetricNode>(node);
+      if (metric_node) {
+        auto data = metric_node->getData();
+        if (data && !data->is_none()) {
+          py::dict node_info;
+          node_info["name"] = metric_node->name;
+          node_info["data"] =
+              *data; // Full metric data (could contain any type)
+          node_info["node_type"] = nodeTypeToString(metric_node->type);
+
+          // Add path information - trace back to root
+          py::list path = py::list();
+          Node::Ptr current = metric_node;
+          while (current) {
+            py::dict path_node;
+            path_node["name"] = current->name;
+            path_node["type"] = nodeTypeToString(current->type);
+            path.append(path_node);
+            current = current->getSourceNode();
+          }
+          node_info["path"] = path;
+
+          metric_nodes_info.append(node_info);
+        }
+      }
+    }
+
+    py::object result = custom_strategy(metric_nodes_info);
+
+    // The custom function should return either:
+    // 1. A string (node name) of the best metric node
+    // 2. A dict with 'node_name' key
+    // 3. An integer index into the metric_nodes_info list
+
+    std::string selected_node_name;
+
+    if (py::isinstance<py::str>(result)) {
+      selected_node_name = py::cast<std::string>(result);
+    } else if (py::isinstance<py::dict>(result)) {
+      py::dict result_dict = py::cast<py::dict>(result);
+      if (result_dict.contains("node_name")) {
+        selected_node_name = py::cast<std::string>(result_dict["node_name"]);
+      } else {
+        throw std::runtime_error("Custom strategy returned a dict but it must "
+                                 "contain 'node_name' key");
+      }
+    } else if (py::isinstance<py::int_>(result)) {
+      int index = py::cast<int>(result);
+      if (index < 0 || index >= static_cast<int>(metric_nodes_info.size())) {
+        throw std::runtime_error(
+            "Custom strategy returned invalid index: " + std::to_string(index) +
+            ". Valid range is 0 to " +
+            std::to_string(metric_nodes_info.size() - 1));
+      }
+      py::dict selected_info = py::cast<py::dict>(metric_nodes_info[index]);
+      selected_node_name = py::cast<std::string>(selected_info["name"]);
+    } else {
+      throw std::runtime_error(
+          "Custom strategy must return either a string (node name), "
+          "a dict with 'node_name' key, or an integer index");
+    }
+
+    // Find the selected metric node
+    std::shared_ptr<MetricNode> selected_metric_node = nullptr;
+    for (const auto &node : m_metric_nodes) {
+      std::shared_ptr<MetricNode> metric_node =
+          std::dynamic_pointer_cast<MetricNode>(node);
+      if (metric_node && metric_node->name == selected_node_name) {
+        selected_metric_node = metric_node;
+        break;
+      }
+    }
+
+    if (!selected_metric_node) {
+      throw std::runtime_error("Custom strategy selected node '" +
+                               selected_node_name +
+                               "' but no metric node with that name was found");
+    }
+
+    // Select the path using the chosen metric node
+    selectPathByMetric(selected_metric_node);
+
+  } catch (const py::error_already_set &e) {
+    throw std::runtime_error(
+        "Error in custom strategy function: " + std::string(e.what()) +
+        "\nCustom strategy function should accept (metric_nodes_info, "
+        "executed_graph) "
+        "and return the name of the best metric node.");
+  } catch (const std::exception &e) {
+    throw std::runtime_error("Error in custom path selection: " +
+                             std::string(e.what()));
+  }
 }
 
 void Graph::selectAllPath(Graph &graph) {
@@ -403,7 +515,6 @@ void Graph::findMaxMinMetricNode(bool find_max) {
           py::dict metric_dict = py::cast<py::dict>(*data);
           py::object result_obj = metric_dict["result"];
 
-          // Check if the result can be cast to double
           if (!py::isinstance<py::float_>(result_obj) &&
               !py::isinstance<py::int_>(result_obj)) {
             throw std::runtime_error(

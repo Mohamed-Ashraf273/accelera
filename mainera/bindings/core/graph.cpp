@@ -42,6 +42,7 @@ PYBIND11_MODULE(graph, m) {
 
       .def("execute", &Graph::execute, py::arg("X"), py::arg("y") = py::none(),
            py::arg("select_strategy") = "all",
+           py::arg("custom_strategy") = py::none(),
            "Execute graph with inputs and return predictions")
 
       .def("enableParallelExecution", &Graph::enableParallelExecution,

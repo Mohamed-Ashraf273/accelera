@@ -28,7 +28,8 @@ public:
 
   void compile();
   std::vector<py::object> execute(py::object X, py::object y,
-                                  py::object best_path);
+                                  py::object best_path,
+                                  py::object custom_strategy);
   void clear();
 
   void split(const std::string &branch_name,
@@ -70,10 +71,10 @@ private:
   void executeNodesInParallel(const std::vector<Node::Ptr> &nodes);
   void run();
   void runParallel();
-  void setSelectedPath(const std::string &strategy);
+  void setSelectedPath(const std::string &strategy, py::object custom_strategy);
   void selectMaxPath(Graph &graph);
   void selectMinPath(Graph &graph);
-  void selectCustomPath(Graph &graph);
+  void selectCustomPath(Graph &graph, py::object custom_strategy);
   void selectAllPath(Graph &graph);
   void findMaxMinMetricNode(bool find_max);
   void selectPathByMetric(std::shared_ptr<MetricNode> best_metric_node);

@@ -217,17 +217,39 @@ p.metric("accuracy", "f1_score", y_true=y_test, average=None)
 p.serialize("test.xml")
 
 
-def func(node_names, executed_graph):
-    print("Custom strategy function called with nodes:", node_names)
-    # Example: Select only the branch with 'logreg' model
-    if "logreg" in node_names:
-        return ["logreg"]
-    return node_names  # Default to all if 'logreg' not found
+def custom_metric_selector(metric_nodes_info):
+    best_model_name = None
+    best_average_score = -1  # Start with -1 (impossible score)
+
+    # Look at each model's results
+    for model_info in metric_nodes_info:
+        model_name = model_info["name"]  # e.g., "accuracy_leaf_0_chain_0"
+        model_results = model_info["data"]  # The actual F1 scores
+
+        # Get the F1 score result
+        f1_scores = model_results[
+            "result"
+        ]  # This is an array of F1 scores for each class
+
+        # Calculate average F1 score across all classes
+        if hasattr(f1_scores, "__iter__"):  # If it's an array/list
+            average_f1 = sum(f1_scores) / len(f1_scores)
+        else:  # If it's a single number
+            average_f1 = float(f1_scores)
+
+        # Keep track of the best model
+        if average_f1 > best_average_score:
+            best_average_score = average_f1
+            best_model_name = model_name
+
+    return best_model_name  # Return the name of the winning model
 
 
 start_mem = get_memory_info()
 start = time.time()
-simple_predictions, executed_graph = p(X, y, select_strategy="min")
+simple_predictions, executed_graph = p(
+    X, y, select_strategy="custom", custom_strategy=custom_metric_selector
+)
 predictions = executed_graph(test_data, y_true=y_test)
 end = time.time()
 end_mem = get_memory_info()
