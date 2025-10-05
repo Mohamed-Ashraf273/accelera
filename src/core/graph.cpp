@@ -425,7 +425,7 @@ void Graph::selectCustomPath(Graph &graph, py::object custom_strategy) {
                                "' not found");
     }
 
-    getPath(selected_metric_node);
+    setPath(selected_metric_node);
 
   } catch (const py::error_already_set &e) {
     throw std::runtime_error("Error in custom strategy: " +
@@ -500,10 +500,10 @@ void Graph::findMaxMinMetricNode(bool find_max) {
                              " path selection");
   }
 
-  getPath(best_metric_node);
+  setPath(best_metric_node);
 }
 
-void Graph::getPath(std::shared_ptr<MetricNode> best_metric_node) {
+void Graph::setPath(std::shared_ptr<MetricNode> best_metric_node) {
   Node::Ptr current_node = best_metric_node;
   while (current_node) {
     current_node->selected_in_path = true;
