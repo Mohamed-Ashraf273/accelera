@@ -144,7 +144,3 @@ class Pipeline:
     def disable_parallel_execution(self):
         self.__graph.enableParallelExecution(False)
         return self
-
-    def serialize(self, filepath):
-        graph.serialize_graph(self.__graph, filepath)
-        return self

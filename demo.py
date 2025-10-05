@@ -13,6 +13,7 @@ from sklearn.svm import SVC
 
 from mainera.src.core.pipeline import Pipeline
 from mainera.src.custom.classifier import CustomClassifier
+from mainera.src.utils.mainera_utils import serialize
 
 
 class TorchDenseModel(CustomClassifier):
@@ -214,7 +215,7 @@ p.predict("predict", test_data, positive_class=1)
 p.metric("accuracy", "f1_score", y_true=y_test, average=None)
 
 
-p.serialize("test.xml")
+serialize(p, "test.xml")
 
 
 def custom_metric_selector(metrics):
