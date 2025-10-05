@@ -213,10 +213,10 @@ p.branch(
 p.predict("predict", test_data, positive_class=1)
 
 # p.merge("merge_node", "hard_voting")
-p.metric("accuracy", "f1_score", y_true=y_test, average=None)
+
+p.metric("accuracy", "f1_score", y_true=y_test, average=None, branch=True)
 
 
-serialize(p, "test.xml")
 
 def custom_metric_selector(metrics):
     best_model_name = None
@@ -241,6 +241,8 @@ simple_predictions, executed_graph = p(
     X, y, select_strategy="custom", custom_strategy=custom_metric_selector
 )
 predictions = executed_graph(test_data, y_true=y_test)
+serialize(p, "test.xml")
+
 end = time.time()
 end_mem = get_memory_info()
 
@@ -251,5 +253,5 @@ print(f"Swap memory used: {end_mem['swap_mb']:.2f} MB")
 print("length of predictions: ", predictions)
 for pred in simple_predictions:
     print(pred)
-report=Report("report","test.xml")
-img_path=report.create_graph_img()
+report=Report("report","test.xml",simple_predictions)
+img_path=report.create_readme_file()
