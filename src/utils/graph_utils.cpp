@@ -20,9 +20,8 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
   }
 
   file << "<?xml version=\"1.0\"?>\n";
-  file << "<net name=\"AI_Studio_Pipeline\" version=\"10\">\n";
+  file << "<net name=\"mAInera_Pipeline\" version=\"10\">\n";
 
-  // Create node ID mapping
   std::map<Node *, size_t> node_to_id;
   for (size_t i = 0; i < m_nodes.size(); ++i) {
     node_to_id[m_nodes[i].get()] = i;
@@ -61,10 +60,11 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
     }
 
     file << "\t\t<layer id=\"" << i << "\" name=\"" << node->name
-         << "\" type=\"" << layer_type << "\" version=\"opset1\">\n";
+         << "\" type=\"" << layer_type << "\" version=\"opset1\""
+         << " selected_in_path=\""
+         << (node->selected_in_path ? "true" : "false") << "\">\n";
     file << "\t\t\t<data/>\n";
 
-    // Input ports (only if node has a source)
     if (node->type == NodeType::MERGE) {
       file << "\t\t\t<input>\n";
       for (int i = 0; i < node->getSourceNodes().size(); i++) {
@@ -85,14 +85,11 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
       }
     }
 
-    // Output ports (count how many nodes use this node as source)
     int num_outputs = 0;
     for (const auto &other_node : m_nodes) {
-      // Count regular single source connections
       if (other_node->getSourceNode() == node) {
         num_outputs++;
       }
-      // Count merge node multiple source connections
       if (other_node->type == NodeType::MERGE) {
         const auto &source_nodes = other_node->getSourceNodes();
         for (const auto &source : source_nodes) {
@@ -120,11 +117,9 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
 
   file << "\t<edges>\n";
 
-  // Build connections based on source node relationships
   for (size_t i = 0; i < m_nodes.size(); ++i) {
     const auto &target_node = m_nodes[i];
 
-    // Handle merge nodes with multiple source nodes
     if (target_node->type == NodeType::MERGE) {
       const auto &source_nodes = target_node->getSourceNodes();
       for (size_t port_idx = 0; port_idx < source_nodes.size(); ++port_idx) {
@@ -133,16 +128,14 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
         if (source_it != node_to_id.end()) {
           size_t source_id = source_it->second;
 
-          // Count how many outputs the source node has to determine port number
           int source_output_port = 0;
           for (const auto &other_node : m_nodes) {
             if (other_node->getSourceNode() == source_node) {
               if (other_node == target_node) {
-                break; // Found our target, use current port
+                break;
               }
               source_output_port++;
             }
-            // Also check if other merge nodes use this as a source
             if (other_node->type == NodeType::MERGE) {
               const auto &other_sources = other_node->getSourceNodes();
               for (const auto &other_source : other_sources) {
@@ -160,24 +153,20 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
         }
       }
     } else {
-      // Handle regular nodes with single source node
       const auto &source_node = target_node->getSourceNode();
       if (source_node) {
-        // Find source node ID
         auto source_it = node_to_id.find(source_node.get());
         if (source_it != node_to_id.end()) {
           size_t source_id = source_it->second;
 
-          // Count how many outputs the source node has to determine port number
           int source_output_port = 0;
           for (const auto &other_node : m_nodes) {
             if (other_node->getSourceNode() == source_node) {
               if (other_node == target_node) {
-                break; // Found our target, use current port
+                break;
               }
               source_output_port++;
             }
-            // Also check if merge nodes use this as a source
             if (other_node->type == NodeType::MERGE) {
               const auto &other_sources = other_node->getSourceNodes();
               for (const auto &other_source : other_sources) {

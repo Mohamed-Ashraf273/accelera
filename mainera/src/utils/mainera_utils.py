@@ -11,6 +11,14 @@ from mainera.src.wrappers.unsupervised_metric_wrapper import (
     UnSupervisedMetricWrapper,
 )
 
+try:
+    import graph
+except ImportError as e:
+    raise ImportError(
+        "The 'graph' C++ module could not be imported. "
+        "Please ensure it is built and available in your PYTHONPATH."
+    ) from e
+
 interactive = True
 
 
@@ -76,3 +84,6 @@ def check_path_exist(path):
 def create_folder(folder_path):
     if not check_path_exist(folder_path):
         os.makedirs(folder_path, exist_ok=True)
+
+def serialize(pipeline, filepath):
+    graph.serialize_graph(pipeline._Pipeline__graph, filepath)
