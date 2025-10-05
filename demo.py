@@ -217,32 +217,24 @@ p.metric("accuracy", "f1_score", y_true=y_test, average=None)
 p.serialize("test.xml")
 
 
-def custom_metric_selector(metric_nodes_info):
+def custom_metric_selector(metrics):
     best_model_name = None
-    best_average_score = -1  # Start with -1 (impossible score)
+    best_average_score = -1
 
-    # Look at each model's results
-    for model_info in metric_nodes_info:
-        model_name = model_info["name"]  # e.g., "accuracy_leaf_0_chain_0"
-        model_results = model_info["data"]  # The actual F1 scores
+    for result in metrics:
+        model_name = result["node name"]
+        f1_scores = result["result"]
 
-        # Get the F1 score result
-        f1_scores = model_results[
-            "result"
-        ]  # This is an array of F1 scores for each class
-
-        # Calculate average F1 score across all classes
-        if hasattr(f1_scores, "__iter__"):  # If it's an array/list
+        if hasattr(f1_scores, "__iter__"):
             average_f1 = sum(f1_scores) / len(f1_scores)
-        else:  # If it's a single number
+        else:
             average_f1 = float(f1_scores)
 
-        # Keep track of the best model
         if average_f1 > best_average_score:
             best_average_score = average_f1
             best_model_name = model_name
 
-    return best_model_name  # Return the name of the winning model
+    return best_model_name
 
 
 start_mem = get_memory_info()

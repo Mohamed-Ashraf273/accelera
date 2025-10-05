@@ -55,9 +55,9 @@ public:
   void enableDisableMetrics(py::object y_true, py::object enable);
 
 private:
-  std::vector<Node::Ptr> m_nodes;
-  std::vector<Node::Ptr> m_metric_nodes;
   std::vector<Node::Ptr> m_execution_order;
+  std::vector<Node::Ptr> m_nodes;
+  std::vector<std::shared_ptr<MetricNode>> m_metric_nodes;
   bool m_compiled = false;
   bool m_executed = false;
   bool m_is_branched = false;
