@@ -4,9 +4,13 @@
 #include "core/graph.hpp"
 #include "nodes/input.hpp"
 #include "nodes/preprocess.hpp"
+#include <filesystem>
+#include <pybind11/embed.h>
+#include <pybind11/functional.h>
+#include <pybind11/stl.h>
 
 namespace py = pybind11;
-
+namespace fs = std::filesystem;
 namespace mainera {
 
 PreprocessNode::PreprocessNode(const std::string &name, py::object py_func)
@@ -43,16 +47,39 @@ std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
   if (py::hasattr(py_func, "fit")) {
     py::object transformer_instance =
         py::module::import("copy").attr("deepcopy")(py_func);
-    try {
-      if (!getGraph()->getIsExecuted()) {
-        transformer_instance.attr("fit")(X);
-      }
-      X = py::cast<py::array_t<double>>(
-          transformer_instance.attr("transform")(X));
+
+    py::module_ joblib = py::module_::import("joblib");
+    py::object hash_obj =
+        joblib.attr("hash")(py::make_tuple(transformer_instance, X));
+    std::string hash_value = hash_obj.cast<std::string>();
+    fs::path currentPath = fs::current_path();
+    fs::path cacheDir = currentPath / ".mainera_cache";
+    fs::create_directory(cacheDir);
+
+    fs::path model_path = cacheDir / (hash_value + "model" + ".pkl");
+    fs::path data_path = cacheDir / (hash_value + "data" + ".pkl");
+
+    std::string modelPathStr = model_path.string();
+    std::string dataPathStr = data_path.string();
+
+    if (fs::exists(modelPathStr) && fs::exists(dataPathStr)) {
+      transformer_instance = joblib.attr("load")(modelPathStr);
+      X = joblib.attr("load")(dataPathStr);
       py_func = transformer_instance;
-    } catch (const py::error_already_set &e) {
-      throw std::runtime_error("Python error in model fitting: " +
-                               std::string(e.what()));
+    } else {
+      try {
+        if (!getGraph()->getIsExecuted()) {
+          transformer_instance.attr("fit")(X);
+        }
+        X = py::cast<py::array_t<double>>(
+            transformer_instance.attr("transform")(X));
+        py_func = transformer_instance;
+        joblib.attr("dump")(transformer_instance, modelPathStr);
+        joblib.attr("dump")(X, dataPathStr);
+      } catch (const py::error_already_set &e) {
+        throw std::runtime_error("Python error in model fitting: " +
+                                 std::string(e.what()));
+      }
     }
   } else {
     X = py_func(X);
