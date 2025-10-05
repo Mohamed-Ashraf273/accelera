@@ -11,6 +11,14 @@ from mainera.src.wrappers.unsupervised_metric_wrapper import (
     UnSupervisedMetricWrapper,
 )
 
+try:
+    import graph
+except ImportError as e:
+    raise ImportError(
+        "The 'graph' C++ module could not be imported. "
+        "Please ensure it is built and available in your PYTHONPATH."
+    ) from e
+
 interactive = True
 
 
@@ -66,3 +74,7 @@ def get_correct_metric_class(metric_name, metric, y_true=None, **params):
         return UnSupervisedMetricWrapper(metric_name, metric, **params)
     else:
         return None
+
+
+def serialize(pipeline, filepath):
+    graph.serialize_graph(pipeline._Pipeline__graph, filepath)
