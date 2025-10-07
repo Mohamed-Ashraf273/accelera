@@ -1,5 +1,6 @@
 import inspect
 import logging
+import shutil
 import sys
 import os
 import sklearn.metrics as metrics
@@ -82,8 +83,10 @@ def check_path_exist(path):
         return False
     
 def create_folder(folder_path):
-    if not check_path_exist(folder_path):
-        os.makedirs(folder_path, exist_ok=True)
+    if check_path_exist(folder_path):
+        shutil.rmtree(folder_path)
+        
+    os.makedirs(folder_path, exist_ok=True)
 
 def serialize(pipeline, filepath):
     graph.serialize_graph(pipeline._Pipeline__graph, filepath)
