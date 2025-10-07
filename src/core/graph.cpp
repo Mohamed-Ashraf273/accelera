@@ -695,8 +695,6 @@ std::vector<std::vector<Node::Ptr>> Graph::groupNodesByLevel() const {
   levels_map[m_input_node.get()] = 0;
   queue.push(m_input_node);
 
-  int counter = 0;
-
   while (!queue.empty()) {
     Node::Ptr current = queue.front();
     queue.pop();
