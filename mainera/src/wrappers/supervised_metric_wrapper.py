@@ -9,6 +9,7 @@ class SupervisedMetricWrapper(BaseMetricWrapper):
         metric_name,
         metric,
         y_true=None,
+        tuple_argums=None,
         **params,
     ):
         super().__init__(
@@ -16,6 +17,7 @@ class SupervisedMetricWrapper(BaseMetricWrapper):
             metric,
             y_true=y_true,
             X=None,
+            tuple_argums=tuple_argums,
             **params,
         )
 
@@ -28,5 +30,10 @@ class SupervisedMetricWrapper(BaseMetricWrapper):
             raise ValueError("y_true must be provided for supervised metrics.")
         validate_array_shape(y_pred, self.y_true.shape[0], ["y_pred", "y_true"])
         result = self.metric(self.y_true, y_pred, **self.params)
-        output = {"metric name": self.metric_name, "result": result}
+        self.check_tuple_argums(result)
+        output = {
+            "metric name": self.metric_name,
+            "result": result,
+            "tuple_argums": self.tuple_argums,
+        }
         return output

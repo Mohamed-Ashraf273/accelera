@@ -85,7 +85,25 @@ class DisplayDict(MetricDisplay):
         return content
 
 
-class DisplayArray(MetricDisplay):
+class DisplayArraySingle(MetricDisplay):
+    def __init__(self, metric_name, values):
+        super().__init__(metric_name, values)
+
+    def execute(self):
+        content = f"### Metric name: {self.metric_name}\n\n"
+        ids, results = [value["metric id"] for value in self.values], [
+            np.array2string(
+                np.array(value["result"]), separator=", ", max_line_width=100
+            )
+            for value in self.values
+        ]
+        data = {"Metric ID": ids, "Metric Value": results}
+        table = pd.DataFrame(data).to_html(index=False)
+        content = content + table + "\n"
+        return content
+
+
+class DisplayMultiArray(MetricDisplay):
     def __init__(self, metric_name, values):
         super().__init__(metric_name, values)
 
@@ -103,6 +121,33 @@ class DisplayArray(MetricDisplay):
             )
             content = content + new_content
         content = content
+        return content
+
+
+class DisplayTupleNotCurve(MetricDisplay):
+    def __init__(self, metric_name, values, folderpath):
+        super().__init__(metric_name, values)
+        self.folderpath = folderpath
+
+    def execute(self):
+        content = (
+            f"### Metric name: {self.metric_name}\n"
+            "<div style='display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 10px;'>\n"
+        )
+
+        for value in self.values:
+            data = {}
+            for i in range(len(value["tuple_argums"]["labels"])):
+                data[value["tuple_argums"]["labels"][i]] = value["result"][i]
+            table = pd.DataFrame(data).to_html(index=False)
+            new_content = (
+                f"<div>\n"
+                f"<h3>Metric id :{value['metric id']}</h3>\n\n"
+                f"{table}\n"
+                "</div>\n"
+            )
+            content = content + new_content
+        content = content + "</div>\n"
         return content
 
 
@@ -126,6 +171,8 @@ class Report:
             raise ValueError(f"Invalid XML file {self.xmlpath}: {e}")
 
         graph = Digraph()
+        graph.attr("graph")
+
         for layer in root.findall("layers/layer"):
             node_id = layer.get("id")
             node_name = layer.get("name")
@@ -150,7 +197,12 @@ class Report:
         for i in range(len(self.metric_ids)):
             metric_name = self.results[i]["metric name"]
             metric_value = self.results[i]["result"]
-            metric_obj = {"metric id": self.metric_ids[i], "result": metric_value}
+            metric_tuple_argums = self.results[i]["tuple_argums"]
+            metric_obj = {
+                "metric id": self.metric_ids[i],
+                "result": metric_value,
+                "tuple_argums": metric_tuple_argums,
+            }
             if metric_name in final_metric:
                 final_metric[metric_name].append(metric_obj)
             else:
@@ -164,8 +216,17 @@ class Report:
             if isinstance(values[0]["result"], (int, float)):
                 obj = DisplaySignleNumber(metric_name, values, self.folderpath)
                 content = obj.execute()
-            elif isinstance(values[0]["result"], (list, np.ndarray)):
-                obj = DisplayArray(metric_name, values)
+            elif (
+                isinstance(values[0]["result"], (np.ndarray))
+                and values[0]["result"].ndim > 1
+            ):
+                obj = DisplayMultiArray(metric_name, values)
+                content = obj.execute()
+            elif (
+                isinstance(values[0]["result"], (np.ndarray))
+                and values[0]["result"].ndim == 1
+            ):
+                obj = DisplayArraySingle(metric_name, values)
                 content = obj.execute()
             elif isinstance(values[0]["result"], dict):
                 obj = DisplayDict(metric_name, values)
@@ -173,6 +234,10 @@ class Report:
             elif isinstance(values[0]["result"], str):
                 obj = DisplayString(metric_name, values)
                 content = obj.execute()
+            elif isinstance(values[0]["result"], (tuple)):
+                if values[0]["tuple_argums"]["is_curve"] == False:
+                    obj = DisplayTupleNotCurve(metric_name, values, self.folderpath)
+                    content = obj.execute()
             metric_content = metric_content + "\n" + content
         return metric_content
 
