@@ -213,9 +213,13 @@ p.branch(
 p.predict("predict", test_data, positive_class=1)
 
 # p.merge("merge_node", "hard_voting")
-
-p.metric("accuracy", "f1_score", y_true=y_test, average=None, branch=True)
-
+p.branch(
+    "metric",
+    p.metric("accuracy", "accuracy_score", y_true=y_test,branch=True),
+    p.metric("classification_report", "classification_report", y_true=y_test,output_dict=True, branch=True),
+    p.metric("confunsion_matrix", "confusion_matrix", y_true=y_test, branch=True),
+    p.metric("accuracy", "f1_score", y_true=y_test, average=None, branch=True),
+)
 
 
 def custom_metric_selector(metrics):
@@ -251,7 +255,7 @@ print(f"Pipeline execution time: {end - start:.4f} seconds")
 print(f"RSS memory: {end_mem['rss_mb'] - start_mem['rss_mb']:.2f} MB increase")
 print(f"Swap memory used: {end_mem['swap_mb']:.2f} MB")
 print("length of predictions: ", predictions)
-for pred in simple_predictions:
-    print(pred)
+# for pred in simple_predictions:
+#     print(pred)
 report=Report("report","test.xml",simple_predictions)
 img_path=report.create_readme_file()
