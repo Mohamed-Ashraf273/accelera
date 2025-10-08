@@ -4,6 +4,7 @@
 #include <fstream>
 #include <future>
 #include <queue>
+#include <stack>
 #include <stdexcept>
 #include <thread>
 
@@ -23,7 +24,6 @@ Graph::Graph() : m_compiled(false), m_parallel_enabled(false) {
   m_input_node = std::make_shared<InputNode>();
   auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
   input_as_node->setSourceNode(nullptr);
-  input_as_node->name = "Input_" + std::to_string(m_nodes.size());
   m_nodes.push_back(input_as_node);
 }
 
@@ -96,8 +96,7 @@ Graph::~Graph() { clear(); }
 
 Node::Ptr Graph::add_node(NodeType type, const std::string &name,
                           py::object py_func) {
-  auto node = NodeFactory::createNode(
-      type, name + "_" + std::to_string(m_nodes.size()), py_func);
+  auto node = NodeFactory::createNode(type, name, py_func);
 
   addNode(node);
   return node;
@@ -115,7 +114,6 @@ void Graph::addNode(Node::Ptr node) {
 
   switch (node->type) {
   case NodeType::MERGE:
-    // Multi-source: Connect to ALL leaves
     for (auto leaf : leaves) {
       if (!validateNodeConnection(node, leaf)) {
         throw std::runtime_error(
@@ -199,8 +197,16 @@ void Graph::split(const std::string &branch_name,
                                      node_types[branch_idx + list_idx]);
           }
 
-          std::string uniqueName = node_names[branch_idx + list_idx] + "_" +
-                                   std::to_string(m_nodes.size());
+          std::string uniqueName;
+          if (leaves.size() == 1) {
+            uniqueName = node_names[branch_idx + list_idx] + "_chain_" +
+                         std::to_string(list_idx);
+          } else {
+            uniqueName = node_names[branch_idx + list_idx] + "_leaf_" +
+                         std::to_string(leaf_idx) + "_chain_" +
+                         std::to_string(list_idx);
+          }
+
           py::object node_obj = node_list[list_idx];
           Node::Ptr branchNode =
               NodeFactory::createNode(nodeType, uniqueName, node_obj);
@@ -242,8 +248,13 @@ void Graph::split(const std::string &branch_name,
                                    node_types[branch_idx]);
         }
 
-        std::string uniqueName =
-            node_names[branch_idx] + "_" + std::to_string(m_nodes.size());
+        std::string uniqueName;
+        if (leaves.size() == 1) {
+          uniqueName = node_names[branch_idx];
+        } else {
+          uniqueName =
+              node_names[branch_idx] + "_leaf_" + std::to_string(leaf_idx);
+        }
 
         Node::Ptr branchNode = NodeFactory::createNode(
             nodeType, uniqueName, branch_objects[branch_idx]);
@@ -577,55 +588,66 @@ std::vector<py::object> Graph::getPreprocessingFunctions(Node::Ptr node) const {
   return m_preprocessing_functions;
 }
 
+// https://www.geeksforgeeks.org/dsa/topological-sorting/
 std::vector<Node::Ptr> Graph::topologicalSort() {
   if (m_nodes.empty())
     return {};
 
-  // Build adjacency list: node -> list of consumers (nodes that have this
-  // node as source)
-  std::unordered_map<Node *, std::vector<Node::Ptr>> adjacency_list;
-  std::unordered_map<Node *, int> in_degrees;
-
-  for (const auto &node : m_nodes) {
-    adjacency_list[node.get()] = {};
-    in_degrees[node.get()] = 0;
+  std::unordered_map<Node::Ptr, int> node_to_index;
+  for (size_t i = 0; i < m_nodes.size(); ++i) {
+    node_to_index[m_nodes[i]] = i;
   }
 
-  // Build connections based on source node relationships
-  for (const auto &node : m_nodes) {
-    if (auto source = node->getSourceNode()) {
-      // node depends on source
-      adjacency_list[source.get()].push_back(node);
-      in_degrees[node.get()]++;
-    }
-  }
+  std::vector<std::vector<int>> adj(m_nodes.size());
+  for (size_t i = 0; i < m_nodes.size(); ++i) {
+    const auto &node = m_nodes[i];
 
-  // Kahn's algorithm (BFS-based) - O(V + E)
-  std::queue<Node::Ptr> queue;
-  std::vector<Node::Ptr> sorted_nodes;
+    for (size_t j = 0; j < m_nodes.size(); ++j) {
+      const auto &other_node = m_nodes[j];
 
-  // Start with nodes that have no dependencies (no source node)
-  for (const auto &node : m_nodes) {
-    if (in_degrees[node.get()] == 0) {
-      queue.push(node);
-    }
-  }
+      if (other_node->getSourceNode() == node) {
+        adj[i].push_back(j);
+      }
 
-  while (!queue.empty()) {
-    Node::Ptr current = queue.front();
-    queue.pop();
-    sorted_nodes.push_back(current);
-
-    // Process all nodes that depend on current node
-    for (const auto &consumer : adjacency_list[current.get()]) {
-      in_degrees[consumer.get()]--;
-      if (in_degrees[consumer.get()] == 0) {
-        queue.push(consumer);
+      if (other_node->type == NodeType::MERGE) {
+        const auto &source_nodes = other_node->getSourceNodes();
+        for (const auto &source : source_nodes) {
+          if (source == node) {
+            adj[i].push_back(j);
+            break;
+          }
+        }
       }
     }
   }
 
-  // Check for cycles
+  std::vector<bool> visited(m_nodes.size(), false);
+  std::stack<int> result_stack;
+
+  std::function<void(int)> topologicalSortUtil = [&](int v) {
+    visited[v] = true;
+
+    for (int consumer : adj[v]) {
+      if (!visited[consumer]) {
+        topologicalSortUtil(consumer);
+      }
+    }
+
+    result_stack.push(v);
+  };
+
+  for (int i = 0; i < static_cast<int>(m_nodes.size()); ++i) {
+    if (!visited[i]) {
+      topologicalSortUtil(i);
+    }
+  }
+
+  std::vector<Node::Ptr> sorted_nodes;
+  while (!result_stack.empty()) {
+    sorted_nodes.push_back(m_nodes[result_stack.top()]);
+    result_stack.pop();
+  }
+
   if (sorted_nodes.size() != m_nodes.size()) {
     throw std::runtime_error("Graph contains cycles - not a DAG. Processed: " +
                              std::to_string(sorted_nodes.size()) + "/" +
@@ -638,16 +660,21 @@ std::vector<Node::Ptr> Graph::topologicalSort() {
 std::vector<Node::Ptr> Graph::findLeafNodes() const {
   std::vector<Node::Ptr> leaves;
 
-  // Create a set of nodes that serve as sources for other nodes
   std::unordered_set<Node::Ptr> source_nodes;
 
   for (const auto &node : m_nodes) {
-    for (auto source : node->getSourceNodes()) {
-      source_nodes.insert(source);
+    if (node->type == NodeType::MERGE) {
+      const auto &sources = node->getSourceNodes();
+      source_nodes.insert(sources.begin(), sources.end());
+    } else {
+      Node::Ptr source = node->getSourceNode();
+      if (source) {
+        source_nodes.insert(source);
+      }
     }
   }
 
-  // Leaf nodes are those that are not source nodes for any other node
+  // Leaves are nodes that are not a source for any other node
   for (const auto &node : m_nodes) {
     if (source_nodes.find(node) == source_nodes.end()) {
       leaves.push_back(node);
@@ -665,21 +692,14 @@ std::vector<std::vector<Node::Ptr>> Graph::groupNodesByLevel() const {
   std::unordered_map<Node *, int> levels_map;
   std::queue<Node::Ptr> queue;
 
-  // Find root nodes (nodes with no source)
-  for (const auto &node : m_nodes) {
-    if (!node->getSourceNode()) {
-      levels_map[node.get()] = 0;
-      queue.push(node);
-    }
-  }
+  levels_map[m_input_node.get()] = 0;
+  queue.push(m_input_node);
 
-  // BFS to assign levels
   while (!queue.empty()) {
     Node::Ptr current = queue.front();
     queue.pop();
     int current_level = levels_map[current.get()];
 
-    // Ensure we have enough levels
     if (current_level >= levels.size()) {
       levels.resize(current_level + 1);
     }
