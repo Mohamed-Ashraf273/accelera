@@ -1,6 +1,6 @@
 import numpy as np
 
-from .metric_display_wrapper import MetricDisplayWrapper
+from mainera.src.wrappers.metric_display_wrapper import MetricDisplayWrapper
 
 
 class DisplayMultiArrayWrapper(MetricDisplayWrapper):

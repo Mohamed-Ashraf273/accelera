@@ -2,7 +2,7 @@ import os
 
 import matplotlib.pyplot as plt
 
-from .metric_display_wrapper import MetricDisplayWrapper
+from mainera.src.wrappers.metric_display_wrapper import MetricDisplayWrapper
 
 plt.style.use("dark_background")
 

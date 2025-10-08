@@ -1,5 +1,4 @@
 import os
-import re
 import textwrap
 import xml.etree.ElementTree as ET
 
@@ -57,7 +56,6 @@ class Report:
             color = "red" if selected_in_path == "true" else "blue"
             if node_type == "METRIC":
                 self.metric_ids.append(node_id)
-            node_name = re.sub(r"_copy_\d+$", " ", node_name)
             node_full_name = f"{node_id}\\n{node_type}\\n{node_name}"
             graph.node(node_id, label=node_full_name, color=color)
 

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .metric_display_wrapper import MetricDisplayWrapper
+from mainera.src.wrappers.metric_display_wrapper import MetricDisplayWrapper
 
 
 class DisplayDictWrapper(MetricDisplayWrapper):
