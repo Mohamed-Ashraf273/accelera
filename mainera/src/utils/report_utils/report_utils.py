@@ -74,7 +74,12 @@ class Report:
 
     def metric_display(self):
         metric = self.handle_metric()
-        metric_content = "## Metrcis Summary\n"
+        metric_content = (
+            "## Metrcis Summary\n"
+            "- Each metric is displayed with its user-defined name, unique identifier (ID), and the corresponding results.\n"
+            "- Depending on the metric type, the results may include scalar values, arrays, dictionaries, strings, curves, or tuples.\n"
+            "- All metrics are presented in a structured and consistent format to facilitate clear interpretation and comparison.\n"
+        )
         for metric_name, values in metric.items():
             if isinstance(values[0]["result"], (int, float)):
                 obj = DisplaySignleNumberWrapper(metric_name, values, self.folderpath)

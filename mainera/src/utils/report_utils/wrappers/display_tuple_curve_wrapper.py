@@ -13,7 +13,7 @@ class DisplayTupleCurveWrapper(MetricDisplayWrapper):
     def execute(self):
         content = (
             f"### Metric name: {self.metric_name}\n\n"
-            "<div style='display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 10px;'>\n"
+            "<div style='display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;'>\n"
         )
         for value in self.values:
             plot_func = value["tuple_argums"]["plot_func"]
@@ -28,7 +28,7 @@ class DisplayTupleCurveWrapper(MetricDisplayWrapper):
             plt.savefig(img_path)
             plt.close()
             new_content = (
-                f"<div>\n\n"
+                f'<div  style="overflow-x:auto;max-width:400px;">\n\n'
                 f"![{self.metric_name}_{value['metric id']}]({self.metric_name}_{value['metric id']}.png)\n"
                 "</div>\n"
             )

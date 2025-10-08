@@ -10,7 +10,7 @@ class DisplayStringWrapper(MetricDisplayWrapper):
         for value in self.values:
             new_content = (
                 f"<div>\n"
-                f"<h3>Metric id :{value['metric id']}</h3>\n\n"
+                f'<h3 style="color:yellow;">Metric id :{value['metric id']}</h3>\n\n'
                 f"<pre>{value['result'].strip()}</pre>\n"
                 "</div>\n"
             )

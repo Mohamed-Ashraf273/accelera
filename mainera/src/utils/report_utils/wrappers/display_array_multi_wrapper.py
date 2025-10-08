@@ -14,7 +14,7 @@ class DisplayMultiArrayWrapper(MetricDisplayWrapper):
             )
             new_content = (
                 f"<div>\n"
-                f"<h3>Metric id :{value['metric id']}</h3>\n\n"
+                f'<h3 style="color:yellow;">Metric id :{value['metric id']}</h3>\n\n'
                 f"<pre>{array_str}</pre>\n"
                 "</div>\n"
             )
