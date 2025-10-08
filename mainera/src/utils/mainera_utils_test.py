@@ -54,10 +54,13 @@ class TestGetCorrectMetricClass:
             return 0
 
         class DummySupervisedWrapper:
-            def __init__(self, metric_name, metric, y_true, **params):
+            def __init__(
+                self, metric_name, metric, y_true, tuple_argums, **params
+            ):
                 self.metric_name = metric_name
                 self.metric = metric
                 self.y_true = y_true
+                self.tuple_argums = tuple_argums
                 self.params = params
 
         with patch(
@@ -75,11 +78,11 @@ class TestGetCorrectMetricClass:
             return 0
 
         class DummyUnSupervisedWrapper:
-            def __init__(self, metric_name, metric, X, **params):
+            def __init__(self, metric_name, metric, tuple_argums, **params):
                 self.metric_name = metric_name
                 self.metric = metric
-                self.X = X
                 self.params = params
+                self.tuple_argums = tuple_argums
 
         with patch(
             "mainera.src.utils.mainera_utils.UnSupervisedMetricWrapper",

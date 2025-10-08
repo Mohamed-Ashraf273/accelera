@@ -14,6 +14,7 @@ from sklearn.svm import SVC
 from mainera.src.core.pipeline import Pipeline
 from mainera.src.custom.classifier import CustomClassifier
 from mainera.src.utils.mainera_utils import serialize
+from mainera.src.utils.report_utils import Report
 
 
 class TorchDenseModel(CustomClassifier):
@@ -212,10 +213,32 @@ p.branch(
 p.predict("predict", test_data, positive_class=1)
 
 # p.merge("merge_node", "hard_voting")
-p.metric("accuracy", "f1_score", y_true=y_test, average=None)
-
-
-serialize(p, "test.xml")
+p.branch(
+    "metric",
+    p.metric("accuracyh", "accuracy_score", y_true=y_test, branch=True),
+    p.metric(
+        "classification_report",
+        "classification_report",
+        y_true=y_test,
+        output_dict=True,
+        branch=True,
+    ),
+    p.metric(
+        "confunsion_matrix", "confusion_matrix", y_true=y_test, branch=True
+    ),
+    p.metric(
+        "precision_recall_fscore_support",
+        "precision_recall_fscore_support",
+        y_true=y_test,
+        tuple_argums={
+            "labels": ["percision", "recall", "f1", "support"],
+            "is_curve": False,
+        },
+        average=None,
+        branch=True,
+    ),
+    p.metric("f1_score", "f1_score", y_true=y_test, average=None, branch=True),
+)
 
 
 def custom_metric_selector(metrics):
@@ -241,6 +264,8 @@ simple_predictions, executed_graph = p(
     X, y, select_strategy="custom", custom_strategy=custom_metric_selector
 )
 predictions = executed_graph(test_data, y_true=y_test)
+serialize(p, "test.xml")
+
 end = time.time()
 end_mem = get_memory_info()
 
@@ -249,5 +274,7 @@ print(f"Pipeline execution time: {end - start:.4f} seconds")
 print(f"RSS memory: {end_mem['rss_mb'] - start_mem['rss_mb']:.2f} MB increase")
 print(f"Swap memory used: {end_mem['swap_mb']:.2f} MB")
 print("length of predictions: ", predictions)
-for pred in simple_predictions:
-    print(pred)
+# for pred in simple_predictions:
+#     print(pred)
+report = Report("report", "test.xml", simple_predictions)
+img_path = report.create_readme_file()

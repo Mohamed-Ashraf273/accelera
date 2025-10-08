@@ -8,12 +8,14 @@ class UnSupervisedMetricWrapper(BaseMetricWrapper):
         self,
         metric_name,
         metric,
+        tuple_argums=None,
         **params,
     ):
         super().__init__(
             metric_name,
             metric,
             y_true=None,
+            tuple_argums=tuple_argums,
             **params,
         )
         self.X = None
@@ -29,5 +31,11 @@ class UnSupervisedMetricWrapper(BaseMetricWrapper):
         validate_array_shape(y_pred, self.X.shape[0], ["y_pred", "X"])
 
         result = self.metric(self.X, y_pred, **self.params)
-        output = {"metric name": self.metric_name, "result": result}
+        self.check_tuple_argums(result)
+
+        output = {
+            "metric name": self.metric_name,
+            "result": result,
+            "tuple_argums": self.tuple_argums,
+        }
         return output

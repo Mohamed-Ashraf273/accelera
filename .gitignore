@@ -3,3 +3,6 @@ build/
 env/
 __pycache__/
 .mainera_cache/
+cache/
+test.xml
+report/

@@ -1,5 +1,7 @@
 import inspect
 import logging
+import os
+import shutil
 import sys
 
 import sklearn.metrics as metrics
@@ -50,7 +52,9 @@ def get_metric_object(
     return metric_func
 
 
-def get_correct_metric_class(metric_name, metric, y_true=None, **params):
+def get_correct_metric_class(
+    metric_name, metric, y_true=None, tuple_argums=None, **params
+):
     signature = inspect.signature(metric)
     parameters = list(signature.parameters.keys())
     has_true_labels = any(
@@ -63,7 +67,9 @@ def get_correct_metric_class(metric_name, metric, y_true=None, **params):
     supervised = has_true_labels and has_predictions
     unsupervised = "X" in parameters and "labels" in parameters
     if supervised:
-        return SupervisedMetricWrapper(metric_name, metric, y_true, **params)
+        return SupervisedMetricWrapper(
+            metric_name, metric, y_true, tuple_argums, **params
+        )
     elif unsupervised:
         print_msg(
             f"Using unsupervised metric '{metric_name}' "
@@ -71,9 +77,25 @@ def get_correct_metric_class(metric_name, metric, y_true=None, **params):
             "y_true will be ignored.",
             level="warning",
         )
-        return UnSupervisedMetricWrapper(metric_name, metric, **params)
+        return UnSupervisedMetricWrapper(
+            metric_name, metric, tuple_argums, **params
+        )
     else:
         return None
+
+
+def check_path_exist(path):
+    if os.path.exists(path):
+        return True
+    else:
+        return False
+
+
+def create_folder(folder_path):
+    if check_path_exist(folder_path):
+        shutil.rmtree(folder_path)
+
+    os.makedirs(folder_path, exist_ok=True)
 
 
 def serialize(pipeline, filepath):
