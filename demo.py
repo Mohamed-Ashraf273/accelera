@@ -14,7 +14,7 @@ from sklearn.svm import SVC
 from mainera.src.core.pipeline import Pipeline
 from mainera.src.custom.classifier import CustomClassifier
 from mainera.src.utils.mainera_utils import serialize
-from mainera.src.utils.report_utils.report_utils import Report
+from mainera.src.utils.report_utils import Report
 
 
 class TorchDenseModel(CustomClassifier):

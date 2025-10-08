@@ -5,7 +5,29 @@ since your modifications would be overwritten.
 """
 
 from mainera.src.wrappers import (
+    display_array_multi_wrapper as display_array_multi_wrapper,
+)
+from mainera.src.wrappers import (
+    display_array_single_wrapper as display_array_single_wrapper,
+)
+from mainera.src.wrappers import display_dict_wrapper as display_dict_wrapper
+from mainera.src.wrappers import (
+    display_single_number_wrapper as display_single_number_wrapper,
+)
+from mainera.src.wrappers import (
+    display_string_wrapper as display_string_wrapper,
+)
+from mainera.src.wrappers import (
+    display_tuple_curve_wrapper as display_tuple_curve_wrapper,
+)
+from mainera.src.wrappers import (
+    display_tuple_not_curve_wrapper as display_tuple_not_curve_wrapper,
+)
+from mainera.src.wrappers import (
     executed_graph_wrapper as executed_graph_wrapper,
+)
+from mainera.src.wrappers import (
+    metric_display_wrapper as metric_display_wrapper,
 )
 from mainera.src.wrappers import metric_wrapper as metric_wrapper
 from mainera.src.wrappers import node_wrapper as node_wrapper

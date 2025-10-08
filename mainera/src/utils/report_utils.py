@@ -7,14 +7,21 @@ import numpy as np
 from graphviz import Digraph
 
 from mainera.src.utils.mainera_utils import create_folder
-
-from .wrappers.display_array_multi_wrapper import DisplayMultiArrayWrapper
-from .wrappers.display_array_single_wrapper import DisplayArraySingleWrapper
-from .wrappers.display_dict_wrapper import DisplayDictWrapper
-from .wrappers.display_single_number_wrapper import DisplaySignleNumberWrapper
-from .wrappers.display_string_wrapper import DisplayStringWrapper
-from .wrappers.display_tuple_curve_wrapper import DisplayTupleCurveWrapper
-from .wrappers.display_tuple_not_curve_wrapper import (
+from mainera.src.wrappers.display_array_multi_wrapper import (
+    DisplayMultiArrayWrapper,
+)
+from mainera.src.wrappers.display_array_single_wrapper import (
+    DisplayArraySingleWrapper,
+)
+from mainera.src.wrappers.display_dict_wrapper import DisplayDictWrapper
+from mainera.src.wrappers.display_single_number_wrapper import (
+    DisplaySignleNumberWrapper,
+)
+from mainera.src.wrappers.display_string_wrapper import DisplayStringWrapper
+from mainera.src.wrappers.display_tuple_curve_wrapper import (
+    DisplayTupleCurveWrapper,
+)
+from mainera.src.wrappers.display_tuple_not_curve_wrapper import (
     DisplayTupleNotCurveWrapper,
 )
 
