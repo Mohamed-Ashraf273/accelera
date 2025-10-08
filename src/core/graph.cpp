@@ -23,6 +23,7 @@ Graph::Graph() : m_compiled(false), m_parallel_enabled(false) {
   m_input_node = std::make_shared<InputNode>();
   auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
   input_as_node->setSourceNode(nullptr);
+  input_as_node->name = "Input_" + std::to_string(m_nodes.size());
   m_nodes.push_back(input_as_node);
 }
 
@@ -95,7 +96,7 @@ Graph::~Graph() { clear(); }
 
 Node::Ptr Graph::add_node(NodeType type, const std::string &name,
                           py::object py_func) {
-  auto node = NodeFactory::createNode(type, name, py_func);
+  auto node = NodeFactory::createNode(type, name + "_" + std::to_string(m_nodes.size()), py_func);
 
   addNode(node);
   return node;
@@ -197,16 +198,7 @@ void Graph::split(const std::string &branch_name,
                                      node_types[branch_idx + list_idx]);
           }
 
-          std::string uniqueName;
-          if (leaves.size() == 1) {
-            uniqueName = node_names[branch_idx + list_idx] + "_chain_" +
-                         std::to_string(list_idx);
-          } else {
-            uniqueName = node_names[branch_idx + list_idx] + "_leaf_" +
-                         std::to_string(leaf_idx) + "_chain_" +
-                         std::to_string(list_idx);
-          }
-
+          std::string uniqueName = node_names[branch_idx + list_idx] + "_" + std::to_string(m_nodes.size());
           py::object node_obj = node_list[list_idx];
           Node::Ptr branchNode =
               NodeFactory::createNode(nodeType, uniqueName, node_obj);
@@ -248,13 +240,7 @@ void Graph::split(const std::string &branch_name,
                                    node_types[branch_idx]);
         }
 
-        std::string uniqueName;
-        if (leaves.size() == 1) {
-          uniqueName = node_names[branch_idx];
-        } else {
-          uniqueName =
-              node_names[branch_idx] + "_leaf_" + std::to_string(leaf_idx);
-        }
+        std::string uniqueName = node_names[branch_idx] + "_" + std::to_string(m_nodes.size());
 
         Node::Ptr branchNode = NodeFactory::createNode(
             nodeType, uniqueName, branch_objects[branch_idx]);
