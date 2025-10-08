@@ -260,7 +260,7 @@ class TestPipelineCorrectness:
         manual_result = manual_model.predict(test_scaled)
         manual_accuracy = np.mean(self.y_test == manual_result)
         assert accuracy["result"] == manual_accuracy
-        assert accuracy["metric name"] == "accuracy"
+        assert accuracy["metric name"] == "accuracy_score"
 
     def test_metric_errors(self):
         p = Pipeline()

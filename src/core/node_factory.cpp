@@ -31,8 +31,8 @@ Node::Ptr NodeFactory::createNode(NodeType type, const std::string &name,
   }
 }
 
-Node::Ptr NodeFactory::createNodeCopy(Node::Ptr node) {
-  std::string copyName = node->name;
+Node::Ptr NodeFactory::createNodeCopy(Node::Ptr node, int i) {
+  std::string copyName = node->name + std::to_string(i);
   return NodeFactory::createNode(node->type, copyName, node->py_func);
 }
 

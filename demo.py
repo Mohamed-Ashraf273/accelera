@@ -248,7 +248,6 @@ def custom_metric_selector(metrics):
     f1_scores = [
         d["result"][0] for d in metrics if d["metric name"] == "f1_score"
     ]
-    print("F1 scores for each model:", f1_scores)
 
     for i, f1_score in enumerate(f1_scores):
         if f1_score > best_first_class_score:
