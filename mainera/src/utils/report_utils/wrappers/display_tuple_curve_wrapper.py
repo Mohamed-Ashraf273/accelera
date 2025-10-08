@@ -1,6 +1,8 @@
-from .metric_display_wrapper import MetricDisplayWrapper
 import os
+
 import matplotlib.pyplot as plt
+
+from .metric_display_wrapper import MetricDisplayWrapper
 
 plt.style.use("dark_background")
 
@@ -13,7 +15,8 @@ class DisplayTupleCurveWrapper(MetricDisplayWrapper):
     def execute(self):
         content = (
             f"### Metric name: {self.metric_name}\n\n"
-            "<div style='display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;'>\n"
+            "<div style='display: grid; "
+            "grid-template-columns: repeat(2, 1fr); gap: 20px;'>\n"
         )
         for value in self.values:
             plot_func = value["tuple_argums"]["plot_func"]
@@ -29,7 +32,8 @@ class DisplayTupleCurveWrapper(MetricDisplayWrapper):
             plt.close()
             new_content = (
                 f'<div  style="overflow-x:auto;max-width:400px;">\n\n'
-                f"![{self.metric_name}_{value['metric id']}]({self.metric_name}_{value['metric id']}.png)\n"
+                f"![{self.metric_name}_{value['metric id']}]\n"
+                f"({self.metric_name}_{value['metric id']}.png)\n"
                 "</div>\n"
             )
             content = content + new_content

@@ -13,8 +13,8 @@ from sklearn.svm import SVC
 
 from mainera.src.core.pipeline import Pipeline
 from mainera.src.custom.classifier import CustomClassifier
-from mainera.src.utils.report_utils.report_utils import Report
 from mainera.src.utils.mainera_utils import serialize
+from mainera.src.utils.report_utils.report_utils import Report
 
 
 class TorchDenseModel(CustomClassifier):
@@ -215,10 +215,28 @@ p.predict("predict", test_data, positive_class=1)
 # p.merge("merge_node", "hard_voting")
 p.branch(
     "metric",
-    p.metric("accuracyh", "accuracy_score", y_true=y_test,branch=True),
-    p.metric("classification_report", "classification_report", y_true=y_test,output_dict=True, branch=True),
-    p.metric("confunsion_matrix", "confusion_matrix", y_true=y_test, branch=True),
-    p.metric("precision_recall_fscore_support", "precision_recall_fscore_support", y_true=y_test,tuple_argums={"labels":["percision","recall","f1","support"],"is_curve":False}, average=None, branch=True),
+    p.metric("accuracyh", "accuracy_score", y_true=y_test, branch=True),
+    p.metric(
+        "classification_report",
+        "classification_report",
+        y_true=y_test,
+        output_dict=True,
+        branch=True,
+    ),
+    p.metric(
+        "confunsion_matrix", "confusion_matrix", y_true=y_test, branch=True
+    ),
+    p.metric(
+        "precision_recall_fscore_support",
+        "precision_recall_fscore_support",
+        y_true=y_test,
+        tuple_argums={
+            "labels": ["percision", "recall", "f1", "support"],
+            "is_curve": False,
+        },
+        average=None,
+        branch=True,
+    ),
     p.metric("f1_score", "f1_score", y_true=y_test, average=None, branch=True),
 )
 
@@ -258,5 +276,5 @@ print(f"Swap memory used: {end_mem['swap_mb']:.2f} MB")
 print("length of predictions: ", predictions)
 # for pred in simple_predictions:
 #     print(pred)
-report=Report("report","test.xml",simple_predictions)
-img_path=report.create_readme_file()
+report = Report("report", "test.xml", simple_predictions)
+img_path = report.create_readme_file()

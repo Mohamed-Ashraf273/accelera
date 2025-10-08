@@ -23,23 +23,30 @@ class BaseMetricWrapper(ABC):
 
     def check_tuple_argums(self, result):
         if isinstance(result, tuple):
-            if self.tuple_argums is None or self.tuple_argums["is_curve"] is None:
+            if (
+                self.tuple_argums is None
+                or self.tuple_argums["is_curve"] is None
+            ):
                 raise ValueError(
                     "tuple_argums must be an object contains keys 'is_curve'"
                 )
-            if self.tuple_argums["is_curve"] == False:
+            if not self.tuple_argums["is_curve"]:
                 if "labels" not in self.tuple_argums:
                     raise ValueError(
                         "tuple_argums must be an object contains keys 'labels'"
                     )
                 if len(self.tuple_argums["labels"]) != len(result):
                     raise ValueError(
-                        f"the length of labels must be equal to the length of result the length of result is {len(result)}"
+                        "the length of labels must be equal to the "
+                        "length of result the length "
+                        f"of result is {len(result)}"
                     )
             else:
                 if "plot_func" not in self.tuple_argums:
                     raise ValueError(
-                        "tuple_argums must be an object contains keys 'plot_func' this function is for plotting the result if the metric return a curve"
+                        "tuple_argums must be an object contains keys "
+                        "'plot_func' this function is for plotting the result "
+                        "if the metric return a curve"
                     )
 
     @abstractmethod

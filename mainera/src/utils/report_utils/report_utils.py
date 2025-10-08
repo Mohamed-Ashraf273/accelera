@@ -1,17 +1,22 @@
-from .wrappers.display_single_number_wrapper import DisplaySignleNumberWrapper
-from .wrappers.display_dict_wrapper import DisplayDictWrapper
-from .wrappers.display_string_wrapper import DisplayStringWrapper
-from .wrappers.display_array_single_wrapper import DisplayArraySingleWrapper
-from .wrappers.display_array_multi_wrapper import DisplayMultiArrayWrapper
-from .wrappers.display_tuple_not_curve_wrapper import DisplayTupleNotCurveWrapper
-from .wrappers.display_tuple_curve_wrapper import DisplayTupleCurveWrapper
-from mainera.src.utils.mainera_utils import create_folder
-import xml.etree.ElementTree as ET
-from graphviz import Digraph
-import numpy as np
 import os
 import re
 import textwrap
+import xml.etree.ElementTree as ET
+
+import numpy as np
+from graphviz import Digraph
+
+from mainera.src.utils.mainera_utils import create_folder
+
+from .wrappers.display_array_multi_wrapper import DisplayMultiArrayWrapper
+from .wrappers.display_array_single_wrapper import DisplayArraySingleWrapper
+from .wrappers.display_dict_wrapper import DisplayDictWrapper
+from .wrappers.display_single_number_wrapper import DisplaySignleNumberWrapper
+from .wrappers.display_string_wrapper import DisplayStringWrapper
+from .wrappers.display_tuple_curve_wrapper import DisplayTupleCurveWrapper
+from .wrappers.display_tuple_not_curve_wrapper import (
+    DisplayTupleNotCurveWrapper,
+)
 
 
 class Report:
@@ -28,7 +33,8 @@ class Report:
             root = tree.getroot()
         except FileNotFoundError:
             raise FileNotFoundError(
-                f"XML file: {self.xmlpath} not found please run serialze function"
+                f"XML file: {self.xmlpath} "
+                "not found please run serialize function"
             )
         except ET.ParseError as e:
             raise ValueError(f"Invalid XML file {self.xmlpath}: {e}")
@@ -74,15 +80,21 @@ class Report:
 
     def metric_display(self):
         metric = self.handle_metric()
-        metric_content = (
-            "## Metrcis Summary\n"
-            "- Each metric is displayed with its user-defined name, unique identifier (ID), and the corresponding results.\n"
-            "- Depending on the metric type, the results may include scalar values, arrays, dictionaries, strings, curves, or tuples.\n"
-            "- All metrics are presented in a structured and consistent format to facilitate clear interpretation and comparison.\n"
-        )
+        metric_content = """## Metrics Summary\n
+            - Each metric is displayed with its
+              user-defined name, unique identifier (ID), 
+            and the corresponding results.\n
+            - Depending on the metric type, the results may 
+            include scalar values, arrays, dictionaries, 
+            strings, curves, or tuples.\n
+            - All metrics are presented in a structured and 
+            consistent format to facilitate clear 
+            interpretation and comparison.\n"""
         for metric_name, values in metric.items():
             if isinstance(values[0]["result"], (int, float)):
-                obj = DisplaySignleNumberWrapper(metric_name, values, self.folderpath)
+                obj = DisplaySignleNumberWrapper(
+                    metric_name, values, self.folderpath
+                )
                 content = obj.execute()
             elif (
                 isinstance(values[0]["result"], (np.ndarray))
@@ -103,13 +115,15 @@ class Report:
                 obj = DisplayStringWrapper(metric_name, values)
                 content = obj.execute()
             elif isinstance(values[0]["result"], (tuple)):
-                if values[0]["tuple_argums"]["is_curve"] == False:
+                if not values[0]["tuple_argums"]["is_curve"]:
                     obj = DisplayTupleNotCurveWrapper(
                         metric_name, values, self.folderpath
                     )
                     content = obj.execute()
                 else:
-                    obj = DisplayTupleCurveWrapper(metric_name, values, self.folderpath)
+                    obj = DisplayTupleCurveWrapper(
+                        metric_name, values, self.folderpath
+                    )
                     content = obj.execute()
             metric_content = metric_content + "\n" + content
         return metric_content
@@ -120,21 +134,25 @@ class Report:
         content = textwrap.dedent(
             """\
         # Report
-        This is the automated report for the pipeline created using **Mainera**.  
+        This is the automated report for the 
+        pipeline created using **Mainera**.  
         It includes both:  
         - A graphical representation of the pipeline structure
         - A summary of the resulting metrics
         ## Graphical Representation
         ![Pipeline Graph](graph.png)
         ### Description
-        The graph illustrates the **nodes** in the pipeline and their **connections**.  
+        The graph illustrates the **nodes** in the 
+        pipeline and their **connections**.  
         - Each node is labeled with its:
             - **ID**
-            - **Type** (one of: `Input`, `Preprocess`, `Model`, `Predict`, `Merge`, `Metric`)
+            - **Type** (one of: `Input`, `Preprocess`, 
+            `Model`, `Predict`, `Merge`, `Metric`)
             - **Name**
         - **Node colors**:
             -  **Red nodes** → selected in the final execution path  
-            -  **Blue nodes** → present in the structure but not part of the final path 
+            -  **Blue nodes** → present in the 
+            structure but not part of the final path 
               
         """
         )

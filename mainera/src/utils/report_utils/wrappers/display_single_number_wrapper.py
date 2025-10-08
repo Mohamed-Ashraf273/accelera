@@ -1,7 +1,9 @@
-from .metric_display_wrapper import MetricDisplayWrapper
+import os
+
 import matplotlib.pyplot as plt
 import pandas as pd
-import os
+
+from .metric_display_wrapper import MetricDisplayWrapper
 
 plt.style.use("dark_background")
 
@@ -12,9 +14,10 @@ class DisplaySignleNumberWrapper(MetricDisplayWrapper):
         self.folderpath = folderpath
 
     def execute(self):
-        ids, results = [value["metric id"] for value in self.values], [
-            value["result"] for value in self.values
-        ]
+        ids, results = (
+            [value["metric id"] for value in self.values],
+            [value["result"] for value in self.values],
+        )
         data = {
             "Metric ID": ids,
             "Metric Value": results,

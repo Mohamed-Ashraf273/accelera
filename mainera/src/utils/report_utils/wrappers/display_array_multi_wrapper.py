@@ -1,5 +1,6 @@
-from .metric_display_wrapper import MetricDisplayWrapper
 import numpy as np
+
+from .metric_display_wrapper import MetricDisplayWrapper
 
 
 class DisplayMultiArrayWrapper(MetricDisplayWrapper):
@@ -13,8 +14,9 @@ class DisplayMultiArrayWrapper(MetricDisplayWrapper):
                 np.array(value["result"]), separator=", ", max_line_width=80
             )
             new_content = (
-                f"<div>\n"
-                f'<h3 style="color:yellow;">Metric id :{value['metric id']}</h3>\n\n'
+                "<div>\n"
+                '<h3 style="color:yellow;">\n'
+                f"Metric id :{value['metric id']}</h3>\n\n"
                 f"<pre>{array_str}</pre>\n"
                 "</div>\n"
             )

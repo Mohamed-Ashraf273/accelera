@@ -1,5 +1,6 @@
-from .metric_display_wrapper import MetricDisplayWrapper
 import pandas as pd
+
+from .metric_display_wrapper import MetricDisplayWrapper
 
 
 class DisplayTupleNotCurveWrapper(MetricDisplayWrapper):
@@ -10,7 +11,8 @@ class DisplayTupleNotCurveWrapper(MetricDisplayWrapper):
     def execute(self):
         content = (
             f"### Metric name: {self.metric_name}\n"
-            "<div style='display: grid; grid-template-columns: repeat(2,  1fr); gap: 20px;'>\n"
+            "<div style='display: grid; "
+            "grid-template-columns: repeat(2,  1fr); gap: 20px;'>\n"
         )
 
         for value in self.values:
@@ -19,8 +21,9 @@ class DisplayTupleNotCurveWrapper(MetricDisplayWrapper):
                 data[value["tuple_argums"]["labels"][i]] = value["result"][i]
             table = pd.DataFrame(data).to_html(index=False)
             new_content = (
-                f'<div style="overflow-x:auto;max-width:400px;">\n'
-                f'<h3 style="color:yellow;">Metric id :{value['metric id']}</h3>\n\n'
+                '<div style="overflow-x:auto;max-width:400px;">\n'
+                '<h3 style="color:yellow;">\n'
+                f"Metric id :{value['metric id']}</h3>\n\n"
                 f"{table}\n"
                 "</div>\n"
             )
