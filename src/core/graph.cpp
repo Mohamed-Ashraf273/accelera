@@ -136,8 +136,7 @@ void Graph::addNode(Node::Ptr node) {
             nodeTypeToString(node->type) + " to source node of type " +
             nodeTypeToString(leaves[i]->type));
       }
-      Node::Ptr nodeToAdd =
-          (i == 0) ? node : NodeFactory::createNodeCopy(node, i);
+      Node::Ptr nodeToAdd = (i == 0) ? node : NodeFactory::createNodeCopy(node);
       nodeToAdd->setShouldCreateNewData(is_connected_to_input[i]);
       nodeToAdd->setSourceNode(leaves[i]);
       nodeToAdd->setGraph(this);
