@@ -76,7 +76,7 @@ class Pipeline:
 
         if metric_func is not None:
             metric_obj = get_correct_metric_class(
-                metric_name, metric_func, y_true,tuple_argums, **params
+                name, metric_func, y_true,tuple_argums, **params
             )
             if metric_obj is None:
                 raise ValueError(
