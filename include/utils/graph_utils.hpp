@@ -14,7 +14,7 @@ class Graph; // Forward declaration
 MAINERA_API void serialize_graph(const Graph &graph,
                                  const std::string &filepath);
 MAINERA_API void log_warning(const std::string &message);
-MAINERA_API bool validateNodeConnection(Node::Ptr newNode,
+MAINERA_API void validateNodeConnection(Node::Ptr newNode,
                                         Node::Ptr sourceNode);
 MAINERA_API std::string nodeTypeToString(NodeType type);
 
