@@ -117,12 +117,7 @@ void Graph::addNode(Node::Ptr node) {
   switch (node->type) {
   case NodeType::MERGE:
     for (auto leaf : leaves) {
-      if (!validateNodeConnection(node, leaf)) {
-        throw std::runtime_error(
-            "Invalid connection: Cannot connect node of type " +
-            nodeTypeToString(node->type) + " to source node of type " +
-            nodeTypeToString(leaf->type));
-      }
+      validateNodeConnection(node, leaf);
     }
     node->setSourceNodes(leaves);
     node->setGraph(this);
@@ -130,12 +125,7 @@ void Graph::addNode(Node::Ptr node) {
     break;
   default:
     for (size_t i = 0; i < leaves.size(); ++i) {
-      if (!validateNodeConnection(node, leaves[i])) {
-        throw std::runtime_error(
-            "Invalid connection: Cannot connect node of type " +
-            nodeTypeToString(node->type) + " to source node of type " +
-            nodeTypeToString(leaves[i]->type));
-      }
+      validateNodeConnection(node, leaves[i]);
       Node::Ptr nodeToAdd =
           (i == 0) ? node : NodeFactory::createNodeCopy(node, i);
       nodeToAdd->setShouldCreateNewData(is_connected_to_input[i]);
@@ -205,13 +195,7 @@ void Graph::split(const std::string &branch_name,
           Node::Ptr branchNode =
               NodeFactory::createNode(nodeType, uniqueName, node_obj);
 
-          if (!validateNodeConnection(branchNode, current_source)) {
-            throw std::runtime_error(
-                "Invalid connection: Cannot connect node of type " +
-                nodeTypeToString(branchNode->type) +
-                " to source node of type " +
-                nodeTypeToString(current_source->type));
-          }
+          validateNodeConnection(branchNode, current_source);
 
           branchNode->setShouldCreateNewData(list_idx == 0);
 
@@ -248,12 +232,7 @@ void Graph::split(const std::string &branch_name,
         Node::Ptr branchNode = NodeFactory::createNode(
             nodeType, uniqueName, branch_objects[branch_idx]);
 
-        if (!validateNodeConnection(branchNode, current_source)) {
-          throw std::runtime_error(
-              "Invalid connection: Cannot connect node of type " +
-              nodeTypeToString(branchNode->type) + " to source node of type " +
-              nodeTypeToString(current_source->type));
-        }
+        validateNodeConnection(branchNode, current_source);
 
         branchNode->setShouldCreateNewData(true);
 

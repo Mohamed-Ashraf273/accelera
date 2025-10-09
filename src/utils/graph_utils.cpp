@@ -217,34 +217,44 @@ std::string nodeTypeToString(NodeType type) {
   }
 }
 
-bool validateNodeConnection(Node::Ptr newNode, Node::Ptr sourceNode) {
+void validateNodeConnection(Node::Ptr newNode, Node::Ptr sourceNode) {
+  bool valid = false;
   switch (newNode->type) {
   case NodeType::PREPROCESS:
-    return sourceNode->type == NodeType::INPUT ||
-           sourceNode->type == NodeType::PREPROCESS;
+    valid = sourceNode->type == NodeType::INPUT ||
+            sourceNode->type == NodeType::PREPROCESS;
+    break;
 
   case NodeType::MODEL:
-    return sourceNode->type == NodeType::INPUT ||
-           sourceNode->type == NodeType::PREPROCESS;
+    valid = sourceNode->type == NodeType::INPUT ||
+            sourceNode->type == NodeType::PREPROCESS;
+    break;
 
   case NodeType::PREDICT:
-    return sourceNode->type == NodeType::MODEL;
+    valid = sourceNode->type == NodeType::MODEL;
+    break;
 
   case NodeType::METRIC:
-    return sourceNode->type == NodeType::PREDICT ||
-           sourceNode->type == NodeType::MERGE;
+    valid = sourceNode->type == NodeType::PREDICT ||
+            sourceNode->type == NodeType::MERGE;
+    break;
 
   case NodeType::MERGE:
-    return sourceNode->type == NodeType::PREDICT;
+    valid = sourceNode->type == NodeType::PREDICT;
+    break;
 
   case NodeType::FEATURE:
-    return true;
+    valid = true;
+    break;
 
   case NodeType::INPUT:
-    return sourceNode == nullptr;
-
-  default:
-    return false;
+    valid = sourceNode == nullptr;
+    break;
   }
+  if (!valid)
+    throw std::runtime_error(
+        "Invalid connection: Cannot connect node of type " +
+        nodeTypeToString(newNode->type) + " to source node of type " +
+        nodeTypeToString(sourceNode->type));
 }
 } // namespace mainera
