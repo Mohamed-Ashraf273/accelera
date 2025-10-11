@@ -1,5 +1,4 @@
 #include <filesystem>
-#include <fstream>
 #include <pybind11/embed.h>
 #include <pybind11/functional.h>
 #include <pybind11/numpy.h>
@@ -47,9 +46,12 @@ void PreprocessNode::validateInputData(const py::object &X) {
 std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
                                                                py::object y) {
 
-  if (py::hasattr(py_func, "fit")) {
+  if (py::hasattr(py_func["func"], "fit")) {
     py::object transformer_instance =
-        py::module::import("copy").attr("deepcopy")(py_func);
+        py::module::import("copy").attr("deepcopy")(py_func["func"]);
+
+    py::object execute_fit =
+        py::module::import("copy").attr("deepcopy")(py_func["execute_fit"]);
 
     py::module_ joblib = py::module_::import("joblib");
     py::object hash_obj =
@@ -68,15 +70,15 @@ std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
     if (fs::exists(modelPathStr) && fs::exists(dataPathStr)) {
       transformer_instance = joblib.attr("load")(modelPathStr);
       X = joblib.attr("load")(dataPathStr);
-      py_func = transformer_instance;
+      py_func["func"] = transformer_instance;
     } else {
       try {
         if (!getGraph()->getIsExecuted()) {
-          transformer_instance.attr("fit")(X);
+          transformer_instance = execute_fit(transformer_instance, X, y);
         }
         X = py::cast<py::array_t<double>>(
             transformer_instance.attr("transform")(X));
-        py_func = transformer_instance;
+        py_func["func"] = transformer_instance;
         joblib.attr("dump")(transformer_instance, modelPathStr);
         joblib.attr("dump")(X, dataPathStr);
       } catch (const py::error_already_set &e) {
@@ -85,7 +87,7 @@ std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
       }
     }
   } else {
-    X = py_func(X);
+    X = py_func["func"](X);
   }
 
   return {X, y};
@@ -133,79 +135,6 @@ void PreprocessNode::execute() {
 
   } catch (const std::exception &e) {
     throw std::runtime_error("Error in preprocess node '" + name +
-                             "': " + e.what());
-  }
-}
-
-void PreprocessNode::saveDataToDisc(const std::string &directory) {
-  try {
-    fs::path dirPath(directory);
-    if (!fs::exists(dirPath)) {
-      fs::create_directories(dirPath);
-    }
-
-    std::shared_ptr<py::object> data_ptr = getData();
-    if (!data_ptr || data_ptr->is_none()) {
-      throw std::runtime_error("No data available in preprocess node '" + name +
-                               "'");
-    }
-
-    auto dict = data_ptr->cast<py::dict>();
-    py::object X = dict["X"];
-    py::object y = dict["y"];
-
-    fs::path csvPath = dirPath / (name + ".csv");
-    std::ofstream csvFile(csvPath.string());
-
-    if (!csvFile.is_open()) {
-      throw std::runtime_error("Failed to create CSV file: " +
-                               csvPath.string());
-    }
-
-    py::array_t<double> X_array = py::cast<py::array_t<double>>(X);
-    auto X_buf = X_array.request();
-
-    size_t n_samples = X_buf.shape[0];
-    size_t n_features = (X_buf.ndim > 1) ? X_buf.shape[1] : 1;
-
-    for (size_t j = 0; j < n_features; ++j) {
-      csvFile << "feature_" << j;
-      if (j < n_features - 1)
-        csvFile << ",";
-    }
-    if (!y.is_none()) {
-      csvFile << ",label";
-    }
-    csvFile << "\n";
-
-    double *X_ptr = static_cast<double *>(X_buf.ptr);
-
-    py::array_t<double> y_array;
-    double *y_ptr = nullptr;
-    if (!y.is_none()) {
-      y_array = py::cast<py::array_t<double>>(y);
-      auto y_buf = y_array.request();
-      y_ptr = static_cast<double *>(y_buf.ptr);
-    }
-
-    for (size_t i = 0; i < n_samples; ++i) {
-      for (size_t j = 0; j < n_features; ++j) {
-        size_t index = (X_buf.ndim > 1) ? (i * n_features + j) : i;
-        csvFile << X_ptr[index];
-        if (j < n_features - 1)
-          csvFile << ",";
-      }
-
-      if (!y.is_none()) {
-        csvFile << "," << y_ptr[i];
-      }
-      csvFile << "\n";
-    }
-
-    csvFile.close();
-
-  } catch (const std::exception &e) {
-    throw std::runtime_error("Error saving data to disc from node '" + name +
                              "': " + e.what());
   }
 }

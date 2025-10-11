@@ -16,7 +16,7 @@ class ExecutedGraphWrapper:
 
         return results
 
-    def save_data_to_disc(self, directory):
-        if not self.__executed_graph.saveDataToDisc(directory):
-            raise ValueError("Saving data to disc failed.")
+    def save_preprocessed_data(self, directory):
+        if not self.__executed_graph.savePreprocessedData(directory):
+            raise ValueError("Saving data to disk failed.")
         return self

@@ -18,7 +18,7 @@ namespace mainera {
 ModelNode::ModelNode(const std::string &name, py::object py_func)
     : Node(NodeType::MODEL, name, py_func) {
 
-  if (!py::hasattr(py_func, "fit")) {
+  if (!py::hasattr(py_func["model"], "fit")) {
     throw std::runtime_error("Model node '" + name +
                              "' must have a 'fit' method");
   }
@@ -56,7 +56,10 @@ void ModelNode::validateInputData(const py::object &X, const py::object &y) {
 
 py::object ModelNode::fitModel(py::object X, py::object y) {
   py::object model_instance =
-      py::module::import("copy").attr("deepcopy")(py_func);
+      py::module::import("copy").attr("deepcopy")(py_func["model"]);
+
+  py::object execute_fit =
+      py::module::import("copy").attr("deepcopy")(py_func["execute_fit"]);
 
   py::module_ joblib = py::module_::import("joblib");
   py::object hash_obj =
@@ -74,7 +77,7 @@ py::object ModelNode::fitModel(py::object X, py::object y) {
     model_instance = joblib.attr("load")(modelPathStr);
   } else {
     try {
-      model_instance.attr("fit")(X, y);
+      model_instance = execute_fit(model_instance, X, y);
     } catch (const py::error_already_set &e) {
       throw std::runtime_error("Python error in model fitting: " +
                                std::string(e.what()));

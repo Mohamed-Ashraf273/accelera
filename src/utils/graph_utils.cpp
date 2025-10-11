@@ -1,5 +1,7 @@
+#include <filesystem>
 #include <fstream>
 #include <map>
+#include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <set>
 #include <stdexcept>
@@ -9,6 +11,8 @@
 #include "utils/graph_utils.hpp"
 
 namespace py = pybind11;
+namespace fs = std::filesystem;
+
 namespace mainera {
 
 void serialize_graph(const Graph &graph, const std::string &filepath) {
@@ -256,5 +260,69 @@ void validateNodeConnection(Node::Ptr newNode, Node::Ptr sourceNode) {
         "Invalid connection: Cannot connect node of type " +
         nodeTypeToString(newNode->type) + " to source node of type " +
         nodeTypeToString(sourceNode->type));
+}
+
+void saveAsCsv(const std::string &directory, py::object X, py::object y,
+               std::string name) {
+  try {
+    fs::path dirPath(directory);
+    if (!fs::exists(dirPath)) {
+      fs::create_directories(dirPath);
+    }
+
+    fs::path csvPath = dirPath / (name + ".csv");
+    std::ofstream csvFile(csvPath.string());
+
+    if (!csvFile.is_open()) {
+      throw std::runtime_error("Failed to create CSV file: " +
+                               csvPath.string());
+    }
+
+    py::array_t<double> X_array = py::cast<py::array_t<double>>(X);
+    auto X_buf = X_array.request();
+
+    size_t n_samples = X_buf.shape[0];
+    size_t n_features = (X_buf.ndim > 1) ? X_buf.shape[1] : 1;
+
+    for (size_t j = 0; j < n_features; ++j) {
+      csvFile << "feature_" << j;
+      if (j < n_features - 1)
+        csvFile << ",";
+    }
+    if (!y.is_none()) {
+      csvFile << ",label";
+    }
+    csvFile << "\n";
+
+    double *X_ptr = static_cast<double *>(X_buf.ptr);
+
+    py::array_t<double> y_array;
+    double *y_ptr = nullptr;
+    if (!y.is_none()) {
+      y_array = py::cast<py::array_t<double>>(y);
+      auto y_buf = y_array.request();
+      y_ptr = static_cast<double *>(y_buf.ptr);
+    }
+
+    for (size_t i = 0; i < n_samples; ++i) {
+      for (size_t j = 0; j < n_features; ++j) {
+        size_t index = (X_buf.ndim > 1) ? (i * n_features + j) : i;
+        csvFile << X_ptr[index];
+        if (j < n_features - 1)
+          csvFile << ",";
+      }
+
+      if (!y.is_none()) {
+        csvFile << "," << y_ptr[i];
+      }
+      csvFile << "\n";
+    }
+
+    csvFile.close();
+
+  } catch (const std::exception &e) {
+    throw std::runtime_error("Error saving data to disc from node '" + name +
+                             "': " + e.what());
+  }
 }
 } // namespace mainera

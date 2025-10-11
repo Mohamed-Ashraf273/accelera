@@ -773,16 +773,32 @@ void Graph::enableDisableMetrics(py::object y_true, py::object enable) {
   }
 }
 
-bool Graph::saveDataToDisc(const std::string &directory) {
+bool Graph::savePreprocessedData(const std::string &directory) {
   bool found_model_nodes = false;
   bool found_preprocess_leaves = false;
+
+  auto savePreprocessNode =
+      [&](std::shared_ptr<PreprocessNode> preprocess_node) {
+        if (!preprocess_node)
+          return;
+
+        std::shared_ptr<py::object> data_ptr = preprocess_node->getData();
+        if (!data_ptr || data_ptr->is_none()) {
+          throw std::runtime_error("No data available in preprocess node '" +
+                                   preprocess_node->name + "'");
+        }
+        auto dict = data_ptr->cast<py::dict>();
+        py::object X = dict["X"];
+        py::object y = dict["y"];
+        saveAsCsv(directory, X, y, preprocess_node->name);
+      };
 
   for (const auto &node : m_nodes) {
     if (node->type == NodeType::MODEL && node->selected_in_path) {
       found_model_nodes = true;
       auto preprocess_node =
           std::dynamic_pointer_cast<PreprocessNode>(node->getSourceNode());
-      preprocess_node->saveDataToDisc(directory);
+      savePreprocessNode(preprocess_node);
     }
   }
 
@@ -792,12 +808,11 @@ bool Graph::saveDataToDisc(const std::string &directory) {
       if (leaf->type == NodeType::PREPROCESS && leaf->selected_in_path) {
         found_preprocess_leaves = true;
         auto preprocess_node = std::dynamic_pointer_cast<PreprocessNode>(leaf);
-        if (preprocess_node) {
-          preprocess_node->saveDataToDisc(directory);
-        }
+        savePreprocessNode(preprocess_node);
       }
     }
   }
+
   return found_model_nodes || found_preprocess_leaves;
 }
 

@@ -76,13 +76,14 @@ void PredictNode::execute() {
           getPreprocessingFunctions(shared_from_this());
 
       for (const auto &preprocess_func : preprocess_functions) {
-        if (!preprocess_func.is_none()) {
+        py::object p_func = preprocess_func["func"];
+        if (!p_func.is_none()) {
           try {
-            if (py::hasattr(preprocess_func, "transform")) {
+            if (py::hasattr(p_func, "transform")) {
               preprocessed_test_data = py::cast<py::array_t<double>>(
-                  preprocess_func.attr("transform")(preprocessed_test_data));
+                  p_func.attr("transform")(preprocessed_test_data));
             } else {
-              preprocessed_test_data = preprocess_func(preprocessed_test_data);
+              preprocessed_test_data = p_func(preprocessed_test_data);
             }
           } catch (const py::error_already_set &e) {
             throw std::runtime_error(
