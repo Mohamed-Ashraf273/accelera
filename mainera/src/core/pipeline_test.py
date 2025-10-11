@@ -3,13 +3,19 @@ import re
 import numpy as np
 import pytest
 from sklearn.base import clone
-from sklearn.datasets import make_classification,make_blobs
+from sklearn.cluster import KMeans
+from sklearn.datasets import make_blobs
+from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import adjusted_rand_score
+from sklearn.metrics import calinski_harabasz_score
+from sklearn.metrics import davies_bouldin_score
+from sklearn.metrics import silhouette_score
+from sklearn.metrics import v_measure_score
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import silhouette_score,davies_bouldin_score,calinski_harabasz_score,v_measure_score,adjusted_rand_score
 from sklearn.svm import SVC
-from sklearn.cluster import KMeans
+
 from mainera.src.core.pipeline import Pipeline
 from mainera.src.custom.classifier import CustomClassifier
 
@@ -18,7 +24,9 @@ class TestPipelineCorrectness:
     @pytest.fixture(autouse=True)
     def setup(self):
         self.X, self.y, self.test_data, self.y_test = self.sample_data()
-        self.x_unsupervised, self.y_unsupervised = make_blobs(n_samples=300, centers=3, n_features=5, random_state=42)
+        self.x_unsupervised, self.y_unsupervised = make_blobs(
+            n_samples=300, centers=3, n_features=5, random_state=42
+        )
         self.scaler = StandardScaler()
         self.scaler.fit(self.X)
 
@@ -622,35 +630,60 @@ class TestPipelineCorrectness:
         manual_hard_vote = stats.mode(predictions_stack, axis=1)[0].flatten()
 
         assert np.array_equal(new_executed_result[0], manual_hard_vote)
-        
+
     def test_unsupervised_problem(self):
-        p= Pipeline()
+        p = Pipeline()
         p.preprocess("standard_scaler", StandardScaler())
-        p.model(
-            "kmeans",
-            KMeans(n_clusters=3, random_state=42))
+        p.model("kmeans", KMeans(n_clusters=3, random_state=42))
         p.predict("predict", self.x_unsupervised, output_func="fit_predict")
-        p.branch("metric",
-        p.metric("silhouette", "silhouette_score", y_true=None, branch=True),
-        p.metric("calinski_harabasz_score", "calinski_harabasz_score", y_true=None, branch=True),
-        p.metric("davies_bouldin_score", "davies_bouldin_score", y_true=None, branch=True),
-        p.metric("adjusted_rand_score", "adjusted_rand_score", y_true=self.y_unsupervised, branch=True),
-        p.metric("v_measure_score", "v_measure_score", y_true=self.y_unsupervised, branch=True),
+        p.branch(
+            "metric",
+            p.metric(
+                "silhouette", "silhouette_score", y_true=None, branch=True
+            ),
+            p.metric(
+                "calinski_harabasz_score",
+                "calinski_harabasz_score",
+                y_true=None,
+                branch=True,
+            ),
+            p.metric(
+                "davies_bouldin_score",
+                "davies_bouldin_score",
+                y_true=None,
+                branch=True,
+            ),
+            p.metric(
+                "adjusted_rand_score",
+                "adjusted_rand_score",
+                y_true=self.y_unsupervised,
+                branch=True,
+            ),
+            p.metric(
+                "v_measure_score",
+                "v_measure_score",
+                y_true=self.y_unsupervised,
+                branch=True,
+            ),
         )
         pipeline_result, _ = p(self.x_unsupervised)
-        kmeans=KMeans(n_clusters=3, random_state=42)
-        x_scaled=self.scaler.fit_transform(self.x_unsupervised)
-        labels=kmeans.fit_predict(x_scaled)
-        manual_silhouette=silhouette_score(x_scaled,labels)
-        manual_devies_bouldin=davies_bouldin_score(x_scaled,labels)
-        manual_calinski_harabasz=calinski_harabasz_score(x_scaled,labels)
-        manual_v_measure=v_measure_score(self.y_unsupervised,labels)
-        manual_adjusted_rand=adjusted_rand_score(self.y_unsupervised,labels)
-        assert np.allclose(pipeline_result[0]['result'],manual_silhouette)
-        assert np.allclose(pipeline_result[1]['result'],manual_calinski_harabasz)
-        assert np.allclose(pipeline_result[2]['result'],manual_devies_bouldin)
-        assert np.allclose(pipeline_result[3]['result'],manual_adjusted_rand)
-        assert np.allclose(pipeline_result[4]['result'],manual_v_measure)
+        kmeans = KMeans(n_clusters=3, random_state=42)
+        x_scaled = self.scaler.fit_transform(self.x_unsupervised)
+        labels = kmeans.fit_predict(x_scaled)
+        manual_silhouette = silhouette_score(x_scaled, labels)
+        manual_devies_bouldin = davies_bouldin_score(x_scaled, labels)
+        manual_calinski_harabasz = calinski_harabasz_score(x_scaled, labels)
+        manual_v_measure = v_measure_score(self.y_unsupervised, labels)
+        manual_adjusted_rand = adjusted_rand_score(self.y_unsupervised, labels)
+        assert np.allclose(pipeline_result[0]["result"], manual_silhouette)
+        assert np.allclose(
+            pipeline_result[1]["result"], manual_calinski_harabasz
+        )
+        assert np.allclose(pipeline_result[2]["result"], manual_devies_bouldin)
+        assert np.allclose(pipeline_result[3]["result"], manual_adjusted_rand)
+        assert np.allclose(pipeline_result[4]["result"], manual_v_measure)
+
+
 class TestPipelinePathSelection:
     @pytest.fixture(autouse=True)
     def setup(self):
@@ -760,7 +793,7 @@ class TestPipelinePathSelection:
                 worst_prediction = pipeline_result[i]["result"]
 
         assert np.array_equal(predictions[0]["result"], worst_prediction)
-   
+
     def test_path_selection_custom_strategy(self):
         p = self.create_branched_pipeline()
 
