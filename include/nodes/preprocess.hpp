@@ -9,7 +9,6 @@ class MAINERA_API PreprocessNode : public Node {
 public:
   PreprocessNode(const std::string &name, py::object py_func);
   void execute() override;
-  void saveDataToDisc(const std::string &directory);
 
 private:
   std::tuple<py::object, py::object> getInputData(std::shared_ptr<Node> input);

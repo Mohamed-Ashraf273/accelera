@@ -51,7 +51,7 @@ public:
   std::shared_ptr<InputNode> getInputNode() const { return m_input_node; }
 
   void enableDisableMetrics(py::object y_true, py::object enable);
-  bool saveDataToDisc(const std::string &directory);
+  bool savePreprocessedData(const std::string &directory);
 
 private:
   std::vector<Node::Ptr> m_execution_order;
