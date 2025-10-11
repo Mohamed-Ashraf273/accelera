@@ -26,19 +26,17 @@ std::shared_ptr<py::object> PredictNode::getPreprocessedData() const {
   return m_preprocessed_data;
 }
 
-std::vector<py::object>
-PredictNode::getPreprocessingFunctions(Node::Ptr node) const {
+std::vector<py::object> PredictNode::getPreprocessingFunctions() const {
   std::vector<py::object> m_preprocessing_functions;
-
-  while (node) {
-    py::object py_func = node->py_func;
-    if (node->type == NodeType::PREPROCESS && !py_func.is_none()) {
+  Node::Ptr source_node = getSourceNode();
+  while (source_node) {
+    py::object py_func = source_node->py_func;
+    if (source_node->type == NodeType::PREPROCESS && !py_func.is_none()) {
       m_preprocessing_functions.insert(m_preprocessing_functions.begin(),
                                        py_func);
     }
-    node = node->getSourceNode();
+    source_node = source_node->getSourceNode();
   }
-
   return m_preprocessing_functions;
 }
 
@@ -72,8 +70,7 @@ void PredictNode::execute() {
     }
 
     if (getGraph()) {
-      const auto preprocess_functions =
-          getPreprocessingFunctions(shared_from_this());
+      const auto preprocess_functions = getPreprocessingFunctions();
 
       for (const auto &preprocess_func : preprocess_functions) {
         py::object p_func = preprocess_func["func"];

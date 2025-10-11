@@ -812,7 +812,6 @@ bool Graph::savePreprocessedData(const std::string &directory) {
       }
     }
   }
-
   return found_model_nodes || found_preprocess_leaves;
 }
 
