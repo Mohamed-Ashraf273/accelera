@@ -11,7 +11,7 @@ public:
   void execute() override;
   void setPreprocessedData(std::shared_ptr<py::object> data);
   std::shared_ptr<py::object> getPreprocessedData() const;
-  std::vector<py::object> getPreprocessingFunctions(Node::Ptr node) const;
+  std::vector<py::object> getPreprocessingFunctions() const;
 
 private:
   std::shared_ptr<py::object> m_preprocessed_data = nullptr;
