@@ -15,3 +15,8 @@ class ExecutedGraphWrapper:
             self.__executed_graph.enableDisableMetrics(enable=False)
 
         return results
+
+    def save_data_to_disc(self, directory):
+        if not self.__executed_graph.saveDataToDisc(directory):
+            raise ValueError("Saving data to disc failed.")
+        return self

@@ -5,6 +5,7 @@
 #include "nodes/input.hpp"
 #include "nodes/metric.hpp"
 #include "nodes/predict.hpp"
+#include "utils/graph_utils.hpp"
 
 namespace py = pybind11;
 
@@ -36,6 +37,11 @@ void MetricNode::execute() {
 
     if (py::hasattr(py_func, "set_X")) {
       auto predict_node = std::dynamic_pointer_cast<PredictNode>(input);
+      if (!predict_node) {
+        throw std::runtime_error(
+            "Failed to cast to PredictNode in Metric node '" + name +
+            "', the given node type is: " + nodeTypeToString(input->type));
+      }
       py_func.attr("set_X")(predict_node->getPreprocessedData()
                                 ? *predict_node->getPreprocessedData()
                                 : py::none());

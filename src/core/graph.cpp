@@ -241,7 +241,7 @@ void Graph::split(const std::string &branch_name,
           m_metric_nodes.push_back(
               std::dynamic_pointer_cast<MetricNode>(branchNode));
 
-        branchNode->setSourceNode(leaf);
+        branchNode->setSourceNode(current_source);
         branchNode->setGraph(this);
         current_source = branchNode;
       }
@@ -541,21 +541,6 @@ const std::vector<Node::Ptr> &Graph::getNodes() const { return m_nodes; }
 
 bool Graph::isCompiled() const { return m_compiled; }
 
-std::vector<py::object> Graph::getPreprocessingFunctions(Node::Ptr node) const {
-  std::vector<py::object> m_preprocessing_functions;
-
-  while (node) {
-    py::object py_func = node->py_func;
-    if (node->type == NodeType::PREPROCESS && !py_func.is_none()) {
-      m_preprocessing_functions.insert(m_preprocessing_functions.begin(),
-                                       py_func);
-    }
-    node = node->getSourceNode();
-  }
-
-  return m_preprocessing_functions;
-}
-
 // https://www.geeksforgeeks.org/dsa/topological-sorting/
 std::vector<Node::Ptr> Graph::topologicalSort() {
   if (m_nodes.empty())
@@ -786,6 +771,34 @@ void Graph::enableDisableMetrics(py::object y_true, py::object enable) {
       }
     }
   }
+}
+
+bool Graph::saveDataToDisc(const std::string &directory) {
+  bool found_model_nodes = false;
+  bool found_preprocess_leaves = false;
+
+  for (const auto &node : m_nodes) {
+    if (node->type == NodeType::MODEL && node->selected_in_path) {
+      found_model_nodes = true;
+      auto preprocess_node =
+          std::dynamic_pointer_cast<PreprocessNode>(node->getSourceNode());
+      preprocess_node->saveDataToDisc(directory);
+    }
+  }
+
+  if (!found_model_nodes) {
+    std::vector<Node::Ptr> leaves = findLeafNodes();
+    for (const auto &leaf : leaves) {
+      if (leaf->type == NodeType::PREPROCESS && leaf->selected_in_path) {
+        found_preprocess_leaves = true;
+        auto preprocess_node = std::dynamic_pointer_cast<PreprocessNode>(leaf);
+        if (preprocess_node) {
+          preprocess_node->saveDataToDisc(directory);
+        }
+      }
+    }
+  }
+  return found_model_nodes || found_preprocess_leaves;
 }
 
 } // namespace mainera
