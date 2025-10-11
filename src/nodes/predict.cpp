@@ -9,6 +9,7 @@
 #include "nodes/input.hpp"
 #include "nodes/model.hpp"
 #include "nodes/predict.hpp"
+#include "nodes/preprocess.hpp"
 
 namespace py = pybind11;
 
@@ -23,6 +24,22 @@ void PredictNode::setPreprocessedData(std::shared_ptr<py::object> data) {
 
 std::shared_ptr<py::object> PredictNode::getPreprocessedData() const {
   return m_preprocessed_data;
+}
+
+std::vector<py::object>
+PredictNode::getPreprocessingFunctions(Node::Ptr node) const {
+  std::vector<py::object> m_preprocessing_functions;
+
+  while (node) {
+    py::object py_func = node->py_func;
+    if (node->type == NodeType::PREPROCESS && !py_func.is_none()) {
+      m_preprocessing_functions.insert(m_preprocessing_functions.begin(),
+                                       py_func);
+    }
+    node = node->getSourceNode();
+  }
+
+  return m_preprocessing_functions;
 }
 
 void PredictNode::execute() {
@@ -56,7 +73,7 @@ void PredictNode::execute() {
 
     if (getGraph()) {
       const auto preprocess_functions =
-          getGraph()->getPreprocessingFunctions(shared_from_this());
+          getPreprocessingFunctions(shared_from_this());
 
       for (const auto &preprocess_func : preprocess_functions) {
         if (!preprocess_func.is_none()) {

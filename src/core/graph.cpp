@@ -129,6 +129,12 @@ void Graph::addNode(Node::Ptr node) {
       Node::Ptr nodeToAdd =
           (i == 0) ? node : NodeFactory::createNodeCopy(node, i);
       nodeToAdd->setShouldCreateNewData(is_connected_to_input[i]);
+      if (nodeToAdd->type == NodeType::MODEL) {
+        auto preprocess_node =
+            std::dynamic_pointer_cast<PreprocessNode>(leaves[i]);
+        preprocess_node->setIsLast(true);
+        leaves[i] = preprocess_node;
+      }
       nodeToAdd->setSourceNode(leaves[i]);
       nodeToAdd->setGraph(this);
       m_nodes.push_back(nodeToAdd);
@@ -541,21 +547,6 @@ const std::vector<Node::Ptr> &Graph::getNodes() const { return m_nodes; }
 
 bool Graph::isCompiled() const { return m_compiled; }
 
-std::vector<py::object> Graph::getPreprocessingFunctions(Node::Ptr node) const {
-  std::vector<py::object> m_preprocessing_functions;
-
-  while (node) {
-    py::object py_func = node->py_func;
-    if (node->type == NodeType::PREPROCESS && !py_func.is_none()) {
-      m_preprocessing_functions.insert(m_preprocessing_functions.begin(),
-                                       py_func);
-    }
-    node = node->getSourceNode();
-  }
-
-  return m_preprocessing_functions;
-}
-
 // https://www.geeksforgeeks.org/dsa/topological-sorting/
 std::vector<Node::Ptr> Graph::topologicalSort() {
   if (m_nodes.empty())
@@ -784,6 +775,16 @@ void Graph::enableDisableMetrics(py::object y_true, py::object enable) {
       } else {
         node->setData(std::make_shared<py::object>(py::none()));
       }
+    }
+  }
+}
+
+void Graph::saveDataToDisc(const std::string &directory) {
+  for (const auto &node : m_nodes) {
+    if (node->type == NodeType::PREPROCESS && node->selected_in_path) {
+      auto preprocess_node = std::dynamic_pointer_cast<PreprocessNode>(node);
+      if (preprocess_node->getIsLast())
+        preprocess_node->saveDataToDisc(directory);
     }
   }
 }
