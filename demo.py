@@ -277,3 +277,5 @@ print("length of predictions: ", predictions)
 #     print(pred)
 report = Report("report", "test.xml", simple_predictions)
 img_path = report.create_readme_file()
+
+executed_graph.save_data_to_disc("preprocessed_data")

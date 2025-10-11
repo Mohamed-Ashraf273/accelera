@@ -9,11 +9,9 @@ class MAINERA_API PreprocessNode : public Node {
 public:
   PreprocessNode(const std::string &name, py::object py_func);
   void execute() override;
-  void setIsLast(bool last);
-  bool getIsLast() const;
+  void saveDataToDisc(const std::string &directory);
 
 private:
-  bool is_last = false;
   std::tuple<py::object, py::object> getInputData(std::shared_ptr<Node> input);
   void validateInputData(const py::object &X);
   std::tuple<py::object, py::object> processData(py::object X, py::object y);

@@ -145,3 +145,8 @@ class Pipeline:
     def disable_parallel_execution(self):
         self.__graph.enableParallelExecution(False)
         return self
+
+    def save_data_to_disc(self, directory):
+        if not self.__graph.saveDataToDisc(directory):
+            raise ValueError("Saving data to disc failed.")
+        return self

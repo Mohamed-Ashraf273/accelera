@@ -129,12 +129,6 @@ void Graph::addNode(Node::Ptr node) {
       Node::Ptr nodeToAdd =
           (i == 0) ? node : NodeFactory::createNodeCopy(node, i);
       nodeToAdd->setShouldCreateNewData(is_connected_to_input[i]);
-      if (nodeToAdd->type == NodeType::MODEL) {
-        auto preprocess_node =
-            std::dynamic_pointer_cast<PreprocessNode>(leaves[i]);
-        preprocess_node->setIsLast(true);
-        leaves[i] = preprocess_node;
-      }
       nodeToAdd->setSourceNode(leaves[i]);
       nodeToAdd->setGraph(this);
       m_nodes.push_back(nodeToAdd);
@@ -247,7 +241,7 @@ void Graph::split(const std::string &branch_name,
           m_metric_nodes.push_back(
               std::dynamic_pointer_cast<MetricNode>(branchNode));
 
-        branchNode->setSourceNode(leaf);
+        branchNode->setSourceNode(current_source);
         branchNode->setGraph(this);
         current_source = branchNode;
       }
@@ -779,14 +773,32 @@ void Graph::enableDisableMetrics(py::object y_true, py::object enable) {
   }
 }
 
-void Graph::saveDataToDisc(const std::string &directory) {
+bool Graph::saveDataToDisc(const std::string &directory) {
+  bool found_model_nodes = false;
+  bool found_preprocess_leaves = false;
+
   for (const auto &node : m_nodes) {
-    if (node->type == NodeType::PREPROCESS && node->selected_in_path) {
-      auto preprocess_node = std::dynamic_pointer_cast<PreprocessNode>(node);
-      if (preprocess_node->getIsLast())
-        preprocess_node->saveDataToDisc(directory);
+    if (node->type == NodeType::MODEL && node->selected_in_path) {
+      found_model_nodes = true;
+      auto preprocess_node =
+          std::dynamic_pointer_cast<PreprocessNode>(node->getSourceNode());
+      preprocess_node->saveDataToDisc(directory);
     }
   }
+
+  if (!found_model_nodes) {
+    std::vector<Node::Ptr> leaves = findLeafNodes();
+    for (const auto &leaf : leaves) {
+      if (leaf->type == NodeType::PREPROCESS && leaf->selected_in_path) {
+        found_preprocess_leaves = true;
+        auto preprocess_node = std::dynamic_pointer_cast<PreprocessNode>(leaf);
+        if (preprocess_node) {
+          preprocess_node->saveDataToDisc(directory);
+        }
+      }
+    }
+  }
+  return found_model_nodes || found_preprocess_leaves;
 }
 
 } // namespace mainera
