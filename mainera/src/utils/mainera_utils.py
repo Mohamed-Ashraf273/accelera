@@ -98,5 +98,161 @@ def create_folder(folder_path):
     os.makedirs(folder_path, exist_ok=True)
 
 
+def get_instance_type(instance) -> str:
+    def check_method_patterns():
+        has_predict = hasattr(instance, "predict")
+        has_transform = hasattr(instance, "transform")
+        has_fit_predict = hasattr(instance, "fit_predict")
+        has_predict_proba = hasattr(instance, "predict_proba")
+        has_decision_function = hasattr(instance, "decision_function")
+
+        supervised_score = 0
+        if has_predict_proba:
+            supervised_score += 3
+        if has_decision_function:
+            supervised_score += 2
+        if has_predict and not has_transform:
+            supervised_score += 2
+
+        unsupervised_score = 0
+        if has_fit_predict:
+            unsupervised_score += 2
+        if has_transform and not has_predict_proba:
+            unsupervised_score += 2
+        if hasattr(instance, "cluster_centers_"):
+            unsupervised_score += 3
+        if hasattr(instance, "components_"):
+            unsupervised_score += 2
+
+        if supervised_score > unsupervised_score:
+            return "supervised"
+        elif unsupervised_score > supervised_score:
+            return "unsupervised"
+        return None
+
+    def check_class_name():
+        class_name = instance.__class__.__name__.lower()
+
+        supervised_patterns = [
+            "classifier",
+            "regressor",
+            "svm",
+            "svc",
+            "svr",
+            "logistic",
+            "linear",
+            "ridge",
+            "lasso",
+            "tree",
+            "forest",
+            "boost",
+            "bagging",
+            "voting",
+            "neural",
+        ]
+
+        unsupervised_patterns = [
+            "kmeans",
+            "cluster",
+            "pca",
+            "ica",
+            "lda",
+            "tsne",
+            "dbscan",
+            "isolation",
+            "anomaly",
+            "outlier",
+            "decomposition",
+        ]
+
+        for pattern in supervised_patterns:
+            if pattern in class_name:
+                return "supervised"
+
+        for pattern in unsupervised_patterns:
+            if pattern in class_name:
+                return "unsupervised"
+        return None
+
+    def check_module_origin():
+        module = instance.__class__.__module__
+        if module:
+            if "cluster" in module or "decomposition" in module:
+                return "unsupervised"
+            elif (
+                "ensemble" in module
+                or "linear_model" in module
+                or "svm" in module
+            ):
+                return "supervised"
+        return None
+
+    def check_model_attributes():
+        supervised_attrs = [
+            "classes_",
+            "n_classes_",
+            "coef_",
+            "intercept_",
+            "feature_importances_",
+            "estimators_",
+        ]
+
+        unsupervised_attrs = [
+            "cluster_centers_",
+            "labels_",
+            "inertia_",
+            "components_",
+            "explained_variance_",
+            "singular_values_",
+            "n_clusters",
+        ]
+
+        supervised_count = sum(
+            1 for attr in supervised_attrs if hasattr(instance, attr)
+        )
+        unsupervised_count = sum(
+            1 for attr in unsupervised_attrs if hasattr(instance, attr)
+        )
+
+        if supervised_count > unsupervised_count:
+            return "supervised"
+        elif unsupervised_count > supervised_count:
+            return "unsupervised"
+        return None
+
+    strategies = [
+        check_method_patterns,
+        check_class_name,
+        check_module_origin,
+        check_model_attributes,
+    ]
+
+    votes = {"supervised": 0, "unsupervised": 0}
+
+    for strategy in strategies:
+        try:
+            result = strategy()
+            if result in votes:
+                votes[result] += 1
+        except Exception:
+            continue
+
+    if votes["supervised"] > votes["unsupervised"]:
+        return "supervised"
+    elif votes["unsupervised"] > votes["supervised"]:
+        return "unsupervised"
+    else:
+        return "unknown"
+
+
+def execute_fit(instance, x, y):
+    instance_type = get_instance_type(instance)
+    if instance_type == "supervised":
+        instance.fit(x, y)
+    elif instance_type == "unsupervised":
+        instance.fit(x)
+    return instance
+
+
 def serialize(pipeline, filepath):
     graph.serialize_graph(pipeline._Pipeline__graph, filepath)

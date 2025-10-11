@@ -683,6 +683,46 @@ class TestPipelineCorrectness:
         assert np.allclose(pipeline_result[3]["result"], manual_adjusted_rand)
         assert np.allclose(pipeline_result[4]["result"], manual_v_measure)
 
+    def test_unsupervised_model_clustering_correctness(self):
+        p = Pipeline()
+        p.preprocess("standard_scaler", StandardScaler())
+        p.branch(
+            "clustering",
+            p.model(
+                "kmeans_3", KMeans(n_clusters=3, random_state=42), branch=True
+            ),
+            p.model(
+                "kmeans_4", KMeans(n_clusters=4, random_state=42), branch=True
+            ),
+        )
+        p.predict("predict", self.x_unsupervised, output_func="fit_predict")
+
+        pipeline_result, executed_graph = p(self.x_unsupervised)
+
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(self.x_unsupervised)
+
+        kmeans_3 = KMeans(n_clusters=3, random_state=42)
+        manual_labels_3 = kmeans_3.fit_predict(X_scaled)
+
+        kmeans_4 = KMeans(n_clusters=4, random_state=42)
+        manual_labels_4 = kmeans_4.fit_predict(X_scaled)
+
+        assert len(pipeline_result) == 2
+        assert np.array_equal(pipeline_result[0], manual_labels_3)
+        assert np.array_equal(pipeline_result[1], manual_labels_4)
+
+        new_data = self.x_unsupervised[:100]
+        executed_predictions = executed_graph(new_data)
+
+        new_data_scaled = scaler.transform(new_data)
+        manual_pred_3 = kmeans_3.fit_predict(new_data_scaled)
+        manual_pred_4 = kmeans_4.fit_predict(new_data_scaled)
+
+        assert len(executed_predictions) == 2
+        assert np.array_equal(executed_predictions[0], manual_pred_3)
+        assert np.array_equal(executed_predictions[1], manual_pred_4)
+
 
 class TestPipelinePathSelection:
     @pytest.fixture(autouse=True)

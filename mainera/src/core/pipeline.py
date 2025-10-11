@@ -1,3 +1,4 @@
+from mainera.src.utils.mainera_utils import execute_fit
 from mainera.src.utils.mainera_utils import get_correct_metric_class
 from mainera.src.utils.mainera_utils import get_metric_object
 from mainera.src.wrappers.executed_graph_wrapper import ExecutedGraphWrapper
@@ -31,17 +32,19 @@ class Pipeline:
         return predictions, executed_graph
 
     def preprocess(self, name, func, branch=False):
+        func_params = {"func": func, "execute_fit": execute_fit}
         if branch:
-            return NodeWrapper("preprocess", name, func)
+            return NodeWrapper("preprocess", name, func_params)
 
-        self.__graph.add_node(graph.NodeType.PREPROCESS, name, func)
+        self.__graph.add_node(graph.NodeType.PREPROCESS, name, func_params)
         return self
 
     def model(self, name, model, branch=False):
+        model_params = {"model": model, "execute_fit": execute_fit}
         if branch:
-            return NodeWrapper("model", name, model)
+            return NodeWrapper("model", name, model_params)
 
-        self.__graph.add_node(graph.NodeType.MODEL, name, model)
+        self.__graph.add_node(graph.NodeType.MODEL, name, model_params)
         return self
 
     def predict(

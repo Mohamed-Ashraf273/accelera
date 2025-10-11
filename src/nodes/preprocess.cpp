@@ -46,9 +46,12 @@ void PreprocessNode::validateInputData(const py::object &X) {
 std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
                                                                py::object y) {
 
-  if (py::hasattr(py_func, "fit")) {
+  if (py::hasattr(py_func["func"], "fit")) {
     py::object transformer_instance =
-        py::module::import("copy").attr("deepcopy")(py_func);
+        py::module::import("copy").attr("deepcopy")(py_func["func"]);
+
+    py::object execute_fit =
+        py::module::import("copy").attr("deepcopy")(py_func["execute_fit"]);
 
     py::module_ joblib = py::module_::import("joblib");
     py::object hash_obj =
@@ -67,15 +70,15 @@ std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
     if (fs::exists(modelPathStr) && fs::exists(dataPathStr)) {
       transformer_instance = joblib.attr("load")(modelPathStr);
       X = joblib.attr("load")(dataPathStr);
-      py_func = transformer_instance;
+      py_func["func"] = transformer_instance;
     } else {
       try {
         if (!getGraph()->getIsExecuted()) {
-          transformer_instance.attr("fit")(X);
+          transformer_instance = execute_fit(transformer_instance, X, y);
         }
         X = py::cast<py::array_t<double>>(
             transformer_instance.attr("transform")(X));
-        py_func = transformer_instance;
+        py_func["func"] = transformer_instance;
         joblib.attr("dump")(transformer_instance, modelPathStr);
         joblib.attr("dump")(X, dataPathStr);
       } catch (const py::error_already_set &e) {
@@ -84,7 +87,7 @@ std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
       }
     }
   } else {
-    X = py_func(X);
+    X = py_func["func"](X);
   }
 
   return {X, y};
