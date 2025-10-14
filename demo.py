@@ -212,7 +212,7 @@ p.branch(
 
 p.predict("predict", test_data, positive_class=1)
 
-# p.merge("merge_node", "hard_voting")
+p.merge("merge_node", "hard_voting")
 p.branch(
     "metric",
     p.metric("accuracyh", "accuracy_score", y_true=y_test, branch=True),
