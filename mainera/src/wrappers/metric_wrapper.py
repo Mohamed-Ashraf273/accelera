@@ -23,10 +23,7 @@ class BaseMetricWrapper(ABC):
 
     def check_tuple_argums(self, result):
         if isinstance(result, tuple):
-            if (
-                self.tuple_argums is None
-                or self.tuple_argums["is_curve"] is None
-            ):
+            if self.tuple_argums is None or self.tuple_argums["is_curve"] is None:
                 raise ValueError(
                     "tuple_argums must be an object contains keys 'is_curve'"
                 )
