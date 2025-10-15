@@ -13,7 +13,9 @@ class TestPrintMsg:
         captured = capsys.readouterr()
         assert captured.out == "Hello mAInera!\n"
 
-    def test_print_msg_interactive_without_line_break(self, capsys, monkeypatch):
+    def test_print_msg_interactive_without_line_break(
+        self, capsys, monkeypatch
+    ):
         monkeypatch.setitem(print_msg.__globals__, "interactive", True)
         print_msg("NoBreak", line_break=False)
         captured = capsys.readouterr()
@@ -52,7 +54,9 @@ class TestGetCorrectMetricClass:
             return 0
 
         class DummySupervisedWrapper:
-            def __init__(self, metric_name, metric, y_true, tuple_argums, **params):
+            def __init__(
+                self, metric_name, metric, y_true, tuple_argums, **params
+            ):
                 self.metric_name = metric_name
                 self.metric = metric
                 self.y_true = y_true

@@ -2,8 +2,10 @@ import os
 import re
 import textwrap
 import xml.etree.ElementTree as ET
+
 import pandas as pd
 from graphviz import Digraph
+
 from mainera.src.wrappers.report_wrapper import ReportWrapper
 
 
@@ -25,7 +27,9 @@ class GraphReport(ReportWrapper):
 
         all_branches = []
         for child_id in tree[current_node_id]:
-            child_branches = self.get_branches(nodes, tree, child_id, list(path))
+            child_branches = self.get_branches(
+                nodes, tree, child_id, list(path)
+            )
             all_branches.extend(child_branches)
         return all_branches
 
@@ -76,7 +80,8 @@ class GraphReport(ReportWrapper):
             root = xml_tree.getroot()
         except FileNotFoundError:
             raise FileNotFoundError(
-                f"XML file: {self.xmlpath} " "not found please run serialize function"
+                f"XML file: {self.xmlpath} "
+                "not found please run serialize function"
             )
         except ET.ParseError as e:
             raise ValueError(f"Invalid XML file {self.xmlpath}: {e}")

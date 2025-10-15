@@ -23,7 +23,9 @@ class TestConvertToArray:
         result = convert_to_array(input_list, dtype=np.int32)
 
         assert result.dtype == np.int32
-        np.testing.assert_array_equal(result, np.asarray(input_list, dtype=np.int32))
+        np.testing.assert_array_equal(
+            result, np.asarray(input_list, dtype=np.int32)
+        )
 
 
 class TestValidateArrayShape:
@@ -34,7 +36,9 @@ class TestValidateArrayShape:
     def test_validate_mismatched_shapes_raises_error(self):
         array = np.array([[1, 2], [3, 4]])
 
-        with pytest.raises(ValueError, match="must have the same number of samples"):
+        with pytest.raises(
+            ValueError, match="must have the same number of samples"
+        ):
             validate_array_shape(array, 5)
 
     def test_validate_with_custom_names(self):

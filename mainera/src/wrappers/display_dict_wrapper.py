@@ -18,7 +18,9 @@ class DisplayDictWrapper(MetricDisplayWrapper):
             table = pd.DataFrame(value["result"]).transpose().round(3).to_html()
             new_content = '<div style="overflow-x:auto;max-width:400px;">\n'
             new_content += '<h3 style="color:yellow;">\n'
-            new_content += f"Metric id :{value['metric id']}</h3>\n\n {table}\n</div>\n"
+            new_content += (
+                f"Metric id :{value['metric id']}</h3>\n\n {table}\n</div>\n"
+            )
             content = content + new_content
         content = content + "</div>\n"
         return content

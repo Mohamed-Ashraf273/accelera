@@ -57,9 +57,12 @@ def get_correct_metric_class(
 ):
     signature = inspect.signature(metric)
     parameters = list(signature.parameters.keys())
-    has_true_labels = any(param in parameters for param in ["y_true", "labels_true"])
+    has_true_labels = any(
+        param in parameters for param in ["y_true", "labels_true"]
+    )
     has_predictions = any(
-        param in parameters for param in ["y_pred", "y_score", "y_proba", "labels_pred"]
+        param in parameters
+        for param in ["y_pred", "y_score", "y_proba", "labels_pred"]
     )
     supervised = has_true_labels and has_predictions
     unsupervised = "X" in parameters and "labels" in parameters
@@ -74,7 +77,9 @@ def get_correct_metric_class(
             "y_true will be ignored.",
             level="warning",
         )
-        return UnSupervisedMetricWrapper(metric_name, metric, tuple_argums, **params)
+        return UnSupervisedMetricWrapper(
+            metric_name, metric, tuple_argums, **params
+        )
     else:
         return None
 
@@ -174,7 +179,11 @@ def get_instance_type(instance) -> str:
         if module:
             if "cluster" in module or "decomposition" in module:
                 return "unsupervised"
-            elif "ensemble" in module or "linear_model" in module or "svm" in module:
+            elif (
+                "ensemble" in module
+                or "linear_model" in module
+                or "svm" in module
+            ):
                 return "supervised"
         return None
 

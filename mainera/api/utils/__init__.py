@@ -8,4 +8,3 @@ from mainera.src.utils import array_utils as array_utils
 from mainera.src.utils import array_utils_test as array_utils_test
 from mainera.src.utils import mainera_utils as mainera_utils
 from mainera.src.utils import mainera_utils_test as mainera_utils_test
-from mainera.src.utils import report_utils as report_utils

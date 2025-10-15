@@ -1,7 +1,9 @@
 import os
-import numpy as np
 from abc import ABC
 from abc import abstractmethod
+
+import numpy as np
+
 from mainera.src.utils.mainera_utils import create_folder
 from mainera.src.wrappers.display_array_multi_wrapper import (
     DisplayMultiArrayWrapper,
@@ -53,14 +55,16 @@ class ReportWrapper(ABC):
             "## Metrics Summary\n"
             "- Each metric is displayed with its user-defined name,"
             " unique identifier (ID) and the corresponding results.\n"
-            "- Depending on the metric type, the results may include scalar values,"
-            " arrays, dictionaries,strings, curves, or tuples.\n"
-            "- All metrics are presented in a structured and consistent format to facilitate"
-            " clear interpretation and comparison.\n"
+            "- Depending on the metric type, the results may include "
+            "scalar values, arrays, dictionaries, strings, curves, or tuples.\n"
+            "- All metrics are presented in a structured and consistent format "
+            "to facilitate clear interpretation and comparison.\n"
         )
         for metric_name, values in metric.items():
             if isinstance(values[0]["result"], (int, float)):
-                obj = DisplaySignleNumberWrapper(metric_name, values, self.folderpath)
+                obj = DisplaySignleNumberWrapper(
+                    metric_name, values, self.folderpath
+                )
                 content = obj.execute()
             elif (
                 isinstance(values[0]["result"], (np.ndarray))
@@ -87,7 +91,9 @@ class ReportWrapper(ABC):
                     )
                     content = obj.execute()
                 else:
-                    obj = DisplayTupleCurveWrapper(metric_name, values, self.folderpath)
+                    obj = DisplayTupleCurveWrapper(
+                        metric_name, values, self.folderpath
+                    )
                     content = obj.execute()
             metric_content = metric_content + "\n" + content
         return metric_content

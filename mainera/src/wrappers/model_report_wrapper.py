@@ -1,7 +1,8 @@
 import os
 import textwrap
-import math
+
 import matplotlib.pyplot as plt
+
 from mainera.src.wrappers.report_wrapper import ReportWrapper
 
 
@@ -10,7 +11,9 @@ class ModelReport(ReportWrapper):
         super().__init__(folderpath, results)
         if history and not isinstance(history, dict):
             raise TypeError(
-                f"Expected 'history' to be a dict has the evaluation metrics of the model to plot them, got {type(history).__name__}"
+                f"Expected 'history' to be a dict has "
+                "the evaluation metrics of "
+                f"the model to plot them, got {type(history).__name__}"
             )
         self.history = history
         self.metric_ids = list(map(str, range(len(results))))
@@ -26,7 +29,8 @@ class ModelReport(ReportWrapper):
             for i in range(len(training_evaluation)):
                 plt.subplot(len(training_evaluation), 1, i + 1)
                 plt.plot(
-                    self.history[training_evaluation[i]], label=training_evaluation[i]
+                    self.history[training_evaluation[i]],
+                    label=training_evaluation[i],
                 )
                 plt.suptitle(f"{training_evaluation[i]}")
                 val_name = f"val_{training_evaluation[i]}"
@@ -51,9 +55,12 @@ class ModelReport(ReportWrapper):
         # Report
         This is the automated report for the 
         model  created using **Mainera**.  
-        It provides a comprehensive overview of the model’s performance, including::  
-        - Performance Summary — Highlighting key evaluation metrics and model results
-        - Training Graphs — Visualizing deep learning history (loss, accuracy, and other tracked metrics) if exists
+        It provides a comprehensive overview of the model’s 
+        performance, including::  
+        - Performance Summary — Highlighting key evaluation 
+        metrics and model results
+        - Training Graphs — Visualizing deep learning history 
+        (loss, accuracy, and other tracked metrics) if exists
         """
         )
         if self.history:
