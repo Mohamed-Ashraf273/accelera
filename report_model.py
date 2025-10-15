@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.svm import SVC
 from sklearn.model_selection import  train_test_split
 from sklearn.preprocessing import StandardScaler,LabelEncoder
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score,classification_report,confusion_matrix
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -43,7 +43,7 @@ model = keras.Sequential([
 model.compile(
     optimizer="adam",
     loss="binary_crossentropy",
-    metrics=["accuracy"]
+    metrics=["accuracy","recall","precision"]
 )
 
 history = model.fit(
@@ -53,7 +53,15 @@ history = model.fit(
     batch_size=16,
     verbose=1
 )
-
+predictions=model.predict(X_test)
+predictions=(predictions > 0.5).astype(int)
+accuracy=accuracy_score(y_test,predictions)
+classification=classification_report(y_test,predictions)
+confusion=confusion_matrix(y_test,predictions)
+results=[{"metric name":"accuracy","result":accuracy,"tuple_argums":None},
+         {"metric name":"accuracy","result":accuracy,"tuple_argums":None},
+         {"metric name":"classification","result":classification,"tuple_argums":None},
+         {"metric name":"confusion","result":confusion,"tuple_argums":None}]
 print("\nTraining history keys:", history.history.keys())
 report=ModelReport("model_report",results=results,history=history.history)
 report.execute()

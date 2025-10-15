@@ -38,7 +38,7 @@ class ModelReport(ReportWrapper):
             plt.tight_layout()
             path = os.path.join(self.folderpath, "history")
             plt.savefig(path)
-            content += "![history ](history.png)\n"
+            content += "![history](history.png)\n"
             return content
         except Exception as e:
             print(f"Error while generating model history: {e}")
