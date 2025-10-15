@@ -26,11 +26,14 @@ from mainera.src.wrappers import (
 from mainera.src.wrappers import (
     executed_graph_wrapper as executed_graph_wrapper,
 )
+from mainera.src.wrappers import graph_report_wrapper as graph_report_wrapper
 from mainera.src.wrappers import (
     metric_display_wrapper as metric_display_wrapper,
 )
 from mainera.src.wrappers import metric_wrapper as metric_wrapper
+from mainera.src.wrappers import model_report_wrapper as model_report_wrapper
 from mainera.src.wrappers import node_wrapper as node_wrapper
+from mainera.src.wrappers import report_wrapper as report_wrapper
 from mainera.src.wrappers import (
     supervised_metric_wrapper as supervised_metric_wrapper,
 )

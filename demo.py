@@ -14,7 +14,7 @@ from sklearn.svm import SVC
 from mainera.src.core.pipeline import Pipeline
 from mainera.src.custom.classifier import CustomClassifier
 from mainera.src.utils.mainera_utils import serialize
-from mainera.src.utils.report_utils import Report
+from mainera.src.wrappers.graph_report_wrapper import GraphReport
 
 
 class TorchDenseModel(CustomClassifier):
@@ -212,7 +212,7 @@ p.branch(
 
 p.predict("predict", test_data, positive_class=1)
 
-# p.merge("merge_node", "hard_voting")
+p.merge("merge_node", "hard_voting")
 p.branch(
     "metric",
     p.metric("accuracyh", "accuracy_score", y_true=y_test, branch=True),
@@ -275,7 +275,7 @@ print(f"Swap memory used: {end_mem['swap_mb']:.2f} MB")
 print("length of predictions: ", predictions)
 # for pred in simple_predictions:
 #     print(pred)
-report = Report("report", "test.xml", simple_predictions)
-img_path = report.create_readme_file()
+report = GraphReport("report", "test.xml", simple_predictions)
+img_path = report.execute()
 
 p.save_preprocessed_data("preprocessed_data")
