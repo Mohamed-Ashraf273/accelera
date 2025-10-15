@@ -31,8 +31,8 @@ Table
     </tr>
     <tr>
       <th>Metric Value</th>
-      <td>0.814607</td>
-      <td>0.814607</td>
+      <td>0.825843</td>
+      <td>0.825843</td>
     </tr>
   </tbody>
 </table>
