@@ -12,6 +12,7 @@ class BaseMetricWrapper(ABC):
         y_true=None,
         X=None,
         tuple_argums=None,
+        labels_name=None,
         **params,
     ):
         self.metric = metric
@@ -20,6 +21,7 @@ class BaseMetricWrapper(ABC):
         self.y_true = convert_to_array(y_true)
         self.X = convert_to_array(X)
         self.tuple_argums = tuple_argums
+        self.labels_name = labels_name
 
     def check_tuple_argums(self, result):
         if isinstance(result, tuple):
@@ -31,13 +33,14 @@ class BaseMetricWrapper(ABC):
                     "tuple_argums must be an object contains keys 'is_curve'"
                 )
             if not self.tuple_argums["is_curve"]:
-                if "labels" not in self.tuple_argums:
+                if "item_name" not in self.tuple_argums:
                     raise ValueError(
-                        "tuple_argums must be an object contains keys 'labels'"
+                        "tuple_argums must be an object "
+                        "contains keys 'item_name'"
                     )
-                if len(self.tuple_argums["labels"]) != len(result):
+                if len(self.tuple_argums["item_name"]) != len(result):
                     raise ValueError(
-                        "the length of labels must be equal to the "
+                        "the length of item_name must be equal to the "
                         "length of result the length "
                         f"of result is {len(result)}"
                     )

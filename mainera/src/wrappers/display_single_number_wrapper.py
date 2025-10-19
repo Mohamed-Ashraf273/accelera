@@ -29,6 +29,7 @@ class DisplaySignleNumberWrapper(MetricDisplayWrapper):
         plt.ylabel("Metric Value")
         plt.title(f"{self.metric_name}")
         plt.savefig(img_path)
+        plt.close()
         content = (
             f"### Metric name: {self.metric_name}\n\n"
             f"Table \n{table}\n\n"

@@ -212,7 +212,7 @@ p.branch(
 
 p.predict("predict", test_data, positive_class=1)
 
-p.merge("merge_node", "hard_voting")
+# p.merge("merge_node", "hard_voting")
 p.branch(
     "metric",
     p.metric("accuracyh", "accuracy_score", y_true=y_test, branch=True),
@@ -231,13 +231,23 @@ p.branch(
         "precision_recall_fscore_support",
         y_true=y_test,
         tuple_argums={
-            "labels": ["percision", "recall", "f1", "support"],
+            "item_name": ["percision", "recall", "f1", "support"],
             "is_curve": False,
         },
         average=None,
         branch=True,
     ),
-    p.metric("f1_score", "f1_score", y_true=y_test, average=None, branch=True),
+    p.metric(
+        "f1_score",
+        "f1_score",
+        y_true=y_test,
+        average=None,
+        branch=True,
+        labels_name=["0 class", "1 class", "2 class", "3 class"],
+    ),
+    p.metric(
+        "f1_sco_2", "f1_score", y_true=y_test, branch=True, average="macro"
+    ),
 )
 
 
