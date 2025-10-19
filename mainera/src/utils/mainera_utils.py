@@ -260,4 +260,8 @@ def execute_fit(instance, x, y):
 
 
 def serialize(pipeline, filepath):
-    graph.serialize_graph(pipeline._Pipeline__graph, filepath)
+    graph.serialize_graph(pipeline._PipelineBase__graph, filepath)
+
+
+def load(directory):
+    raise NotImplementedError("Loading from directory is not implemented yet.")

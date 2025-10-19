@@ -269,10 +269,10 @@ def custom_metric_selector(metrics):
 
 start_mem = get_memory_info()
 start = time.time()
-simple_predictions, executed_graph = p(
+simple_predictions, best_path = p(
     X, y, select_strategy="custom", custom_strategy=custom_metric_selector
 )
-predictions = executed_graph(test_data, y_true=y_test)
+predictions = best_path(test_data, y_true=y_test)
 serialize(p, "test.xml")
 
 end = time.time()
@@ -289,3 +289,4 @@ report = GraphReport("report", "test.xml", simple_predictions)
 img_path = report.execute()
 
 p.save_preprocessed_data("preprocessed_data")
+best_path.save("best_path")

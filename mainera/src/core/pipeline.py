@@ -3,25 +3,17 @@ from mainera.src.utils.mainera_utils import get_correct_metric_class
 from mainera.src.utils.mainera_utils import get_metric_object
 from mainera.src.wrappers.executed_graph_wrapper import ExecutedGraphWrapper
 from mainera.src.wrappers.node_wrapper import NodeWrapper
-
-try:
-    import graph
-except ImportError as e:
-    raise ImportError(
-        "The 'graph' C++ module could not be imported. "
-        "Please ensure it is built and available in your PYTHONPATH."
-    ) from e
+from mainera.src.wrappers.pipeline_base_wrapper import PipelineBase
 
 
-class Pipeline:
+class Pipeline(PipelineBase):
     def __init__(self):
-        self.__graph = graph.Graph()
-        self.__graph.enableParallelExecution(True)
+        super().__init__(_graph=None)
 
     def __call__(
         self, X, y=None, select_strategy: str = "all", custom_strategy=None
     ):
-        results = self.__graph.execute(
+        results = self._PipelineBase__graph.execute(
             X,
             y=y,
             select_strategy=select_strategy,
@@ -36,7 +28,9 @@ class Pipeline:
         if branch:
             return NodeWrapper("preprocess", name, func_params)
 
-        self.__graph.add_node(graph.NodeType.PREPROCESS, name, func_params)
+        self._PipelineBase__graph.add_node(
+            self.types["preprocess"], name, func_params
+        )
         return self
 
     def model(self, name, model, branch=False):
@@ -44,7 +38,9 @@ class Pipeline:
         if branch:
             return NodeWrapper("model", name, model_params)
 
-        self.__graph.add_node(graph.NodeType.MODEL, name, model_params)
+        self._PipelineBase__graph.add_node(
+            self.types["model"], name, model_params
+        )
         return self
 
     def predict(
@@ -63,7 +59,9 @@ class Pipeline:
         if branch:
             return NodeWrapper("predict", name, predict_params)
 
-        self.__graph.add_node(graph.NodeType.PREDICT, name, predict_params)
+        self._PipelineBase__graph.add_node(
+            self.types["predict"], name, predict_params
+        )
         return self
 
     def metric(
@@ -91,7 +89,9 @@ class Pipeline:
             if branch:
                 return NodeWrapper("metric", name, metric_obj)
 
-            self.__graph.add_node(graph.NodeType.METRIC, name, metric_obj)
+            self._PipelineBase__graph.add_node(
+                self.types["metric"], name, metric_obj
+            )
             return self
         else:
             raise ValueError(f"Metric '{metric_name}' is not recognized.")
@@ -100,7 +100,7 @@ class Pipeline:
         if branch:
             return NodeWrapper("merge", name, strategy)
 
-        self.__graph.add_node(graph.NodeType.MERGE, name, strategy)
+        self._PipelineBase__graph.add_node(self.types["merge"], name, strategy)
         return self
 
     def branch(self, name, *branches):
@@ -139,18 +139,7 @@ class Pipeline:
 
             branches_to_send.append(branch_objects)
 
-        self.__graph.split(name, branches_to_send, node_types, node_names)
-        return self
-
-    def set_multicore_threshold(self, threshold):
-        self.__graph.setMulticoreThreshold(threshold)
-        return self
-
-    def disable_parallel_execution(self):
-        self.__graph.enableParallelExecution(False)
-        return self
-
-    def save_preprocessed_data(self, directory):
-        if not self.__graph.savePreprocessedData(directory):
-            raise ValueError("Saving data to disk failed.")
+        self._PipelineBase__graph.split(
+            name, branches_to_send, node_types, node_names
+        )
         return self

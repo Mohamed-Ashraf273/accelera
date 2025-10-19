@@ -1,23 +1,22 @@
-# mAInera 🚀
+# Mainera 🚀
 
 **A High-Performance Machine Learning Pipeline Framework**
 
-AI Studio is a cutting-edge ML pipeline framework that combines the flexibility of Python with the performance of C++.
+Mainera is a cutting-edge ML pipeline framework that combines the flexibility of Python with the performance of C++. It provides a robust, scalable solution for building and deploying machine learning workflows with optimized performance.
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/Mohamed-Ashraf273/ai-studio)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/Mohamed-Ashraf273/mainera)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![C++17](https://img.shields.io/badge/C++-17-orange.svg)](https://isocpp.org/)
 
----
+## ✨ Features
 
-## 🌟 Key Features
-
-### **Pipeline Architecture**
-- **Intuitive API**: Chain operations with simple, readable syntax
-- **Flexible Branching**: Split pipelines into parallel branches with automatic merging
-- **Type Safety**: Built-in node types (INPUT, PREPROCESS, MODEL, PREDICT, MERGE)
-- **Dependency Resolution**: Automatic topological sorting and dependency management
+- 🚄 **High Performance**: C++ backend for compute-intensive operations
+- 🐍 **Python Friendly**: Intuitive Python API for ease of use
+- 🔧 **Flexible Pipeline**: Build complex ML workflows with modular components
+- 📊 **Built-in Visualization**: Generate reports and graphs automatically
+- 🔄 **Parallel Processing**: Optimized for multi-core execution
+- 🧪 **Extensible**: Easy to add custom nodes and operations
 
 ---
 
@@ -27,8 +26,8 @@ AI Studio is a cutting-edge ML pipeline framework that combines the flexibility 
 
 ```bash
 # Clone the repository
-git clone https://github.com/Mohamed-Ashraf273/ai-studio.git
-cd ai-studio
+git clone https://github.com/Mohamed-Ashraf273/mainera.git
+cd mainera
 
 # Create virtual environment
 python -m venv env
@@ -38,66 +37,24 @@ source env/bin/activate  # On Windows: env\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Basic Usage
+### 🚨 **Important Note for Developers**
 
-```python
-from mainera.src.core.pipeline import Pipeline
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-import numpy as np
+**Before starting any run or execution in your session, you must set the PYTHONPATH:**
 
-# Create sample data
-X, y = make_classification(n_samples=1000, n_features=20, random_state=42)
-test_data = np.random.rand(10, 20)
-
-# Build pipeline with parallel branches
-pipeline = Pipeline()
-
-# Create parallel ensemble
-pipeline.branch("ensemble",
-    pipeline.model("rf", RandomForestClassifier(n_estimators=100), branch=True),
-    pipeline.model("lr", LogisticRegression(), branch=True),
-    pipeline.model("svm", SVC(), branch=True)
-)
-
-# Add prediction and merging
-pipeline.predict("predictions", test_data)
-pipeline.merge("final", lambda preds: np.mean(preds, axis=0))
-
-results = pipeline(X, y)
-print(f"Predictions: {results}")
+**For Linux/macOS:**
+```bash
+export PYTHONPATH="/path/to/your/project/mainera"
 ```
 
-### Performance Example
-
-```python
-# Heavy computation example (4x speedup!)
-pipeline = Pipeline()
-=
-# These will run in parallel across CPU cores
-pipeline.branch("heavy_models",
-    pipeline.model("rf1", RandomForestClassifier(n_estimators=100)),
-    pipeline.model("rf2", RandomForestClassifier(n_estimators=100)), 
-    pipeline.model("rf3", RandomForestClassifier(n_estimators=100)),
-    pipeline.model("rf4", RandomForestClassifier(n_estimators=100))
-)
-
-# Results:
-# Sequential: 11.37s
-# Parallel:    3.01s  (3.78x speedup!)
+**For Windows (PowerShell):**
+```powershell
+$env:PYTHONPATH = "C:\path\to\your\project\mainera"
 ```
 
----
-
-## 🏗️ Development Setup
-
-### Build Requirements
-
-- **Python 3.9+**
-- **CMake 3.18+**
-- **C++17 compatible compiler**
-- **pybind11** (automatically fetched)
-
+**For Windows (Command Prompt):**
+```cmd
+set PYTHONPATH=C:\path\to\your\project\mainera
+```
 ### Build Instructions
 
 ```bash
@@ -143,75 +100,61 @@ python -c "from mainera.src.core.pipeline_test import test_parallel_execution_pe
 python test_heavy_parallel.py
 ```
 
----
+## 📋 Usage Example
 
-## 🔬 Architecture Deep Dive
+```python
+import sys
+import os
 
-### Parallel Execution Engine
+# Add project to Python path
+project_root = "/path/to/your/mainera/project"
+sys.path.insert(0, project_root)
 
-AI Studio's breakthrough parallel execution works by:
+# Import mainera modules
+from mainera.src.core.pipeline import Pipeline
+from mainera.src.custom.classifier import CustomClassifier
 
-1. **Dependency Analysis**: Builds a dependency graph from pipeline structure
-2. **Wave Detection**: Groups independent nodes into "waves" for parallel execution  
-3. **GIL Management**: Releases Python's Global Interpreter Lock for true parallelism
-4. **Smart Scheduling**: Only uses parallelism when computation benefits exceed overhead
-
-```cpp
-// Core parallel execution (simplified)
-{
-    py::gil_scoped_release release;  // Release Python GIL
-    
-    // Multiple models train simultaneously on different CPU cores
-    auto future1 = std::async(std::launch::async, [&]() { model1.fit(X, y); });
-    auto future2 = std::async(std::launch::async, [&]() { model2.fit(X, y); });
-    auto future3 = std::async(std::launch::async, [&]() { model3.fit(X, y); });
-    
-    // Wait for all to complete (merge synchronization)
-    future1.get(); future2.get(); future3.get();
-} // GIL reacquired
+# Create and run pipeline
+pipeline = Pipeline()
+# Add your ML components here...
 ```
 
-### Pipeline Components
+## 🏗️ Project Structure
 
-- **Input Node**: Data ingestion and validation
-- **Preprocess Node**: Data transformation and feature engineering  
-- **Model Node**: Machine learning model training
-- **Predict Node**: Inference on new data
-- **Merge Node**: Combining results from parallel branches
+```
+mainera/
+├── build/                  # Build artifacts and C++ bindings
+├── examples/              # Example scripts and demos
+├── include/               # C++ header files
+├── mainera/               # Main Python package
+│   ├── api/              # Public API
+│   ├── bindings/         # Python-C++ bindings
+│   └── src/              # Source code
+├── src/                   # C++ source files
+├── tools/                 # Development tools
+└── CMakeLists.txt        # Build configuration
+```
 
----
+## 🤝 Contributing
 
-## 📊 Performance Benchmarks
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Run pre-commit checks: `pre-commit run --all-files --hook-stage manual`
+5. Commit your changes (`git commit -m 'Add some amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
 
-| Operation Type | Sequential Time | Parallel Time | Speedup |
-|---------------|----------------|---------------|---------|
-| Light ML (LogisticRegression) | 0.0065s | 0.0107s | 0.61x* |
-| Heavy ML (RandomForest) | 11.37s | 3.01s | **3.78x** |
-| Ensemble (4 models) | 45.2s | 12.1s | **3.74x** |
+## 📄 License
 
-*Light operations are faster sequential due to threading overhead
-
----
-
-## 📚 Documentation & Resources
-
-### Academic References
-- **"Understanding the Python GIL"** - David Beazley (PyCon 2010)
-- **"Parallel Execution of Dataflow Programs"** - Dennis & Misunas (1975)
-- **"List Scheduling Algorithm for Heterogeneous Systems"** - Topcuoglu et al. (2002)
-
-### Technical Documentation
-- [Pybind11 GIL Management](https://pybind11.readthedocs.io/en/stable/advanced/misc.html#global-interpreter-lock-gil)
-- [C++ Concurrency Patterns](https://en.cppreference.com/w/cpp/thread/async)
-- [Python Multiprocessing vs Threading](https://docs.python.org/3/library/multiprocessing.html)
-
----
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- **pybind11** team for excellent Python-C++ integration
-- **scikit-learn** community for ML algorithm implementations  
-- **CMake** developers for cross-platform build system
-- **Python Core** developers for threading and GIL architecture
+- Built with love using C++ and Python
+- Powered by CMake and pybind11
+- Inspired by modern ML pipeline frameworks
 
 ---
+
+**Happy coding! 🎉**

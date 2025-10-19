@@ -11,7 +11,7 @@ from tensorflow.keras import layers
 
 from mainera.src.wrappers.model_report_wrapper import ModelReport
 
-data = pd.read_csv("Titanic-Dataset.csv")
+data = pd.read_csv("./examples/Titanic-Dataset.csv")
 data.drop(
     axis=1, columns=["PassengerId", "Name", "Ticket", "Cabin"], inplace=True
 )

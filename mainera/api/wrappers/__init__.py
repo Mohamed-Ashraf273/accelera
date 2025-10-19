@@ -33,6 +33,7 @@ from mainera.src.wrappers import (
 from mainera.src.wrappers import metric_wrapper as metric_wrapper
 from mainera.src.wrappers import model_report_wrapper as model_report_wrapper
 from mainera.src.wrappers import node_wrapper as node_wrapper
+from mainera.src.wrappers import pipeline_base_wrapper as pipeline_base_wrapper
 from mainera.src.wrappers import report_wrapper as report_wrapper
 from mainera.src.wrappers import (
     supervised_metric_wrapper as supervised_metric_wrapper,
