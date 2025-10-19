@@ -815,4 +815,14 @@ bool Graph::savePreprocessedData(const std::string &directory) {
   return found_model_nodes || found_preprocess_leaves;
 }
 
+//----------- These 2 functions are used only on executed graphs -----------
+bool Graph::save() {
+  throw std::runtime_error("This function is not implemented yet");
+}
+
+bool Graph::load(const std::string &directory) {
+  throw std::runtime_error("This function is not implemented yet");
+}
+//--------------------------------------------------------------------------
+
 } // namespace mainera

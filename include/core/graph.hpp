@@ -53,6 +53,9 @@ public:
   void enableDisableMetrics(py::object y_true, py::object enable);
   bool savePreprocessedData(const std::string &directory);
 
+  bool save();
+  bool load(const std::string &directory);
+
 private:
   std::vector<Node::Ptr> m_execution_order;
   std::vector<Node::Ptr> m_nodes;

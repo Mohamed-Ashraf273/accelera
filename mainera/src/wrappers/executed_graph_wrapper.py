@@ -1,22 +1,30 @@
-class ExecutedGraphWrapper:
+import os
+
+from mainera.src.utils.mainera_utils import serialize
+from mainera.src.wrappers.pipeline_base_wrapper import PipelineBase
+
+
+class ExecutedGraphWrapper(PipelineBase):
     def __init__(self, executed_graph):
-        self.__executed_graph = executed_graph
-        self.__executed_graph.enableParallelExecution(True)
+        super().__init__(_graph=executed_graph)
 
     def __call__(self, X, y_true=None):
         if y_true is not None:
-            self.__executed_graph.enableDisableMetrics(
+            self._PipelineBase__graph.enableDisableMetrics(
                 y_true=y_true, enable=True
             )
 
-        results = self.__executed_graph.execute(X)
+        results = self._PipelineBase__graph.execute(X)
 
         if y_true is not None:
-            self.__executed_graph.enableDisableMetrics(enable=False)
+            self._PipelineBase__graph.enableDisableMetrics(enable=False)
 
         return results
 
-    def save_preprocessed_data(self, directory):
-        if not self.__executed_graph.savePreprocessedData(directory):
-            raise ValueError("Saving data to disk failed.")
+    def save(self, directory):
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        serialize(self, os.path.join(directory, "pipeline.xml"))
+        # TODO: we need also to save models and other
+        # data needed later for loading
         return self
