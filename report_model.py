@@ -35,8 +35,8 @@ model.fit(X_train, y_train)
 predict = model.predict(X_test)
 accuracy = accuracy_score(y_test, predict)
 results = [
-    {"metric name": "accuracy", "result": accuracy, "tuple_argums": None},
-    {"metric name": "accuracy", "result": accuracy, "tuple_argums": None},
+    {"metric name": "accuracy", "result": accuracy, "tuple_argums": None,"labels_name":None},
+    {"metric name": "accuracy", "result": accuracy, "tuple_argums": None,"labels_name":None},
 ]
 report = ModelReport("model_report", results=results)
 report.execute()
@@ -70,14 +70,15 @@ accuracy = accuracy_score(y_test, predictions)
 classification = classification_report(y_test, predictions)
 confusion = confusion_matrix(y_test, predictions)
 results = [
-    {"metric name": "accuracy", "result": accuracy, "tuple_argums": None},
-    {"metric name": "accuracy", "result": accuracy, "tuple_argums": None},
+    {"metric name": "accuracy", "result": accuracy, "tuple_argums": None,"labels_name":None},
+    {"metric name": "accuracy", "result": accuracy, "tuple_argums": None,"labels_name":None},
     {
         "metric name": "classification",
         "result": classification,
         "tuple_argums": None,
+        "labels_name":None
     },
-    {"metric name": "confusion", "result": confusion, "tuple_argums": None},
+    {"metric name": "confusion", "result": confusion, "tuple_argums": None,"labels_name":None},
 ]
 print("\nTraining history keys:", history.history.keys())
 report = ModelReport("model_report", results=results, history=history.history)

@@ -9,6 +9,7 @@ class UnSupervisedMetricWrapper(BaseMetricWrapper):
         metric_name,
         metric,
         tuple_argums=None,
+        labels_name=None,
         **params,
     ):
         super().__init__(
@@ -16,6 +17,7 @@ class UnSupervisedMetricWrapper(BaseMetricWrapper):
             metric,
             y_true=None,
             tuple_argums=tuple_argums,
+            labels_name=labels_name,
             **params,
         )
         self.X = None
@@ -37,5 +39,6 @@ class UnSupervisedMetricWrapper(BaseMetricWrapper):
             "metric name": self.metric_name,
             "result": result,
             "tuple_argums": self.tuple_argums,
+            "labels_name": self.labels_name,
         }
         return output

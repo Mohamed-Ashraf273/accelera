@@ -17,8 +17,10 @@ class DisplayTupleNotCurveWrapper(MetricDisplayWrapper):
 
         for value in self.values:
             data = {}
-            for i in range(len(value["tuple_argums"]["labels"])):
-                data[value["tuple_argums"]["labels"][i]] = value["result"][i]
+            labels_name = self.handel_labels_name()
+            data["labels"] = labels_name
+            for i in range(len(value["tuple_argums"]["item_name"])):
+                data[value["tuple_argums"]["item_name"][i]] = value["result"][i]
             table = pd.DataFrame(data).to_html(index=False)
             new_content = (
                 '<div style="overflow-x:auto;max-width:400px;">\n'
