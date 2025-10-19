@@ -37,12 +37,13 @@ class ReportWrapper(ABC):
             metric_name = self.results[i]["metric name"]
             metric_value = self.results[i]["result"]
             metric_tuple_argums = self.results[i]["tuple_argums"]
+            metric_lables_name = self.results[i]["labels_name"]
             metric_obj = {
                 "metric id": self.metric_ids[i],
                 "result": metric_value,
                 "tuple_argums": metric_tuple_argums,
+                "labels_name": metric_lables_name,
             }
-            print(metric_obj)
             if metric_name in final_metric:
                 final_metric[metric_name].append(metric_obj)
             else:
