@@ -212,7 +212,7 @@ p.branch(
 
 p.predict("predict", test_data, positive_class=1)
 
-#p.merge("merge_node", "hard_voting")
+# p.merge("merge_node", "hard_voting")
 p.branch(
     "metric",
     p.metric("accuracyh", "accuracy_score", y_true=y_test, branch=True),
@@ -237,8 +237,17 @@ p.branch(
         average=None,
         branch=True,
     ),
-    p.metric("f1_score", "f1_score", y_true=y_test, average=None, branch=True,labels_name=["0 class","1 class","2 class","3 class"]),
-    p.metric("f1_sco_2", "f1_score", y_true=y_test,  branch=True,average="macro"),
+    p.metric(
+        "f1_score",
+        "f1_score",
+        y_true=y_test,
+        average=None,
+        branch=True,
+        labels_name=["0 class", "1 class", "2 class", "3 class"],
+    ),
+    p.metric(
+        "f1_sco_2", "f1_score", y_true=y_test, branch=True, average="macro"
+    ),
 )
 
 

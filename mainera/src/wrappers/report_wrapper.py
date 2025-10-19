@@ -63,7 +63,9 @@ class ReportWrapper(ABC):
         )
         for metric_name, values in metric.items():
             if isinstance(values[0]["result"], (int, float)):
-                obj = DisplaySignleNumberWrapper(metric_name, values, self.folderpath)
+                obj = DisplaySignleNumberWrapper(
+                    metric_name, values, self.folderpath
+                )
                 content = obj.execute()
             elif (
                 isinstance(values[0]["result"], (np.ndarray))
@@ -90,7 +92,9 @@ class ReportWrapper(ABC):
                     )
                     content = obj.execute()
                 else:
-                    obj = DisplayTupleCurveWrapper(metric_name, values, self.folderpath)
+                    obj = DisplayTupleCurveWrapper(
+                        metric_name, values, self.folderpath
+                    )
                     content = obj.execute()
             metric_content = metric_content + "\n" + content
         return metric_content

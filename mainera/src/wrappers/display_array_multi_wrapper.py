@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+
 from mainera.src.wrappers.metric_display_wrapper import MetricDisplayWrapper
 
 
@@ -14,7 +15,9 @@ class DisplayMultiArrayWrapper(MetricDisplayWrapper):
             data = {"labels": labels_name, "value": []}
             for i in range(value["result"].shape[0]):
                 array_str = np.array2string(
-                    np.array(value["result"][i]), separator=", ", max_line_width=80
+                    np.array(value["result"][i]),
+                    separator=", ",
+                    max_line_width=80,
                 )
                 data["value"].append(array_str)
 

@@ -53,7 +53,12 @@ def get_metric_object(
 
 
 def get_correct_metric_class(
-    metric_name, metric, y_true=None, tuple_argums=None,labels_name=None, **params
+    metric_name,
+    metric,
+    y_true=None,
+    tuple_argums=None,
+    labels_name=None,
+    **params,
 ):
     signature = inspect.signature(metric)
     parameters = list(signature.parameters.keys())
@@ -68,7 +73,7 @@ def get_correct_metric_class(
     unsupervised = "X" in parameters and "labels" in parameters
     if supervised:
         return SupervisedMetricWrapper(
-            metric_name, metric, y_true, tuple_argums,labels_name, **params
+            metric_name, metric, y_true, tuple_argums, labels_name, **params
         )
     elif unsupervised:
         print_msg(
@@ -78,7 +83,7 @@ def get_correct_metric_class(
             level="warning",
         )
         return UnSupervisedMetricWrapper(
-            metric_name, metric, tuple_argums,labels_name, **params
+            metric_name, metric, tuple_argums, labels_name, **params
         )
     else:
         return None
