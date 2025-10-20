@@ -7,6 +7,7 @@ from sklearn.cluster import KMeans
 from sklearn.datasets import make_blobs
 from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import SelectKBest
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import adjusted_rand_score
 from sklearn.metrics import calinski_harabasz_score
@@ -250,6 +251,40 @@ class TestPipelineCorrectness:
         manual_model.fit(X_scaled, self.y)
         manual_result = manual_model.predict_proba(test_scaled)[:, 1]
         assert np.allclose(pipeline_result, manual_result, rtol=1e-5, atol=1e-8)
+
+    def test_mixed_type_pipeline(self):
+        p = Pipeline()
+        p.preprocess("select_k_best", SelectKBest(k=15)).branch(
+            "models",
+            p.model(
+                "kmeans", KMeans(n_clusters=4, random_state=42), branch=True
+            ),
+            p.model(
+                "lr",
+                LogisticRegression(random_state=42, max_iter=1000),
+                branch=True,
+            ),
+        ).predict("predict", self.test_data)
+
+        best_k = SelectKBest(k=15)
+        best_k.fit(self.X, self.y)
+        X_selected = best_k.transform(self.X)
+        test_data_selected = best_k.transform(self.test_data)
+
+        m1 = KMeans(n_clusters=4, random_state=42)
+        m1.fit(X_selected)
+        m2 = LogisticRegression(random_state=42, max_iter=1000)
+        m2.fit(X_selected, self.y)
+
+        expected_predictions = m1.predict(test_data_selected)
+        predictions, executed_graph = p(self.X, self.y)
+        assert np.array_equal(predictions[0], expected_predictions)
+
+        expected_predictions = m2.predict(test_data_selected)
+        assert np.array_equal(predictions[1], expected_predictions)
+
+        executed_graph_result = executed_graph(self.test_data)
+        assert np.array_equal(executed_graph_result[1], expected_predictions)
 
     def test_metric_node(self):
         p = Pipeline()

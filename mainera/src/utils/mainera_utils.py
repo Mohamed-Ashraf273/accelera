@@ -106,6 +106,7 @@ def get_instance_type(instance) -> str:
         has_fit_predict = hasattr(instance, "fit_predict")
         has_predict_proba = hasattr(instance, "predict_proba")
         has_decision_function = hasattr(instance, "decision_function")
+        has_fit = hasattr(instance, "fit")
 
         supervised_score = 0
         if has_predict_proba:
@@ -124,6 +125,22 @@ def get_instance_type(instance) -> str:
             unsupervised_score += 3
         if hasattr(instance, "components_"):
             unsupervised_score += 2
+
+        # Check for preprocessing patterns
+        if (
+            has_transform
+            and has_fit
+            and not has_predict
+            and not has_fit_predict
+        ):
+            # This is likely a preprocessor/transformer
+            # Check if it needs labels (supervised preprocessing)
+            if hasattr(instance, "score_func") or hasattr(instance, "scores_"):
+                supervised_score += 2
+            elif hasattr(instance, "k") or hasattr(instance, "percentile"):
+                supervised_score += 1
+            else:
+                unsupervised_score += 1
 
         if supervised_score > unsupervised_score:
             return "supervised"
@@ -150,6 +167,18 @@ def get_instance_type(instance) -> str:
             "bagging",
             "voting",
             "neural",
+            # Feature selection (supervised preprocessing)
+            "selectkbest",
+            "selectpercentile",
+            "selectfpr",
+            "selectfdr",
+            "selectfwe",
+            "rfe",
+            "rfecv",
+            "variancethreshold",
+            # Target-based preprocessing
+            "targetencoder",
+            "ordinalencoder",
         ]
 
         unsupervised_patterns = [
@@ -157,13 +186,24 @@ def get_instance_type(instance) -> str:
             "cluster",
             "pca",
             "ica",
-            "lda",
             "tsne",
             "dbscan",
             "isolation",
             "anomaly",
             "outlier",
             "decomposition",
+            # Unsupervised preprocessing
+            "standardscaler",
+            "minmaxscaler",
+            "robustscaler",
+            "normalizer",
+            "quantiletransformer",
+            "powertransformer",
+            "polynomialfeatures",
+            "onehotencoder",
+            "labelencoder",
+            "imputer",
+            "simpleimputer",
         ]
 
         for pattern in supervised_patterns:
@@ -184,8 +224,16 @@ def get_instance_type(instance) -> str:
                 "ensemble" in module
                 or "linear_model" in module
                 or "svm" in module
+                or "feature_selection" in module
             ):
                 return "supervised"
+            elif "preprocessing" in module:
+                # Most sklearn preprocessing is unsupervised (scalers, encoders)
+                # but feature selection is supervised
+                if "feature_selection" in module:
+                    return "supervised"
+                else:
+                    return "unsupervised"
         return None
 
     def check_model_attributes():
@@ -196,6 +244,11 @@ def get_instance_type(instance) -> str:
             "intercept_",
             "feature_importances_",
             "estimators_",
+            # Feature selection attributes
+            "scores_",
+            "pvalues_",
+            "support_",
+            "ranking_",
         ]
 
         unsupervised_attrs = [
@@ -206,6 +259,15 @@ def get_instance_type(instance) -> str:
             "explained_variance_",
             "singular_values_",
             "n_clusters",
+            # Preprocessing attributes
+            "scale_",
+            "mean_",
+            "var_",
+            "min_",
+            "max_",
+            "data_min_",
+            "data_max_",
+            "categories_",
         ]
 
         supervised_count = sum(
@@ -243,7 +305,7 @@ def get_instance_type(instance) -> str:
     elif votes["unsupervised"] > votes["supervised"]:
         return "unsupervised"
     else:
-        return "unknown"
+        return "supervised"
 
 
 def execute_fit(instance, x, y):

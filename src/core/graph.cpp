@@ -757,6 +757,13 @@ void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
 
 void Graph::enableDisableMetrics(py::object y_true, py::object enable) {
   bool enable_metrics = py::cast<bool>(enable);
+  if (m_metric_nodes.empty()) {
+    if (enable_metrics)
+      log_warning("No metric nodes found in the graph to enable metrics.");
+    else
+      log_warning("No metric nodes found in the graph to disable metrics.");
+    return;
+  }
   for (const auto &node : m_metric_nodes) {
     if (node) {
       node->setMetricFlag(enable_metrics);

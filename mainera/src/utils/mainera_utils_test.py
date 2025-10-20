@@ -1,7 +1,9 @@
 import logging
+from unittest.mock import MagicMock
 from unittest.mock import patch
 
 from mainera.src.utils.mainera_utils import get_correct_metric_class
+from mainera.src.utils.mainera_utils import get_instance_type
 from mainera.src.utils.mainera_utils import get_metric_object
 from mainera.src.utils.mainera_utils import print_msg
 
@@ -110,3 +112,59 @@ class TestGetCorrectMetricClass:
 
         result = get_correct_metric_class("test_metric", invalid_metric)
         assert result is None
+
+
+class TestGetInstanceType:
+    def test_supervised_algorithms(self):
+        clf = MagicMock()
+        clf.__class__.__name__ = "RandomForestClassifier"
+        clf.__class__.__module__ = "sklearn.ensemble"
+        assert get_instance_type(clf) == "supervised"
+
+        reg = MagicMock()
+        reg.__class__.__name__ = "LinearRegression"
+        reg.__class__.__module__ = "sklearn.linear_model"
+        assert get_instance_type(reg) == "supervised"
+
+    def test_unsupervised_algorithms(self):
+        kmeans = MagicMock()
+        kmeans.__class__.__name__ = "KMeans"
+        kmeans.__class__.__module__ = "sklearn.cluster"
+        assert get_instance_type(kmeans) == "unsupervised"
+
+        pca = MagicMock()
+        pca.__class__.__name__ = "PCA"
+        pca.__class__.__module__ = "sklearn.decomposition"
+        assert get_instance_type(pca) == "unsupervised"
+
+    def test_feature_selection_supervised(self):
+        selector = MagicMock()
+        selector.__class__.__name__ = "SelectKBest"
+        selector.__class__.__module__ = "sklearn.feature_selection"
+        assert get_instance_type(selector) == "supervised"
+
+    def test_preprocessing_unsupervised(self):
+        scaler = MagicMock()
+        scaler.__class__.__name__ = "StandardScaler"
+        scaler.__class__.__module__ = "sklearn.preprocessing"
+        assert get_instance_type(scaler) == "unsupervised"
+
+    def test_real_sklearn_objects(self):
+        try:
+            from sklearn.cluster import KMeans
+            from sklearn.ensemble import RandomForestClassifier
+            from sklearn.feature_selection import SelectKBest
+            from sklearn.preprocessing import StandardScaler
+
+            assert get_instance_type(RandomForestClassifier()) == "supervised"
+            assert get_instance_type(KMeans(n_clusters=2)) == "unsupervised"
+            assert get_instance_type(SelectKBest()) == "supervised"
+            assert get_instance_type(StandardScaler()) == "unsupervised"
+        except ImportError:
+            pass  # Skip if sklearn not available
+
+    def test_unknown_defaults_to_supervised(self):
+        class Unknown:
+            pass
+
+        assert get_instance_type(Unknown()) == "supervised"
