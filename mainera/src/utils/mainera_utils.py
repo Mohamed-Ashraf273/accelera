@@ -10,7 +10,7 @@ from mainera.src.wrappers.supervised_metric import SupervisedMetric
 from mainera.src.wrappers.unsupervised_metric import UnSupervisedMetric
 
 try:
-    import graph
+    from graph import serialize_graph
 except ImportError as e:
     raise ImportError(
         "The 'graph' C++ module could not be imported. "
@@ -318,7 +318,7 @@ def execute_fit(instance, x, y):
 
 
 def serialize(pipeline, filepath):
-    graph.serialize_graph(pipeline._PipelineBase__graph, filepath)
+    serialize_graph(pipeline._PipelineBase__graph, filepath)
 
 
 def load(directory):
