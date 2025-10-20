@@ -1,16 +1,16 @@
 import pandas as pd
 
-from mainera.src.wrappers.metric_display_wrapper import MetricDisplayWrapper
+from mainera.src.wrappers.metric_display import MetricDisplay
 
 
-class DisplayArraySingleWrapper(MetricDisplayWrapper):
+class DisplayArraySingle(MetricDisplay):
     def __init__(self, metric_name, values):
         super().__init__(metric_name, values)
 
     def execute(self):
         content = f"### Metric name: {self.metric_name}\n\n"
         ids = [value["metric id"] for value in self.values]
-        labels_name = self.handel_labels_name()
+        labels_name = self.handle_labels_name()
         data = {"Metric ID": ids}
         for value in self.values:
             for i in range(len(value["result"])):

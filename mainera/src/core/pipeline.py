@@ -1,9 +1,9 @@
+from mainera.src.core.executed_graph import ExecutedGraph
+from mainera.src.core.node import Node
+from mainera.src.core.pipeline_base import PipelineBase
 from mainera.src.utils.mainera_utils import execute_fit
 from mainera.src.utils.mainera_utils import get_correct_metric_class
 from mainera.src.utils.mainera_utils import get_metric_object
-from mainera.src.wrappers.executed_graph_wrapper import ExecutedGraphWrapper
-from mainera.src.wrappers.node_wrapper import NodeWrapper
-from mainera.src.wrappers.pipeline_base_wrapper import PipelineBase
 
 
 class Pipeline(PipelineBase):
@@ -19,14 +19,14 @@ class Pipeline(PipelineBase):
             select_strategy=select_strategy,
             custom_strategy=custom_strategy,
         )
-        executed_graph = ExecutedGraphWrapper(results[0])
+        executed_graph = ExecutedGraph(results[0])
         predictions = results[1:]
         return predictions, executed_graph
 
     def preprocess(self, name, func, branch=False):
         func_params = {"func": func, "execute_fit": execute_fit}
         if branch:
-            return NodeWrapper("preprocess", name, func_params)
+            return Node("preprocess", name, func_params)
 
         self._PipelineBase__graph.add_node(
             self.types["preprocess"], name, func_params
@@ -36,7 +36,7 @@ class Pipeline(PipelineBase):
     def model(self, name, model, branch=False):
         model_params = {"model": model, "execute_fit": execute_fit}
         if branch:
-            return NodeWrapper("model", name, model_params)
+            return Node("model", name, model_params)
 
         self._PipelineBase__graph.add_node(
             self.types["model"], name, model_params
@@ -57,7 +57,7 @@ class Pipeline(PipelineBase):
             "positive_class": positive_class,
         }
         if branch:
-            return NodeWrapper("predict", name, predict_params)
+            return Node("predict", name, predict_params)
 
         self._PipelineBase__graph.add_node(
             self.types["predict"], name, predict_params
@@ -87,7 +87,7 @@ class Pipeline(PipelineBase):
                 )
 
             if branch:
-                return NodeWrapper("metric", name, metric_obj)
+                return Node("metric", name, metric_obj)
 
             self._PipelineBase__graph.add_node(
                 self.types["metric"], name, metric_obj
@@ -98,7 +98,7 @@ class Pipeline(PipelineBase):
 
     def merge(self, name, strategy="hard_voting", branch=False):
         if branch:
-            return NodeWrapper("merge", name, strategy)
+            return Node("merge", name, strategy)
 
         self._PipelineBase__graph.add_node(self.types["merge"], name, strategy)
         return self
@@ -119,7 +119,7 @@ class Pipeline(PipelineBase):
                 branch_iter = [branch]
 
             for node in branch_iter:
-                if isinstance(node, NodeWrapper):
+                if isinstance(node, Node):
                     branch_objects.append(node.obj)
                     if node.node_type == "merge":
                         raise ValueError(
@@ -132,7 +132,7 @@ class Pipeline(PipelineBase):
                 else:
                     raise ValueError(
                         "All arguments to branch() must be"
-                        " NodeWrapper instances. Use the 'branch=True' "
+                        " Node instances. Use the 'branch=True' "
                         "argument when adding nodes. "
                         f"Got: {type(node).__name__}"
                     )

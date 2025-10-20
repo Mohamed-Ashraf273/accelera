@@ -4,7 +4,7 @@ from abc import abstractmethod
 from mainera.src.utils.array_utils import convert_to_array
 
 
-class BaseMetricWrapper(ABC):
+class BaseMetric(ABC):
     def __init__(
         self,
         metric_name,

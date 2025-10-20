@@ -1,10 +1,10 @@
 import os
 
+from mainera.src.core.pipeline_base import PipelineBase
 from mainera.src.utils.mainera_utils import serialize
-from mainera.src.wrappers.pipeline_base_wrapper import PipelineBase
 
 
-class ExecutedGraphWrapper(PipelineBase):
+class ExecutedGraph(PipelineBase):
     def __init__(self, executed_graph):
         super().__init__(_graph=executed_graph)
 

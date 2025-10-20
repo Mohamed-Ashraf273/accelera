@@ -1,22 +1,22 @@
-# Mainera 🚀
+# mAInera 🚀
 
 **A High-Performance Machine Learning Pipeline Framework**
 
-Mainera is a cutting-edge ML pipeline framework that combines the flexibility of Python with the performance of C++. It provides a robust, scalable solution for building and deploying machine learning workflows with optimized performance.
+mAInera is a cutting-edge ML pipeline framework that combines the flexibility of Python with the performance of C++. It provides a robust, scalable solution for building and deploying machine learning workflows with optimized performance.
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/Mohamed-Ashraf273/mainera)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/Mohamed-Ashraf273/mAInera)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![C++17](https://img.shields.io/badge/C++-17-orange.svg)](https://isocpp.org/)
 
-## ✨ Features
+## Features
 
-- 🚄 **High Performance**: C++ backend for compute-intensive operations
-- 🐍 **Python Friendly**: Intuitive Python API for ease of use
-- 🔧 **Flexible Pipeline**: Build complex ML workflows with modular components
-- 📊 **Built-in Visualization**: Generate reports and graphs automatically
-- 🔄 **Parallel Processing**: Optimized for multi-core execution
-- 🧪 **Extensible**: Easy to add custom nodes and operations
+- **High Performance**: C++ backend for compute-intensive operations
+- **Python Friendly**: Intuitive Python API for ease of use
+- **Flexible Pipeline**: Build complex ML workflows with modular components
+- **Built-in Visualization**: Generate reports and graphs automatically
+- **Parallel Processing**: Optimized for multi-core execution
+- **Extensible**: Easy to add custom nodes and operations
 
 ---
 
@@ -100,7 +100,7 @@ python -c "from mainera.src.core.pipeline_test import test_parallel_execution_pe
 python test_heavy_parallel.py
 ```
 
-## 📋 Usage Example
+## Usage Example
 
 ```python
 import sys
@@ -119,7 +119,7 @@ pipeline = Pipeline()
 # Add your ML components here...
 ```
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 mainera/
@@ -135,7 +135,7 @@ mainera/
 └── CMakeLists.txt        # Build configuration
 ```
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -145,11 +145,11 @@ mainera/
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Built with love using C++ and Python
 - Powered by CMake and pybind11

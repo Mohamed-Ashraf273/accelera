@@ -71,7 +71,7 @@ class TestGetCorrectMetricClass:
                 self.labels_name = labels_name
 
         with patch(
-            "mainera.src.utils.mainera_utils.SupervisedMetricWrapper",
+            "mainera.src.utils.mainera_utils.SupervisedMetric",
             DummySupervisedWrapper,
         ):
             result = get_correct_metric_class(
@@ -95,7 +95,7 @@ class TestGetCorrectMetricClass:
                 self.labels_name = labels_name
 
         with patch(
-            "mainera.src.utils.mainera_utils.UnSupervisedMetricWrapper",
+            "mainera.src.utils.mainera_utils.UnSupervisedMetric",
             DummyUnSupervisedWrapper,
         ):
             result = get_correct_metric_class(

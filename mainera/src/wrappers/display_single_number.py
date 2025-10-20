@@ -3,12 +3,12 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from mainera.src.wrappers.metric_display_wrapper import MetricDisplayWrapper
+from mainera.src.wrappers.metric_display import MetricDisplay
 
 plt.style.use("dark_background")
 
 
-class DisplaySignleNumberWrapper(MetricDisplayWrapper):
+class DisplaySingleNumber(MetricDisplay):
     def __init__(self, metric_name, values, folderpath):
         super().__init__(metric_name, values)
         self.folderpath = folderpath

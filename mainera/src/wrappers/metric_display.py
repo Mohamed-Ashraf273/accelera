@@ -1,9 +1,9 @@
-class MetricDisplayWrapper:
+class MetricDisplay:
     def __init__(self, metric_name, values):
         self.metric_name = metric_name
         self.values = values
 
-    def handel_labels_name(self):
+    def handle_labels_name(self):
         if self.values[0]["labels_name"]:
             if not isinstance(self.values[0]["labels_name"], list):
                 raise TabError("'labels_name must be a list'")

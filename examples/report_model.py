@@ -9,7 +9,7 @@ from sklearn.svm import SVC
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from mainera.src.wrappers.model_report_wrapper import ModelReport
+from mainera.src.wrappers.model_report import ModelReport
 
 data = pd.read_csv("./examples/Titanic-Dataset.csv")
 data.drop(

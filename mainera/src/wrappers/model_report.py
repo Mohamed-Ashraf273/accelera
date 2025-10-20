@@ -3,10 +3,10 @@ import textwrap
 
 import matplotlib.pyplot as plt
 
-from mainera.src.wrappers.report_wrapper import ReportWrapper
+from mainera.src.core.report import Report
 
 
-class ModelReport(ReportWrapper):
+class ModelReport(Report):
     def __init__(self, folderpath, results, history=None):
         super().__init__(folderpath, results)
         if history and not isinstance(history, dict):
