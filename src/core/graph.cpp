@@ -318,7 +318,7 @@ std::vector<py::object> Graph::execute(py::object X, py::object y,
   if (m_is_branched) {
     setSelectedPath(use_select_strategy, custom_strategy);
   } else {
-    selectAllPaths(*this);
+    selectAllPaths();
   }
 
   std::vector<py::object> final_result;
@@ -336,24 +336,31 @@ std::vector<py::object> Graph::execute(py::object X, py::object y,
 
 void Graph::setSelectedPath(const std::string &strategy,
                             py::object custom_strategy) {
+  resetSelectedPath();
   if (strategy == "max") {
-    selectMaxPath(*this);
+    selectMaxPath();
   } else if (strategy == "min") {
-    selectMinPath(*this);
+    selectMinPath();
   } else if (strategy == "custom") {
-    selectCustomPath(*this, custom_strategy);
+    selectCustomPath(custom_strategy);
   } else if (strategy == "all") {
-    selectAllPaths(*this);
+    selectAllPaths();
   } else {
     throw std::runtime_error("Unknown selection strategy: " + strategy);
   }
 }
 
-void Graph::selectMinPath(Graph &graph) { findMaxMinMetricNode(false); }
+void Graph::resetSelectedPath() {
+  for (const auto &node : m_nodes) {
+    node->selected_in_path = false;
+  }
+}
 
-void Graph::selectMaxPath(Graph &graph) { findMaxMinMetricNode(true); }
+void Graph::selectMinPath() { findMaxMinMetricNode(false); }
 
-void Graph::selectCustomPath(Graph &graph, py::object custom_strategy) {
+void Graph::selectMaxPath() { findMaxMinMetricNode(true); }
+
+void Graph::selectCustomPath(py::object custom_strategy) {
   if (custom_strategy.is_none()) {
     throw std::runtime_error("Custom strategy function not provided.");
   }
@@ -401,8 +408,8 @@ void Graph::selectCustomPath(Graph &graph, py::object custom_strategy) {
   }
 }
 
-void Graph::selectAllPaths(Graph &graph) {
-  for (const auto &node : graph.m_nodes) {
+void Graph::selectAllPaths() {
+  for (const auto &node : m_nodes) {
     node->selected_in_path = true;
   }
 }

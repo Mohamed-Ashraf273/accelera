@@ -73,11 +73,12 @@ private:
   void executeNodesInParallel(const std::vector<Node::Ptr> &nodes);
   void run();
   void runParallel();
+  void resetSelectedPath();
   void setSelectedPath(const std::string &strategy, py::object custom_strategy);
-  void selectMaxPath(Graph &graph);
-  void selectMinPath(Graph &graph);
-  void selectCustomPath(Graph &graph, py::object custom_strategy);
-  void selectAllPaths(Graph &graph);
+  void selectMaxPath();
+  void selectMinPath();
+  void selectCustomPath(py::object custom_strategy);
+  void selectAllPaths();
   void findMaxMinMetricNode(bool find_max);
   void setPath(std::shared_ptr<MetricNode> best_metric_node);
 };
