@@ -6,12 +6,8 @@ import sys
 
 import sklearn.metrics as metrics
 
-from mainera.src.wrappers.supervised_metric_wrapper import (
-    SupervisedMetricWrapper,
-)
-from mainera.src.wrappers.unsupervised_metric_wrapper import (
-    UnSupervisedMetricWrapper,
-)
+from mainera.src.wrappers.supervised_metric import SupervisedMetric
+from mainera.src.wrappers.unsupervised_metric import UnSupervisedMetric
 
 try:
     import graph
@@ -72,7 +68,7 @@ def get_correct_metric_class(
     supervised = has_true_labels and has_predictions
     unsupervised = "X" in parameters and "labels" in parameters
     if supervised:
-        return SupervisedMetricWrapper(
+        return SupervisedMetric(
             metric_name, metric, y_true, tuple_argums, labels_name, **params
         )
     elif unsupervised:
@@ -82,7 +78,7 @@ def get_correct_metric_class(
             "y_true will be ignored.",
             level="warning",
         )
-        return UnSupervisedMetricWrapper(
+        return UnSupervisedMetric(
             metric_name, metric, tuple_argums, labels_name, **params
         )
     else:

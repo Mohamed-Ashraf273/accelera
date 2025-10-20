@@ -5,26 +5,16 @@ from abc import abstractmethod
 import numpy as np
 
 from mainera.src.utils.mainera_utils import create_folder
-from mainera.src.wrappers.display_array_multi_wrapper import (
-    DisplayMultiArrayWrapper,
-)
-from mainera.src.wrappers.display_array_single_wrapper import (
-    DisplayArraySingleWrapper,
-)
-from mainera.src.wrappers.display_dict_wrapper import DisplayDictWrapper
-from mainera.src.wrappers.display_single_number_wrapper import (
-    DisplaySignleNumberWrapper,
-)
-from mainera.src.wrappers.display_string_wrapper import DisplayStringWrapper
-from mainera.src.wrappers.display_tuple_curve_wrapper import (
-    DisplayTupleCurveWrapper,
-)
-from mainera.src.wrappers.display_tuple_not_curve_wrapper import (
-    DisplayTupleNotCurveWrapper,
-)
+from mainera.src.wrappers.display_array_multi import DisplayMultiArray
+from mainera.src.wrappers.display_array_single import DisplayArraySingle
+from mainera.src.wrappers.display_dict import DisplayDict
+from mainera.src.wrappers.display_single_number import DisplaySingleNumber
+from mainera.src.wrappers.display_string import DisplayString
+from mainera.src.wrappers.display_tuple_curve import DisplayTupleCurve
+from mainera.src.wrappers.display_tuple_not_curve import DisplayTupleNotCurve
 
 
-class ReportWrapper(ABC):
+class Report(ABC):
     def __init__(self, folderpath, results):
         self.folderpath = folderpath
         self.results = results
@@ -63,36 +53,34 @@ class ReportWrapper(ABC):
         )
         for metric_name, values in metric.items():
             if isinstance(values[0]["result"], (int, float)):
-                obj = DisplaySignleNumberWrapper(
-                    metric_name, values, self.folderpath
-                )
+                obj = DisplaySingleNumber(metric_name, values, self.folderpath)
                 content = obj.execute()
             elif (
                 isinstance(values[0]["result"], (np.ndarray))
                 and values[0]["result"].ndim > 1
             ):
-                obj = DisplayMultiArrayWrapper(metric_name, values)
+                obj = DisplayMultiArray(metric_name, values)
                 content = obj.execute()
             elif (
                 isinstance(values[0]["result"], (np.ndarray))
                 and values[0]["result"].ndim == 1
             ):
-                obj = DisplayArraySingleWrapper(metric_name, values)
+                obj = DisplayArraySingle(metric_name, values)
                 content = obj.execute()
             elif isinstance(values[0]["result"], dict):
-                obj = DisplayDictWrapper(metric_name, values)
+                obj = DisplayDict(metric_name, values)
                 content = obj.execute()
             elif isinstance(values[0]["result"], str):
-                obj = DisplayStringWrapper(metric_name, values)
+                obj = DisplayString(metric_name, values)
                 content = obj.execute()
             elif isinstance(values[0]["result"], (tuple)):
                 if not values[0]["tuple_argums"]["is_curve"]:
-                    obj = DisplayTupleNotCurveWrapper(
+                    obj = DisplayTupleNotCurve(
                         metric_name, values, self.folderpath
                     )
                     content = obj.execute()
                 else:
-                    obj = DisplayTupleCurveWrapper(
+                    obj = DisplayTupleCurve(
                         metric_name, values, self.folderpath
                     )
                     content = obj.execute()

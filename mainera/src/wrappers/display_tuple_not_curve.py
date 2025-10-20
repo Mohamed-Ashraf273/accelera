@@ -1,9 +1,9 @@
 import pandas as pd
 
-from mainera.src.wrappers.metric_display_wrapper import MetricDisplayWrapper
+from mainera.src.wrappers.metric_display import MetricDisplay
 
 
-class DisplayTupleNotCurveWrapper(MetricDisplayWrapper):
+class DisplayTupleNotCurve(MetricDisplay):
     def __init__(self, metric_name, values, folderpath):
         super().__init__(metric_name, values)
         self.folderpath = folderpath
@@ -17,7 +17,7 @@ class DisplayTupleNotCurveWrapper(MetricDisplayWrapper):
 
         for value in self.values:
             data = {}
-            labels_name = self.handel_labels_name()
+            labels_name = self.handle_labels_name()
             data["labels"] = labels_name
             for i in range(len(value["tuple_argums"]["item_name"])):
                 data[value["tuple_argums"]["item_name"][i]] = value["result"][i]

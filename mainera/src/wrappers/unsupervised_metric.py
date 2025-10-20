@@ -1,9 +1,9 @@
+from mainera.src.core.metric import BaseMetric
 from mainera.src.utils.array_utils import convert_to_array
 from mainera.src.utils.array_utils import validate_array_shape
-from mainera.src.wrappers.metric_wrapper import BaseMetricWrapper
 
 
-class UnSupervisedMetricWrapper(BaseMetricWrapper):
+class UnSupervisedMetric(BaseMetric):
     def __init__(
         self,
         metric_name,

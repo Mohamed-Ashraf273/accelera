@@ -6,10 +6,10 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 from graphviz import Digraph
 
-from mainera.src.wrappers.report_wrapper import ReportWrapper
+from mainera.src.core.report import Report
 
 
-class GraphReport(ReportWrapper):
+class GraphReport(Report):
     def __init__(self, folderpath, xmlpath, results):
         super().__init__(folderpath, results)
         self.xmlpath = xmlpath

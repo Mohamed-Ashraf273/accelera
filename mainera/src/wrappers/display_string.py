@@ -1,7 +1,7 @@
-from mainera.src.wrappers.metric_display_wrapper import MetricDisplayWrapper
+from mainera.src.wrappers.metric_display import MetricDisplay
 
 
-class DisplayStringWrapper(MetricDisplayWrapper):
+class DisplayString(MetricDisplay):
     def __init__(self, metric_name, values):
         super().__init__(metric_name, values)
 
