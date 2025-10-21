@@ -43,9 +43,6 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
     case NodeType::PREPROCESS:
       layer_type = "PREPROCESS";
       break;
-    case NodeType::FEATURE:
-      layer_type = "FEATURE";
-      break;
     case NodeType::MODEL:
       layer_type = "MODEL";
       break;
@@ -206,8 +203,6 @@ std::string nodeTypeToString(NodeType type) {
     return "INPUT";
   case NodeType::PREPROCESS:
     return "PREPROCESS";
-  case NodeType::FEATURE:
-    return "FEATURE";
   case NodeType::MODEL:
     return "MODEL";
   case NodeType::PREDICT:
@@ -245,10 +240,6 @@ void validateNodeConnection(Node::Ptr newNode, Node::Ptr sourceNode) {
 
   case NodeType::MERGE:
     valid = sourceNode->type == NodeType::PREDICT;
-    break;
-
-  case NodeType::FEATURE:
-    valid = true;
     break;
 
   case NodeType::INPUT:

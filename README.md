@@ -37,6 +37,32 @@ source env/bin/activate  # On Windows: env\Scripts\activate
 pip install -r requirements.txt
 ```
 
+### Code Optimizer Setup (Optional)
+
+mAInera includes an AI-powered Code Optimizer that can convert Python code to optimized and parallelized C++. To use this feature:
+
+#### Option 1: Ollama (Recommended for local use)
+```bash
+# Download and install Ollama
+# Linux: https://ollama.com/download/linux
+# macOS: https://ollama.com/download/mac  
+# Windows: https://ollama.com/download/windows
+
+# Pull a coding model
+ollama pull deepseek-coder:6.7b-base-q4_K_M
+# or for better quality (larger model):
+ollama pull codellama:13b-instruct-q4_K_M
+```
+
+#### Option 2: Google Gemini API
+```python
+from mainera.src.utils.code_optimizer import CodeOptimizer
+from mainera.src.models.gemini import Gemini
+
+# Use with your Gemini API key
+optimizer = CodeOptimizer(model=Gemini(model_name="gemini-2.5-pro", api_key="your-gemini-api-key"))
+```
+
 ### 🚨 **Important Note for Developers**
 
 **Before starting any run or execution in your session, you must set the PYTHONPATH:**
@@ -117,6 +143,26 @@ from mainera.src.custom.classifier import CustomClassifier
 # Create and run pipeline
 pipeline = Pipeline()
 # Add your ML components here...
+```
+
+### Code Optimizer Usage
+
+```python
+from mainera.src.utils.code_optimizer import CodeOptimizer
+
+# Initialize optimizer (uses Ollama by default)
+optimizer = CodeOptimizer()
+
+# Convert Python code to C++
+python_code = """
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+"""
+
+cpp_code = optimizer.convert_to_cpp("fibonacci.cpp", python_code)
+# Creates optimized, formatted C++ code in fibonacci.cpp
 ```
 
 ## Project Structure
