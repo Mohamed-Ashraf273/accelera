@@ -6,6 +6,7 @@ since your modifications would be overwritten.
 
 from mainera.src.core import executed_graph as executed_graph
 from mainera.src.core import metric as metric
+from mainera.src.core import metric_display as metric_display
 from mainera.src.core import node as node
 from mainera.src.core import pipeline as pipeline
 from mainera.src.core import pipeline_base as pipeline_base
