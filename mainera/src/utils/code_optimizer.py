@@ -31,6 +31,7 @@ class CodeOptimizer:
             "- Use appropriate data types and STL containers\n"
             "- Ensure memory safety\n"
             "- Make the code compilable and efficient\n\n"
+            "- No comments or explainations in the code\n\n"
             "Python code:\n```python\n{code}\n```\n\n"
             "C++ code:\n```cpp\n"
         )
