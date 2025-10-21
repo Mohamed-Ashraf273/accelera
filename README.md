@@ -41,26 +41,38 @@ pip install -r requirements.txt
 
 mAInera includes an AI-powered Code Optimizer that can convert Python code to optimized and parallelized C++. To use this feature:
 
-#### Option 1: Ollama (Recommended for local use)
+#### Option 1: Groq API (Default - Fast & Free)
 ```bash
-# Download and install Ollama
-# Linux: https://ollama.com/download/linux
-# macOS: https://ollama.com/download/mac  
-# Windows: https://ollama.com/download/windows
-
-# Pull a coding model
-ollama pull deepseek-coder:6.7b-base-q4_K_M
-# or for better quality (larger model):
-ollama pull codellama:13b-instruct-q4_K_M
+# Get your free API key from: https://console.groq.com/keys
+# The code optimizer will prompt for your API key on first use
+# Or set it as environment variable:
+export GROQ_API_KEY="your-groq-api-key"
 ```
 
-#### Option 2: Google Gemini API
+#### Option 2: Custom Models (Local or Other APIs)
 ```python
 from mainera.src.utils.code_optimizer import CodeOptimizer
-from mainera.src.models.gemini import Gemini
 
-# Use with your Gemini API key
-optimizer = CodeOptimizer(model=Gemini(model_name="gemini-2.5-pro", api_key="your-gemini-api-key"))
+# You can use any of the supported models from src/models/
+# Available models: Ollama, Groq, HuggingFace, etc.
+
+# Example with Ollama (local)
+from mainera.src.models.ollama import Ollama
+optimizer = CodeOptimizer(model=Ollama(model_name="codellama:13b-instruct-q4_K_M"))
+
+# Example with HuggingFace
+from mainera.src.models.huggingface import HuggingFaceModel
+optimizer = CodeOptimizer(model=HuggingFaceModel(model_name="your-model", api_key="your-key"))
+
+# Or any other compatible model from src/models/
+optimizer = CodeOptimizer(model=your_custom_model)
+```
+
+**Note**: For local models like Ollama, you'll need to install them separately:
+```bash
+# For Ollama: https://ollama.com/download
+# Then pull a coding model:
+ollama pull codellama:13b-instruct-q4_K_M
 ```
 
 ### 🚨 **Important Note for Developers**
@@ -150,7 +162,8 @@ pipeline = Pipeline()
 ```python
 from mainera.src.utils.code_optimizer import CodeOptimizer
 
-# Initialize optimizer (uses Ollama by default)
+# Initialize optimizer (uses Groq API by default)
+# Will prompt for API key if not set in environment
 optimizer = CodeOptimizer()
 
 # Convert Python code to C++
@@ -159,10 +172,13 @@ def fibonacci(n):
     if n <= 1:
         return n
     return fibonacci(n-1) + fibonacci(n-2)
+
+print([fibonacci(i) for i in range(10)])
 """
 
 cpp_code = optimizer.convert_to_cpp("fibonacci.cpp", python_code)
 # Creates optimized, formatted C++ code in fibonacci.cpp
+# Automatically applies clang-format for clean code style
 ```
 
 ## Project Structure
