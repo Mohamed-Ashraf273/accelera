@@ -4,10 +4,12 @@
 #include <fstream>
 #include <future>
 #include <queue>
+#include <map>
 #include <stack>
 #include <stdexcept>
 #include <thread>
 #include <semaphore>
+#include<iostream>
 
 #include "core/graph.hpp"
 #include "core/node_factory.hpp"
@@ -513,49 +515,61 @@ void Graph::setGPUUsage() {
 }
 
 void Graph::runParallel() {
+  py::gil_scoped_release release;
   std::vector<Node::Ptr> sorted_nodes = m_execution_order;
   std::map<Node::Ptr,bool> is_executed;
   unsigned int num_cores = std::thread::hardware_concurrency();
-  std::counting_semaphore<std::numeric_limits<int>::max()> available_threads(num_cores);
+  std::counting_semaphore<1024> available_threads(num_cores);
   std::binary_semaphore available_nodes(1);
   std::vector<std::exception_ptr> exceptions(sorted_nodes.size());
   std::vector<std::future<void>> futures;
+  std::mutex data_mutex;
 
   for(auto node: sorted_nodes){
     is_executed[node] = false;
   }
-
+  int i = 0;
+  int j=0;
   while(!sorted_nodes.empty()){
     available_nodes.acquire();
-    int i = 0;
+    i=0;
     while(i<sorted_nodes.size()){
       const auto &node = sorted_nodes[i];
       bool parents_finished = true;
-      for(auto source: node.get()->getSourceNodes()){
-        if(!is_executed[source]){
-          parents_finished = false;
-          break;
+      if(!(node.get()->getSourceNode() == nullptr)){
+        {
+          std::lock_guard<std::mutex> lock(data_mutex);
+          for(auto source: node->getSourceNodes()){
+            if(!is_executed[source]){
+              parents_finished = false;
+              break;
+            }
+          }
         }
       }
       if(parents_finished) {
+        //std::cout<<"parents finished"<<i<<std::endl;
         available_threads.acquire();
         futures.emplace_back(
             std::async(std::launch::async, [node, &sorted_nodes, &is_executed, &available_nodes,
-               &available_threads, &exceptions, i]() {
+               &data_mutex, &available_threads, &exceptions, i, &j]() {
               py::gil_scoped_acquire acquire;
               try {
                 node->execute();
               } catch (...) {
                 exceptions[i] = std::current_exception();
               }
-              is_executed[node] = true;
-              sorted_nodes.erase(std::find(sorted_nodes.begin(), sorted_nodes.end(), node));
+              {
+                std::lock_guard<std::mutex> lock(data_mutex);
+                std::cout<<"releasing sem"<<j++<<std::endl;
+                is_executed[node] = true;
+                sorted_nodes.erase(std::find(sorted_nodes.begin(), sorted_nodes.end(), node));
+              }
               available_threads.release();
               available_nodes.release();
             }));
-      } else {
-        i++;
       }
+        i++;
     }
   }
   for (auto& f : futures) {

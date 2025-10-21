@@ -120,7 +120,7 @@ def sample_data():
 
     # Create a large, realistic dataset
     X, y = make_classification(
-        n_samples=10000,  # Large dataset
+        n_samples=100,  # Large dataset
         n_features=25,  # High-dimensional features
         n_classes=4,  # Multi-class problem
         n_informative=20,  # Most features are informative
@@ -202,7 +202,7 @@ p.branch(
         LogisticRegression(random_state=42, max_iter=1000),
         branch=True,
     ),
-    p.model("custom", TorchDenseModel(random_state=42), branch=True),
+    # p.model("custom", TorchDenseModel(random_state=42), branch=True),
     p.model(
         "rf",
         RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10),
