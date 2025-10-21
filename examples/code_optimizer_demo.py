@@ -3,13 +3,19 @@ from mainera.src.utils.code_optimizer import CodeOptimizer
 optimizer = CodeOptimizer()
 
 python_code = """
-def fibonacci(n):
-    if n <= 0:
-        return 0
-    elif n == 1:
-        return 1
-    else:
-        return fibonacci(n-1) + fibonacci(n-2)
+def LogesticRegression(X, y, learning_rate=0.01, num_iterations=1000):
+    import numpy as np
+    m, n = X.shape
+    weights = np.zeros(n)
+    bias = 0
+    for i in range(num_iterations):
+        linear_model = np.dot(X, weights) + bias
+        y_predicted = 1 / (1 + np.exp(-linear_model))
+        dw = (1 / m) * np.dot(X.T, (y_predicted - y))
+        db = (1 / m) * np.sum(y_predicted - y)
+        weights -= learning_rate * dw
+        bias -= learning_rate * db
+    return weights, bias
 """
 
 cpp_code = optimizer.convert_to_cpp("converted_code.cpp", python_code)

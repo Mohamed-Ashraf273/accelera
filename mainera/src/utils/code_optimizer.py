@@ -1,18 +1,26 @@
+import getpass
+import os
 import subprocess
 
 from langchain_core.prompts import ChatPromptTemplate
 
-from mainera.src.models.ollama import Ollama
+from mainera.src.models.groq import GroqModel
 from mainera.src.utils.mainera_utils import print_msg
 
 
 class CodeOptimizer:
     def __init__(self, model=None):
-        self.model = (
-            model
-            if model is not None
-            else Ollama(model_name="deepseek-coder:6.7b-base-q4_K_M")
-        )
+        if model is None:
+            if "GROQ_API_KEY" not in os.environ:
+                api_key = getpass.getpass("Enter your Groq API key: ")
+                os.environ["GROQ_API_KEY"] = api_key
+
+            self.model = GroqModel(
+                model_name="llama-3.1-8b-instant",
+                api_key=os.environ["GROQ_API_KEY"],
+            )
+        else:
+            self.model = model
         self.llm = self.model.llm()
         self.ctc_prompt = ChatPromptTemplate.from_template(
             "You are an expert C++ programmer. \n"
@@ -23,6 +31,7 @@ class CodeOptimizer:
             "- Use appropriate data types and STL containers\n"
             "- Ensure memory safety\n"
             "- Make the code compilable and efficient\n\n"
+            "- No comments or explainations in the code\n\n"
             "Python code:\n```python\n{code}\n```\n\n"
             "C++ code:\n```cpp\n"
         )
@@ -90,7 +99,16 @@ class CodeOptimizer:
 
     def convert_to_cpp(self, filename: str, python_code: str) -> str:
         assert filename.endswith(".cpp"), "Filename must have a .cpp extension"
-        response = self.ctc_chain.invoke({"code": python_code}).strip()
+        response = self.ctc_chain.invoke({"code": python_code})
+        if isinstance(response, str):
+            response = response.strip()
+        elif hasattr(response, "content"):
+            response = response.content.strip()
+        else:
+            try:
+                response = str(response).strip()
+            except Exception:
+                raise ValueError("Unable to convert model response to string.")
         cleaned_response = self._clean_response(response)
 
         with open(filename, "w") as f:
