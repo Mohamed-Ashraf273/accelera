@@ -682,6 +682,7 @@ std::vector<std::vector<Node::Ptr>> Graph::groupNodesByLevel() const {
 void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
   std::vector<Node::Ptr> cpu_nodes;
   std::vector<Node::Ptr> gpu_nodes;
+  std::vector<bool> is_executed(false);
 
   for (const auto &node : nodes) {
     if (node->getUsesGPU()) {
