@@ -91,7 +91,6 @@ class CodeOptimizer:
     def convert_to_cpp(self, filename: str, python_code: str) -> str:
         assert filename.endswith(".cpp"), "Filename must have a .cpp extension"
         response = self.ctc_chain.invoke({"code": python_code}).strip()
-
         cleaned_response = self._clean_response(response)
 
         with open(filename, "w") as f:
