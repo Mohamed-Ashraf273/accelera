@@ -10,7 +10,7 @@ from mainera.src.wrappers.display_array_single import DisplayArraySingle
 from mainera.src.wrappers.display_dict import DisplayDict
 from mainera.src.wrappers.display_single_number import DisplaySingleNumber
 from mainera.src.wrappers.display_string import DisplayString
-from mainera.src.wrappers.display_tuple_curve import DisplayTupleCurve
+from mainera.src.wrappers.display_figure import DisplayFigure
 from mainera.src.wrappers.display_tuple_not_curve import DisplayTupleNotCurve
 
 
@@ -26,13 +26,15 @@ class Report(ABC):
         for i in range(len(self.metric_ids)):
             metric_name = self.results[i]["metric name"]
             metric_value = self.results[i]["result"]
-            metric_tuple_argums = self.results[i]["tuple_argums"]
+            metric_plot_func = self.results[i]["plot_func"]
             metric_lables_name = self.results[i]["labels_name"]
+            metric_headers_name = self.results[i]["headers_name"]
             metric_obj = {
                 "metric id": self.metric_ids[i],
                 "result": metric_value,
-                "tuple_argums": metric_tuple_argums,
+                "plot_func": metric_plot_func,
                 "labels_name": metric_lables_name,
+                "headers_name": metric_headers_name,
             }
             if metric_name in final_metric:
                 final_metric[metric_name].append(metric_obj)
@@ -59,8 +61,12 @@ class Report(ABC):
                 isinstance(values[0]["result"], (np.ndarray))
                 and values[0]["result"].ndim > 1
             ):
-                obj = DisplayMultiArray(metric_name, values)
-                content = obj.execute()
+                if values[0]["plot_func"] is None:
+                    obj = DisplayMultiArray(metric_name, values)
+                    content = obj.execute()
+                else:
+                    obj = DisplayFigure(metric_name, values,self.folderpath)
+                    content = obj.execute()
             elif (
                 isinstance(values[0]["result"], (np.ndarray))
                 and values[0]["result"].ndim == 1
@@ -74,15 +80,11 @@ class Report(ABC):
                 obj = DisplayString(metric_name, values)
                 content = obj.execute()
             elif isinstance(values[0]["result"], (tuple)):
-                if not values[0]["tuple_argums"]["is_curve"]:
-                    obj = DisplayTupleNotCurve(
-                        metric_name, values, self.folderpath
-                    )
+                if values[0]["plot_func"] is None:
+                    obj = DisplayTupleNotCurve(metric_name, values, self.folderpath)
                     content = obj.execute()
                 else:
-                    obj = DisplayTupleCurve(
-                        metric_name, values, self.folderpath
-                    )
+                    obj = DisplayFigure(metric_name, values, self.folderpath)
                     content = obj.execute()
             metric_content = metric_content + "\n" + content
         return metric_content

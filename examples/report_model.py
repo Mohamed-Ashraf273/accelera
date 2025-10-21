@@ -1,7 +1,9 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
@@ -11,10 +13,8 @@ from tensorflow.keras import layers
 
 from mainera.src.wrappers.model_report import ModelReport
 
-data = pd.read_csv("./examples/Titanic-Dataset.csv")
-data.drop(
-    axis=1, columns=["PassengerId", "Name", "Ticket", "Cabin"], inplace=True
-)
+data = pd.read_csv("Titanic-Dataset.csv")
+data.drop(axis=1, columns=["PassengerId", "Name", "Ticket", "Cabin"], inplace=True)
 print(data.head())
 print(data.isnull().sum())
 data["Age"].fillna(data["Age"].mean(), inplace=True)
@@ -38,14 +38,16 @@ results = [
     {
         "metric name": "accuracy",
         "result": accuracy,
-        "tuple_argums": None,
+        "plot_func": None,
         "labels_name": None,
+        "headers_name": None,
     },
     {
         "metric name": "accuracy",
         "result": accuracy,
-        "tuple_argums": None,
+        "plot_func": None,
         "labels_name": None,
+        "headers_name": None,
     },
 ]
 report = ModelReport("model_report", results=results)
@@ -79,30 +81,52 @@ predictions = (predictions > 0.5).astype(int)
 accuracy = accuracy_score(y_test, predictions)
 classification = classification_report(y_test, predictions)
 confusion = confusion_matrix(y_test, predictions)
+precision_recall_fscore_support_res = precision_recall_fscore_support(
+    y_test, predictions
+)
+
+
+def plot_func(value):
+    disp = ConfusionMatrixDisplay(confusion_matrix=value)
+    disp.plot(cmap="Blues")
+    return plt
+
+
 results = [
     {
         "metric name": "accuracy",
         "result": accuracy,
-        "tuple_argums": None,
+        "plot_func": None,
         "labels_name": None,
+        "headers_name": None,
     },
     {
         "metric name": "accuracy",
         "result": accuracy,
-        "tuple_argums": None,
+        "plot_func": None,
         "labels_name": None,
+        "headers_name": None,
     },
     {
         "metric name": "classification",
         "result": classification,
-        "tuple_argums": None,
+        "plot_func": None,
         "labels_name": None,
+        "headers_name": None,
     },
     {
         "metric name": "confusion",
         "result": confusion,
-        "tuple_argums": None,
+        "plot_func": plot_func,
         "labels_name": None,
+        "headers_name": None,
+    },
+    {
+        "metric name": "precision_recall_fscore_support",
+        "result": precision_recall_fscore_support_res,
+        "plot_func": None,
+        "labels_name": None,
+        "headers_name": None,
     },
 ]
 print("\nTraining history keys:", history.history.keys())

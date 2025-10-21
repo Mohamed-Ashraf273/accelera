@@ -1,6 +1,7 @@
 import time
 
 import numpy as np
+import matplotlib.pyplot as plt
 import psutil
 import torch
 import torch.nn as nn
@@ -10,7 +11,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
-
+from sklearn.metrics import ConfusionMatrixDisplay
 from mainera.src.core.pipeline import Pipeline
 from mainera.src.custom.classifier import CustomClassifier
 from mainera.src.utils.mainera_utils import serialize
@@ -34,9 +35,7 @@ class TorchDenseModel(CustomClassifier):
 
         self.model = None
         print("cuda" if torch.cuda.is_available() else "cpu")
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu"
-        )
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def _build_model(self, input_dim, num_classes):
         return nn.Sequential(
@@ -53,9 +52,7 @@ class TorchDenseModel(CustomClassifier):
         num_classes = len(np.unique(y))
 
         if self.model is None:
-            self.model = self._build_model(n_features, num_classes).to(
-                self.device
-            )
+            self.model = self._build_model(n_features, num_classes).to(self.device)
 
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
@@ -107,9 +104,7 @@ def get_memory_info():
         "rss_mb": memory_info.rss / 1024 / 1024,  # Resident Set Size
         "vms_mb": memory_info.vms / 1024 / 1024,  # Virtual Memory Size
         "swap_mb": (
-            memory_full.swap / 1024 / 1024
-            if hasattr(memory_full, "swap")
-            else 0
+            memory_full.swap / 1024 / 1024 if hasattr(memory_full, "swap") else 0
         ),
     }
 
@@ -168,6 +163,12 @@ m3 = RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10)
 pre_processed = p_common(p2(p1(X)))
 m1.fit(pre_processed, y)
 
+
+def plot_func(value):
+    disp = ConfusionMatrixDisplay(confusion_matrix=value)
+    disp.plot(cmap="Blues")
+    return plt
+
 p = Pipeline()
 
 # p.disable_parallel_execution()
@@ -224,18 +225,20 @@ p.branch(
         branch=True,
     ),
     p.metric(
-        "confunsion_matrix", "confusion_matrix", y_true=y_test, branch=True
+        "confunsion_matrix",
+        "confusion_matrix",
+        y_true=y_test,
+        branch=True,
+        headers_name=["k1", "k2", "k3", "k4"],
+        plot_func=plot_func
     ),
     p.metric(
         "precision_recall_fscore_support",
         "precision_recall_fscore_support",
         y_true=y_test,
-        tuple_argums={
-            "item_name": ["percision", "recall", "f1", "support"],
-            "is_curve": False,
-        },
         average=None,
         branch=True,
+        headers_name=["percision", "recall", "f1", "support"],
     ),
     p.metric(
         "f1_score",
@@ -243,11 +246,8 @@ p.branch(
         y_true=y_test,
         average=None,
         branch=True,
-        labels_name=["0 class", "1 class", "2 class", "3 class"],
     ),
-    p.metric(
-        "f1_sco_2", "f1_score", y_true=y_test, branch=True, average="macro"
-    ),
+    p.metric("f1_sco_2", "f1_score", y_true=y_test, branch=True, average="macro"),
 )
 
 
@@ -255,9 +255,7 @@ def custom_metric_selector(metrics):
     best_model_name = None
     best_first_class_score = -1
 
-    f1_scores = [
-        d["result"][0] for d in metrics if d["metric name"] == "f1_score"
-    ]
+    f1_scores = [d["result"][0] for d in metrics if d["metric name"] == "f1_score"]
 
     for i, f1_score in enumerate(f1_scores):
         if f1_score > best_first_class_score:

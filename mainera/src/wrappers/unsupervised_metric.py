@@ -8,16 +8,18 @@ class UnSupervisedMetric(BaseMetric):
         self,
         metric_name,
         metric,
-        tuple_argums=None,
+        plot_func=None,
         labels_name=None,
+        headers_name=None,
         **params,
     ):
         super().__init__(
             metric_name,
             metric,
             y_true=None,
-            tuple_argums=tuple_argums,
+            plot_func=plot_func,
             labels_name=labels_name,
+            headers_name=headers_name,
             **params,
         )
         self.X = None
@@ -33,12 +35,13 @@ class UnSupervisedMetric(BaseMetric):
         validate_array_shape(y_pred, self.X.shape[0], ["y_pred", "X"])
 
         result = self.metric(self.X, y_pred, **self.params)
-        self.check_tuple_argums(result)
 
         output = {
             "metric name": self.metric_name,
             "result": result,
-            "tuple_argums": self.tuple_argums,
+            "plot_func": self.plot_func,
             "labels_name": self.labels_name,
+            "headers_name":self.headers_name,
+            
         }
         return output

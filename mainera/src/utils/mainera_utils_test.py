@@ -61,17 +61,18 @@ class TestGetCorrectMetricClass:
                 metric_name,
                 metric,
                 y_true,
-                tuple_argums,
+                plot_func,
                 labels_name,
+                headers_name,
                 **params,
             ):
                 self.metric_name = metric_name
                 self.metric = metric
                 self.y_true = y_true
-                self.tuple_argums = tuple_argums
+                self.plot_func = plot_func
                 self.params = params
                 self.labels_name = labels_name
-
+                self.headers_name=headers_name
         with patch(
             "mainera.src.utils.mainera_utils.SupervisedMetric",
             DummySupervisedWrapper,
@@ -88,13 +89,14 @@ class TestGetCorrectMetricClass:
 
         class DummyUnSupervisedWrapper:
             def __init__(
-                self, metric_name, metric, tuple_argums, labels_name, **params
+                self, metric_name, metric, plot_func, labels_name,headers_name, **params
             ):
                 self.metric_name = metric_name
                 self.metric = metric
                 self.params = params
-                self.tuple_argums = tuple_argums
+                self.plot_func = plot_func
                 self.labels_name = labels_name
+                self.headers_name=headers_name
 
         with patch(
             "mainera.src.utils.mainera_utils.UnSupervisedMetric",

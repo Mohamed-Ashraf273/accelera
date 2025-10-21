@@ -69,16 +69,17 @@ class Pipeline(PipelineBase):
         name,
         metric_name,
         y_true=None,
-        tuple_argums=None,
+        plot_func=None,
         branch=False,
         labels_name=None,
+        headers_name=None,
         **params,
     ):
         metric_func = get_metric_object(metric_name)
 
         if metric_func is not None:
             metric_obj = get_correct_metric_class(
-                name, metric_func, y_true, tuple_argums, labels_name, **params
+                name, metric_func, y_true, plot_func, labels_name,headers_name, **params
             )
             if metric_obj is None:
                 raise ValueError(

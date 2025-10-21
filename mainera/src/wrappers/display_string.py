@@ -1,4 +1,4 @@
-from mainera.src.wrappers.metric_display import MetricDisplay
+from mainera.src.core.metric_display import MetricDisplay
 
 
 class DisplayString(MetricDisplay):

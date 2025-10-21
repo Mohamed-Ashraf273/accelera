@@ -9,8 +9,9 @@ class SupervisedMetric(BaseMetric):
         metric_name,
         metric,
         y_true=None,
-        tuple_argums=None,
+        plot_func=None,
         labels_name=None,
+        headers_name=None,
         **params,
     ):
         super().__init__(
@@ -18,8 +19,9 @@ class SupervisedMetric(BaseMetric):
             metric,
             y_true=y_true,
             X=None,
-            tuple_argums=tuple_argums,
+            plot_func=plot_func,
             labels_name=labels_name,
+            headers_name=headers_name,
             **params,
         )
 
@@ -32,11 +34,11 @@ class SupervisedMetric(BaseMetric):
             raise ValueError("y_true must be provided for supervised metrics.")
         validate_array_shape(y_pred, self.y_true.shape[0], ["y_pred", "y_true"])
         result = self.metric(self.y_true, y_pred, **self.params)
-        self.check_tuple_argums(result)
         output = {
             "metric name": self.metric_name,
             "result": result,
-            "tuple_argums": self.tuple_argums,
+            "plot_func": self.plot_func,
             "labels_name": self.labels_name,
+            "headers_name":self.headers_name
         }
         return output

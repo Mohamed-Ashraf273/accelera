@@ -9,12 +9,12 @@ from mainera.src.wrappers import display_array_single as display_array_single
 from mainera.src.wrappers import display_dict as display_dict
 from mainera.src.wrappers import display_single_number as display_single_number
 from mainera.src.wrappers import display_string as display_string
-from mainera.src.wrappers import display_tuple_curve as display_tuple_curve
+from mainera.src.wrappers import display_figure as display_figure
 from mainera.src.wrappers import (
     display_tuple_not_curve as display_tuple_not_curve,
 )
 from mainera.src.wrappers import graph_report as graph_report
-from mainera.src.wrappers import metric_display as metric_display
+from mainera.src.core import metric_display as metric_display
 from mainera.src.wrappers import model_report as model_report
 from mainera.src.wrappers import supervised_metric as supervised_metric
 from mainera.src.wrappers import unsupervised_metric as unsupervised_metric

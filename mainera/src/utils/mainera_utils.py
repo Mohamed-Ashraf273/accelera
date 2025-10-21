@@ -52,8 +52,9 @@ def get_correct_metric_class(
     metric_name,
     metric,
     y_true=None,
-    tuple_argums=None,
+    plot_func=None,
     labels_name=None,
+    headers_name=None,
     **params,
 ):
     signature = inspect.signature(metric)
@@ -69,7 +70,7 @@ def get_correct_metric_class(
     unsupervised = "X" in parameters and "labels" in parameters
     if supervised:
         return SupervisedMetric(
-            metric_name, metric, y_true, tuple_argums, labels_name, **params
+            metric_name, metric, y_true, plot_func, labels_name,headers_name, **params
         )
     elif unsupervised:
         print_msg(
@@ -79,7 +80,7 @@ def get_correct_metric_class(
             level="warning",
         )
         return UnSupervisedMetric(
-            metric_name, metric, tuple_argums, labels_name, **params
+            metric_name, metric, plot_func, labels_name,headers_name, **params
         )
     else:
         return None
