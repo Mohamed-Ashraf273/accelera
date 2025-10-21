@@ -15,7 +15,8 @@ class MetricDisplay(ABC):
                 raise ValueError(
                     f"length of {field_name} dose not match the "
                     "length of the result from the metric "
-                    f"The length of {field_name} of the metric is {required_lenght} "
+                    f"The length of {field_name} "
+                    f"of the metric is {required_lenght} "
                     f"but the length of the '{field_name}' "
                     f"is {len(self.values[0][field_name])}'"
                 )

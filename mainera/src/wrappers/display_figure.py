@@ -24,7 +24,9 @@ class DisplayFigure(MetricDisplay):
         for value in self.values:
             plot_func = value["plot_func"]
             result = value["result"]
-            img_path = os.path.join(sub_folder_path, f"{value['metric id']}.png")
+            img_path = os.path.join(
+                sub_folder_path, f"{value['metric id']}.png"
+            )
             plt = plot_func(result)
             if plt is None:
                 raise ValueError("The plot_func must return the plt object")
@@ -34,7 +36,7 @@ class DisplayFigure(MetricDisplay):
             new_content = (
                 f'<div  style="overflow-x:auto;max-width:400px;">\n\n'
                 f"![{self.metric_name}_{value['metric id']}]"
-                f"({os.path.join(self.metric_name,value['metric id'])}.png)\n"
+                f"({os.path.join(self.metric_name, value['metric id'])}.png)\n"
                 "</div>\n"
             )
             content = content + new_content

@@ -1,8 +1,9 @@
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.metrics import ConfusionMatrixDisplay
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -14,7 +15,9 @@ from tensorflow.keras import layers
 from mainera.src.wrappers.model_report import ModelReport
 
 data = pd.read_csv("Titanic-Dataset.csv")
-data.drop(axis=1, columns=["PassengerId", "Name", "Ticket", "Cabin"], inplace=True)
+data.drop(
+    axis=1, columns=["PassengerId", "Name", "Ticket", "Cabin"], inplace=True
+)
 print(data.head())
 print(data.isnull().sum())
 data["Age"].fillna(data["Age"].mean(), inplace=True)

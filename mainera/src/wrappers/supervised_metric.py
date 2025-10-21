@@ -39,6 +39,6 @@ class SupervisedMetric(BaseMetric):
             "result": result,
             "plot_func": self.plot_func,
             "labels_name": self.labels_name,
-            "headers_name":self.headers_name
+            "headers_name": self.headers_name,
         }
         return output

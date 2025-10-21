@@ -8,9 +8,9 @@ from mainera.src.utils.mainera_utils import create_folder
 from mainera.src.wrappers.display_array_multi import DisplayMultiArray
 from mainera.src.wrappers.display_array_single import DisplayArraySingle
 from mainera.src.wrappers.display_dict import DisplayDict
+from mainera.src.wrappers.display_figure import DisplayFigure
 from mainera.src.wrappers.display_single_number import DisplaySingleNumber
 from mainera.src.wrappers.display_string import DisplayString
-from mainera.src.wrappers.display_figure import DisplayFigure
 from mainera.src.wrappers.display_tuple_not_curve import DisplayTupleNotCurve
 
 
@@ -65,7 +65,7 @@ class Report(ABC):
                     obj = DisplayMultiArray(metric_name, values)
                     content = obj.execute()
                 else:
-                    obj = DisplayFigure(metric_name, values,self.folderpath)
+                    obj = DisplayFigure(metric_name, values, self.folderpath)
                     content = obj.execute()
             elif (
                 isinstance(values[0]["result"], (np.ndarray))
@@ -81,7 +81,9 @@ class Report(ABC):
                 content = obj.execute()
             elif isinstance(values[0]["result"], (tuple)):
                 if values[0]["plot_func"] is None:
-                    obj = DisplayTupleNotCurve(metric_name, values, self.folderpath)
+                    obj = DisplayTupleNotCurve(
+                        metric_name, values, self.folderpath
+                    )
                     content = obj.execute()
                 else:
                     obj = DisplayFigure(metric_name, values, self.folderpath)

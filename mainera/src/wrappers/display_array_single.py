@@ -10,7 +10,9 @@ class DisplayArraySingle(MetricDisplay):
     def execute(self):
         content = f"### Metric name: {self.metric_name}\n\n"
         ids = [value["metric id"] for value in self.values]
-        labels_name = self.handle_name("labels_name",len(self.values[0]["result"]))
+        labels_name = self.handle_name(
+            "labels_name", len(self.values[0]["result"])
+        )
         data = {"Metric ID": ids}
         for value in self.values:
             for i in range(len(value["result"])):

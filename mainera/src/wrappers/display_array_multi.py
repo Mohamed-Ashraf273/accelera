@@ -10,7 +10,9 @@ class DisplayMultiArray(MetricDisplay):
 
     def execute(self):
         content = f"### Metric name: {self.metric_name}\n"
-        labels_name = self.handle_name("labels_name", self.values[0]["result"].shape[0])
+        labels_name = self.handle_name(
+            "labels_name", self.values[0]["result"].shape[0]
+        )
         headers_name = self.handle_name(
             "headers_name", self.values[0]["result"].shape[1]
         )
