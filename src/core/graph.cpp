@@ -7,6 +7,7 @@
 #include <stack>
 #include <stdexcept>
 #include <thread>
+#include <semaphore>
 
 #include "core/graph.hpp"
 #include "core/node_factory.hpp"
@@ -512,22 +513,53 @@ void Graph::setGPUUsage() {
 }
 
 void Graph::runParallel() {
-  auto execution_levels = groupNodesByLevel();
+  std::vector<Node::Ptr> sorted_nodes = m_execution_order;
+  std::map<Node::Ptr,bool> is_executed;
+  unsigned int num_cores = std::thread::hardware_concurrency();
+  std::counting_semaphore<std::numeric_limits<int>::max()> available_threads(num_cores);
+  std::binary_semaphore available_nodes(1);
+  std::vector<std::exception_ptr> exceptions(sorted_nodes.size());
+  std::vector<std::future<void>> futures;
 
-  for (const auto &level : execution_levels) {
-    if (level.size() == 1) {
-      auto &node = level[0];
-      try {
-        node->execute();
-      } catch (const std::exception &e) {
-        throw std::runtime_error("Error executing node '" + node->name +
-                                 "': " + std::string(e.what()));
+  for(auto node: sorted_nodes){
+    is_executed[node] = false;
+  }
+
+  while(!sorted_nodes.empty()){
+    available_nodes.acquire();
+    int i = 0;
+    while(i<sorted_nodes.size()){
+      const auto &node = sorted_nodes[i];
+      bool parents_finished = true;
+      for(auto source: node.get()->getSourceNodes()){
+        if(!is_executed[source]){
+          parents_finished = false;
+          break;
+        }
       }
-    } else {
-      // Release GIL for the main thread so worker threads can acquire it
-      py::gil_scoped_release release;
-      executeNodesInParallel(level);
+      if(parents_finished) {
+        available_threads.acquire();
+        futures.emplace_back(
+            std::async(std::launch::async, [node, &sorted_nodes, &is_executed, &available_nodes,
+               &available_threads, &exceptions, i]() {
+              py::gil_scoped_acquire acquire;
+              try {
+                node->execute();
+              } catch (...) {
+                exceptions[i] = std::current_exception();
+              }
+              is_executed[node] = true;
+              sorted_nodes.erase(std::find(sorted_nodes.begin(), sorted_nodes.end(), node));
+              available_threads.release();
+              available_nodes.release();
+            }));
+      } else {
+        i++;
+      }
     }
+  }
+  for (auto& f : futures) {
+    f.wait();  
   }
 }
 
