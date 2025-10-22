@@ -4,7 +4,8 @@
 
 namespace mainera {
 
-InputNode::InputNode() : Node(NodeType::INPUT, "input_node", py::none()) {
+InputNode::InputNode(const std::string &name)
+    : Node(NodeType::INPUT, name, py::none()) {
   // Input node has no inputs (data comes from setInputData)
   // and 1 output in the new single-edge architecture
 }
