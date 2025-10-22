@@ -517,7 +517,8 @@ void Graph::setGPUUsage() {
 void Graph::runParallel() {
   py::gil_scoped_release release;
   std::vector<Node::Ptr> sorted_nodes = m_execution_order;
-  std::map<Node::Ptr,bool> is_executed;
+  std::map<Node::Ptr,bool> finished_executing;
+  std::map<Node::Ptr,bool> started_executing;
   unsigned int num_cores = std::thread::hardware_concurrency();
   std::counting_semaphore<1024> available_threads(num_cores);
   std::binary_semaphore available_nodes(1);
@@ -526,21 +527,26 @@ void Graph::runParallel() {
   std::mutex data_mutex;
 
   for(auto node: sorted_nodes){
-    is_executed[node] = false;
+    finished_executing[node] = false;
+    started_executing[node] = false;
   }
   int i = 0;
-  int j=0;
-  while(!sorted_nodes.empty()){
+  int rem_nodes = sorted_nodes.size();
+  while(rem_nodes != 0){
     available_nodes.acquire();
     i=0;
     while(i<sorted_nodes.size()){
       const auto &node = sorted_nodes[i];
+      if(started_executing[node]){
+        i++;
+        continue;
+      }
       bool parents_finished = true;
       if(!(node.get()->getSourceNode() == nullptr)){
         {
           std::lock_guard<std::mutex> lock(data_mutex);
           for(auto source: node->getSourceNodes()){
-            if(!is_executed[source]){
+            if(!finished_executing[source]){
               parents_finished = false;
               break;
             }
@@ -548,11 +554,12 @@ void Graph::runParallel() {
         }
       }
       if(parents_finished) {
-        //std::cout<<"parents finished"<<i<<std::endl;
+        std::cout<<"parents finished"<<i<<std::endl;
         available_threads.acquire();
+        started_executing[node] = true;
         futures.emplace_back(
-            std::async(std::launch::async, [node, &sorted_nodes, &is_executed, &available_nodes,
-               &data_mutex, &available_threads, &exceptions, i, &j]() {
+            std::async(std::launch::async, [node, &sorted_nodes, &finished_executing, &available_nodes,
+               &data_mutex, &available_threads, &exceptions, i, &rem_nodes]() {
               py::gil_scoped_acquire acquire;
               try {
                 node->execute();
@@ -561,9 +568,9 @@ void Graph::runParallel() {
               }
               {
                 std::lock_guard<std::mutex> lock(data_mutex);
-                std::cout<<"releasing sem"<<j++<<std::endl;
-                is_executed[node] = true;
-                sorted_nodes.erase(std::find(sorted_nodes.begin(), sorted_nodes.end(), node));
+                std::cout<<"releasing sem"<<i<<std::endl;
+                finished_executing[node] = true;
+                rem_nodes--;
               }
               available_threads.release();
               available_nodes.release();
@@ -574,6 +581,29 @@ void Graph::runParallel() {
   }
   for (auto& f : futures) {
     f.wait();  
+  }
+
+  for (size_t i = 0; i < exceptions.size(); ++i) {
+    if (exceptions[i]) {
+      Node::Ptr failed_node;
+      std::string node_type;
+
+      if (i < sorted_nodes.size()) {
+        failed_node = sorted_nodes[i];
+        node_type = "CPU";
+      }  else {
+        failed_node = sorted_nodes[i];
+        node_type = "unknown";
+      }
+
+      try {
+        std::rethrow_exception(exceptions[i]);
+      } catch (const std::exception &e) {
+        throw std::runtime_error("Error executing " + node_type + " node '" +
+                                 failed_node->name +
+                                 "': " + std::string(e.what()));
+      }
+    }
   }
 }
 
