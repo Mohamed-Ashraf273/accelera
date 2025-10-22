@@ -516,7 +516,7 @@ void Graph::setGPUUsage() {
 
 void Graph::runParallel() {
   py::gil_scoped_release release;
-  std::vector<Node::Ptr> sorted_nodes = m_execution_order;
+  std::vector<Node::Ptr> sorted_nodes = topologicalSort();
   std::map<Node::Ptr,bool> finished_executing;
   std::map<Node::Ptr,bool> started_executing;
   unsigned int num_cores = std::thread::hardware_concurrency();
@@ -554,7 +554,6 @@ void Graph::runParallel() {
         }
       }
       if(parents_finished) {
-        std::cout<<"parents finished"<<i<<std::endl;
         available_threads.acquire();
         started_executing[node] = true;
         futures.emplace_back(
@@ -568,7 +567,6 @@ void Graph::runParallel() {
               }
               {
                 std::lock_guard<std::mutex> lock(data_mutex);
-                std::cout<<"releasing sem"<<i<<std::endl;
                 finished_executing[node] = true;
                 rem_nodes--;
               }
