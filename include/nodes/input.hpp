@@ -11,7 +11,7 @@ namespace mainera {
 
 class MAINERA_API InputNode : public Node {
 public:
-  InputNode();
+  InputNode(const std::string &name);
   virtual ~InputNode() = default;
   void execute() override;
   void setInputData(py::object X, py::object y = py::object());

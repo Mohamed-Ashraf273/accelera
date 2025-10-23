@@ -3,7 +3,9 @@
 #include <exception>
 #include <fstream>
 #include <future>
+#include <map>
 #include <queue>
+#include <semaphore>
 #include <stack>
 #include <stdexcept>
 #include <thread>
@@ -21,10 +23,10 @@
 namespace mainera {
 
 Graph::Graph() : m_compiled(false), m_parallel_enabled(false) {
-  m_input_node = std::make_shared<InputNode>();
+  m_input_node =
+      std::make_shared<InputNode>("Input_" + std::to_string(m_nodes.size()));
   auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
   input_as_node->setSourceNode(nullptr);
-  input_as_node->name = "Input_" + std::to_string(m_nodes.size());
   m_nodes.push_back(input_as_node);
 }
 
@@ -36,7 +38,8 @@ Graph::Graph(const Graph &other) {
 
   std::unordered_map<Node::Ptr, Node::Ptr> node_mapping;
 
-  m_input_node = std::make_shared<InputNode>();
+  m_input_node =
+      std::make_shared<InputNode>("Input_" + std::to_string(m_nodes.size()));
   auto input_as_node = std::static_pointer_cast<Node>(m_input_node);
   input_as_node->setSourceNode(nullptr);
   input_as_node->setGraph(this);
@@ -86,7 +89,10 @@ Graph::Graph(const Graph &other) {
 
   if (other.m_compiled) {
     for (const auto &node : other.m_execution_order) {
-      m_execution_order.push_back(node_mapping[node]);
+      auto mapping_it = node_mapping.find(node);
+      if (mapping_it != node_mapping.end()) {
+        m_execution_order.push_back(mapping_it->second);
+      }
     }
   }
 }
@@ -508,21 +514,98 @@ void Graph::setGPUUsage() {
 }
 
 void Graph::runParallel() {
-  auto execution_levels = groupNodesByLevel();
+  py::gil_scoped_release release;
+  std::map<Node::Ptr, bool> finished_executing;
+  std::map<Node::Ptr, bool> started_executing;
+  unsigned int num_cores = std::thread::hardware_concurrency();
+  std::counting_semaphore<1024> available_threads(num_cores);
+  std::binary_semaphore available_nodes(1);
+  std::vector<std::exception_ptr> exceptions(m_execution_order.size());
+  std::vector<std::future<void>> futures;
+  std::mutex data_mutex;
+  std::mutex gpu_mutex;
 
-  for (const auto &level : execution_levels) {
-    if (level.size() == 1) {
-      auto &node = level[0];
+  for (auto node : m_execution_order) {
+    finished_executing[node] = false;
+    started_executing[node] = false;
+  }
+  int i = 0;
+  int rem_nodes = m_execution_order.size();
+  while (rem_nodes != 0) {
+    available_nodes.acquire();
+    i = 0;
+    while (i < m_execution_order.size()) {
+      const auto &node = m_execution_order[i];
+      if (started_executing[node]) {
+        i++;
+        continue;
+      }
+      bool parents_finished = true;
+      if (!(node.get()->getSourceNode() == nullptr)) {
+        {
+          std::lock_guard<std::mutex> lock(data_mutex);
+          for (auto source : node->getSourceNodes()) {
+            if (!finished_executing[source]) {
+              parents_finished = false;
+              break;
+            }
+          }
+        }
+      }
+      if (parents_finished) {
+        available_threads.acquire();
+        started_executing[node] = true;
+        futures.emplace_back(std::async(
+            std::launch::async,
+            [node, this, &finished_executing, &available_nodes, &data_mutex,
+             &available_threads, &exceptions, i, &rem_nodes, &gpu_mutex]() {
+              py::gil_scoped_acquire acquire;
+              try {
+                if (node->getUsesGPU()) {
+                  std::lock_guard<std::mutex> gpu_lock(gpu_mutex);
+                  node->execute();
+                } else {
+                  node->execute();
+                }
+              } catch (...) {
+                exceptions[i] = std::current_exception();
+              }
+              {
+                std::lock_guard<std::mutex> lock(data_mutex);
+                finished_executing[node] = true;
+                rem_nodes--;
+              }
+              available_threads.release();
+              available_nodes.release();
+            }));
+      }
+      i++;
+    }
+  }
+  for (auto &f : futures) {
+    f.wait();
+  }
+
+  for (size_t i = 0; i < exceptions.size(); ++i) {
+    if (exceptions[i]) {
+      Node::Ptr failed_node;
+      std::string node_type;
+
+      if (i < m_execution_order.size()) {
+        failed_node = m_execution_order[i];
+        node_type = failed_node->getUsesGPU() ? "GPU" : "CPU";
+      } else {
+        failed_node = m_execution_order[i];
+        node_type = "unknown";
+      }
+
       try {
-        node->execute();
+        std::rethrow_exception(exceptions[i]);
       } catch (const std::exception &e) {
-        throw std::runtime_error("Error executing node '" + node->name +
+        throw std::runtime_error("Error executing " + node_type + " node '" +
+                                 failed_node->name +
                                  "': " + std::string(e.what()));
       }
-    } else {
-      // Release GIL for the main thread so worker threads can acquire it
-      py::gil_scoped_release release;
-      executeNodesInParallel(level);
     }
   }
 }
@@ -638,124 +721,6 @@ std::vector<Node::Ptr> Graph::findLeafNodes() const {
   }
 
   return leaves;
-}
-
-std::vector<std::vector<Node::Ptr>> Graph::groupNodesByLevel() const {
-  if (m_nodes.empty())
-    throw std::runtime_error("No nodes in graph");
-
-  std::vector<std::vector<Node::Ptr>> levels;
-  std::unordered_map<Node *, int> levels_map;
-  std::queue<Node::Ptr> queue;
-
-  levels_map[m_input_node.get()] = 0;
-  queue.push(m_input_node);
-
-  while (!queue.empty()) {
-    Node::Ptr current = queue.front();
-    queue.pop();
-    int current_level = levels_map[current.get()];
-
-    if (current_level >= levels.size()) {
-      levels.resize(current_level + 1);
-    }
-    levels[current_level].push_back(current);
-
-    // Find all nodes that have this node as source
-    for (const auto &node : m_nodes) {
-      if (node->getSourceNode() == current) {
-        if (levels_map.find(node.get()) == levels_map.end()) {
-          levels_map[node.get()] = current_level + 1;
-          queue.push(node);
-        }
-      }
-    }
-  }
-
-  return levels;
-}
-
-void Graph::executeNodesInParallel(const std::vector<Node::Ptr> &nodes) {
-  std::vector<Node::Ptr> cpu_nodes;
-  std::vector<Node::Ptr> gpu_nodes;
-
-  for (const auto &node : nodes) {
-    if (node->getUsesGPU()) {
-      gpu_nodes.push_back(node);
-    } else {
-      cpu_nodes.push_back(node);
-    }
-  }
-
-  std::vector<std::exception_ptr> exceptions(nodes.size());
-  std::vector<std::future<void>> futures;
-
-  if (!cpu_nodes.empty()) {
-    for (size_t i = 0; i < cpu_nodes.size(); ++i) {
-      const auto &node = cpu_nodes[i];
-      futures.emplace_back(
-          std::async(std::launch::async, [node, &exceptions, i]() {
-            py::gil_scoped_acquire acquire;
-            try {
-              node->execute();
-            } catch (...) {
-              exceptions[i] = std::current_exception();
-            }
-          }));
-    }
-  }
-
-  // Launch GPU nodes sequentially BUT CONCURRENTLY with CPU nodes
-  if (!gpu_nodes.empty()) {
-    futures.emplace_back(
-        std::async(std::launch::async,
-                   [gpu_nodes, &exceptions, cpu_count = cpu_nodes.size()]() {
-                     py::gil_scoped_acquire acquire;
-                     try {
-                       for (size_t i = 0; i < gpu_nodes.size(); ++i) {
-                         gpu_nodes[i]->execute();
-                       }
-                     } catch (...) {
-                       // For GPU nodes, we need to handle exceptions
-                       // differently since we're processing multiple nodes in
-                       // one thread Let's store the exception for the first
-                       // failed GPU node
-                       exceptions[cpu_count] = std::current_exception();
-                     }
-                   }));
-  }
-
-  for (auto &future : futures) {
-    future.wait();
-  }
-
-  for (size_t i = 0; i < exceptions.size(); ++i) {
-    if (exceptions[i]) {
-      Node::Ptr failed_node;
-      std::string node_type;
-
-      if (i < cpu_nodes.size()) {
-        failed_node = cpu_nodes[i];
-        node_type = "CPU";
-      } else if (i == cpu_nodes.size() && !gpu_nodes.empty()) {
-        // For GPU nodes, we only have one exception slot for the entire
-        // sequence
-        failed_node = gpu_nodes[0];
-        node_type = "GPU";
-      } else {
-        failed_node = nodes[i];
-        node_type = "unknown";
-      }
-
-      try {
-        std::rethrow_exception(exceptions[i]);
-      } catch (const std::exception &e) {
-        throw std::runtime_error("Error executing " + node_type + " node '" +
-                                 failed_node->name +
-                                 "': " + std::string(e.what()));
-      }
-    }
-  }
 }
 
 void Graph::enableDisableMetrics(py::object y_true, py::object enable) {

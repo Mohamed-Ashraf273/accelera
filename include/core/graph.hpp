@@ -68,9 +68,8 @@ private:
   std::shared_ptr<InputNode> m_input_node = nullptr;
 
   std::vector<Node::Ptr> findLeafNodes() const;
-  std::vector<std::vector<Node::Ptr>> groupNodesByLevel() const;
   std::vector<Node::Ptr> topologicalSort();
-  void executeNodesInParallel(const std::vector<Node::Ptr> &nodes);
+
   void run();
   void runParallel();
   void resetSelectedPath();
