@@ -723,41 +723,6 @@ std::vector<Node::Ptr> Graph::findLeafNodes() const {
   return leaves;
 }
 
-std::vector<std::vector<Node::Ptr>> Graph::groupNodesByLevel() const {
-  if (m_nodes.empty())
-    throw std::runtime_error("No nodes in graph");
-
-  std::vector<std::vector<Node::Ptr>> levels;
-  std::unordered_map<Node *, int> levels_map;
-  std::queue<Node::Ptr> queue;
-
-  levels_map[m_input_node.get()] = 0;
-  queue.push(m_input_node);
-
-  while (!queue.empty()) {
-    Node::Ptr current = queue.front();
-    queue.pop();
-    int current_level = levels_map[current.get()];
-
-    if (current_level >= levels.size()) {
-      levels.resize(current_level + 1);
-    }
-    levels[current_level].push_back(current);
-
-    // Find all nodes that have this node as source
-    for (const auto &node : m_nodes) {
-      if (node->getSourceNode() == current) {
-        if (levels_map.find(node.get()) == levels_map.end()) {
-          levels_map[node.get()] = current_level + 1;
-          queue.push(node);
-        }
-      }
-    }
-  }
-
-  return levels;
-}
-
 void Graph::enableDisableMetrics(py::object y_true, py::object enable) {
   bool enable_metrics = py::cast<bool>(enable);
   if (m_metric_nodes.empty()) {
