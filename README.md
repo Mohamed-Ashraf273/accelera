@@ -37,6 +37,44 @@ source env/bin/activate  # On Windows: env\Scripts\activate
 pip install -r requirements.txt
 ```
 
+### Code Optimizer Setup (Optional)
+
+mAInera includes an AI-powered Code Optimizer that can convert Python code to optimized and parallelized C++. To use this feature:
+
+#### Option 1: Groq API (Default - Fast & Free)
+```bash
+# Get your free API key from: https://console.groq.com/keys
+# The code optimizer will prompt for your API key on first use
+# Or set it as environment variable:
+export GROQ_API_KEY="your-groq-api-key"
+```
+
+#### Option 2: Custom Models (Local or Other APIs)
+```python
+from mainera.src.utils.code_optimizer import CodeOptimizer
+
+# You can use any of the supported models from src/models/
+# Available models: Ollama, Groq, HuggingFace, etc.
+
+# Example with Ollama (local)
+from mainera.src.models.ollama import Ollama
+optimizer = CodeOptimizer(model=Ollama(model_name="codellama:13b-instruct-q4_K_M"))
+
+# Example with HuggingFace
+from mainera.src.models.huggingface import HuggingFaceModel
+optimizer = CodeOptimizer(model=HuggingFaceModel(model_name="your-model", api_key="your-key"))
+
+# Or any other compatible model from src/models/
+optimizer = CodeOptimizer(model=your_custom_model)
+```
+
+**Note**: For local models like Ollama, you'll need to install them separately:
+```bash
+# For Ollama: https://ollama.com/download
+# Then pull a coding model:
+ollama pull codellama:13b-instruct-q4_K_M
+```
+
 ### 🚨 **Important Note for Developers**
 
 **Before starting any run or execution in your session, you must set the PYTHONPATH:**
@@ -117,6 +155,30 @@ from mainera.src.custom.classifier import CustomClassifier
 # Create and run pipeline
 pipeline = Pipeline()
 # Add your ML components here...
+```
+
+### Code Optimizer Usage
+
+```python
+from mainera.src.utils.code_optimizer import CodeOptimizer
+
+# Initialize optimizer (uses Groq API by default)
+# Will prompt for API key if not set in environment
+optimizer = CodeOptimizer()
+
+# Convert Python code to C++
+python_code = """
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+
+print([fibonacci(i) for i in range(10)])
+"""
+
+cpp_code = optimizer.convert_to_cpp("fibonacci.cpp", python_code)
+# Creates optimized, formatted C++ code in fibonacci.cpp
+# Automatically applies clang-format for clean code style
 ```
 
 ## Project Structure

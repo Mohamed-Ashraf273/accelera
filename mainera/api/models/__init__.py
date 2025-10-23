@@ -5,5 +5,7 @@ since your modifications would be overwritten.
 """
 
 from mainera.src.models import gemini as gemini
+from mainera.src.models import groq as groq
+from mainera.src.models import huggingface as huggingface
 from mainera.src.models import llm as llm
 from mainera.src.models import ollama as ollama

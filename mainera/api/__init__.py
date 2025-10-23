@@ -5,7 +5,6 @@ since your modifications would be overwritten.
 """
 
 from mainera.src import agent as agent
-from mainera.src import agents as agents
 from mainera.src import core as core
 from mainera.src import custom as custom
 from mainera.src import models as models

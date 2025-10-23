@@ -1,7 +1,6 @@
 #include <stdexcept>
 
 #include "core/node_factory.hpp"
-#include "nodes/feature.hpp"
 #include "nodes/merge.hpp"
 #include "nodes/metric.hpp"
 #include "nodes/model.hpp"
@@ -15,8 +14,6 @@ Node::Ptr NodeFactory::createNode(NodeType type, const std::string &name,
   switch (type) {
   case NodeType::PREPROCESS:
     return std::make_shared<PreprocessNode>(name, py_func);
-  case NodeType::FEATURE:
-    return std::make_shared<FeatureNode>(name, py_func);
   case NodeType::MODEL:
     return std::make_shared<ModelNode>(name, py_func);
   case NodeType::PREDICT:

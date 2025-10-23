@@ -19,7 +19,6 @@ PYBIND11_MODULE(graph, m) {
       .value("MODEL", NodeType::MODEL)
       .value("PREDICT", NodeType::PREDICT)
       .value("METRIC", NodeType::METRIC)
-      .value("FEATURE", NodeType::FEATURE)
       .value("PREPROCESS", NodeType::PREPROCESS)
       .value("MERGE", NodeType::MERGE)
       .export_values();

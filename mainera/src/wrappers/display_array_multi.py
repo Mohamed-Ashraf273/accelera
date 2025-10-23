@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from mainera.src.wrappers.metric_display import MetricDisplay
+from mainera.src.core.metric_display import MetricDisplay
 
 
 class DisplayMultiArray(MetricDisplay):
@@ -10,16 +10,25 @@ class DisplayMultiArray(MetricDisplay):
 
     def execute(self):
         content = f"### Metric name: {self.metric_name}\n"
-        labels_name = self.handle_labels_name()
+        labels_name = self.handle_name(
+            "labels_name", self.values[0]["result"].shape[0]
+        )
+        headers_name = self.handle_name(
+            "headers_name", self.values[0]["result"].shape[1]
+        )
         for value in self.values:
-            data = {"labels": labels_name, "value": []}
-            for i in range(value["result"].shape[0]):
-                array_str = np.array2string(
-                    np.array(value["result"][i]),
-                    separator=", ",
-                    max_line_width=80,
-                )
-                data["value"].append(array_str)
+            data = {"labels": labels_name}
+            for row_idx in range(value["result"].shape[0]):
+                for col_idx in range(len(value["result"][row_idx])):
+                    array_str = np.array2string(
+                        np.array(value["result"][row_idx][col_idx]),
+                        separator=", ",
+                        max_line_width=80,
+                    )
+                    if headers_name[col_idx] not in data:
+                        data[headers_name[col_idx]] = [array_str]
+                    else:
+                        data[headers_name[col_idx]].append(array_str)
 
             table = pd.DataFrame(data).to_html(index=False)
             new_content = (

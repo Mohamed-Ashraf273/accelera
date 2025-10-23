@@ -3,7 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from mainera.src.wrappers.metric_display import MetricDisplay
+from mainera.src.core.metric_display import MetricDisplay
 
 plt.style.use("dark_background")
 

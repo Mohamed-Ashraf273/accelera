@@ -183,8 +183,6 @@ void Graph::split(const std::string &branch_name,
             nodeType = NodeType::INPUT;
           } else if (node_types[branch_idx + list_idx] == "PREPROCESS") {
             nodeType = NodeType::PREPROCESS;
-          } else if (node_types[branch_idx + list_idx] == "FEATURE") {
-            nodeType = NodeType::FEATURE;
           } else if (node_types[branch_idx + list_idx] == "MODEL") {
             nodeType = NodeType::MODEL;
           } else if (node_types[branch_idx + list_idx] == "PREDICT") {
@@ -220,8 +218,6 @@ void Graph::split(const std::string &branch_name,
           nodeType = NodeType::INPUT;
         } else if (node_types[branch_idx] == "PREPROCESS") {
           nodeType = NodeType::PREPROCESS;
-        } else if (node_types[branch_idx] == "FEATURE") {
-          nodeType = NodeType::FEATURE;
         } else if (node_types[branch_idx] == "MODEL") {
           nodeType = NodeType::MODEL;
         } else if (node_types[branch_idx] == "PREDICT") {

@@ -1,5 +1,6 @@
 import time
 
+import matplotlib.pyplot as plt
 import numpy as np
 import psutil
 import torch
@@ -8,6 +9,7 @@ import torch.optim as optim
 from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import ConfusionMatrixDisplay
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
@@ -168,6 +170,13 @@ m3 = RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10)
 pre_processed = p_common(p2(p1(X)))
 m1.fit(pre_processed, y)
 
+
+def plot_func(value):
+    disp = ConfusionMatrixDisplay(confusion_matrix=value)
+    disp.plot(cmap="Blues")
+    return plt
+
+
 p = Pipeline()
 
 # p.disable_parallel_execution()
@@ -225,18 +234,20 @@ p.branch(
         branch=True,
     ),
     p.metric(
-        "confunsion_matrix", "confusion_matrix", y_true=y_test, branch=True
+        "confunsion_matrix",
+        "confusion_matrix",
+        y_true=y_test,
+        branch=True,
+        headers_name=["k1", "k2", "k3", "k4"],
+        plot_func=plot_func,
     ),
     p.metric(
         "precision_recall_fscore_support",
         "precision_recall_fscore_support",
         y_true=y_test,
-        tuple_argums={
-            "item_name": ["percision", "recall", "f1", "support"],
-            "is_curve": False,
-        },
         average=None,
         branch=True,
+        headers_name=["percision", "recall", "f1", "support"],
     ),
     p.metric(
         "f1_score",
@@ -244,7 +255,6 @@ p.branch(
         y_true=y_test,
         average=None,
         branch=True,
-        labels_name=["0 class", "1 class", "2 class", "3 class"],
     ),
     p.metric(
         "f1_sco_2", "f1_score", y_true=y_test, branch=True, average="macro"
