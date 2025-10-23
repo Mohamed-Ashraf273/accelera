@@ -528,6 +528,7 @@ void Graph::runParallel() {
   std::vector<std::exception_ptr> exceptions(m_execution_order.size());
   std::vector<std::future<void>> futures;
   std::mutex data_mutex;
+  std::mutex gpu_mutex;
 
   for (auto node : m_execution_order) {
     finished_executing[node] = false;
@@ -562,10 +563,15 @@ void Graph::runParallel() {
         futures.emplace_back(std::async(
             std::launch::async,
             [node, this, &finished_executing, &available_nodes, &data_mutex,
-             &available_threads, &exceptions, i, &rem_nodes]() {
+             &available_threads, &exceptions, i, &rem_nodes, &gpu_mutex]() {
               py::gil_scoped_acquire acquire;
               try {
-                node->execute();
+                if (node->getUsesGPU()) {
+                  std::lock_guard<std::mutex> gpu_lock(gpu_mutex);
+                  node->execute();
+                } else {
+                  node->execute();
+                }
               } catch (...) {
                 exceptions[i] = std::current_exception();
               }
@@ -592,7 +598,7 @@ void Graph::runParallel() {
 
       if (i < m_execution_order.size()) {
         failed_node = m_execution_order[i];
-        node_type = "CPU";
+        node_type = failed_node->getUsesGPU() ? "GPU" : "CPU";
       } else {
         failed_node = m_execution_order[i];
         node_type = "unknown";

@@ -170,7 +170,7 @@ m1.fit(pre_processed, y)
 
 p = Pipeline()
 
-#p.disable_parallel_execution()
+# p.disable_parallel_execution()
 
 p.branch(
     "preprocessing",
@@ -202,7 +202,8 @@ p.branch(
         LogisticRegression(random_state=42, max_iter=1000),
         branch=True,
     ),
-    # p.model("custom", TorchDenseModel(random_state=42), branch=True),
+    p.model("custom", TorchDenseModel(random_state=42), branch=True),
+    p.model("custom", TorchDenseModel(random_state=31), branch=True),
     p.model(
         "rf",
         RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10),
