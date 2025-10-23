@@ -3,7 +3,6 @@
 #include <exception>
 #include <fstream>
 #include <future>
-#include <iostream>
 #include <map>
 #include <queue>
 #include <semaphore>

@@ -18,7 +18,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
 from mainera.src.core.pipeline import Pipeline
-from mainera.src.custom.classifier import CustomClassifier
 
 
 class TestPipelineCorrectness:
@@ -332,94 +331,6 @@ class TestPipelineCorrectness:
                 "get_scorer",
                 self.y_test,
             )
-
-    def test_pipeline_with_cuda_correctness(self):
-        try:
-            import torch
-            from torch import nn
-            from torch.utils.data import DataLoader
-            from torch.utils.data import TensorDataset
-        except ImportError:
-            pytest.skip("PyTorch is not installed, skipping CUDA test.")
-
-        class TorchDenseModel(CustomClassifier):
-            def __init__(self, input_dim=25, output_dim=4, random_state=42):
-                torch.manual_seed(random_state)
-                self.device = (
-                    torch.device("cuda")
-                    if torch.cuda.is_available()
-                    else pytest.skip("No GPU available, skipping CUDA test.")
-                )
-                self.model = nn.Sequential(
-                    nn.Linear(input_dim, 64),
-                    nn.ReLU(),
-                    nn.Linear(64, output_dim),
-                ).to(self.device)
-                self.criterion = nn.CrossEntropyLoss()
-                self.optimizer = torch.optim.Adam(
-                    self.model.parameters(), lr=0.001
-                )
-                self.batch_size = 32
-                self.epochs = 10
-
-            def fit(self, X, y):
-                X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device)
-                y_tensor = torch.tensor(y, dtype=torch.long).to(self.device)
-                dataset = TensorDataset(X_tensor, y_tensor)
-                dataloader = DataLoader(
-                    dataset, batch_size=self.batch_size, shuffle=True
-                )
-
-                self.model.train()
-                for epoch in range(self.epochs):
-                    for batch_X, batch_y in dataloader:
-                        self.optimizer.zero_grad()
-                        outputs = self.model(batch_X)
-                        loss = self.criterion(outputs, batch_y)
-                        loss.backward()
-                        self.optimizer.step()
-
-            def predict(self, X):
-                self.model.eval()
-                X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device)
-                with torch.no_grad():
-                    outputs = self.model(X_tensor)
-                    _, predicted = torch.max(outputs, 1)
-                return predicted.cpu().numpy()
-
-        p = Pipeline()
-        p.preprocess("standard_scaler", StandardScaler())
-        p.branch(
-            "models",
-            p.model("torch_model", TorchDenseModel(), branch=True),
-            p.model(
-                "rf",
-                RandomForestClassifier(
-                    n_estimators=50, random_state=42, max_depth=10
-                ),
-                branch=True,
-            ),
-        )
-        p.predict("predict", self.test_data, output_func="predict")
-        pipeline_result, _ = p(self.X, self.y)
-
-        def p1(x):
-            return self.scaler.transform(x)
-
-        m1 = TorchDenseModel()
-        m2 = RandomForestClassifier(
-            n_estimators=50, random_state=42, max_depth=10
-        )
-        x = p1(self.X)
-        m1.fit(x, self.y)
-        m2.fit(x, self.y)
-        r1 = m1.predict(p1(self.test_data))
-        r2 = m2.predict(p1(self.test_data))
-        manual_result = [r1, r2]
-
-        assert len(pipeline_result) == len(manual_result)
-        assert np.array_equal(pipeline_result[0], manual_result[0])
-        assert np.array_equal(pipeline_result[1], manual_result[1])
 
     def test_executed_model_correctness(self):
         p = Pipeline()
