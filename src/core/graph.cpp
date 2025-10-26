@@ -518,7 +518,9 @@ void Graph::runParallel() {
   std::map<Node::Ptr, bool> finished_executing;
   std::map<Node::Ptr, bool> started_executing;
   unsigned int num_cores = std::thread::hardware_concurrency();
-  std::counting_semaphore<1024> available_threads(num_cores);
+  unsigned int cpu_threads = (num_cores > 1) ? num_cores - 1 : 1;
+  std::counting_semaphore<1024> available_cpu_threads(cpu_threads);
+  std::binary_semaphore available_gpu_thread(1);
   std::binary_semaphore available_nodes(1);
   std::vector<std::exception_ptr> exceptions(m_execution_order.size());
   std::vector<std::future<void>> futures;
@@ -553,12 +555,17 @@ void Graph::runParallel() {
         }
       }
       if (parents_finished) {
-        available_threads.acquire();
+        if (node->getUsesGPU()) {
+          available_gpu_thread.acquire();
+        } else {
+          available_cpu_threads.acquire();
+        }
         started_executing[node] = true;
         futures.emplace_back(std::async(
             std::launch::async,
             [node, this, &finished_executing, &available_nodes, &data_mutex,
-             &available_threads, &exceptions, i, &rem_nodes, &gpu_mutex]() {
+             &available_cpu_threads, &available_gpu_thread, &exceptions, i,
+             &rem_nodes, &gpu_mutex]() {
               py::gil_scoped_acquire acquire;
               try {
                 if (node->getUsesGPU()) {
@@ -575,7 +582,11 @@ void Graph::runParallel() {
                 finished_executing[node] = true;
                 rem_nodes--;
               }
-              available_threads.release();
+              if (node->getUsesGPU()) {
+                available_gpu_thread.release();
+              } else {
+                available_cpu_threads.release();
+              }
               available_nodes.release();
             }));
       }
