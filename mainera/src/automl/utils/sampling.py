@@ -4,8 +4,7 @@ from mainera.src.utils.array_utils import convert_to_array
 
 
 class Sampler:
-    DEFAULT_TARGET_SIZE = 10000
-    MIN_SAMPLES_PER_CLASS = 100
+    MIN_SAMPLES_PER_CLASS = 1000
 
     def __init__(
         self,
@@ -25,7 +24,7 @@ class Sampler:
             preserve_diversity: Whether to preserve diverse samples
             random_state: Random state for reproducibility
         """
-        self.target_size = target_size or self.DEFAULT_TARGET_SIZE
+        self.target_size = target_size
         self.min_samples_per_class = (
             min_samples_per_class or self.MIN_SAMPLES_PER_CLASS
         )
@@ -50,6 +49,9 @@ class Sampler:
         Returns:
             tuple: (X_sampled, y_sampled, metadata)
         """
+        if self.target_size is None:
+            self.target_size = len(X) // 2  # Default to 50% of original size
+
         X_array = convert_to_array(X)
         y_array = convert_to_array(y) if y is not None else None
         self.original_distribution = (

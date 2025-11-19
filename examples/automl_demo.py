@@ -1,8 +1,13 @@
 import numpy as np
 from sklearn.datasets import make_classification
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import StandardScaler
 
-from mainera.src.automl import AutoMLAgent
 from mainera.src.automl.utils.sampling import sample
+from mainera.src.core.pipeline import Pipeline
+
+p1 = Pipeline()
+p2 = Pipeline()
 
 
 def sample_data():
@@ -35,23 +40,21 @@ def sample_data():
 
 X, y, test_data, y_test = sample_data()
 
-# Simple usage
-agent = AutoMLAgent()
-# agent.fit(X, y, task="classification")
-# best_pipeline, report = agent.fit(X, y, task="classification")
-# predictions = best_pipeline.predict(test_data)
 
-# # Advanced usage with constraints
-# agent = AutoMLAgent(
-#     time_limit=300,  # 5 minutes
-#     metric="f1_score",
-#     n_trials=50,
-#     use_llm=True,  # Use your LLM models for suggestions
-# )
-# results = agent.fit(X, y, task="classification")
-
-# test sampling
 X_sampled, y_sampled, meta_data = sample(X, y)
-print(len(X_sampled))
-print(meta_data["original_distribution"])
-print(meta_data["final_distribution"])
+p1.preprocess("p1_scaling", StandardScaler()).model(
+    "rf1", RandomForestClassifier(n_estimators=10, random_state=42)
+).predict("predict", test_data=test_data).metric(
+    "report", "classification_report", y_true=y_test
+)
+output_1, _ = p1(X, y)
+p2.preprocess("p2_scaling", StandardScaler()).model(
+    "rf2", RandomForestClassifier(n_estimators=10, random_state=42)
+).predict("predict", test_data=test_data).metric(
+    "report", "classification_report", y_true=y_test
+)
+output_2, _ = p2(X_sampled, y_sampled)
+print(output_1[0]["result"])
+print(meta_data["original_size"])
+print(output_2[0]["result"])
+print(meta_data["final_size"])
