@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 from sklearn.datasets import make_classification
 
-from mainera.src.automl.utils.sampler import Sampler
-from mainera.src.automl.utils.sampler import sample
+from mainera.src.automl.utils import Sampler
+from mainera.src.automl.utils import sample
 
 
 class TestSampler:
