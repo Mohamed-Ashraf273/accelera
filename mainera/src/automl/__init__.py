@@ -1,3 +1,3 @@
-from mainera.src.automl.agent import AutoMLAgent
+from mainera.src.automl.core.agent import AutoMLAgent
 
 __all__ = ["AutoMLAgent"]

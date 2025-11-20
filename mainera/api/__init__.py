@@ -5,6 +5,7 @@ since your modifications would be overwritten.
 """
 
 from mainera.src import automl as automl
+from mainera.src import code_parallelizer as code_parallelizer
 from mainera.src import core as core
 from mainera.src import custom as custom
 from mainera.src import models as models

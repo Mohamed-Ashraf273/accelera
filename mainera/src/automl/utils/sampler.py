@@ -8,7 +8,7 @@ from mainera.src.utils.mainera_utils import print_msg
 
 class Sampler:
     DEFAULT_SAMPLING_RATIO = 0.5
-    MIN_SAMPLES_PER_CLASS = 500
+    MIN_SAMPLES_PER_CLASS = 50
 
     def __init__(
         self,
