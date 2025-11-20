@@ -3,25 +3,10 @@ from sklearn.cluster import MiniBatchKMeans
 from sklearn.preprocessing import StandardScaler
 
 from mainera.src.utils.array_utils import convert_to_array
+from mainera.src.utils.mainera_utils import print_msg
 
 
 class Sampler:
-    """
-    Advanced data sampler using stratified clustering with smart selection.
-
-    Key Features:
-    - Maintains perfect class balance for classification
-    - Uses k-means clustering to find representative samples
-    - Includes both cluster centers AND boundary samples
-    - Adds random samples for diversity and edge cases
-    - Default: Keep 50% of data (configurable)
-
-    Strategy:
-    - 50% cluster centers (most representative)
-    - 25% boundary samples (hard cases/edges)
-    - 25% random samples (diversity)
-    """
-
     DEFAULT_SAMPLING_RATIO = 0.5
     MIN_SAMPLES_PER_CLASS = 500
 
@@ -32,15 +17,6 @@ class Sampler:
         min_samples_per_class=None,
         random_state=42,
     ):
-        """
-        Initialize Sampler.
-
-        Args:
-            target_size: Explicit target size (overrides sampling_ratio)
-            sampling_ratio: Fraction of data to keep (default: 0.5 = 50%)
-            min_samples_per_class: Minimum samples per class (default: 500)
-            random_state: Random seed for reproducibility
-        """
         self.target_size = target_size
         self.sampling_ratio = sampling_ratio or self.DEFAULT_SAMPLING_RATIO
         self.min_samples_per_class = (
@@ -97,14 +73,6 @@ class Sampler:
         )
 
     def _stratified_sample(self, X, y, target_size):
-        """
-        Stratified sampling: maintains class balance using advanced clustering.
-
-        Strategy per class:
-        - 50% cluster centers (most representative samples)
-        - 25% boundary samples (outliers/hard cases)
-        - 25% random samples (diversity)
-        """
         unique_classes, class_counts = np.unique(y, return_counts=True)
 
         samples_per_class = {}
@@ -115,15 +83,22 @@ class Sampler:
             )
 
         total = sum(samples_per_class.values())
-        if total > target_size:
+        err = abs(total - target_size)
+        max_err = target_size * 0.1
+        max_iterations = 20
+        iterations = 0
+        while err > max_err and iterations < max_iterations:
             scale = target_size / total
             samples_per_class = {
                 cls: max(
                     min(self.min_samples_per_class, class_counts[i]),
-                    int(n * scale),
+                    round(n * scale),
                 )
                 for i, (cls, n) in enumerate(samples_per_class.items())
             }
+            total = sum(samples_per_class.values())
+            err = abs(total - target_size)
+            iterations += 1
 
         all_indices = []
         for cls in unique_classes:
@@ -134,14 +109,14 @@ class Sampler:
             if len(class_indices) <= n_needed:
                 all_indices.extend(class_indices)
             else:
-                selected = self._advanced_sample_class(
+                selected = self._sample_class(
                     X[class_mask], class_indices, n_needed
                 )
                 all_indices.extend(selected)
 
         return np.array(all_indices)
 
-    def _advanced_sample_class(self, X_class, class_indices, n_samples):
+    def _sample_class(self, X_class, class_indices, n_samples):
         """
         Advanced sampling from a single class.
 
@@ -166,7 +141,7 @@ class Sampler:
                 n_clusters=n_clusters,
                 random_state=self.random_state,
                 batch_size=min(1000, len(X_class)),
-                n_init=5,  # More iterations for better clustering
+                n_init=5,
                 max_iter=100,
             )
             labels = kmeans.fit_predict(X_scaled)
@@ -234,8 +209,10 @@ class Sampler:
             return all_selected[:n_samples]
 
         except Exception as e:
-            print(f"Advanced sampling failed, using random: {e}")
-            return self.rng.choice(class_indices, size=n_samples, replace=False)
+            print_msg(
+                f"Advanced sampling failed, using random: {e}", level="warning"
+            )
+            return self._random_sample(class_indices, n_samples)
 
     def _random_sample(self, X, target_size):
         return self.rng.choice(len(X), size=target_size, replace=False)
@@ -281,7 +258,7 @@ class Sampler:
 
 def sample(X, y=None, **kwargs):
     """
-    Smart data sampling that preserves important patterns.
+    Sampling that preserves important patterns.
 
     Args:
         X: Feature matrix

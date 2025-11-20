@@ -98,7 +98,6 @@ class CodeParallelizer:
             return False
 
     def convert_to_cpp(self, filename: str, python_code: str) -> str:
-        print(filename)
         assert filename.endswith(".cpp"), "Filename must have a .cpp extension"
         response = self.ctc_chain.invoke({"code": python_code})
         if isinstance(response, str):

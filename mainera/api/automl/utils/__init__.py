@@ -6,4 +6,4 @@ since your modifications would be overwritten.
 
 from mainera.src.automl.utils import build_db as build_db
 from mainera.src.automl.utils import preprocessing as preprocessing
-from mainera.src.automl.utils import sampling as sampling
+from mainera.src.automl.utils import sampler as sampler
