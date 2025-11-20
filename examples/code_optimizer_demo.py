@@ -1,6 +1,4 @@
-from mainera.src.utils.code_optimizer import CodeOptimizer
-
-optimizer = CodeOptimizer()
+from mainera.src.code_parallelizer import parallelize_code
 
 python_code = """
 def LogesticRegression(X, y, learning_rate=0.01, num_iterations=1000):
@@ -18,4 +16,4 @@ def LogesticRegression(X, y, learning_rate=0.01, num_iterations=1000):
     return weights, bias
 """
 
-cpp_code = optimizer.convert_to_cpp("converted_code.cpp", python_code)
+cpp_code = parallelize_code(python_code, "converted_code.cpp")
