@@ -12,7 +12,7 @@ from sklearn.svm import SVC
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from mainera.src.wrappers.model_report import ModelReport
+from accelera.src.wrappers.model_report import ModelReport
 
 data = pd.read_csv("Titanic-Dataset.csv")
 data.drop(

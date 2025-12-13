@@ -7,7 +7,7 @@
 #include "nodes/predict.hpp"
 #include "nodes/preprocess.hpp"
 
-namespace mainera {
+namespace accelera {
 
 Node::Ptr NodeFactory::createNode(NodeType type, const std::string &name,
                                   py::object py_func) {
@@ -33,4 +33,4 @@ Node::Ptr NodeFactory::createNodeCopy(Node::Ptr node, int i) {
   return NodeFactory::createNode(node->type, copyName, node->py_func);
 }
 
-} // namespace mainera
+} // namespace accelera

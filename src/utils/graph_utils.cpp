@@ -13,7 +13,7 @@
 namespace py = pybind11;
 namespace fs = std::filesystem;
 
-namespace mainera {
+namespace accelera {
 
 void serialize_graph(const Graph &graph, const std::string &filepath) {
   const auto &m_nodes = graph.getNodes();
@@ -24,7 +24,7 @@ void serialize_graph(const Graph &graph, const std::string &filepath) {
   }
 
   file << "<?xml version=\"1.0\"?>\n";
-  file << "<net name=\"mAInera_Pipeline\" version=\"10\">\n";
+  file << "<net name=\"Accelera_Pipeline\" version=\"10\">\n";
 
   std::map<Node *, size_t> node_to_id;
   for (size_t i = 0; i < m_nodes.size(); ++i) {
@@ -316,4 +316,4 @@ void saveAsCsv(const std::string &directory, py::object X, py::object y,
                              "': " + e.what());
   }
 }
-} // namespace mainera
+} // namespace accelera

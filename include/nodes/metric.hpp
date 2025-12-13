@@ -3,9 +3,9 @@
 
 #include "core/node.hpp"
 
-namespace mainera {
+namespace accelera {
 
-class MAINERA_API MetricNode : public Node {
+class ACCELERA_API MetricNode : public Node {
 public:
   MetricNode(const std::string &name, py::object py_func);
   void execute() override;
@@ -15,5 +15,5 @@ public:
 private:
   bool m_enable = true;
 };
-} // namespace mainera
+} // namespace accelera
 #endif // METRIC_NODE_HPP

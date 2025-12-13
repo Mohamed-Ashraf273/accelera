@@ -6,7 +6,7 @@
 #include "nodes/input.hpp"
 #include "nodes/metric.hpp"
 
-namespace mainera {
+namespace accelera {
 
 Node::Node(NodeType type, const std::string &name, py::object py_func)
     : type(type), name(name), py_func(py_func) {}
@@ -95,4 +95,4 @@ void Node::usesGPU() {
   }
 }
 
-} // namespace mainera
+} // namespace accelera

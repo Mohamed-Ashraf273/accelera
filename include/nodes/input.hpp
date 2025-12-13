@@ -7,9 +7,9 @@
 
 namespace py = pybind11;
 
-namespace mainera {
+namespace accelera {
 
-class MAINERA_API InputNode : public Node {
+class ACCELERA_API InputNode : public Node {
 public:
   InputNode(const std::string &name);
   virtual ~InputNode() = default;
@@ -25,6 +25,6 @@ private:
   bool m_data_set = false;
 };
 
-} // namespace mainera
+} // namespace accelera
 
 #endif // INPUT_HPP

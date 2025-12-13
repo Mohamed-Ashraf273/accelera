@@ -10,11 +10,11 @@
 #include "core/node.hpp"
 #include "core/visibility.hpp"
 #include "nodes/metric.hpp"
-namespace mainera {
+namespace accelera {
 
 class InputNode; // Forward declaration
 
-class MAINERA_API Graph {
+class ACCELERA_API Graph {
 public:
   Graph();
   ~Graph();
@@ -81,6 +81,6 @@ private:
   void findMaxMinMetricNode(bool find_max);
   void setPath(std::shared_ptr<MetricNode> best_metric_node);
 };
-} // namespace mainera
+} // namespace accelera
 
 #endif // GRAPH_HPP

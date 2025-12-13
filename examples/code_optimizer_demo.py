@@ -1,4 +1,4 @@
-from mainera.src.code_parallelizer import parallelize_code
+from accelera.src.code_parallelizer import parallelize_code
 
 python_code = """
 def LogesticRegression(X, y, learning_rate=0.01, num_iterations=1000):

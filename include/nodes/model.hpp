@@ -3,9 +3,9 @@
 
 #include "core/node.hpp"
 
-namespace mainera {
+namespace accelera {
 
-class MAINERA_API ModelNode : public Node {
+class ACCELERA_API ModelNode : public Node {
 public:
   ModelNode(const std::string &name, py::object py_func);
   void execute() override;
@@ -16,6 +16,6 @@ private:
   py::object fitModel(py::object X, py::object y);
 };
 
-} // namespace mainera
+} // namespace accelera
 
 #endif // MODEL_NODE_HPP

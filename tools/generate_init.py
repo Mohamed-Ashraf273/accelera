@@ -38,7 +38,7 @@ def generate_init_for_dir(src_dir, api_dir, src_package_prefix, is_root=False):
         # Only import version.py at root
         if is_root and name == "version":
             lines.append(
-                "from mainera.src.version import __version__ as __version__\n"
+                "from accelera.src.version import __version__ as __version__\n"
             )
         else:
             lines.append(f"from {src_package_prefix} import {name} as {name}\n")
@@ -74,7 +74,7 @@ def sync_api_with_src(src_root, api_root):
     for dir_rel in src_dirs | {""}:
         src_dir = os.path.join(src_root, dir_rel)
         api_dir = os.path.join(api_root, dir_rel)
-        src_package_prefix = "mainera.src" + (
+        src_package_prefix = "accelera.src" + (
             f".{dir_rel.replace(os.sep, '.')}" if dir_rel else ""
         )
         generate_init_for_dir(
@@ -83,4 +83,4 @@ def sync_api_with_src(src_root, api_root):
 
 
 if __name__ == "__main__":
-    sync_api_with_src("mainera/src", "mainera/api")
+    sync_api_with_src("accelera/src", "accelera/api")

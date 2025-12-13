@@ -6,7 +6,7 @@
 
 namespace py = pybind11;
 
-namespace mainera {
+namespace accelera {
 
 MergeNode::MergeNode(const std::string &name, py::object py_func)
     : Node(NodeType::MERGE, name, py_func) {}
@@ -125,4 +125,4 @@ void MergeNode::execute() {
   }
 }
 
-} // namespace mainera
+} // namespace accelera

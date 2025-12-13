@@ -3,8 +3,8 @@ from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 
-from mainera.src.automl.utils import sample
-from mainera.src.core.pipeline import Pipeline
+from accelera.src.automl.utils import sample
+from accelera.src.core.pipeline import Pipeline
 
 p1 = Pipeline()
 p2 = Pipeline()

@@ -1,4 +1,4 @@
-"""Script to generate mainera public API in `mainera/api` directory.
+"""Script to generate accelera public API in `accelera/api` directory.
 
 Usage:
 
@@ -11,7 +11,7 @@ import shutil
 
 import namex
 
-PACKAGE = "mainera"
+PACKAGE = "accelera"
 BUILD_DIR_NAME = "tmp_build_dir"
 
 
@@ -20,7 +20,7 @@ def ignore_files(_, filenames):
 
 
 def copy_source_to_build_directory(root_path):
-    # Copy sources (`mainera/` directory and setup files) to build dir
+    # Copy sources (`accelera/` directory and setup files) to build dir
     build_dir = os.path.join(root_path, BUILD_DIR_NAME)
     build_package_dir = os.path.join(build_dir, PACKAGE)
     build_src_dir = os.path.join(build_package_dir, "src")
@@ -37,7 +37,7 @@ def export_version_string(api_init_fname):
         contents = f.read()
     with open(api_init_fname, "w") as f:
         contents += (
-            "from mainera.src.version import __version__ as __version__\n"
+            "from accelera.src.version import __version__ as __version__\n"
         )
         f.write(contents)
 
@@ -56,7 +56,7 @@ def build():
         namex.generate_api_files(PACKAGE, code_directory="src")
         # Add __version__ to `api/`.
         export_version_string(build_api_init_fname)
-        # Copy back the mainera/api from build directory
+        # Copy back the accelera/api from build directory
         if os.path.exists(build_src_dir):
             shutil.rmtree(build_src_dir)
         if os.path.exists(code_api_dir):
