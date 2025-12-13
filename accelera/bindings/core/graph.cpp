@@ -8,7 +8,7 @@
 #include "utils/graph_utils.hpp"
 
 namespace py = pybind11;
-using namespace mainera;
+using namespace accelera;
 
 PYBIND11_MODULE(graph, m) {
   m.doc() = "mAInera C++ core bindings";

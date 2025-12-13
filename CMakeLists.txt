@@ -47,23 +47,23 @@ file(GLOB_RECURSE CORE_SOURCES "${CMAKE_SOURCE_DIR}/src/core/*.cpp")
 file(GLOB_RECURSE NODE_SOURCES "${CMAKE_SOURCE_DIR}/src/nodes/*.cpp")
 file(GLOB_RECURSE UTILS_SOURCES "${CMAKE_SOURCE_DIR}/src/utils/*.cpp")
 
-add_library(mainera_core SHARED
+add_library(accelera_core SHARED
     ${CORE_SOURCES}
     ${NODE_SOURCES}
     ${UTILS_SOURCES}
 )
 
-target_include_directories(mainera_core PUBLIC "${CMAKE_SOURCE_DIR}/include")
-target_link_libraries(mainera_core PUBLIC pybind11::module)
-set_target_properties(mainera_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_include_directories(accelera_core PUBLIC "${CMAKE_SOURCE_DIR}/include")
+target_link_libraries(accelera_core PUBLIC pybind11::module)
+set_target_properties(accelera_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-target_compile_definitions(mainera_core PUBLIC MAINERA_BUILD_DLL)
+target_compile_definitions(accelera_core PUBLIC ACCELERA_BUILD_DLL)
 
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bindings")
 
 file(GLOB_RECURSE BINDINGS_SOURCES 
-    "${CMAKE_SOURCE_DIR}/mainera/bindings/*.cpp"
-    "${CMAKE_SOURCE_DIR}/mainera/bindings/**/*.cpp"
+    "${CMAKE_SOURCE_DIR}/accelera/bindings/*.cpp"
+    "${CMAKE_SOURCE_DIR}/accelera/bindings/**/*.cpp"
 )
 
 foreach(binding_file ${BINDINGS_SOURCES})
@@ -79,7 +79,7 @@ foreach(binding_file ${BINDINGS_SOURCES})
     message(STATUS "Creating Python module: ${module_name} from ${binding_file}")
     
     pybind11_add_module(${module_name} ${binding_file})
-    target_link_libraries(${module_name} PRIVATE mainera_core)
+    target_link_libraries(${module_name} PRIVATE accelera_core)
     
     set_target_properties(${module_name} PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bindings"
@@ -97,14 +97,14 @@ foreach(binding_file ${BINDINGS_SOURCES})
 
     add_custom_command(TARGET ${module_name} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_FILE:mainera_core>
+        $<TARGET_FILE:accelera_core>
         "${CMAKE_BINARY_DIR}/bindings"
     )
 endforeach()
 
 message(STATUS "Generated ${BINDINGS_SOURCES} Python modules in ${CMAKE_BINARY_DIR}/bindings/")
 
-install(TARGETS mainera_core
+install(TARGETS accelera_core
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
