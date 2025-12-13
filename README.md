@@ -1,10 +1,10 @@
-# mAInera 🚀
+# Accelera 🚀
 
 **A High-Performance Machine Learning Pipeline Framework**
 
-mAInera is a cutting-edge ML pipeline framework that combines the flexibility of Python with the performance of C++. It provides a robust, scalable solution for building and deploying machine learning workflows with optimized performance.
+Accelera is a cutting-edge ML pipeline framework that combines the flexibility of Python with the performance of C++. It provides a robust, scalable solution for building and deploying machine learning workflows with optimized performance.
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/Mohamed-Ashraf273/mAInera)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/Mohamed-Ashraf273/Accelera)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![C++17](https://img.shields.io/badge/C++-17-orange.svg)](https://isocpp.org/)
@@ -26,8 +26,8 @@ mAInera is a cutting-edge ML pipeline framework that combines the flexibility of
 
 ```bash
 # Clone the repository
-git clone https://github.com/Mohamed-Ashraf273/mainera.git
-cd mainera
+git clone https://github.com/Mohamed-Ashraf273/accelera.git
+cd accelera
 
 # Create virtual environment
 python -m venv env
@@ -39,7 +39,7 @@ pip install -r requirements.txt
 
 ### Code Optimizer Setup (Optional)
 
-mAInera includes an AI-powered Code Optimizer that can convert Python code to optimized and parallelized C++. To use this feature:
+Accelera includes an AI-powered Code Optimizer that can convert Python code to optimized and parallelized C++. To use this feature:
 
 #### Option 1: Groq API (Default - Fast & Free)
 ```bash
@@ -51,17 +51,17 @@ export GROQ_API_KEY="your-groq-api-key"
 
 #### Option 2: Custom Models (Local or Other APIs)
 ```python
-from mainera.src.utils.code_optimizer import CodeOptimizer
+from accelera.src.utils.code_optimizer import CodeOptimizer
 
 # You can use any of the supported models from src/models/
 # Available models: Ollama, Groq, HuggingFace, etc.
 
 # Example with Ollama (local)
-from mainera.src.models.ollama import Ollama
+from accelera.src.models.ollama import Ollama
 optimizer = CodeOptimizer(model=Ollama(model_name="codellama:13b-instruct-q4_K_M"))
 
 # Example with HuggingFace
-from mainera.src.models.huggingface import HuggingFaceModel
+from accelera.src.models.huggingface import HuggingFaceModel
 optimizer = CodeOptimizer(model=HuggingFaceModel(model_name="your-model", api_key="your-key"))
 
 # Or any other compatible model from src/models/
@@ -81,17 +81,17 @@ ollama pull codellama:13b-instruct-q4_K_M
 
 **For Linux/macOS:**
 ```bash
-export PYTHONPATH="/path/to/your/project/mainera"
+export PYTHONPATH="/path/to/your/project/accelera"
 ```
 
 **For Windows (PowerShell):**
 ```powershell
-$env:PYTHONPATH = "C:\path\to\your\project\mainera"
+$env:PYTHONPATH = "C:\path\to\your\project\accelera"
 ```
 
 **For Windows (Command Prompt):**
 ```cmd
-set PYTHONPATH=C:\path\to\your\project\mainera
+set PYTHONPATH=C:\path\to\your\project\accelera
 ```
 ### Build Instructions
 
@@ -129,10 +129,10 @@ This ensures code quality, formatting, and passes all checks. **Commits without 
 
 ```bash
 # Run all tests
-pytest mainera/
+pytest accelera/
 
 # Run specific test
-python -c "from mainera.src.core.pipeline_test import test_parallel_execution_performance; test_parallel_execution_performance()"
+python -c "from accelera.src.core.pipeline_test import test_parallel_execution_performance; test_parallel_execution_performance()"
 
 # Run heavy parallel test
 python test_heavy_parallel.py
@@ -145,12 +145,12 @@ import sys
 import os
 
 # Add project to Python path
-project_root = "/path/to/your/mainera/project"
+project_root = "/path/to/your/accelera/project"
 sys.path.insert(0, project_root)
 
-# Import mainera modules
-from mainera.src.core.pipeline import Pipeline
-from mainera.src.custom.classifier import CustomClassifier
+# Import accelera modules
+from accelera.src.core.pipeline import Pipeline
+from accelera.src.custom.classifier import CustomClassifier
 
 # Create and run pipeline
 pipeline = Pipeline()
@@ -160,7 +160,7 @@ pipeline = Pipeline()
 ### Code Optimizer Usage
 
 ```python
-from mainera.src.utils.code_optimizer import CodeOptimizer
+from accelera.src.utils.code_optimizer import CodeOptimizer
 
 # Initialize optimizer (uses Groq API by default)
 # Will prompt for API key if not set in environment
@@ -184,11 +184,11 @@ cpp_code = optimizer.convert_to_cpp("fibonacci.cpp", python_code)
 ## Project Structure
 
 ```
-mainera/
+accelera/
 ├── build/                  # Build artifacts and C++ bindings
 ├── examples/              # Example scripts and demos
 ├── include/               # C++ header files
-├── mainera/               # Main Python package
+├── accelera/               # Main Python package
 │   ├── api/              # Public API
 │   ├── bindings/         # Python-C++ bindings
 │   └── src/              # Source code
