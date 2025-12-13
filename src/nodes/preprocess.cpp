@@ -13,7 +13,7 @@
 namespace py = pybind11;
 namespace fs = std::filesystem;
 
-namespace mainera {
+namespace accelera {
 
 PreprocessNode::PreprocessNode(const std::string &name, py::object py_func)
     : Node(NodeType::PREPROCESS, name, py_func) {}
@@ -139,4 +139,4 @@ void PreprocessNode::execute() {
   }
 }
 
-} // namespace mainera
+} // namespace accelera

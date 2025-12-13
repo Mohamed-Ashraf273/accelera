@@ -13,7 +13,7 @@
 namespace fs = std::filesystem;
 namespace py = pybind11;
 
-namespace mainera {
+namespace accelera {
 
 ModelNode::ModelNode(const std::string &name, py::object py_func)
     : Node(NodeType::MODEL, name, py_func) {
@@ -115,4 +115,4 @@ void ModelNode::execute() {
   }
 }
 
-} // namespace mainera
+} // namespace accelera

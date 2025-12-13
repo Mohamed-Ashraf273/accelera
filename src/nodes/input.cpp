@@ -2,7 +2,7 @@
 
 #include "nodes/input.hpp"
 
-namespace mainera {
+namespace accelera {
 
 InputNode::InputNode(const std::string &name)
     : Node(NodeType::INPUT, name, py::none()) {
@@ -22,4 +22,4 @@ void InputNode::setInputData(py::object X, py::object y) {
   m_data_set = true;
 }
 
-} // namespace mainera
+} // namespace accelera

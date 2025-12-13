@@ -3,9 +3,9 @@
 
 #include "core/node.hpp"
 
-namespace mainera {
+namespace accelera {
 
-class MAINERA_API PreprocessNode : public Node {
+class ACCELERA_API PreprocessNode : public Node {
 public:
   PreprocessNode(const std::string &name, py::object py_func);
   void execute() override;
@@ -18,6 +18,6 @@ private:
                     py::object processed_y);
 };
 
-} // namespace mainera
+} // namespace accelera
 
 #endif // PREPROCESS_NODE_HPP

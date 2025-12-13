@@ -3,9 +3,9 @@
 
 #include "core/node.hpp"
 
-namespace mainera {
+namespace accelera {
 
-class MAINERA_API PredictNode : public Node {
+class ACCELERA_API PredictNode : public Node {
 public:
   PredictNode(const std::string &name, py::object py_func);
   void execute() override;
@@ -17,6 +17,6 @@ private:
   std::shared_ptr<py::object> m_preprocessed_data = nullptr;
 };
 
-} // namespace mainera
+} // namespace accelera
 
 #endif // PREDICT_NODE_HPP

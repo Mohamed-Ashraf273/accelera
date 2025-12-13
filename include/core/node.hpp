@@ -10,7 +10,7 @@
 
 namespace py = pybind11;
 
-namespace mainera {
+namespace accelera {
 
 class Graph;
 class InputNode;
@@ -25,7 +25,7 @@ enum class NodeType {
   METRIC
 };
 
-class MAINERA_API Node : public std::enable_shared_from_this<Node> {
+class ACCELERA_API Node : public std::enable_shared_from_this<Node> {
 public:
   using Ptr = std::shared_ptr<Node>;
   NodeType type;
@@ -67,6 +67,6 @@ protected:
   bool m_uses_gpu = false;
 };
 
-} // namespace mainera
+} // namespace accelera
 
 #endif // NODE_HPP

@@ -7,14 +7,14 @@
 
 namespace py = pybind11;
 
-namespace mainera {
+namespace accelera {
 
-class MAINERA_API MergeNode : public Node {
+class ACCELERA_API MergeNode : public Node {
 public:
   MergeNode(const std::string &name, py::object py_func);
   void execute() override;
 };
 
-} // namespace mainera
+} // namespace accelera
 
 #endif // MERGE_HPP

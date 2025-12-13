@@ -3,9 +3,9 @@
 
 #include <string>
 
-namespace mainera {
-const std::string CACHE_DIR = ".mainera_cache";
-const std::string CONFIG_FILE = ".mainera_config";
-} // namespace mainera
+namespace accelera {
+const std::string CACHE_DIR = ".accelera_cache";
+const std::string CONFIG_FILE = ".accelera_config";
+} // namespace accelera
 
 #endif // CONSTANTS_HPP

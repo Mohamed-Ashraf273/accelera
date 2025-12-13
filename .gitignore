@@ -2,7 +2,7 @@
 build/
 env/
 __pycache__/
-.mainera_cache/
+.accelera_cache/
 cache/
 report/
 test.xml

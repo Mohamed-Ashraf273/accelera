@@ -26,7 +26,7 @@ fi
 
 # Format code because generate_init.py might reorder imports
 echo "Formatting api directory..."
-(SKIP=api-gen pre-commit run --files $(find "${base_dir}"/mainera/api -type f) --hook-stage pre-commit || true) > /dev/null
+(SKIP=api-gen pre-commit run --files $(find "${base_dir}"/accelera/api -type f) --hook-stage pre-commit || true) > /dev/null
 
 # Format C++ files if clang-format is available
 if command -v clang-format >/dev/null 2>&1

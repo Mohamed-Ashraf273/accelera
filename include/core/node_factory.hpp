@@ -8,9 +8,9 @@
 
 #include <memory>
 
-namespace mainera {
+namespace accelera {
 
-class MAINERA_API NodeFactory {
+class ACCELERA_API NodeFactory {
 public:
   static Node::Ptr createNode(NodeType type, const std::string &name,
                               py::object py_func);
@@ -18,6 +18,6 @@ public:
   static Node::Ptr createNodeCopy(Node::Ptr node, int i);
 };
 
-} // namespace mainera
+} // namespace accelera
 
 #endif // NODE_FACTORY_HPP

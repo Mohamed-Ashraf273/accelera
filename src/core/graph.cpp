@@ -20,7 +20,7 @@
 #include "nodes/preprocess.hpp"
 #include "utils/graph_utils.hpp"
 
-namespace mainera {
+namespace accelera {
 
 Graph::Graph() : m_compiled(false), m_parallel_enabled(false) {
   m_input_node =
@@ -811,4 +811,4 @@ bool Graph::load(const std::string &directory) {
 }
 //--------------------------------------------------------------------------
 
-} // namespace mainera
+} // namespace accelera

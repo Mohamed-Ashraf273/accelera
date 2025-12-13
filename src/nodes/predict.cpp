@@ -13,7 +13,7 @@
 
 namespace py = pybind11;
 
-namespace mainera {
+namespace accelera {
 
 PredictNode::PredictNode(const std::string &name, py::object py_func)
     : Node(NodeType::PREDICT, name, py_func) {}
@@ -141,4 +141,4 @@ void PredictNode::execute() {
   }
 }
 
-} // namespace mainera
+} // namespace accelera
