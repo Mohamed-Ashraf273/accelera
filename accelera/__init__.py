@@ -5,10 +5,10 @@ import sys
 current_dir = os.path.dirname(__file__)
 repo_root = current_dir
 
-while not os.path.exists(os.path.join(repo_root, "mainera")):
+while not os.path.exists(os.path.join(repo_root, "accelera")):
     parent = os.path.dirname(repo_root)
     if parent == repo_root:
-        raise RuntimeError("Cannot find repo root containing 'mainera/'")
+        raise RuntimeError("Cannot find repo root containing 'accelera/'")
     repo_root = parent
 
 build_path = os.path.join(repo_root, "build", "bindings")

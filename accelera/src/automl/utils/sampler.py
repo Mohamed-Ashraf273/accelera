@@ -3,7 +3,7 @@ from sklearn.cluster import MiniBatchKMeans
 from sklearn.preprocessing import StandardScaler
 
 from accelera.src.utils.array_utils import convert_to_array
-from accelera.src.utils.mainera_utils import print_msg
+from accelera.src.utils.accelera_utils import print_msg
 
 
 class Sampler:

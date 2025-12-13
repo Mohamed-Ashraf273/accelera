@@ -15,7 +15,7 @@ from sklearn.svm import SVC
 
 from accelera.src.core.pipeline import Pipeline
 from accelera.src.custom.classifier import CustomClassifier
-from accelera.src.utils.mainera_utils import serialize
+from accelera.src.utils.accelera_utils import serialize
 from accelera.src.wrappers.graph_report import GraphReport
 
 

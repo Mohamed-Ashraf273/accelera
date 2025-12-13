@@ -4,7 +4,7 @@ from abc import abstractmethod
 
 import numpy as np
 
-from accelera.src.utils.mainera_utils import create_folder
+from accelera.src.utils.accelera_utils import create_folder
 from accelera.src.wrappers.display_array_multi import DisplayMultiArray
 from accelera.src.wrappers.display_array_single import DisplayArraySingle
 from accelera.src.wrappers.display_dict import DisplayDict

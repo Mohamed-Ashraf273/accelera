@@ -2,18 +2,18 @@ import logging
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from accelera.src.utils.mainera_utils import get_correct_metric_class
-from accelera.src.utils.mainera_utils import get_instance_type
-from accelera.src.utils.mainera_utils import get_metric_object
-from accelera.src.utils.mainera_utils import print_msg
+from accelera.src.utils.accelera_utils import get_correct_metric_class
+from accelera.src.utils.accelera_utils import get_instance_type
+from accelera.src.utils.accelera_utils import get_metric_object
+from accelera.src.utils.accelera_utils import print_msg
 
 
 class TestPrintMsg:
     def test_print_msg_interactive_with_line_break(self, capsys, monkeypatch):
         monkeypatch.setitem(print_msg.__globals__, "interactive", True)
-        print_msg("Hello mAInera!")
+        print_msg("Hello Accelera!")
         captured = capsys.readouterr()
-        assert captured.out == "Hello mAInera!\n"
+        assert captured.out == "Hello Accelera!\n"
 
     def test_print_msg_interactive_without_line_break(
         self, capsys, monkeypatch
@@ -34,13 +34,13 @@ class TestPrintMsg:
 
 class TestGetMetricObject:
     def test_get_existing_metric(self):
-        with patch("mainera.src.utils.mainera_utils.metrics") as mock_metrics:
+        with patch("accelera.src.utils.accelera_utils.metrics") as mock_metrics:
             mock_metrics.accuracy = "mock_accuracy_function"
             result = get_metric_object("accuracy")
             assert result == "mock_accuracy_function"
 
     def test_get_nonexistent_metric(self):
-        with patch("mainera.src.utils.mainera_utils.metrics") as mock_metrics:
+        with patch("accelera.src.utils.accelera_utils.metrics") as mock_metrics:
             mock_metrics.nonexistent_metric = None
             result = get_metric_object("nonexistent_metric")
             assert result is None
@@ -75,7 +75,7 @@ class TestGetCorrectMetricClass:
                 self.headers_name = headers_name
 
         with patch(
-            "mainera.src.utils.mainera_utils.SupervisedMetric",
+            "accelera.src.utils.accelera_utils.SupervisedMetric",
             DummySupervisedWrapper,
         ):
             result = get_correct_metric_class(
@@ -106,7 +106,7 @@ class TestGetCorrectMetricClass:
                 self.headers_name = headers_name
 
         with patch(
-            "mainera.src.utils.mainera_utils.UnSupervisedMetric",
+            "accelera.src.utils.accelera_utils.UnSupervisedMetric",
             DummyUnSupervisedWrapper,
         ):
             result = get_correct_metric_class(

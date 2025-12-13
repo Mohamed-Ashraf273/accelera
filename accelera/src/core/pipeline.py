@@ -1,9 +1,9 @@
 from accelera.src.core.executed_graph import ExecutedGraph
 from accelera.src.core.node import Node
 from accelera.src.core.pipeline_base import PipelineBase
-from accelera.src.utils.mainera_utils import execute_fit
-from accelera.src.utils.mainera_utils import get_correct_metric_class
-from accelera.src.utils.mainera_utils import get_metric_object
+from accelera.src.utils.accelera_utils import execute_fit
+from accelera.src.utils.accelera_utils import get_correct_metric_class
+from accelera.src.utils.accelera_utils import get_metric_object
 
 
 class Pipeline(PipelineBase):

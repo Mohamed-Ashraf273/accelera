@@ -1,6 +1,6 @@
 import subprocess
 
-from accelera.src.utils.mainera_utils import print_msg
+from accelera.src.utils.accelera_utils import print_msg
 
 
 def clean_response(response: str) -> str:

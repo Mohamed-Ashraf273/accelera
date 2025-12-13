@@ -6,5 +6,5 @@ since your modifications would be overwritten.
 
 from accelera.src.utils import array_utils as array_utils
 from accelera.src.utils import array_utils_test as array_utils_test
-from accelera.src.utils import mainera_utils as mainera_utils
-from accelera.src.utils import mainera_utils_test as mainera_utils_test
+from accelera.src.utils import accelera_utils as accelera_utils
+from accelera.src.utils import accelera_utils_test as accelera_utils_test

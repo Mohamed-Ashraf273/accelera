@@ -1,7 +1,7 @@
 import os
 
 from accelera.src.core.pipeline_base import PipelineBase
-from accelera.src.utils.mainera_utils import serialize
+from accelera.src.utils.accelera_utils import serialize
 
 
 class ExecutedGraph(PipelineBase):
