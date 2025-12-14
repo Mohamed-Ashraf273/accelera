@@ -4,6 +4,7 @@ from math import inf
 import pandas as pd
 import seaborn as sns
 import numpy as np
+from sklearn.metrics import mean_absolute_error
 
 # -------------------------------------------------------------------------------
 # test on taitanic dataset
@@ -240,8 +241,8 @@ def target_preprocessing(y_train, y_test, info, col):
         shift_value = 0 if col_min >= 0 else abs(col_min) + 1
         y_train_df = y_train.to_frame()
         y_test_df = y_test.to_frame()
-        handle_skew(y_train_df, info, col, shift_value)
-        handle_skew(y_test_df, info, col, shift_value)
+        # handle_skew(y_train_df, info, col, shift_value)
+        # handle_skew(y_test_df, info, col, shift_value)
         y_train = y_train_df[col]
         y_test = y_test_df[col]
     return y_train, y_test
@@ -300,3 +301,5 @@ model = LinearRegression()
 model.fit(X_train, y_train)
 
 print("House price Score", model.score(X_test, y_test))
+print("MAE:", mean_absolute_error(y_test, model.predict(X_test)))
+#
