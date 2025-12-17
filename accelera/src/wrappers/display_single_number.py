@@ -23,7 +23,12 @@ class DisplaySingleNumber(MetricDisplay):
             "Metric Value": results,
         }
         img_path = os.path.join(self.folderpath, f"{self.metric_name}.png")
-        table = pd.DataFrame(data).transpose().round(3).to_html()
+        table = (
+            pd.DataFrame(data)
+            .transpose()
+            .round(3)
+            .to_html(border=1, justify="center")
+        )
         plt.plot(ids, results, marker="o")
         plt.xlabel("Metric ID")
         plt.ylabel("Metric Value")
@@ -31,8 +36,12 @@ class DisplaySingleNumber(MetricDisplay):
         plt.savefig(img_path)
         plt.close()
         content = (
-            f"### Metric name: {self.metric_name}\n\n"
-            f"Table \n{table}\n\n"
-            f"Graph \n\n![{self.metric_name}]({self.metric_name}.png)\n"
+            "<div>\n"
+            f"<h3>Metric name: {self.metric_name}</h3>\n"
+            f"<div><p>Table</p> \n{table}\n</div>\n"
+            f"<div><p>Graph</p> \n"
+            f"<img src='{self.metric_name}.png' "
+            f"alt='{self.metric_name}' /></div>\n"
+            "</div>\n"
         )
         return content

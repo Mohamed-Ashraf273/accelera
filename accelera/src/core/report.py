@@ -20,6 +20,51 @@ class Report(ABC):
         self.results = results
         create_folder(folderpath)
         self.metric_ids = []
+        self.start_content = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Accelera Graph Report</title>
+          <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #000000;
+            color: #ffffff;
+            }
+            h1 {
+            color: #ffcc00;
+            text-align: center;
+            }
+            h4 {
+            color: #ffcc00; 
+            
+            }
+            table{
+            border-collapse: collapse;
+            width: 80%;
+            }
+             th, td {
+            border: 1px solid #444;
+            padding: 6px;
+            }
+            .metric-container {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+            }
+            
+        </style>
+        </head>
+        <body>
+        <h1>Accelera Report</h1>
+        """
+        self.end_content = """
+        </body>
+        </html>
+        """
 
     def handle_metric(self):
         final_metric = {}
@@ -45,13 +90,17 @@ class Report(ABC):
     def metric_display(self):
         metric = self.handle_metric()
         metric_content = (
-            "## Metrics Summary\n"
-            "- Each metric is displayed with its user-defined name,"
-            " unique identifier (ID) and the corresponding results.\n"
-            "- Depending on the metric type, the results may include "
-            "scalar values, arrays, dictionaries, strings, curves, or tuples.\n"
-            "- All metrics are presented in a structured and consistent format "
-            "to facilitate clear interpretation and comparison.\n"
+            "<h2> Metrics Summary</h2>\n"
+            "<ul>\n"
+            "<li>Each metric is displayed with its user-defined name,"
+            " unique identifier (ID) and the corresponding results.</li>\n"
+            "<li>Depending on the metric type, the results may include "
+            "scalar values, arrays, dictionaries, "
+            "strings, curves, or tuples.</li>\n"
+            "<li>All metrics are presented in a structured "
+            "and consistent format "
+            "to facilitate clear interpretation and comparison.</li>\n"
+            "</ul>\n"
         )
         for metric_name, values in metric.items():
             if isinstance(values[0]["result"], (int, float)):
@@ -91,8 +140,8 @@ class Report(ABC):
             metric_content = metric_content + "\n" + content
         return metric_content
 
-    def create_readme_file(self, content):
-        readme_path = os.path.join(self.folderpath, "README.md")
+    def create_html_file(self, content):
+        readme_path = os.path.join(self.folderpath, "report.html")
         with open(readme_path, encoding="utf-8", mode="w") as f:
             f.write(content)
 

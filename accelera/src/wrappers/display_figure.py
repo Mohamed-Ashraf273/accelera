@@ -15,9 +15,9 @@ class DisplayFigure(MetricDisplay):
 
     def execute(self):
         content = (
-            f"### Metric name: {self.metric_name}\n\n"
-            "<div style='display: grid; "
-            "grid-template-columns: repeat(2, 1fr); gap: 20px;'>\n"
+            "<div>\n"
+            f"<h3>Metric name: {self.metric_name}</h3>\n"
+            "<div class='metric-container'>\n"
         )
         sub_folder_path = os.path.join(self.folderpath, self.metric_name)
         create_folder(sub_folder_path)
@@ -33,12 +33,13 @@ class DisplayFigure(MetricDisplay):
             plt.title(f"{self.metric_name} - Metric ID: {value['metric id']}")
             plt.savefig(img_path)
             plt.close()
+            img_src = os.path.join(
+                self.metric_name, f"{value['metric id']}.png"
+            )
+            img_alt = f"{self.metric_name}_{value['metric id']}"
             new_content = (
-                f'<div  style="overflow-x:auto;max-width:400px;">\n\n'
-                f"![{self.metric_name}_{value['metric id']}]"
-                f"({os.path.join(self.metric_name, value['metric id'])}.png)\n"
-                "</div>\n"
+                f"<div>\n<img src='{img_src}' alt='{img_alt}' />\n</div>\n"
             )
             content = content + new_content
-        content = content + "</div>\n"
+        content = content + "</div>\n</div>\n"
         return content

@@ -20,7 +20,7 @@ class ModelReport(Report):
 
     def display_history(self):
         try:
-            content = "## Model History\n"
+            content = "<h2> Model History</h2>\n"
             training_evaluation = []
             for key in self.history.keys():
                 if not key.startswith("val_"):
@@ -42,28 +42,40 @@ class ModelReport(Report):
             plt.tight_layout()
             path = os.path.join(self.folderpath, "history")
             plt.savefig(path)
-            content += "![history](history.png)\n"
+            content += "<img src='history.png' alt='Model History' />\n"
             return content
         except Exception as e:
             print(f"Error while generating model history: {e}")
-            return "## Model History\nError: Could not generate plot.\n"
+            return "<h2> Model History</h2>\nError: Could not generate plot.\n"
 
     def execute(self):
         metric_content = self.metric_display()
         content = textwrap.dedent(
             """\
-        # Report
-        This is the automated report for the 
-        model  created using **Mainera**.  
+        <p>This is the automated report for the 
+        model  created using <i>Accelera</i>.</p>
+        <p>
         It provides a comprehensive overview of the model’s 
-        performance, including::  
-        - Performance Summary — Highlighting key evaluation 
-        metrics and model results
+        performance, including:</p>
+        <ul>
+        <li>
+        Performance Summary — Highlighting key evaluation 
+        metrics and model results</li>
+        <li>
         - Training Graphs — Visualizing deep learning history 
         (loss, accuracy, and other tracked metrics) if exists
+        </li>
+        </ul>
         """
         )
         if self.history:
             content += self.display_history()
-        content = content + "\n" + metric_content
-        self.create_readme_file(content)
+        content = (
+            self.start_content
+            + "\n"
+            + content
+            + "\n"
+            + metric_content
+            + self.end_content
+        )
+        self.create_html_file(content)
