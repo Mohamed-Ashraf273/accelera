@@ -6,15 +6,15 @@ class DisplayString(MetricDisplay):
         super().__init__(metric_name, values)
 
     def execute(self):
-        content = f"### Metric name: {self.metric_name}\n"
+        content = f"<div>\n<h3>Metric name: {self.metric_name}</h3>\n"
         for value in self.values:
             new_content = (
                 "<div>\n"
-                '<h3 style="color:yellow;">\n'
-                f"Metric id: {value['metric id']}</h3>\n\n"
+                "<h4>\n"
+                f"Metric id: {value['metric id']}</h4>\n"
                 f"<pre>{value['result'].strip()}</pre>\n"
                 "</div>\n"
             )
             content = content + new_content
-        content = content
+        content = content + "</div>\n"
         return content

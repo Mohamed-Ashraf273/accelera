@@ -15,18 +15,16 @@ class DisplayFigure(MetricDisplay):
 
     def execute(self):
         content = (
-            f"### Metric name: {self.metric_name}\n\n"
-            "<div style='display: grid; "
-            "grid-template-columns: repeat(2, 1fr); gap: 20px;'>\n"
+            "<div>\n"
+            f"<h3>Metric name: {self.metric_name}</h3>\n"
+            "<div class='metric-container'>\n"
         )
         sub_folder_path = os.path.join(self.folderpath, self.metric_name)
         create_folder(sub_folder_path)
         for value in self.values:
             plot_func = value["plot_func"]
             result = value["result"]
-            img_path = os.path.join(
-                sub_folder_path, f"{value['metric id']}.png"
-            )
+            img_path = os.path.join(sub_folder_path, f"{value['metric id']}.png")
             plt = plot_func(result)
             if plt is None:
                 raise ValueError("The plot_func must return the plt object")
@@ -34,11 +32,11 @@ class DisplayFigure(MetricDisplay):
             plt.savefig(img_path)
             plt.close()
             new_content = (
-                f'<div  style="overflow-x:auto;max-width:400px;">\n\n'
-                f"![{self.metric_name}_{value['metric id']}]"
-                f"({os.path.join(self.metric_name, value['metric id'])}.png)\n"
+                f"<div>\n"
+                f"<img src='{os.path.join(self.metric_name, value['metric id'])}.png' "
+                f"alt='{self.metric_name}_{value['metric id']}' />\n"
                 "</div>\n"
             )
             content = content + new_content
-        content = content + "</div>\n"
+        content = content + "</div>\n</div>\n"
         return content

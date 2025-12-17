@@ -104,7 +104,7 @@ cd build
 cmake .. -DENABLE_PYTHON=ON -DENABLE_WHEEL=ON -DENABLE_TESTS=ON
 
 # Build with parallel compilation
-cmake --build . -j4
+cmake --build . -j4  
 ```
 
 ### 🚨 **Important for Developers**

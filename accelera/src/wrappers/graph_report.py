@@ -27,9 +27,7 @@ class GraphReport(Report):
 
         all_branches = []
         for child_id in tree[current_node_id]:
-            child_branches = self.get_branches(
-                nodes, tree, child_id, list(path)
-            )
+            child_branches = self.get_branches(nodes, tree, child_id, list(path))
             all_branches.extend(child_branches)
         return all_branches
 
@@ -48,21 +46,14 @@ class GraphReport(Report):
         names = [node["node_name"] for node in branch]
         types = [node["node_type"] for node in branch]
         data = {"Node ID": ids, "Node Name": names, "Node Type": types}
-        table = pd.DataFrame(data).to_html(index=False)
-        content = (
-            '<div style="overflow-x:auto;max-width:400px;">\n'
-            f'<h3 style="color:yellow;"> {title}</h3>\n'
-            f"{table}\n"
-            "</div>\n"
-        )
+        table = pd.DataFrame(data).to_html(index=False, border=1, justify="center")
+        content = "<div>\n" f"<h3> {title}</h3>\n" f"{table}\n" "</div>\n"
         return content
 
     def display_branches(self, branches, best_branch):
         branches = self.grouby_branches(branches)
         content = (
-            "## Pipeline Branches\n"
-            "<div style='display: grid; \n"
-            "grid-template-columns: repeat(2,  1fr); gap: 10px;'>\n"
+            "<div>\n" "<h2> Pipeline Branches</h2>\n" "<div class='metric-container'>\n"
         )
         branch_id = 1
         for branch in branches:
@@ -72,7 +63,7 @@ class GraphReport(Report):
         content = content + "</div>\n"
         if best_branch:
             content += self.display_branch(best_branch, "Best Branch")
-        return content
+        return content + "</div>\n"
 
     def create_graph_img(self):
         try:
@@ -80,8 +71,7 @@ class GraphReport(Report):
             root = xml_tree.getroot()
         except FileNotFoundError:
             raise FileNotFoundError(
-                f"XML file: {self.xmlpath} "
-                "not found please run serialize function"
+                f"XML file: {self.xmlpath} " "not found please run serialize function"
             )
         except ET.ParseError as e:
             raise ValueError(f"Invalid XML file {self.xmlpath}: {e}")
@@ -129,29 +119,47 @@ class GraphReport(Report):
         metric_content = self.metric_display()
         content = textwrap.dedent(
             """\
-        # Report
-        This is the automated report for the 
-        pipeline created using **Mainera**.  
-        It includes both:  
-        - A graphical representation of the pipeline structure
-        - A summary of the resulting metrics
-        ## Graphical Representation
-        ![Pipeline Graph](graph.png)
-        ### Description
-        The graph illustrates the **nodes** in the 
-        pipeline and their **connections**.  
-        - Each node is labeled with its:
-            - **ID**
-            - **Type** (one of: `Input`, `Preprocess`, 
-            `Model`, `Predict`, `Merge`, `Metric`)
-            - **Name**
-        - **Node colors**:
-            -  **Red nodes** → selected in the final execution path  
-            -  **Blue nodes** → present in the 
-            structure but not part of the final path 
-              
+        <p>This is the automated report for the
+        pipeline created using <i>Accelera</i>.</p>
+        <p>It includes both:</p>
+        <ul>
+        <li>A graphical representation of the pipeline structure</li>
+        <li>A summary of the resulting metrics</li>
+        </ul>
+        <h2>Graphical Representation</h2>
+        <img src='graph.png' alt="Graphical Representation" style="width:100%; max-width:1200px;"/>
+        <h3>Description</h3>
+        <p>
+        The graph illustrates the <b>nodes</b> in the
+        pipeline and their <b>connections</b>.</p>
+        <ul>
+        <li>Each node is labeled with its:
+        <ul>
+            <li><b>ID</b></li>
+            <li><b>Type</b> (one of: Input, Preprocess,
+            Model, Predict, Merge, Metric)</li>
+            <li><b>Name</b></li>
+            </ul>
+        </li>
+        <li>Node colors:
+            <ul>
+            <li><b>Red nodes</b> → selected in the final execution path</li>
+            <li><b>Blue nodes</b> → present in the
+            structure but not part of the final path</li>
+            </ul>
+        </li>
+        </ul>
         """
         )
         branch_content = self.display_branches(branches, best_branch)
-        content = content + "\n" + branch_content + "\n" + metric_content
-        self.create_readme_file(content)
+        content = (
+            self.start_content
+            + "\n"
+            + content
+            + "\n"
+            + branch_content
+            + "\n"
+            + metric_content
+            + self.end_content
+        )
+        self.create_html_file(content)

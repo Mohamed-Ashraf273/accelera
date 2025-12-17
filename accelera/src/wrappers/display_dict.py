@@ -9,18 +9,21 @@ class DisplayDict(MetricDisplay):
 
     def execute(self):
         content = (
-            f"### Metric name: {self.metric_name}\n"
-            "<div style='display: "
-            "grid; grid-template-columns: "
-            "repeat(2, 1fr); gap: 20px;'>\n"
+            "<div>\n"
+            f"<h3>Metric name: {self.metric_name}</h3>\n"
+            "<div class='metric-container'>\n"
         )
         for value in self.values:
-            table = pd.DataFrame(value["result"]).transpose().round(3).to_html()
-            new_content = '<div style="overflow-x:auto;max-width:400px;">\n'
-            new_content += '<h3 style="color:yellow;">\n'
-            new_content += (
-                f"Metric id :{value['metric id']}</h3>\n\n {table}\n</div>\n"
+            table = (
+                pd.DataFrame(value["result"])
+                .transpose()
+                .round(3)
+                .to_html(border=1, justify="center")
             )
+            new_content = "<div>\n"
+            new_content += "<h4>\n"
+            new_content += f"Metric id :{value['metric id']}</h4>\n {table}\n</div>\n"
             content = content + new_content
-        content = content + "</div>\n"
+        content = content + "</div>\n</div>\n"
+
         return content
