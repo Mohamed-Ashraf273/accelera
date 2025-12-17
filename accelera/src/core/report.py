@@ -95,8 +95,10 @@ class Report(ABC):
             "<li>Each metric is displayed with its user-defined name,"
             " unique identifier (ID) and the corresponding results.</li>\n"
             "<li>Depending on the metric type, the results may include "
-            "scalar values, arrays, dictionaries, strings, curves, or tuples.</li>\n"
-            "<li>All metrics are presented in a structured and consistent format "
+            "scalar values, arrays, dictionaries, "
+            "strings, curves, or tuples.</li>\n"
+            "<li>All metrics are presented in a structured "
+            "and consistent format "
             "to facilitate clear interpretation and comparison.</li>\n"
             "</ul>\n"
         )

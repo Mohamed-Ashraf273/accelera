@@ -22,7 +22,9 @@ class DisplayDict(MetricDisplay):
             )
             new_content = "<div>\n"
             new_content += "<h4>\n"
-            new_content += f"Metric id :{value['metric id']}</h4>\n {table}\n</div>\n"
+            new_content += (
+                f"Metric id :{value['metric id']}</h4>\n {table}\n</div>\n"
+            )
             content = content + new_content
         content = content + "</div>\n</div>\n"
 

@@ -27,7 +27,9 @@ class GraphReport(Report):
 
         all_branches = []
         for child_id in tree[current_node_id]:
-            child_branches = self.get_branches(nodes, tree, child_id, list(path))
+            child_branches = self.get_branches(
+                nodes, tree, child_id, list(path)
+            )
             all_branches.extend(child_branches)
         return all_branches
 
@@ -46,14 +48,18 @@ class GraphReport(Report):
         names = [node["node_name"] for node in branch]
         types = [node["node_type"] for node in branch]
         data = {"Node ID": ids, "Node Name": names, "Node Type": types}
-        table = pd.DataFrame(data).to_html(index=False, border=1, justify="center")
-        content = "<div>\n" f"<h3> {title}</h3>\n" f"{table}\n" "</div>\n"
+        table = pd.DataFrame(data).to_html(
+            index=False, border=1, justify="center"
+        )
+        content = f"<div>\n<h3> {title}</h3>\n{table}\n</div>\n"
         return content
 
     def display_branches(self, branches, best_branch):
         branches = self.grouby_branches(branches)
         content = (
-            "<div>\n" "<h2> Pipeline Branches</h2>\n" "<div class='metric-container'>\n"
+            "<div>\n"
+            "<h2> Pipeline Branches</h2>\n"
+            "<div class='metric-container'>\n"
         )
         branch_id = 1
         for branch in branches:
@@ -71,7 +77,8 @@ class GraphReport(Report):
             root = xml_tree.getroot()
         except FileNotFoundError:
             raise FileNotFoundError(
-                f"XML file: {self.xmlpath} " "not found please run serialize function"
+                f"XML file: {self.xmlpath} "
+                "not found please run serialize function"
             )
         except ET.ParseError as e:
             raise ValueError(f"Invalid XML file {self.xmlpath}: {e}")
@@ -127,7 +134,8 @@ class GraphReport(Report):
         <li>A summary of the resulting metrics</li>
         </ul>
         <h2>Graphical Representation</h2>
-        <img src='graph.png' alt="Graphical Representation" style="width:100%; max-width:1200px;"/>
+        <img src='graph.png' alt="Graphical Representation" 
+        style="width:100%; max-width:1200px;"/>
         <h3>Description</h3>
         <p>
         The graph illustrates the <b>nodes</b> in the

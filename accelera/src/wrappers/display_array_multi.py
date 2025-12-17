@@ -10,7 +10,9 @@ class DisplayMultiArray(MetricDisplay):
 
     def execute(self):
         content = f"<div>\n<h3>Metric name: {self.metric_name}</h3>\n"
-        labels_name = self.handle_name("labels_name", self.values[0]["result"].shape[0])
+        labels_name = self.handle_name(
+            "labels_name", self.values[0]["result"].shape[0]
+        )
         headers_name = self.handle_name(
             "headers_name", self.values[0]["result"].shape[1]
         )
@@ -28,7 +30,9 @@ class DisplayMultiArray(MetricDisplay):
                     else:
                         data[headers_name[col_idx]].append(array_str)
 
-            table = pd.DataFrame(data).to_html(index=False, border=1, justify="center")
+            table = pd.DataFrame(data).to_html(
+                index=False, border=1, justify="center"
+            )
             new_content = (
                 "<div>\n"
                 "<h4>\n"
