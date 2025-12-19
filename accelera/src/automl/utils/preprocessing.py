@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
@@ -170,7 +169,9 @@ def handle_label_encoding_features(X_train, X_test, colums):
 
 
 def handle_one_hot_encoding_features(X_train, X_test, columns):
-    X_train_dummies = pd.get_dummies(X_train[columns], drop_first=True, dtype=int)
+    X_train_dummies = pd.get_dummies(
+        X_train[columns], drop_first=True, dtype=int
+    )
     X_test_dummies = pd.get_dummies(X_test[columns], drop_first=True, dtype=int)
     X_test_dummies = X_test_dummies.reindex(
         columns=X_train_dummies.columns, fill_value=0
@@ -314,7 +315,9 @@ print("House price Score", model.score(X_test, y_test))
 print("MAE:", mean_absolute_error(y_test, model.predict(X_test)))
 print("--------------------------------------------------")
 print(df_multi_class.head())
-X_train, y_train, X_test, y_test = common_preprocessing(df_multi_class, "Segmentation")
+X_train, y_train, X_test, y_test = common_preprocessing(
+    df_multi_class, "Segmentation"
+)
 print("Multi-class data")
 print(X_train)
 model = RandomForestClassifier(random_state=42)
