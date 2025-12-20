@@ -3,7 +3,7 @@ from accelera.src.automl.utils.sampler import sample
 from accelera.src.utils.accelera_utils import print_msg
 
 
-class AutoMLAgent:
+class AutoAccelera:
     def __init__(self, algorithm="default"):
         self.algorithm = self._get_algo(algorithm)
 
