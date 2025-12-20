@@ -2,18 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-# ----------------------------------------------------------
-# test on taitanic dataset
-# df_titanic = pd.read_csv("../../../../examples/Titanic-Dataset.csv")
-# # test one  house price data set
-# df_price = pd.read_csv("../../../../examples/Housing.csv")
-# # test on multi-class classification dataset
-# df_multi_class = pd.read_csv("../../../../examples/train.csv")
 
-
-# ----------------------------------------------------------
-# drop column that is has no
-# variance and cloumns like id and column has missing >0.5
 def is_drop_column(df, info, col):
     # Drop column if it is constant column if exists
     if info[col].get("is_constant", False):
@@ -122,11 +111,6 @@ def handle_missing(df, info, col):
             median = info[col]["median"]
             print(f"{col} Fill missing median value")
             df[col] = df[col].fillna(median)
-
-
-# handle encoding categorical features
-# if it is binary use label encoder
-# if it has <11 unique use one hot encoder
 
 
 def type_encoding(
@@ -282,45 +266,3 @@ def common_preprocessing(df, target_col: str):
     X_train, X_test = features_preprocessing(X_train, X_test, info)
     y_train, y_test = target_preprocessing(y_train, y_test, info, target_col)
     return X_train, y_train, X_test, y_test
-
-
-# X_train, y_train, X_test, y_test = common_preprocessing(df_titanic, "Survived")
-
-# print(X_train)
-
-
-# model = RandomForestClassifier(random_state=42)
-# model.fit(X_train, y_train)
-
-# print("Tatianic Score", model.score(X_test, y_test))
-# # --------------------------------------------------------------
-# X_train, y_train, X_test, y_test = common_preprocessing(df_price, "price")
-
-# print("House price data")
-# print(X_train)
-
-# model = RandomForestRegressor(random_state=42)
-# model.fit(X_train, y_train)
-
-# model.score(X_test, y_test)
-
-
-# model = LinearRegression()
-# model.fit(X_train, y_train)
-
-# print("House price Score", model.score(X_test, y_test))
-# print("MAE:", mean_absolute_error(y_test, model.predict(X_test)))
-# print("--------------------------------------------------")
-# print(df_multi_class.head())
-# X_train, y_train, X_test, y_test = common_preprocessing(
-#     df_multi_class, "Segmentation"
-# )
-# print("Multi-class data")
-# print(X_train)
-# model = RandomForestClassifier(random_state=42)
-# model.fit(X_train, y_train)
-# print("Multi-class Score", model.score(X_test, y_test))
-# xgb_model = XGBClassifier(eval_metric="mlogloss", random_state=42)
-
-# xgb_model.fit(X_train, y_train)
-# print("Multi-class XGB Score", xgb_model.score(X_test, y_test))
