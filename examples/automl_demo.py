@@ -1,13 +1,10 @@
 import numpy as np
+import pandas as pd
 from sklearn.datasets import make_classification
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import StandardScaler
 
-from accelera.src.automl.utils import sample
-from accelera.src.core.pipeline import Pipeline
+from accelera.src.automl.core.agent import AutoMLAgent
 
-p1 = Pipeline()
-p2 = Pipeline()
+agent = AutoMLAgent()
 
 
 def sample_data():
@@ -40,21 +37,11 @@ def sample_data():
 
 X, y, test_data, y_test = sample_data()
 
+df = pd.DataFrame(X)
+df["target"] = y
 
-X_sampled, y_sampled, meta_data = sample(X, y)
-p1.preprocess("p1_scaling", StandardScaler()).model(
-    "rf1", RandomForestClassifier(n_estimators=10, random_state=42)
-).predict("predict", test_data=test_data).metric(
-    "report", "classification_report", y_true=y_test
-)
-output_1, _ = p1(X, y)
-p2.preprocess("p2_scaling", StandardScaler()).model(
-    "rf2", RandomForestClassifier(n_estimators=10, random_state=42)
-).predict("predict", test_data=test_data).metric(
-    "report", "classification_report", y_true=y_test
-)
-output_2, _ = p2(X_sampled, y_sampled)
-print(output_1[0]["result"])
-print(meta_data["original_size"])
-print(output_2[0]["result"])
-print(meta_data["final_size"])
+print(df.shape)
+
+best_pipeline = agent.get_pipeline(df, "target")
+
+print(X.shape, y.shape)
