@@ -1,3 +1,3 @@
-from accelera.src.automl.core.agent import AutoMLAgent
+from accelera.src.automl.core.agent import AutoAccelera
 
-__all__ = ["AutoMLAgent"]
+__all__ = ["AutoAccelera"]
