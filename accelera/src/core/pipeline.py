@@ -33,11 +33,10 @@ class Pipeline(PipelineBase):
         )
         return self
 
-    def model(self, name, model, exclude=None, branch=False):
+    def model(self, name, model, branch=False):
         model_params = {
             "model": model,
             "execute_fit": execute_fit,
-            "exclude": exclude,
         }
         if branch:
             return Node("model", name, model_params)
