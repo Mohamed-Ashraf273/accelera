@@ -24,7 +24,7 @@ class Algorithm:
 
         self.dumy_preprocessors_space = (
             "preprocessors",
-            self.pipeline.preprocess("encode", StandardScaler(), branch=True),
+            self.pipeline.preprocess("scaler", StandardScaler(), branch=True),
         )
 
     def run(
@@ -34,44 +34,10 @@ class Algorithm:
         X_test=None,
         y_test=None,
     ):
-        import numpy as np
-
-        self.pipeline.preprocess("encode", StandardScaler()).branch(
-            "preprocessing",
-            self.pipeline.preprocess(
-                "scale",
-                lambda x: np.sign(x) * np.power(np.abs(x), 0.8),
-                branch=True,
-            ),
-            self.pipeline.preprocess(
-                "power_transform",
-                lambda x: np.sign(x) * np.power(np.abs(x), 0.8),
-                branch=True,
-            ),
-        ).branch(
-            "models",
-            self.pipeline.model(
-                "lr", LogisticRegression(max_iter=1000), branch=True
-            ),
-            self.pipeline.model(
-                "rf",
-                RandomForestClassifier(max_depth=10),
-                exclude=["scale"],
-                branch=True,
-            ),
-            self.pipeline.model("svc", SVC(), branch=True),
-        ).predict("predict", test_data=X_test).branch(
-            "metrics",
-            self.pipeline.metric(
-                "metric",
-                "f1_score",
-                y_true=y_test,
-                average="macro",
-                branch=True,
-            ),
-            self.pipeline.metric(
-                "metric", "accuracy_score", y_true=y_test, branch=True
-            ),
+        self.pipeline.branch(*self.dumy_preprocessors_space).branch(
+            *self.dumy_models_space
+        ).predict("predict", test_data=X_test).metric(
+            "metric", "f1_score", y_true=y_test, average="macro"
         )
 
         predictions, best_path = self.pipeline(
