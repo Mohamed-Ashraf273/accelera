@@ -216,7 +216,7 @@ std::string nodeTypeToString(NodeType type) {
   }
 }
 
-void validateNodeConnection(Node::Ptr newNode, Node::Ptr sourceNode) {
+bool validateNodeConnection(Node::Ptr newNode, Node::Ptr sourceNode) {
   bool valid = false;
   switch (newNode->type) {
   case NodeType::PREPROCESS:
@@ -247,10 +247,8 @@ void validateNodeConnection(Node::Ptr newNode, Node::Ptr sourceNode) {
     break;
   }
   if (!valid)
-    throw std::runtime_error(
-        "Invalid connection: Cannot connect node of type " +
-        nodeTypeToString(newNode->type) + " to source node of type " +
-        nodeTypeToString(sourceNode->type));
+    return false;
+  return true;
 }
 
 void saveAsCsv(const std::string &directory, py::object X, py::object y,

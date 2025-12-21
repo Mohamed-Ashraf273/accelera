@@ -14,7 +14,7 @@ class Graph; // Forward declaration
 ACCELERA_API void serialize_graph(const Graph &graph,
                                   const std::string &filepath);
 ACCELERA_API void log_warning(const std::string &message);
-ACCELERA_API void validateNodeConnection(Node::Ptr newNode,
+ACCELERA_API bool validateNodeConnection(Node::Ptr newNode,
                                          Node::Ptr sourceNode);
 ACCELERA_API std::string nodeTypeToString(NodeType type);
 ACCELERA_API void saveAsCsv(const std::string &directory, py::object X,

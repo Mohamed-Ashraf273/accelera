@@ -82,8 +82,6 @@ private:
   void selectAllPaths();
   void findMaxMinMetricNode(bool find_max);
   void setPath(std::shared_ptr<MetricNode> best_metric_node);
-  bool shouldExcludeModel(const std::shared_ptr<ModelNode> &model_node,
-                          const Node::Ptr &source_node);
 };
 } // namespace accelera
 
