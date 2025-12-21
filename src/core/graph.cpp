@@ -19,6 +19,7 @@
 #include "nodes/predict.hpp"
 #include "nodes/preprocess.hpp"
 #include "utils/graph_utils.hpp"
+#include <iostream>
 
 namespace accelera {
 
@@ -132,6 +133,12 @@ void Graph::addNode(Node::Ptr node) {
   default:
     for (size_t i = 0; i < leaves.size(); ++i) {
       validateNodeConnection(node, leaves[i]);
+      if (node->type == NodeType::MODEL) {
+        auto model_node = std::dynamic_pointer_cast<ModelNode>(node);
+        if (shouldExcludeModel(model_node, leaves[i])) {
+          continue;
+        }
+      }
       Node::Ptr nodeToAdd =
           (i == 0) ? node : NodeFactory::createNodeCopy(node, i);
       nodeToAdd->setShouldCreateNewData(is_connected_to_input[i]);
@@ -145,6 +152,57 @@ void Graph::addNode(Node::Ptr node) {
     break;
   }
   m_compiled = false;
+}
+
+bool Graph::shouldExcludeModel(const std::shared_ptr<ModelNode> &model_node,
+                               const Node::Ptr &source_node) {
+  if (!model_node || model_node->py_func.is_none()) {
+    return false;
+  }
+
+  py::object exclude_obj = model_node->py_func["exclude"];
+  if (exclude_obj.is_none()) {
+    return false;
+  }
+
+  auto getBaseName = [](const std::string &name) -> std::string {
+    size_t last_underscore = name.find_last_of('_');
+
+    if (last_underscore == std::string::npos) {
+      return name;
+    }
+
+    for (size_t i = last_underscore + 1; i < name.length(); i++) {
+      if (!std::isdigit(name[i])) {
+        return name;
+      }
+    }
+
+    return (last_underscore + 1 < name.length())
+               ? name.substr(0, last_underscore)
+               : name;
+  };
+
+  try {
+    py::list exclude_list = exclude_obj.cast<py::list>();
+
+    Node::Ptr current = source_node;
+    while (current && current->type == NodeType::PREPROCESS) {
+      std::string base_name = getBaseName(current->name);
+
+      for (auto item : exclude_list) {
+        if (item.cast<std::string>() == base_name) {
+          return true;
+        }
+      }
+
+      current = current->getSourceNode();
+    }
+  } catch (const py::cast_error &) {
+    throw std::runtime_error("exclude should be a list of preprocessor names");
+  }
+
+  return false;
 }
 
 void Graph::split(const std::string &branch_name,
@@ -200,6 +258,12 @@ void Graph::split(const std::string &branch_name,
               NodeFactory::createNode(nodeType, uniqueName, node_obj);
 
           validateNodeConnection(branchNode, current_source);
+          if (branchNode->type == NodeType::MODEL) {
+            auto model_node = std::dynamic_pointer_cast<ModelNode>(branchNode);
+            if (shouldExcludeModel(model_node, current_source)) {
+              continue;
+            }
+          }
 
           branchNode->setShouldCreateNewData(list_idx == 0);
 
@@ -235,6 +299,12 @@ void Graph::split(const std::string &branch_name,
             nodeType, uniqueName, branch_objects[branch_idx]);
 
         validateNodeConnection(branchNode, current_source);
+        if (branchNode->type == NodeType::MODEL) {
+          auto model_node = std::dynamic_pointer_cast<ModelNode>(branchNode);
+          if (shouldExcludeModel(model_node, current_source)) {
+            continue;
+          }
+        }
 
         branchNode->setShouldCreateNewData(true);
 
