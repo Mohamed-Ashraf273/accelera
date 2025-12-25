@@ -532,6 +532,7 @@ void Graph::runParallel() {
   std::binary_semaphore available_nodes(1);
   std::vector<std::exception_ptr> exceptions(m_execution_order.size());
   std::vector<std::future<void>> futures;
+  futures.reserve(m_execution_order.size());
   std::mutex data_mutex;
   std::mutex gpu_mutex;
 
@@ -544,6 +545,14 @@ void Graph::runParallel() {
   while (rem_nodes != 0) {
     available_nodes.acquire();
     i = 0;
+
+    futures.erase(std::remove_if(futures.begin(), futures.end(),
+                                 [](std::future<void> &f) {
+                                   return f.wait_for(std::chrono::seconds(0)) ==
+                                          std::future_status::ready;
+                                 }),
+                  futures.end());
+
     while (i < m_execution_order.size()) {
       const auto &node = m_execution_order[i];
       if (started_executing[node]) {
@@ -589,6 +598,40 @@ void Graph::runParallel() {
                 std::lock_guard<std::mutex> lock(data_mutex);
                 finished_executing[node] = true;
                 rem_nodes--;
+
+                if (node->type != NodeType::INPUT &&
+                    node->type != NodeType::METRIC &&
+                    node->type != NodeType::PREDICT &&
+                    node->type != NodeType::MERGE) {
+
+                  bool is_leaf = true;
+                  for (const auto &other_node : m_execution_order) {
+                    auto sources = other_node->getSourceNodes();
+                    if (std::find(sources.begin(), sources.end(), node) !=
+                        sources.end()) {
+                      is_leaf = false;
+                      break;
+                    }
+                  }
+
+                  if (!is_leaf) {
+                    bool has_pending_children = false;
+                    for (const auto &other_node : m_execution_order) {
+                      if (!finished_executing[other_node]) {
+                        auto sources = other_node->getSourceNodes();
+                        if (std::find(sources.begin(), sources.end(), node) !=
+                            sources.end()) {
+                          has_pending_children = true;
+                          break;
+                        }
+                      }
+                    }
+
+                    if (!has_pending_children) {
+                      node->clearData();
+                    }
+                  }
+                }
               }
               if (node->getUsesGPU()) {
                 available_gpu_thread.release();

@@ -60,6 +60,8 @@ public:
   void setUsesGPU(bool uses_gpu);
   bool getUsesGPU() const;
 
+  void clearData(); // NEW: Free memory after node execution
+
 protected:
   std::shared_ptr<py::object> m_data = std::make_shared<py::object>(py::none());
   Graph *m_graph = nullptr; // Pointer to parent graph

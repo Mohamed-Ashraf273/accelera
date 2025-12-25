@@ -62,14 +62,13 @@ std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
     fs::create_directory(cacheDir);
 
     fs::path model_path = cacheDir / (hash_value + "model" + ".pkl");
-    fs::path data_path = cacheDir / (hash_value + "data" + ".pkl");
 
     std::string modelPathStr = model_path.string();
-    std::string dataPathStr = data_path.string();
 
-    if (fs::exists(modelPathStr) && fs::exists(dataPathStr)) {
+    if (fs::exists(modelPathStr)) {
       transformer_instance = joblib.attr("load")(modelPathStr);
-      X = joblib.attr("load")(dataPathStr);
+      X = py::cast<py::array_t<double>>(
+          transformer_instance.attr("transform")(X));
       py_func["func"] = transformer_instance;
     } else {
       try {
@@ -80,7 +79,7 @@ std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
             transformer_instance.attr("transform")(X));
         py_func["func"] = transformer_instance;
         joblib.attr("dump")(transformer_instance, modelPathStr);
-        joblib.attr("dump")(X, dataPathStr);
+        // Don't cache transformed data - it uses too much memory
       } catch (const py::error_already_set &e) {
         throw std::runtime_error("Python error in model fitting: " +
                                  std::string(e.what()));
@@ -124,7 +123,10 @@ void PreprocessNode::execute() {
     auto [X, y] = getInputData(input);
     validateInputData(X);
 
-    if (should_create_new_data) {
+    // Only copy data if it will be modified in-place by the transformer
+    // Most sklearn transformers return new arrays, so no copy needed
+    if (should_create_new_data && py::hasattr(py_func["func"], "inplace") &&
+        py::cast<bool>(py_func["func"].attr("inplace"))) {
       X = X.attr("copy")();
       y = y.is_none() ? py::none() : y.attr("copy")();
       validateInputData(X);
