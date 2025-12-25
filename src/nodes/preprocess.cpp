@@ -79,7 +79,6 @@ std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
             transformer_instance.attr("transform")(X));
         py_func["func"] = transformer_instance;
         joblib.attr("dump")(transformer_instance, modelPathStr);
-        // Don't cache transformed data - it uses too much memory
       } catch (const py::error_already_set &e) {
         throw std::runtime_error("Python error in model fitting: " +
                                  std::string(e.what()));
@@ -123,8 +122,6 @@ void PreprocessNode::execute() {
     auto [X, y] = getInputData(input);
     validateInputData(X);
 
-    // Only copy data if it will be modified in-place by the transformer
-    // Most sklearn transformers return new arrays, so no copy needed
     if (should_create_new_data && py::hasattr(py_func["func"], "inplace") &&
         py::cast<bool>(py_func["func"].attr("inplace"))) {
       X = X.attr("copy")();
