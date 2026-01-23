@@ -6,6 +6,7 @@
 #include "utils/code_parallelizer_utils.hpp"
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/RecursiveASTVisitor.h"
+#include "clang/Basic/SourceManager.h"
 
 #include <string>
 #include <vector>
