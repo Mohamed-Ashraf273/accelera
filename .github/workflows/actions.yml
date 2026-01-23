@@ -27,12 +27,6 @@ jobs:
       - name: Install LLVM/Clang for code parallelizer
         run: |
           sudo bash shell/install_llvm.sh 18
-      - name: Verify LLVM installation
-        run: |
-          echo "Checking LLVM installation..."
-          llvm-config-18 --version || llvm-config --version
-          echo "Available LLVM versions:"
-          ls -d /usr/lib/llvm-* 2>/dev/null || echo "No LLVM installations found"
       - name: Get pip cache dir
         id: pip-cache
         run: |

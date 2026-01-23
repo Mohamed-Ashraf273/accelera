@@ -93,6 +93,29 @@ $env:PYTHONPATH = "C:\path\to\your\project\accelera"
 ```cmd
 set PYTHONPATH=C:\path\to\your\project\accelera
 ```
+
+### Prerequisites for Linux Users
+
+**For Linux users, you need to install LLVM/Clang for the code parallelizer features:**
+
+```bash
+# Install LLVM 18 (recommended - latest version)
+sudo bash shell/install_llvm.sh 18
+
+# Or install LLVM 14 (stable version)
+sudo bash shell/install_llvm.sh 14
+
+# Or use default (LLVM 18)
+sudo bash shell/install_llvm.sh
+```
+
+**What this installs:**
+- LLVM development libraries (for AST parsing)
+- Clang compiler and development headers
+- Required for loop extraction and code analysis features
+
+**Note for macOS/Windows users:** The code parallelizer is currently Linux-only. Other features will work normally.
+
 ### Build Instructions
 
 ```bash
