@@ -5,3 +5,6 @@ since your modifications would be overwritten.
 """
 
 from accelera.src.code_parallelizer.utils import code_utils as code_utils
+from accelera.src.code_parallelizer.utils import (
+    code_utils_test as code_utils_test,
+)

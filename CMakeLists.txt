@@ -1,8 +1,64 @@
 cmake_minimum_required(VERSION 3.14)
-project(ai_studio LANGUAGES CXX)
+project(ai_studio LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(-Wno-deprecated-enum-enum-conversion)
+endif()
+
+if(UNIX AND NOT APPLE)
+    message(STATUS "Linux detected - Setting up LLVM/Clang for code parallelizer")
+    
+    find_package(LLVM QUIET CONFIG)
+    find_package(Clang QUIET CONFIG)
+    
+    if(NOT LLVM_FOUND OR NOT Clang_FOUND)
+        message(WARNING "LLVM/Clang not found!")
+        message(WARNING "")
+        message(WARNING "To install LLVM/Clang (default: version 18), run:")
+        message(WARNING "  sudo ${CMAKE_SOURCE_DIR}/shell/install_llvm.sh")
+        message(WARNING "Or for a specific version (e.g., 14):")
+        message(WARNING "  sudo ${CMAKE_SOURCE_DIR}/shell/install_llvm.sh 14")
+        message(WARNING "")
+        message(WARNING "Or install manually:")
+        message(WARNING "  sudo apt-get update")
+        message(WARNING "  sudo apt-get install -y llvm-18-dev libclang-18-dev clang-18")
+        message(FATAL_ERROR "Cannot continue without LLVM/Clang. Please install and re-run CMake.")
+    endif()
+    
+    message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+    message(STATUS "Found Clang")
+    
+    add_definitions(${LLVM_DEFINITIONS})
+    add_definitions(-DUSE_CLANG_AST)
+    include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
+    include_directories(SYSTEM ${CLANG_INCLUDE_DIRS})
+    link_directories(${LLVM_LIBRARY_DIRS})
+    
+    set(CLANG_LIBS
+        clangTooling
+        clangFrontend
+        clangDriver
+        clangSerialization
+        clangParse
+        clangSema
+        clangAnalysis
+        clangAST
+        clangBasic
+        clangEdit
+        clangLex
+        clangRewrite
+    )
+    set(LLVM_AVAILABLE ON)
+elseif(WIN32)
+    message(STATUS "Windows detected - Code parallelizer will be disabled")
+    set(LLVM_AVAILABLE OFF)
+else()
+    message(STATUS "macOS detected - Code parallelizer will be disabled")
+    set(LLVM_AVAILABLE OFF)
+endif()
 
 # ========== THIS IS A CRITICAL SECTION ==========
 if(DEFINED ENV{VIRTUAL_ENV})
@@ -45,16 +101,35 @@ endif()
 
 file(GLOB_RECURSE CORE_SOURCES "${CMAKE_SOURCE_DIR}/src/core/*.cpp")
 file(GLOB_RECURSE NODE_SOURCES "${CMAKE_SOURCE_DIR}/src/nodes/*.cpp")
-file(GLOB_RECURSE UTILS_SOURCES "${CMAKE_SOURCE_DIR}/src/utils/*.cpp")
+
+set(UTILS_SOURCES "${CMAKE_SOURCE_DIR}/src/utils/graph_utils.cpp")
+
+if(LLVM_AVAILABLE)
+    file(GLOB_RECURSE CODE_PARALLELIZER_SOURCES 
+        "${CMAKE_SOURCE_DIR}/src/ast/*.cpp"
+    )
+    list(APPEND UTILS_SOURCES "${CMAKE_SOURCE_DIR}/src/utils/code_parallelizer_utils.cpp")
+    message(STATUS "Including AST && code parallelizer sources")
+else()
+    set(CODE_PARALLELIZER_SOURCES "")
+    message(STATUS "⊗ AST disabled (not Linux or LLVM unavailable)")
+endif()
 
 add_library(accelera_core SHARED
     ${CORE_SOURCES}
     ${NODE_SOURCES}
     ${UTILS_SOURCES}
+    ${CODE_PARALLELIZER_SOURCES}
 )
 
 target_include_directories(accelera_core PUBLIC "${CMAKE_SOURCE_DIR}/include")
 target_link_libraries(accelera_core PUBLIC pybind11::module)
+
+if(LLVM_AVAILABLE)
+    target_link_libraries(accelera_core PUBLIC ${CLANG_LIBS})
+    message(STATUS "Linking Clang libraries")
+endif()
+
 set_target_properties(accelera_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_compile_definitions(accelera_core PUBLIC ACCELERA_BUILD_DLL)
