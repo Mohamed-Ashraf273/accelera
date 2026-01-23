@@ -95,10 +95,4 @@ void Node::usesGPU() {
   }
 }
 
-void Node::clearData() {
-  // Free the data to reduce memory usage
-  m_data.reset();
-  m_data = std::make_shared<py::object>(py::none());
-}
-
 } // namespace accelera

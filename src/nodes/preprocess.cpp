@@ -62,13 +62,14 @@ std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
     fs::create_directory(cacheDir);
 
     fs::path model_path = cacheDir / (hash_value + "model" + ".pkl");
+    fs::path data_path = cacheDir / (hash_value + "data" + ".pkl");
 
     std::string modelPathStr = model_path.string();
+    std::string dataPathStr = data_path.string();
 
-    if (fs::exists(modelPathStr)) {
+    if (fs::exists(modelPathStr) && fs::exists(dataPathStr)) {
       transformer_instance = joblib.attr("load")(modelPathStr);
-      X = py::cast<py::array_t<double>>(
-          transformer_instance.attr("transform")(X));
+      X = joblib.attr("load")(dataPathStr);
       py_func["func"] = transformer_instance;
     } else {
       try {
@@ -79,6 +80,7 @@ std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
             transformer_instance.attr("transform")(X));
         py_func["func"] = transformer_instance;
         joblib.attr("dump")(transformer_instance, modelPathStr);
+        joblib.attr("dump")(X, dataPathStr);
       } catch (const py::error_already_set &e) {
         throw std::runtime_error("Python error in model fitting: " +
                                  std::string(e.what()));
@@ -122,8 +124,7 @@ void PreprocessNode::execute() {
     auto [X, y] = getInputData(input);
     validateInputData(X);
 
-    if (should_create_new_data && py::hasattr(py_func["func"], "inplace") &&
-        py::cast<bool>(py_func["func"].attr("inplace"))) {
+    if (should_create_new_data) {
       X = X.attr("copy")();
       y = y.is_none() ? py::none() : y.attr("copy")();
       validateInputData(X);
