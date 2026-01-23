@@ -1,51 +1,25 @@
-import getpass
-import os
-
-from langchain_core.prompts import ChatPromptTemplate
-
-from accelera.src.code_parallelizer.utils.code_utils import convert_to_cpp
-from accelera.src.models.groq import GroqModel
+from accelera.src.code_parallelizer.utils.code_utils import get_flagger
+from accelera.src.code_parallelizer.utils.code_utils import get_writer
 
 
 class CodeParallelizer:
-    def __init__(self, model=None):
-        if model is None:
-            if "GROQ_API_KEY" not in os.environ:
-                api_key = getpass.getpass("Enter your Groq API key: ")
-                os.environ["GROQ_API_KEY"] = api_key
+    def __init__(self):
+        self.flagger = get_flagger()
+        self.writer = get_writer()
 
-            self.model = GroqModel(
-                model_name="llama-3.1-8b-instant",
-                api_key=os.environ["GROQ_API_KEY"],
-            )
-        else:
-            self.model = model
-        self.llm = self.model.llm()
-        self.ctc_prompt = ChatPromptTemplate.from_template(
-            "You are an expert C++ programmer. \n"
-            "Convert the following Python code to equivalent C++ code.\n\n"
-            "Requirements:\n"
-            "- Use modern C++ (C++17 or later)\n"
-            "- Include necessary headers\n"
-            "- Use appropriate data types and STL containers\n"
-            "- Ensure memory safety\n"
-            "- Make the code compilable and efficient\n\n"
-            "- No comments or explainations in the code\n\n"
-            "Python code:\n```python\n{code}\n```\n\n"
-            "C++ code:\n```cpp\n"
-        )
-        self.ctc_chain = self.ctc_prompt | self.llm
-
-    def parallelize(self, output_file: str, python_code: str) -> str:
-        cpp_code = convert_to_cpp(output_file, python_code, self.ctc_chain)
-        return cpp_code
+    def parallelize(
+        self, output_file: str, cpp_code: str, in_place: bool
+    ) -> str:
+        pass
 
 
 def parallelize_code(
     python_code: str,
     output_cpp_file: str = "optimized_code.cpp",
-    model: GroqModel = None,
+    in_place: bool = False,
 ) -> str:
-    optimizer = CodeParallelizer(model=model)
-    cpp_code = optimizer.parallelize(output_cpp_file, python_code)
+    optimizer = CodeParallelizer()
+    cpp_code = optimizer.parallelize(
+        output_cpp_file, python_code, in_place=in_place
+    )
     return cpp_code

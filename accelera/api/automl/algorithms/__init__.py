@@ -5,4 +5,3 @@ since your modifications would be overwritten.
 """
 
 from accelera.src.automl.algorithms import algorithm as algorithm
-from accelera.src.automl.algorithms import gug as gug
