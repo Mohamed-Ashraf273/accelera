@@ -1,6 +1,23 @@
+try:
+    from code_parallelizer_utils import extract_loops as _extract_loops
+    from code_parallelizer_utils import (
+        write_loops_to_json as _write_loops_to_json,
+    )
+except ImportError as e:
+    print(f"Error: Could not import code_parallelizer_utils module: {e}")
+
+
 import subprocess
 
 from accelera.src.utils.accelera_utils import print_msg
+
+
+def extract_loops(cpp_code: str, clang_args: list = ["-std=c++17"]) -> list:
+    return _extract_loops(cpp_code, clang_args)
+
+
+def write_loops_to_json(loops: list, output_json: str) -> bool:
+    return _write_loops_to_json(loops, output_json)
 
 
 def get_flagger():

@@ -2,6 +2,7 @@ import os
 import sys
 
 # Add build path BEFORE importing anything else
+print("Setting up accelera module path...")
 current_dir = os.path.dirname(__file__)
 repo_root = current_dir
 
