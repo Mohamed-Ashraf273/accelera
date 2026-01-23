@@ -26,16 +26,11 @@ jobs:
           sudo apt-get install -y cmake build-essential
       - name: Install LLVM/Clang for code parallelizer
         run: |
-          sudo bash shell/install_llvm.sh
-      - name: Remove conflicting LLVM versions
+          sudo bash shell/install_llvm.sh 18
+      - name: Verify LLVM installation
         run: |
-          sudo apt-get remove -y llvm-18* clang-18* || true
-          sudo rm -rf /usr/lib/llvm-18 /usr/lib/cmake/clang-18 || true
-      - name: Verify LLVM 14 installation
-        run: |
-          echo "Checking LLVM 14 installation..."
-          llvm-config-14 --version
-          ls -la /usr/lib/llvm-14/lib/cmake/ || echo "CMake configs not found"
+          echo "Checking LLVM installation..."
+          llvm-config-18 --version || llvm-config --version
           echo "Available LLVM versions:"
           ls -d /usr/lib/llvm-* 2>/dev/null || echo "No LLVM installations found"
       - name: Get pip cache dir
@@ -58,9 +53,7 @@ jobs:
         run: |
           mkdir -p build
           cd build
-          export LLVM_DIR=/usr/lib/llvm-14/lib/cmake/llvm
-          export Clang_DIR=/usr/lib/llvm-14/lib/cmake/clang
-          cmake .. -DLLVM_DIR=/usr/lib/llvm-14/lib/cmake/llvm -DClang_DIR=/usr/lib/llvm-14/lib/cmake/clang
+          cmake ..
           cmake --build .
       - name: Test with pytest
         run: pytest accelera/ -v

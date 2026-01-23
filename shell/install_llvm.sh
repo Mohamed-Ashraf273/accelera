@@ -12,10 +12,12 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+LLVM_VERSION="${1:-18}"
+
 echo "Updating package lists..."
 apt-get update
 
-echo "Installing LLVM 14 and Clang 14 development packages..."
-apt-get install -y llvm-14-dev libclang-14-dev clang-14
+echo "Installing LLVM ${LLVM_VERSION} and Clang ${LLVM_VERSION} development packages..."
+apt-get install -y llvm-${LLVM_VERSION}-dev libclang-${LLVM_VERSION}-dev clang-${LLVM_VERSION}
 
-echo "Successfully installed LLVM/Clang 14"
+echo "Successfully installed LLVM/Clang ${LLVM_VERSION}"
