@@ -12,11 +12,6 @@ class AutoAccelera:
             from accelera.src.automl.algorithms.algorithm import Algorithm
 
             return Algorithm()
-
-        elif algorithm_name == "gug":
-            from accelera.src.automl.algorithms.gug import Gug
-
-            return Gug()
         else:
             raise ValueError(f"Algorithm '{algorithm_name}' is not supported.")
 
