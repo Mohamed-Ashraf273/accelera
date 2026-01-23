@@ -47,7 +47,7 @@ jobs:
         run: |
           mkdir -p build
           cd build
-          cmake .. -DENABLE_PYTHON=ON -DENABLE_WHEEL=ON -DENABLE_TESTS=ON
+          cmake .. 
           cmake --build .
       - name: Test with pytest
         run: pytest accelera/ -v

@@ -11,8 +11,15 @@ endif()
 if(UNIX AND NOT APPLE)
     message(STATUS "Linux detected - Setting up LLVM/Clang for code parallelizer")
     
-    find_package(LLVM QUIET CONFIG)
-    find_package(Clang QUIET CONFIG)
+    find_package(LLVM 14 QUIET CONFIG)
+    if(NOT LLVM_FOUND)
+        find_package(LLVM QUIET CONFIG)
+    endif()
+    
+    find_package(Clang 14 QUIET CONFIG)
+    if(NOT Clang_FOUND)
+        find_package(Clang QUIET CONFIG)
+    endif()
     
     if(NOT LLVM_FOUND OR NOT Clang_FOUND)
         message(WARNING "LLVM/Clang not found!")
