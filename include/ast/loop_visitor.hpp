@@ -2,6 +2,7 @@
 
 #ifdef USE_CLANG_AST
 
+#include "core/visibility.hpp"
 #include "utils/code_parallelizer_utils.hpp"
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/RecursiveASTVisitor.h"
@@ -9,7 +10,8 @@
 #include <string>
 #include <vector>
 
-class LoopVisitor : public clang::RecursiveASTVisitor<LoopVisitor> {
+class ACCELERA_API LoopVisitor
+    : public clang::RecursiveASTVisitor<LoopVisitor> {
 public:
   explicit LoopVisitor(clang::ASTContext *Context);
 

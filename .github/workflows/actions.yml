@@ -24,6 +24,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake build-essential
+      - name: Install LLVM/Clang for code parallelizer
+        run: |
+          sudo bash shell/install_llvm.sh
       - name: Get pip cache dir
         id: pip-cache
         run: |

@@ -1,10 +1,11 @@
 #pragma once
 
 #include "ast/loop_visitor.hpp"
+#include "core/visibility.hpp"
 #include "clang/AST/ASTConsumer.h"
 #include "clang/Frontend/ASTConsumers.h"
 
-class LoopASTConsumer : public clang::ASTConsumer {
+class ACCELERA_API LoopASTConsumer : public clang::ASTConsumer {
 public:
   explicit LoopASTConsumer(clang::ASTContext *Context);
 
