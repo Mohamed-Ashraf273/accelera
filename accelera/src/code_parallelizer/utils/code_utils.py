@@ -3,6 +3,14 @@ import subprocess
 from accelera.src.utils.accelera_utils import print_msg
 
 
+def get_flagger():
+    pass
+
+
+def get_writer():
+    pass
+
+
 def clean_response(response: str) -> str:
     if "```cpp" in response:
         start = response.find("```cpp") + 6
@@ -63,18 +71,8 @@ def format_cpp_file(filename: str) -> bool:
         return False
 
 
-def convert_to_cpp(filename: str, python_code: str, ctc_chain) -> str:
+def write_file(filename: str, python_code: str, response) -> str:
     assert filename.endswith(".cpp"), "Filename must have a .cpp extension"
-    response = ctc_chain.invoke({"code": python_code})
-    if isinstance(response, str):
-        response = response.strip()
-    elif hasattr(response, "content"):
-        response = response.content.strip()
-    else:
-        try:
-            response = str(response).strip()
-        except Exception:
-            raise ValueError("Unable to convert model response to string.")
     cleaned_response = clean_response(response)
 
     with open(filename, "w") as f:
