@@ -4,7 +4,8 @@ try:
         write_loops_to_json as _write_loops_to_json,
     )
 except ImportError as e:
-    print(f"Error: Could not import code_parallelizer_utils module: {e}")
+    _extract_loops = None
+    _write_loops_to_json = None
 
 
 import subprocess
