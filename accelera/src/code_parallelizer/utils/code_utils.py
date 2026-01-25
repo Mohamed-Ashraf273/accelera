@@ -3,7 +3,7 @@ try:
     from code_parallelizer_utils import (
         write_loops_to_json as _write_loops_to_json,
     )
-except ImportError as e:
+except ImportError:
     _extract_loops = None
     _write_loops_to_json = None
 
