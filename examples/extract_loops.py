@@ -1,7 +1,7 @@
 from accelera.src.code_parallelizer.utils.code_utils import extract_loops
 from accelera.src.code_parallelizer.utils.code_utils import write_loops_to_json
 
-cpp_file = "examples/test_loops.cpp"
+cpp_file = "examples/test_loops.c"
 output_json = "loops_output.json"
 
 print(f"Extracting loops from: {cpp_file}")
