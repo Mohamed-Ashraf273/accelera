@@ -1,268 +1,355 @@
-import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import (
+    LabelEncoder,
+    OneHotEncoder,
+    StandardScaler,
+    OrdinalEncoder,
+    FunctionTransformer,
+)
+from sklearn.compose import ColumnTransformer
+from sklearn.base import TransformerMixin, BaseEstimator
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.impute import SimpleImputer
+import numpy as np
+import pandas as pd
 
 
-def is_drop_column(df, info, col):
-    # Drop column if it is constant column if exists
+# Custom Transformer for Frequency Encoding
+class FrequencyEncoder(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        self.mapping_ = {}
+        self.cols_ = None
+
+    def fit(self, X_train, y_train=None):
+        if not isinstance(X_train, pd.DataFrame):
+            X_train = pd.DataFrame(X_train)
+
+        self.cols_ = X_train.columns
+        for col in self.cols_:
+            self.mapping_[col] = X_train[col].value_counts(normalize=True).to_dict()
+        return self
+
+    def transform(self, X_val):
+        if not isinstance(X_val, pd.DataFrame):
+            X_val = pd.DataFrame(X_val, columns=self.cols_)
+
+        X_val_copy = X_val.copy()
+        for col in self.cols_:
+            X_val_copy[col] = X_val_copy[col].map(self.mapping_[col]).fillna(0)
+        return X_val_copy.values
+
+
+class IQRTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self, info, cols):
+        self.info = info
+        self.cols = cols
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X_val):
+        X_val_copy = X_val.copy()
+        for i, col in enumerate(self.cols):
+            if self.info[col]["col_type"] in ["numerical", "continuous"]:
+                lower, upper = self.info[col]["outliers_info"]
+                X_val_copy[:, i] = X_val_copy[:, i].clip(lower, upper)
+        return X_val_copy
+
+
+def is_drop_column(info, col):
+    # drop column if it is constent, percent of unique values > 90% (likely ID),
+    # or percent of missing > 50%
     if info[col].get("is_constant", False):
         print(f"Drop {col} column it is constant")
         return True
-    # drop if it is like ID column
-    elif (
-        info[col].get("p_unique", 0) > 0.70
-        and info[col].get("n_unique", 0) > 20
-        and info[col].get("type") != "float64"
-    ):
+    elif info[col].get("p_unique", 0) > 0.90 and info[col].get("dtype") != "float64":
         print(f"Drop {col} column it is likely an ID")
         return True
-    # drop column has missing >0.5
     elif info[col].get("p_missing", 0) > 0.5:
         print(f"Drop {col} column it is missing")
         return True
     return False
 
 
-# get the outliers info
 def outliers_info(info, col):
+    # get lower and upper bounds of outliers
     Q1 = info[col]["Q1"]
     Q3 = info[col]["Q3"]
+    min_value = info[col]["min"]
     IQR = Q3 - Q1
     lower = Q1 - 1.5 * IQR
+    lower = max(lower, min_value)
     upper = Q3 + 1.5 * IQR
     return (lower, upper)
 
 
-# cap the outliers
 def cap_outliers(df, info, col):
-    if (
-        "outliers_info" in info[col]
-        and info[col]["type"] in ["float64", "int64"]
-        and not info[col].get("binary", False)
-    ):
+    # if it is continuous or numerical cap the outliers
+    if info[col]["col_type"] in ["numerical", "continuous"]:
         lower, upper = info[col]["outliers_info"]
+        if lower == upper:
+            return
+        print(f"Cap outliers for {col} column lower: {lower}, upper: {upper}")
         df[col] = df[col].clip(lower, upper)
 
 
 def check_binary(col, info):
-    if info[col].get("n_unique", 0) == 2 or info[col].get("type") == "bool":
+    if info[col].get("n_unique", 0) == 2 or info[col].get("dtype") == "bool":
         return True
 
 
-# get each column info
 def get_data_info(X_train, y_train, target_col):
+    # this function return info about the training data like mean, median, dtype, n_unique, p_unique, missing, p_missing
     col_drop = []
     info = {}
     df_new = X_train.copy()
     df_new[target_col] = y_train
     for col in list(df_new.columns):
         info[col] = {
-            "type": df_new[col].dtype,
+            "dtype": df_new[col].dtype,
             "n_unique": df_new[col].nunique(),
             "p_unique": df_new[col].nunique() / df_new.shape[0],
             "missing": df_new[col].isna().sum(),
             "p_missing": df_new[col].isna().sum() / df_new.shape[0],
             "is_constant": df_new[col].nunique() == 1,
         }
-        if is_drop_column(df_new, info, col) and col != target_col:
+        if is_drop_column(info, col) and col != target_col:
             col_drop.append(col)
             info.pop(col)
             continue
-        info[col]["binary"] = check_binary(col, info)
-        if info[col]["type"] in ["int64", "float64"]:
+        if info[col]["dtype"] in ["int64", "float64"]:
             info[col]["skew"] = df_new[col].skew()
             info[col]["variance"] = df_new[col].var()
             info[col]["Q1"] = df_new[col].quantile(0.25)
             info[col]["Q3"] = df_new[col].quantile(0.75)
-            info[col]["outliers_info"] = outliers_info(info, col)
             info[col]["min"] = df_new[col].min()
             info[col]["max"] = df_new[col].max()
             info[col]["median"] = df_new[col].median()
             info[col]["mean"] = df_new[col].mean()
-        if info[col]["type"] == "object" or info[col]["binary"]:
-            info[col]["distribution"] = (
-                df_new[col].value_counts(normalize=True).to_dict()
-            )
-            info[col]["mode"] = df_new[col].mode()[0]
+            info[col]["outliers_info"] = outliers_info(info, col)
+
+        mode = df_new[col].mode()
+        if not mode.empty:
+            info[col]["mode"] = mode[0]
+        else:
+            info[col]["mode"] = None
 
     return info, col_drop
 
 
+def detect_column_types(
+    X_train,
+    info,
+    text_threshold=40,
+    one_hot_threshold=10,
+    max_unique_ordinal=7,
+    categorical_ratio_threshold=0.05,
+):
+    binary_cols = []
+    numerical_cols = []
+    one_hot_cols = []
+    frequency_cols = []
+    text_cols = []
+    ordinal_cols = []
+    others = []
+    for col in X_train.columns:
+        # first check if binary
+        is_binary = check_binary(col, info)
+        if is_binary:
+            info[col]["col_type"] = "binary"
+            binary_cols.append(col)
+            continue
+
+        # if it is integer it may be ordinal, categorical_frequency or numerical
+        if np.issubdtype(info[col]["dtype"], np.integer):
+            if info[col]["n_unique"] <= max_unique_ordinal:
+                sorted_unique_values = np.sort(X_train[col].dropna().unique())
+                diff = np.diff(sorted_unique_values)
+                if np.all(diff == 1):
+                    info[col]["col_type"] = "ordinal"
+                    ordinal_cols.append(col)
+                else:
+                    info[col]["col_type"] = "categorical_frequency"
+                    frequency_cols.append(col)
+
+            elif info[col]["p_unique"] < categorical_ratio_threshold:
+                info[col]["col_type"] = "categorical_frequency"
+                frequency_cols.append(col)
+
+            else:
+                info[col]["col_type"] = "numerical"
+                numerical_cols.append(col)
+        # if it is float it is continuous
+
+        elif np.issubdtype(info[col]["dtype"], np.floating):
+            info[col]["col_type"] = "continuous"
+            numerical_cols.append(col)
+        # if it is object may be categorical(one hot, frequency) or text
+
+        elif info[col]["dtype"] == "object":
+            n_unique = info[col]["n_unique"]
+            if n_unique <= one_hot_threshold:
+                info[col]["col_type"] = "categorical_one_hot"
+                one_hot_cols.append(col)
+            else:
+                avg_length = X_train[col].dropna().apply(lambda x: len(str(x))).mean()
+                if avg_length > text_threshold:
+                    info[col]["col_type"] = "text"
+                    text_cols.append(col)
+                else:
+                    info[col]["col_type"] = "categorical_frequency"
+                    frequency_cols.append(col)
+        else:
+            info[col]["col_type"] = "other"
+            others.append(col)
+    print("Detected column types:")
+    print(f"Binary columns: {binary_cols}")
+    print(f"Numerical columns: {numerical_cols}")
+    print(f"One-hot columns: {one_hot_cols}")
+    print(f"Frequency-encoded columns: {frequency_cols}")
+    print(f"Text columns: {text_cols}")
+    print(f"Ordinal columns: {ordinal_cols}")
+    print(f"Other columns: {others}")
+    return (
+        binary_cols,
+        numerical_cols,
+        one_hot_cols,
+        frequency_cols,
+        text_cols,
+        ordinal_cols,
+        others,
+    )
+
+
 def drop_duplicates(df):
-    # Drop duplicates rows
     df.drop_duplicates(inplace=True)
 
 
-def drop_columns(X_train, X_test, col_drop):
-    # Drop columns
+def lower_data(df):
+    for col in df.columns:
+        if df[col].dtype == "object":
+            df[col] = df[col].str.lower()
+
+
+def drop_columns(X_train, X_val, col_drop):
     X_train.drop(columns=col_drop, inplace=True)
-    X_test.drop(columns=col_drop, inplace=True, errors="ignore")
+    X_val.drop(columns=col_drop, inplace=True, errors="ignore")
 
 
-# handle missing values imputation
-def handle_missing(df, info, col):
-    if info[col].get("p_missing", 0) != 0:
-        col_type = col_type = info[col].get("type")
-        if col_type in ["object"] or info[col].get("binary", False):
-            mode = info[col]["mode"]
-            print(f"{col} Fill missing mode value")
-            df[col] = df[col].fillna(mode)
-        else:
-            median = info[col]["median"]
-            print(f"{col} Fill missing median value")
-            df[col] = df[col].fillna(median)
-
-
-def type_encoding(
-    info,
-    col,
-    label_encoding_cols,
-    one_hot_encoding_cols,
-    frequency_encoding_cols,
-):
-    col_type = info[col].get("type")
-    if col_type == "object":
-        n_unique = info[col].get("n_unique", 0)
-        if n_unique == 2:
-            label_encoding_cols.append(col)
-        elif n_unique < 11:
-            one_hot_encoding_cols.append(col)
-        else:
-            frequency_encoding_cols.append(col)
-
-
-def frequency_encoding(df, col, mapping):
-    df[col] = df[col].map(mapping)
-    df[col] = df[col].fillna(0)
-    print(f"{col} frequency encoding")
-
-
-def handle_label_encoding_features(X_train, X_test, colums):
-    for col in colums:
-        encoder = LabelEncoder()
-        X_train[col] = encoder.fit_transform(X_train[col])
-        X_test[col] = encoder.transform(X_test[col])
-        print(f"{col} label encoder")
-    return X_train, X_test
-
-
-def handle_one_hot_encoding_features(X_train, X_test, columns):
-    if not columns:
-        return X_train, X_test
-
-    X_train_dummies = pd.get_dummies(
-        X_train[columns], drop_first=True, dtype=int
+def features_preprocessing(X_train, X_val, info):
+    (
+        binary_cols,
+        numerical_cols,
+        one_hot_cols,
+        frequency_cols,
+        text_cols,
+        ordinal_cols,
+        others,
+    ) = detect_column_types(X_train, info)
+    # Pipelines
+    numerical_pipeline = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy="median")),
+            ("iqr_transformer", IQRTransformer(info, numerical_cols)),
+            ("scaler", StandardScaler()),
+        ]
     )
-    X_test_dummies = pd.get_dummies(X_test[columns], drop_first=True, dtype=int)
-    X_test_dummies = X_test_dummies.reindex(
-        columns=X_train_dummies.columns, fill_value=0
+    one_hot_pipeline = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("one_hot_encoder", OneHotEncoder(handle_unknown="ignore")),
+        ]
     )
-    X_train = X_train.drop(columns=columns).join(X_train_dummies)
-    X_test = X_test.drop(columns=columns).join(X_test_dummies)
-    print(f"One-hot encoded {columns}")
-    return X_train, X_test
-
-
-def handle_frequency_encoding_features(X_train, X_test, info, colums):
-    for col in colums:
-        mapping = info[col]["distribution"]
-        frequency_encoding(X_train, col, mapping)
-        frequency_encoding(X_test, col, mapping)
-
-    return X_train, X_test
-
-
-def handle_encoding_features(
-    X_train,
-    X_test,
-    info,
-    label_encoding_cols,
-    one_hot_encoding_cols,
-    frequency_encoding_cols,
-):
-    X_train, X_test = handle_label_encoding_features(
-        X_train, X_test, label_encoding_cols
+    frequency_pipeline = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("frequency_encoder", FrequencyEncoder()),
+        ]
     )
-    X_train, X_test = handle_one_hot_encoding_features(
-        X_train, X_test, one_hot_encoding_cols
+    binary_pipeline = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("ordinal", OrdinalEncoder()),
+        ]
     )
-    X_train, X_test = handle_frequency_encoding_features(
-        X_train, X_test, info, frequency_encoding_cols
+    text_pipeline = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
+            (
+                "extract_column",
+                FunctionTransformer(
+                    lambda x: np.array([" ".join(row.astype(str)) for row in x]),
+                    validate=False,
+                ),
+            ),
+            ("tfidf_vectorizer", TfidfVectorizer(max_features=1000)),
+        ]
     )
-    return X_train, X_test
-
-
-# features preprocessing
-# - cap outliers
-# - handle missing
-# - handle encoding categorical features
-def features_preprocessing(X_train, X_test, info):
-    label_encoding_cols = []
-    one_hot_encoding_cols = []
-    frequency_encoding_cols = []
-    for col in list(X_train.columns):
-        # Missing
-        handle_missing(X_train, info, col)
-        handle_missing(X_test, info, col)
-        # Outliers
-        cap_outliers(X_train, info, col)
-        cap_outliers(X_test, info, col)
-        # Encoding
-
-        type_encoding(
-            info,
-            col,
-            label_encoding_cols,
-            one_hot_encoding_cols,
-            frequency_encoding_cols,
-        )
-    X_train, X_test = handle_encoding_features(
-        X_train,
-        X_test,
-        info,
-        label_encoding_cols,
-        one_hot_encoding_cols,
-        frequency_encoding_cols,
+    ordinal_pipeline = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("ordinal", OrdinalEncoder()),
+        ]
     )
-    return X_train, X_test
+    # Column Transformer
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("text", text_pipeline, text_cols),
+            ("onehot", one_hot_pipeline, one_hot_cols),
+            ("numerical", numerical_pipeline, numerical_cols),
+            ("binary", binary_pipeline, binary_cols),
+            ("frequency", frequency_pipeline, frequency_cols),
+            ("ordinal", ordinal_pipeline, ordinal_cols),
+        ],
+        remainder="passthrough",
+    )
+    X_train_processed = preprocessor.fit_transform(X_train)
+    X_val_processed = preprocessor.transform(X_val)
+    return X_train_processed, X_val_processed
 
 
-# target preprocessing
-# object use label encoder
-
-
-def target_preprocessing(y_train, y_test, info, col):
-    col_type = info[col].get("type")
-    if col_type == "object":
-        encoder = LabelEncoder()
-        y_train = encoder.fit_transform(y_train)
-        y_test = encoder.transform(y_test)
-        print("label encoder")
-    else:
-        y_train_df = y_train.to_frame()
-        y_test_df = y_test.to_frame()
-        y_train = y_train_df[col]
-        y_test = y_test_df[col]
-    return y_train, y_test
-
-
-# df_titanic.info()
-
+def target_preprocessing(y_train, y_val, info, col, problem_type):
+    if problem_type == "classification":
+        y_train=y_train.fillna(info[col]["mode"])
+        y_val=y_val.fillna(info[col]["mode"])
+        label_encoder = LabelEncoder()
+        y_train = label_encoder.fit_transform(y_train)
+        y_val = label_encoder.transform(y_val)
+        return y_train, y_val, label_encoder
+    elif problem_type == "regression":
+        y_train=y_train.fillna(info[col]["median"])
+        y_val=y_val.fillna(info[col]["median"])
+        stander_scaler = StandardScaler()
+        y_train = stander_scaler.fit_transform(y_train.values.reshape(-1, 1)).ravel()
+        y_val = stander_scaler.transform(y_val.values.reshape(-1, 1)).ravel()
+        return y_train, y_val, stander_scaler
 
 def split_data(df, target_col):
     X, y = df.drop(columns=[target_col]), df[target_col]
-    X_train, X_test, y_train, y_test = train_test_split(
+    X_train, X_val, y_train, y_val = train_test_split(
         X, y, test_size=0.2, random_state=42
     )
-    return X_train, X_test, y_train, y_test
+    return X_train, X_val, y_train, y_val
 
 
-def common_preprocessing(df, target_col: str):
+def common_preprocessing(df, target_col: str, problem_type="classification"):
+    # 1- drop duplictes
+    # 2- lower data
+    # 3- split data
+    # 4- get data info
+    # 5- drop columns
+    # 6- features preprocessing
+    # 7- target preprocessing
+    if problem_type not in ["classification", "regression"]:
+        raise ValueError("problem_type must be either 'classification' or 'regression'")
     drop_duplicates(df)
-    X_train, X_test, y_train, y_test = split_data(df, target_col)
-
+    lower_data(df)
+    X_train, X_val, y_train, y_val = split_data(df, target_col)
     info, col_drop = get_data_info(X_train, y_train, target_col)
-    drop_columns(X_train, X_test, col_drop)
-    X_train, X_test = features_preprocessing(X_train, X_test, info)
-    y_train, y_test = target_preprocessing(y_train, y_test, info, target_col)
-    return X_train, y_train, X_test, y_test
+    drop_columns(X_train, X_val, col_drop)
+    X_train, X_val = features_preprocessing(X_train, X_val, info)
+    y_train, y_val,_ = target_preprocessing(
+        y_train, y_val, info, target_col, problem_type
+    )
+    return X_train, y_train, X_val, y_val
