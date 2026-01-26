@@ -1,4 +1,4 @@
-from accelera.src.automl.core.wrappers.custom_transforms_base import (
+from accelera.src.automl.wrappers.custom_transforms_base import (
     CustomTransformsBase,
 )
 

@@ -1,4 +1,4 @@
-from accelera.src.automl.utils.preprocessing import *
+from accelera.src.automl.core.training_preprocessing import TrainingPreprocessing
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 import pandas as pd
 from sklearn.metrics import mean_squared_error
@@ -7,7 +7,8 @@ from sklearn.svm import SVC
 
 tatanic_df = pd.read_csv("Titanic-Dataset.csv")
 print(tatanic_df.head())
-X_train, y_train, X_test, y_test = common_preprocessing(tatanic_df, "Survived")
+training_preprocessor = TrainingPreprocessing(tatanic_df,"Survived","classification")
+X_train, y_train, X_test, y_test = training_preprocessor.common_preprocessing()
 print(X_train[:5])
 print("Titanic Dataset")
 print("Random Forest Classifier")
@@ -27,7 +28,8 @@ print(model.score(X_test, y_test))
 print("House Price")
 
 price_df = pd.read_csv("Housing.csv")
-X_train, y_train, X_test, y_test = common_preprocessing(price_df, "price","regression")
+training_preprocessor = TrainingPreprocessing(price_df,"price","regression")
+X_train, y_train, X_test, y_test = training_preprocessor.common_preprocessing()
 
 print(X_train[:5])
 print("Random Forest Regressor")

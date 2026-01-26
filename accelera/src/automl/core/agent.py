@@ -1,11 +1,12 @@
-from accelera.src.automl.utils.preprocessing import common_preprocessing
+from accelera.src.automl.core.training_preprocessing import TrainingPreprocessing
 from accelera.src.automl.utils.sampler import sample
 from accelera.src.utils.accelera_utils import print_msg
 
 
 class AutoAccelera:
-    def __init__(self, algorithm="default"):
+    def __init__(self, algorithm="default",problem_type=None):
         self.algorithm = self._get_algo(algorithm)
+        self.problem_type=problem_type
 
     def _get_algo(self, algorithm_name):
         if algorithm_name == "default":
@@ -17,9 +18,10 @@ class AutoAccelera:
 
     def get_pipeline(self, df, target_column: str):
         print_msg("Getting pipeline for the given dataset...", level="info")
-        X_train, y_train, X_test, y_test = common_preprocessing(
-            df, target_column
+        tp=TrainingPreprocessing(
+            df, target_column, problem_type=self.problem_type
         )
+        X_train, y_train, X_test, y_test = tp.common_preprocessing()
 
         if X_train.shape[0] > 10000:
             X_train, y_train, _ = sample(X_train, y_train)
