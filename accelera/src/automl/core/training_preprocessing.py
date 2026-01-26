@@ -15,6 +15,7 @@ from accelera.src.automl.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
 )
 import numpy as np
+import os
 
 
 class TrainingPreprocessing(PreprocessingBase):
@@ -51,6 +52,7 @@ class TrainingPreprocessing(PreprocessingBase):
             )
         if target_col not in df.columns:
             raise ValueError("target_col must be one of the dataframe columns")
+        os.makedirs(self.folder_path, exist_ok=True)
 
     def is_drop_column(self, info, col):
         # drop column if it is constent, percent of unique values > 90% (likely ID),

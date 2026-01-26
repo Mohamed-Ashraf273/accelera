@@ -19,7 +19,7 @@ class AutoAccelera:
     def get_pipeline(self, df, target_column: str):
         print_msg("Getting pipeline for the given dataset...", level="info")
         tp=TrainingPreprocessing(
-            df, target_column, problem_type=self.problem_type
+            df, target_column, problem_type=self.problem_type, folder_path="./preprocessing_temp"
         )
         X_train, y_train, X_test, y_test = tp.common_preprocessing()
 

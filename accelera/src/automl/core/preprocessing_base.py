@@ -1,6 +1,5 @@
-import os
 import pickle
-
+import os
 
 class PreprocessingBase:
     def __init__(self, df, folder_path=None):
@@ -10,7 +9,6 @@ class PreprocessingBase:
             raise ValueError("Dataframe cannot be None")
         if folder_path is None:
             raise ValueError("folder_path cannot be None")
-        os.makedirs(self.folder_path, exist_ok=True)
 
     def lower_data(self):
         for col in self.df.columns:
