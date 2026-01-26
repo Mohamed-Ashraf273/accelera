@@ -8,53 +8,13 @@ from sklearn.preprocessing import (
     FunctionTransformer,
 )
 from sklearn.compose import ColumnTransformer
-from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
+from accelera.src.automl.core.wrappers.IQR_transform import IQRTransform
+from accelera.src.automl.core.wrappers.frequency_encoder_transform import (
+    FrequencyEncoderTransform,
+)
 import numpy as np
-import pandas as pd
-
-
-# Custom Transformer for Frequency Encoding
-class FrequencyEncoder(BaseEstimator, TransformerMixin):
-    def __init__(self):
-        self.mapping_ = {}
-        self.cols_ = None
-
-    def fit(self, X_train, y_train=None):
-        if not isinstance(X_train, pd.DataFrame):
-            X_train = pd.DataFrame(X_train)
-
-        self.cols_ = X_train.columns
-        for col in self.cols_:
-            self.mapping_[col] = X_train[col].value_counts(normalize=True).to_dict()
-        return self
-
-    def transform(self, X_val):
-        if not isinstance(X_val, pd.DataFrame):
-            X_val = pd.DataFrame(X_val, columns=self.cols_)
-
-        X_val_copy = X_val.copy()
-        for col in self.cols_:
-            X_val_copy[col] = X_val_copy[col].map(self.mapping_[col]).fillna(0)
-        return X_val_copy.values
-
-
-class IQRTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, info, cols):
-        self.info = info
-        self.cols = cols
-
-    def fit(self, X, y=None):
-        return self
-
-    def transform(self, X_val):
-        X_val_copy = X_val.copy()
-        for i, col in enumerate(self.cols):
-            if self.info[col]["col_type"] in ["numerical", "continuous"]:
-                lower, upper = self.info[col]["outliers_info"]
-                X_val_copy[:, i] = X_val_copy[:, i].clip(lower, upper)
-        return X_val_copy
 
 
 def is_drop_column(info, col):
@@ -82,16 +42,6 @@ def outliers_info(info, col):
     lower = max(lower, min_value)
     upper = Q3 + 1.5 * IQR
     return (lower, upper)
-
-
-def cap_outliers(df, info, col):
-    # if it is continuous or numerical cap the outliers
-    if info[col]["col_type"] in ["numerical", "continuous"]:
-        lower, upper = info[col]["outliers_info"]
-        if lower == upper:
-            return
-        print(f"Cap outliers for {col} column lower: {lower}, upper: {upper}")
-        df[col] = df[col].clip(lower, upper)
 
 
 def check_binary(col, info):
@@ -251,7 +201,7 @@ def features_preprocessing(X_train, X_val, info):
     numerical_pipeline = Pipeline(
         [
             ("imputer", SimpleImputer(strategy="median")),
-            ("iqr_transformer", IQRTransformer(info, numerical_cols)),
+            ("iqr_transformer", IQRTransform(info, numerical_cols)),
             ("scaler", StandardScaler()),
         ]
     )
@@ -264,7 +214,7 @@ def features_preprocessing(X_train, X_val, info):
     frequency_pipeline = Pipeline(
         [
             ("imputer", SimpleImputer(strategy="most_frequent")),
-            ("frequency_encoder", FrequencyEncoder()),
+            ("frequency_encoder", FrequencyEncoderTransform()),
         ]
     )
     binary_pipeline = Pipeline(
@@ -311,19 +261,20 @@ def features_preprocessing(X_train, X_val, info):
 
 def target_preprocessing(y_train, y_val, info, col, problem_type):
     if problem_type == "classification":
-        y_train=y_train.fillna(info[col]["mode"])
-        y_val=y_val.fillna(info[col]["mode"])
+        y_train = y_train.fillna(info[col]["mode"])
+        y_val = y_val.fillna(info[col]["mode"])
         label_encoder = LabelEncoder()
         y_train = label_encoder.fit_transform(y_train)
         y_val = label_encoder.transform(y_val)
         return y_train, y_val, label_encoder
     elif problem_type == "regression":
-        y_train=y_train.fillna(info[col]["median"])
-        y_val=y_val.fillna(info[col]["median"])
+        y_train = y_train.fillna(info[col]["median"])
+        y_val = y_val.fillna(info[col]["median"])
         stander_scaler = StandardScaler()
         y_train = stander_scaler.fit_transform(y_train.values.reshape(-1, 1)).ravel()
         y_val = stander_scaler.transform(y_val.values.reshape(-1, 1)).ravel()
         return y_train, y_val, stander_scaler
+
 
 def split_data(df, target_col):
     X, y = df.drop(columns=[target_col]), df[target_col]
@@ -349,7 +300,7 @@ def common_preprocessing(df, target_col: str, problem_type="classification"):
     info, col_drop = get_data_info(X_train, y_train, target_col)
     drop_columns(X_train, X_val, col_drop)
     X_train, X_val = features_preprocessing(X_train, X_val, info)
-    y_train, y_val,_ = target_preprocessing(
+    y_train, y_val, _ = target_preprocessing(
         y_train, y_val, info, target_col, problem_type
     )
     return X_train, y_train, X_val, y_val
