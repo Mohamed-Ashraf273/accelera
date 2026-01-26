@@ -7,7 +7,7 @@ from sklearn.svm import SVC
 
 tatanic_df = pd.read_csv("Titanic-Dataset.csv")
 print(tatanic_df.head())
-training_preprocessor = TrainingPreprocessing(tatanic_df,"Survived","classification")
+training_preprocessor = TrainingPreprocessing(tatanic_df,"Survived","classification","./titanic_preprocessing")
 X_train, y_train, X_test, y_test = training_preprocessor.common_preprocessing()
 print(X_train[:5])
 print("Titanic Dataset")
@@ -28,7 +28,7 @@ print(model.score(X_test, y_test))
 print("House Price")
 
 price_df = pd.read_csv("Housing.csv")
-training_preprocessor = TrainingPreprocessing(price_df,"price","regression")
+training_preprocessor = TrainingPreprocessing(price_df,"price","regression","./house_price_preprocessing")
 X_train, y_train, X_test, y_test = training_preprocessor.common_preprocessing()
 
 print(X_train[:5])
