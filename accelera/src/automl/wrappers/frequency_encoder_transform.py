@@ -1,12 +1,9 @@
-from accelera.src.automl.wrappers.custom_transforms_base import (
-    CustomTransformsBase,
-)
+from accelera.src.custom.transformer import CustomTransformer
 import pandas as pd
 
 
-class FrequencyEncoderTransform(CustomTransformsBase):
+class FrequencyEncoderTransform(CustomTransformer):
     def __init__(self):
-        super().__init__()
         self.mapping_ = {}
         self.cols_ = None
 

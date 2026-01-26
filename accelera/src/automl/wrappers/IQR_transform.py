@@ -1,11 +1,8 @@
-from accelera.src.automl.wrappers.custom_transforms_base import (
-    CustomTransformsBase,
-)
+from accelera.src.custom.transformer import CustomTransformer
 
 
-class IQRTransform(CustomTransformsBase):
+class IQRTransform(CustomTransformer):
     def __init__(self, info, cols):
-        super().__init__()
         self.info = info
         self.cols = cols
 
