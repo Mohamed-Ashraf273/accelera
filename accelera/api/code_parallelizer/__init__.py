@@ -5,4 +5,5 @@ since your modifications would be overwritten.
 """
 
 from accelera.src.code_parallelizer import core as core
+from accelera.src.code_parallelizer import db as db
 from accelera.src.code_parallelizer import utils as utils
