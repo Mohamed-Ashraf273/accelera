@@ -10,8 +10,8 @@ from sklearn.preprocessing import (
 from sklearn.compose import ColumnTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
-from accelera.src.automl.core.wrappers.IQR_transform import IQRTransform
-from accelera.src.automl.core.wrappers.frequency_encoder_transform import (
+from accelera.src.automl.wrappers.IQR_transform import IQRTransform
+from accelera.src.automl.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
 )
 import numpy as np
