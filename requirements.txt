@@ -17,8 +17,3 @@ pytest
 pytest-cov
 namex
 matplotlib
-# Documentation Tools
-mkdocs
-mkdocs-material
-mkdocstrings
-mkdocstrings-python
