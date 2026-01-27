@@ -16,5 +16,5 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: 3.x
-      - run: pip install mkdocs mkdocs-material
+      - run: pip install mkdocs mkdocs-material mkdocstrings mkdocstrings-python
       - run: mkdocs gh-deploy --force
