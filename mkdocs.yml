@@ -1,3 +1,76 @@
 site_name: Accelera Documentation
+site_description: High-Performance Machine Learning Pipeline Framework
+site_author: Mohamed Ashraf
+site_url: https://accelera.readthedocs.io
+
+repo_name: Mohamed-Ashraf273/accelera
+repo_url: https://github.com/Mohamed-Ashraf273/accelera
+
 theme:
   name: material
+  palette:
+    # Light mode
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode  
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - User Guide:
+      - Core Pipeline: core-pipeline.md
+      - Code Parallelizer: code-parallelizer.md
+      - AutoML (Coming Soon): automl.md
+      - Deployment (Coming Soon): deployment.md
+      - Benchmark Platform (Coming Soon): benchmark.md
+  - Reference:
+      - Examples: examples.md
+  - Contributing: contributing.md
+
+plugins:
+  - search
+  - mkdocstrings
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Mohamed-Ashraf273/accelera
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/accelera/
+
+copyright: Copyright &copy; 2026 Mohamed Ashraf
