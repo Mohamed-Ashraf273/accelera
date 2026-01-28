@@ -53,6 +53,7 @@ class TrainingPreprocessing(PreprocessingBase):
         if target_col not in df.columns:
             raise ValueError("target_col must be one of the dataframe columns")
         os.makedirs(self.folder_path, exist_ok=True)
+        self.save_pikle(self.df.columns.tolist(), "data_columns.pkl")
 
     def is_drop_column(self, info, col):
         # drop column if it is constent, percent of unique values > 90% (likely ID),
@@ -336,7 +337,7 @@ class TrainingPreprocessing(PreprocessingBase):
             label_encoder = LabelEncoder()
             y_train = label_encoder.fit_transform(y_train)
             y_val = label_encoder.transform(y_val)
-            self.save_pikle(label_encoder, "target_processor.pkl")
+            self.save_pikle(label_encoder, "target_preprocessor.pkl")
             target_dict["mode"] = info[self.target_col]["mode"]
 
         elif self.problem_type == "regression":
@@ -348,7 +349,7 @@ class TrainingPreprocessing(PreprocessingBase):
                 y_train.values.reshape(-1, 1)
             ).ravel()
             y_val = stander_scaler.transform(y_val.values.reshape(-1, 1)).ravel()
-            self.save_pikle(stander_scaler, "target_processor.pkl")
+            self.save_pikle(stander_scaler, "target_preprocessor.pkl")
         self.save_pikle(target_dict, "target_info.pkl")
         return y_train, y_val
 

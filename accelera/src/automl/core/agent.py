@@ -4,9 +4,9 @@ from accelera.src.utils.accelera_utils import print_msg
 
 
 class AutoAccelera:
-    def __init__(self, algorithm="default",problem_type=None):
+    def __init__(self, algorithm="default", problem_type=None):
         self.algorithm = self._get_algo(algorithm)
-        self.problem_type=problem_type
+        self.problem_type = problem_type
 
     def _get_algo(self, algorithm_name):
         if algorithm_name == "default":
@@ -18,8 +18,11 @@ class AutoAccelera:
 
     def get_pipeline(self, df, target_column: str):
         print_msg("Getting pipeline for the given dataset...", level="info")
-        tp=TrainingPreprocessing(
-            df, target_column, problem_type=self.problem_type, folder_path="./preprocessing_temp"
+        tp = TrainingPreprocessing(
+            df,
+            target_column,
+            problem_type=self.problem_type,
+            folder_path="./preprocessing_temp",
         )
         X_train, y_train, X_test, y_test = tp.common_preprocessing()
 

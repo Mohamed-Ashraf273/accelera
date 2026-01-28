@@ -1,6 +1,7 @@
 import pickle
 import os
 
+
 class PreprocessingBase:
     def __init__(self, df, folder_path=None):
         self.df = df
@@ -10,6 +11,11 @@ class PreprocessingBase:
         if folder_path is None:
             raise ValueError("folder_path cannot be None")
 
+    def check_path_exists(self, filename):
+        path = os.path.join(self.folder_path, filename)
+        if not os.path.exists(path):
+            raise ValueError(f"{path} does not exist")
+
     def lower_data(self):
         for col in self.df.columns:
             if self.df[col].dtype == "object":
@@ -17,7 +23,8 @@ class PreprocessingBase:
 
     def drop_columns(self, X, col_drop):
         col_drop = list(col_drop.keys())
-        X.drop(columns=col_drop, inplace=True, errors="ignore")
+        if col_drop:
+            X.drop(columns=col_drop, inplace=True, errors="ignore")
 
     def save_pikle(self, obj, filename):
         filepath = os.path.join(self.folder_path, filename)
