@@ -8,7 +8,7 @@ class TestingPreprocessing(PreprocessingBase):
         if os.path.exists(folder_path) is None:
             raise ValueError("folder_path does not exist")
         print("Loading preprocessing objects from:", folder_path)
-        
+
         self.check_path_exists("data_columns.pkl")
         self.check_path_exists("col_drop.pkl")
         self.check_path_exists("target_info.pkl")
@@ -33,6 +33,7 @@ class TestingPreprocessing(PreprocessingBase):
         else:
             self.X_test = self.df.drop(columns=[self.target_info["col_name"]])
             self.y_test = self.df[self.target_info["col_name"]]
+
     def target_preprocessing(self):
         if self.target_info["problem_type"] == "classification":
             self.y_test.fillna(self.target_info["mode"], inplace=True)

@@ -11,11 +11,20 @@ from sklearn.compose import ColumnTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
 from accelera.src.automl.wrappers.IQR_transform import IQRTransform
+from accelera.src.automl.wrappers.categorical_regression import CategoricalRegression
 from accelera.src.automl.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
 )
+from accelera.src.automl.wrappers.categorical_classification import CategoricalClassification
 import numpy as np
 import os
+
+from accelera.src.automl.wrappers.numerical_classification import NumericalClassification
+from accelera.src.automl.wrappers.numerical_regression import NumericalRegression
+from accelera.src.automl.wrappers.ordinal_classification import OrdinalClassification
+from accelera.src.automl.wrappers.ordinal_regression import OrdinalRegression
+from accelera.src.automl.wrappers.target_regression import TargetRegression
+from accelera.src.automl.wrappers.target_classification import TargetClassification
 
 
 class TrainingPreprocessing(PreprocessingBase):
@@ -237,7 +246,53 @@ class TrainingPreprocessing(PreprocessingBase):
             ordinal_cols,
             others,
         )
-
+    def make_graphs(self, X_train, y_train, info):
+        new_df= X_train.copy()
+        new_df[self.target_col]= y_train
+        
+        print("y train unique values:",new_df[self.target_col].head())
+        for col in X_train.columns:
+            if info[col]["col_type"] in ["binary","categorical_one_hot","categorical_frequency"] and self.problem_type == "classification":
+                graph = CategoricalClassification(
+                    new_df, col, target_name=self.target_col
+                )
+                graph.build_graph()
+            if info[col]["col_type"] in ["binary","categorical_one_hot","categorical_frequency"] and self.problem_type == "regression":
+                graph = CategoricalRegression(
+                    new_df, col, target_name=self.target_col
+                )
+                graph.build_graph()
+            if info[col]["col_type"] == "ordinal" and self.problem_type == "classification":
+                graph = OrdinalClassification(
+                    new_df, col, target_name=self.target_col
+                )
+                graph.build_graph()
+            if info[col]["col_type"] == "ordinal" and self.problem_type == "regression":
+                graph = OrdinalRegression(
+                    new_df, col, target_name=self.target_col
+                )
+                graph.build_graph()
+            if info[col]["col_type"] in ["continuous","numerical"] and self.problem_type == "classification":
+                graph = NumericalClassification(
+                    new_df, col, target_name=self.target_col
+                )
+                graph.build_graph()
+            if info[col]["col_type"] in ["continuous","numerical"] and self.problem_type == "regression":
+                graph = NumericalRegression(
+                    new_df, col, target_name=self.target_col
+                )
+                graph.build_graph()
+        if self.problem_type == "classification":
+            target_graph = TargetClassification(
+                new_df, col_name=self.target_col, target_name=self.target_col
+            )
+            target_graph.build_graph()
+        if self.problem_type == "regression":
+            target_graph = TargetRegression(
+                new_df, col_name=self.target_col, target_name=self.target_col
+            )
+            target_graph.build_graph()
+        
     def drop_duplicates(self):
         self.df.drop_duplicates(inplace=True)
 
@@ -260,16 +315,19 @@ class TrainingPreprocessing(PreprocessingBase):
             transformers.append(transform)
         return transformers
 
-    def features_preprocessing(self, X_train, X_val, info):
-        (
-            binary_cols,
-            numerical_cols,
-            one_hot_cols,
-            frequency_cols,
-            text_cols,
-            ordinal_cols,
-            _,
-        ) = self.detect_column_types(X_train, info)
+    def features_preprocessing(
+        self,
+        X_train,
+        X_val,
+        info,
+        binary_cols,
+        numerical_cols,
+        one_hot_cols,
+        frequency_cols,
+        text_cols,
+        ordinal_cols,
+    ):
+
         # Pipelines
         numerical_pipeline = Pipeline(
             [
@@ -373,9 +431,29 @@ class TrainingPreprocessing(PreprocessingBase):
         X_train, X_val, y_train, y_val = self.split_data()
         info, col_drop = self.get_data_info(X_train, y_train)
         # save column drop for testing
-        self.save_pikle(col_drop, "col_drop.pkl")
         self.drop_columns(X_train, col_drop)
-        self.drop_columns(X_val, col_drop)
-        X_train, X_val = self.features_preprocessing(X_train, X_val, info)
+
+        self.save_pikle(col_drop, "col_drop.pkl")
+        (
+            binary_cols,
+            numerical_cols,
+            one_hot_cols,
+            frequency_cols,
+            text_cols,
+            ordinal_cols,
+            _,
+        ) = self.detect_column_types(X_train, info)
+        self.make_graphs(X_train, y_train, info)
+        X_train, X_val = self.features_preprocessing(
+            X_train,
+            X_val,
+            info,
+            binary_cols,
+            numerical_cols,
+            one_hot_cols,
+            frequency_cols,
+            text_cols,
+            ordinal_cols,
+        )
         y_train, y_val = self.target_preprocessing(y_train, y_val, info)
         return X_train, y_train, X_val, y_val
