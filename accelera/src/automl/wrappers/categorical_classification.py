@@ -6,6 +6,11 @@ import matplotlib.pyplot as plt
 class CategoricalClassification(GraphBase):
     def __init__(self, df, col_name, target_name):
         super().__init__(df, col_name, target_name)
+        if self.graph_df[col_name].nunique() > 5:
+            top_5_categories = self.graph_df[col_name].value_counts().nlargest(5)
+            self.graph_df[col_name] = self.graph_df[col_name].where(
+                self.graph_df[col_name].isin(top_5_categories.index), other="Other"
+            )
 
     def build_graph(self):
         _, ax = plt.subplots(1, 2, figsize=(12, 4))
