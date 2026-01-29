@@ -29,6 +29,8 @@ from accelera.src.automl.wrappers.ordinal_classification import OrdinalClassific
 from accelera.src.automl.wrappers.ordinal_regression import OrdinalRegression
 from accelera.src.automl.wrappers.target_regression import TargetRegression
 from accelera.src.automl.wrappers.target_classification import TargetClassification
+from accelera.src.automl.wrappers.text_graph import TextGraph
+from accelera.src.automl.wrappers.correlation_graph import CorrelationGraph
 
 
 class TrainingPreprocessing(PreprocessingBase):
@@ -295,6 +297,11 @@ class TrainingPreprocessing(PreprocessingBase):
             ):
                 graph = NumericalRegression(new_df, col, target_name=self.target_col)
                 graph.build_graph()
+            if info[col]["col_type"] == "text":
+                text_graph = TextGraph(
+                    new_df, col_name=col, target_name=self.target_col
+                )
+                text_graph.build_graph()
         if self.problem_type == "classification":
             target_graph = TargetClassification(
                 new_df, col_name=self.target_col, target_name=self.target_col
@@ -305,6 +312,11 @@ class TrainingPreprocessing(PreprocessingBase):
                 new_df, col_name=self.target_col, target_name=self.target_col
             )
             target_graph.build_graph()
+
+        correlation_graph = CorrelationGraph(
+            new_df, col_name=self.target_col, target_name=self.target_col
+        )
+        correlation_graph.build_graph()
 
     def drop_duplicates(self):
         self.df.drop_duplicates(inplace=True)
@@ -456,7 +468,9 @@ class TrainingPreprocessing(PreprocessingBase):
             ordinal_cols,
             _,
         ) = self.detect_column_types(X_train, info)
+
         self.make_graphs(X_train, y_train, info)
+
         X_train, X_val = self.features_preprocessing(
             X_train,
             X_val,
