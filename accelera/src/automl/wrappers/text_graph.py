@@ -2,11 +2,12 @@ from accelera.src.automl.wrappers.graph_base import GraphBase
 import seaborn as sns
 import matplotlib.pyplot as plt
 from collections import Counter
+import os
 
 
 class TextGraph(GraphBase):
-    def __init__(self, df, col_name, target_name):
-        super().__init__(df, col_name, target_name)
+    def __init__(self, df, col_name, target_name, folder_path):
+        super().__init__(df, col_name, target_name, folder_path)
         words = self.graph_df[col_name].str.split().explode()
         top_5_words = Counter(words).most_common(5)
         self.word, self.count = zip(*top_5_words)
@@ -19,4 +20,5 @@ class TextGraph(GraphBase):
         ax.set_ylabel("Count")
 
         plt.tight_layout()
-        plt.show()
+        plt.savefig(os.path.join(self.folder_path, f"{self.col_name}.png"))
+        plt.close()

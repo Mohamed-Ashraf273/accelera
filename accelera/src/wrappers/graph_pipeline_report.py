@@ -1,6 +1,5 @@
 import os
-from abc import ABC
-from abc import abstractmethod
+
 
 import numpy as np
 
@@ -12,59 +11,14 @@ from accelera.src.wrappers.display_figure import DisplayFigure
 from accelera.src.wrappers.display_single_number import DisplaySingleNumber
 from accelera.src.wrappers.display_string import DisplayString
 from accelera.src.wrappers.display_tuple_not_curve import DisplayTupleNotCurve
+from accelera.src.core.report_base import ReportBase
 
-
-class Report(ABC):
+class GraphPipelineReport(ReportBase):
     def __init__(self, folderpath, results):
-        self.folderpath = folderpath
+        super().__init__(folderpath)
         self.results = results
         create_folder(folderpath)
         self.metric_ids = []
-        self.start_content = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Accelera Graph Report</title>
-          <style>
-          body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            background-color: #000000;
-            color: #ffffff;
-            }
-            h1 {
-            color: #ffcc00;
-            text-align: center;
-            }
-            h4 {
-            color: #ffcc00; 
-            
-            }
-            table{
-            border-collapse: collapse;
-            width: 80%;
-            }
-             th, td {
-            border: 1px solid #444;
-            padding: 6px;
-            }
-            .metric-container {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 20px;
-            }
-            
-        </style>
-        </head>
-        <body>
-        <h1>Accelera Report</h1>
-        """
-        self.end_content = """
-        </body>
-        </html>
-        """
 
     def handle_metric(self):
         final_metric = {}
@@ -139,12 +93,5 @@ class Report(ABC):
                     content = obj.execute()
             metric_content = metric_content + "\n" + content
         return metric_content
-
-    def create_html_file(self, content):
-        readme_path = os.path.join(self.folderpath, "report.html")
-        with open(readme_path, encoding="utf-8", mode="w") as f:
-            f.write(content)
-
-    @abstractmethod
     def execute(self):
         pass

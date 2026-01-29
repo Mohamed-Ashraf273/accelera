@@ -6,10 +6,10 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 from graphviz import Digraph
 
-from accelera.src.core.report import Report
+from accelera.src.wrappers.graph_pipeline_report import GraphPipelineReport
 
 
-class GraphReport(Report):
+class GraphReport(GraphPipelineReport):
     def __init__(self, folderpath, xmlpath, results):
         super().__init__(folderpath, results)
         self.xmlpath = xmlpath

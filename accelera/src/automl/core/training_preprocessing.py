@@ -27,6 +27,7 @@ from accelera.src.automl.wrappers.numerical_classification import (
 from accelera.src.automl.wrappers.numerical_regression import NumericalRegression
 from accelera.src.automl.wrappers.ordinal_classification import OrdinalClassification
 from accelera.src.automl.wrappers.ordinal_regression import OrdinalRegression
+from accelera.src.automl.wrappers.preprocessing_report import PreprocessingReport
 from accelera.src.automl.wrappers.target_regression import TargetRegression
 from accelera.src.automl.wrappers.target_classification import TargetClassification
 from accelera.src.automl.wrappers.text_graph import TextGraph
@@ -264,7 +265,10 @@ class TrainingPreprocessing(PreprocessingBase):
                 and self.problem_type == "classification"
             ):
                 graph = CategoricalClassification(
-                    new_df, col, target_name=self.target_col
+                    new_df,
+                    col,
+                    target_name=self.target_col,
+                    folder_path=self.folder_path,
                 )
                 graph.build_graph()
             if (
@@ -272,49 +276,84 @@ class TrainingPreprocessing(PreprocessingBase):
                 in ["binary", "categorical_one_hot", "categorical_frequency"]
                 and self.problem_type == "regression"
             ):
-                graph = CategoricalRegression(new_df, col, target_name=self.target_col)
+                graph = CategoricalRegression(
+                    new_df,
+                    col,
+                    target_name=self.target_col,
+                    folder_path=self.folder_path,
+                )
                 graph.build_graph()
             if (
                 info[col]["col_type"] == "ordinal"
                 and self.problem_type == "classification"
             ):
-                graph = OrdinalClassification(new_df, col, target_name=self.target_col)
+                graph = OrdinalClassification(
+                    new_df,
+                    col,
+                    target_name=self.target_col,
+                    folder_path=self.folder_path,
+                )
                 graph.build_graph()
             if info[col]["col_type"] == "ordinal" and self.problem_type == "regression":
-                graph = OrdinalRegression(new_df, col, target_name=self.target_col)
+                graph = OrdinalRegression(
+                    new_df,
+                    col,
+                    target_name=self.target_col,
+                    folder_path=self.folder_path,
+                )
                 graph.build_graph()
             if (
                 info[col]["col_type"] in ["continuous", "numerical"]
                 and self.problem_type == "classification"
             ):
                 graph = NumericalClassification(
-                    new_df, col, target_name=self.target_col
+                    new_df,
+                    col,
+                    target_name=self.target_col,
+                    folder_path=self.folder_path,
                 )
                 graph.build_graph()
             if (
                 info[col]["col_type"] in ["continuous", "numerical"]
                 and self.problem_type == "regression"
             ):
-                graph = NumericalRegression(new_df, col, target_name=self.target_col)
+                graph = NumericalRegression(
+                    new_df,
+                    col,
+                    target_name=self.target_col,
+                    folder_path=self.folder_path,
+                )
                 graph.build_graph()
             if info[col]["col_type"] == "text":
                 text_graph = TextGraph(
-                    new_df, col_name=col, target_name=self.target_col
+                    new_df,
+                    col_name=col,
+                    target_name=self.target_col,
+                    folder_path=self.folder_path,
                 )
                 text_graph.build_graph()
         if self.problem_type == "classification":
             target_graph = TargetClassification(
-                new_df, col_name=self.target_col, target_name=self.target_col
+                new_df,
+                col_name=self.target_col,
+                target_name=self.target_col,
+                folder_path=self.folder_path,
             )
             target_graph.build_graph()
         if self.problem_type == "regression":
             target_graph = TargetRegression(
-                new_df, col_name=self.target_col, target_name=self.target_col
+                new_df,
+                col_name=self.target_col,
+                target_name=self.target_col,
+                folder_path=self.folder_path,
             )
             target_graph.build_graph()
 
         correlation_graph = CorrelationGraph(
-            new_df, col_name=self.target_col, target_name=self.target_col
+            new_df,
+            col_name=self.target_col,
+            target_name=self.target_col,
+            folder_path=self.folder_path,
         )
         correlation_graph.build_graph()
 
@@ -451,6 +490,8 @@ class TrainingPreprocessing(PreprocessingBase):
         # 5- drop columns
         # 6- features preprocessing
         # 7- target preprocessing
+        report = PreprocessingReport(self.folder_path, self.df)
+        report.execute()
         self.drop_duplicates()
         self.lower_data()
         X_train, X_val, y_train, y_val = self.split_data()
