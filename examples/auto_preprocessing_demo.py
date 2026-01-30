@@ -61,3 +61,15 @@ print("Linear Regression")
 model.fit(X_train, y_train)
 print(model.score(X_val, y_val))
 print(mean_squared_error(y_val, model.predict(X_val)))
+#####################################################3
+print("Hear Disease df")
+heart_df=pd.read_csv("./heart.csv")
+
+training_preprocessor = TrainingPreprocessing(
+    heart_df, "target", "classification", "./heart"
+)
+X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
+print("Random Forest Classifier")
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+print(model.score(X_val, y_val))
