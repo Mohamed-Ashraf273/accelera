@@ -23,7 +23,9 @@ class PreprocessingReport(ReportBase):
         self.content += "<h3>Missing Values:</h3>\n"
         missing_values = self.df.isnull().sum()
         self.content += f"{missing_values[missing_values > 0].to_frame(name='Missing Values').to_html( border=1, justify='center')}"
-
+        self.content+= "<h3>Duplicates:</h3>\n"
+        self.content += f"<p> number of duplicates rows: {self.df.duplicated().sum()}</p>\n"
+    
     def execute(self):
         self.show_data_overview()
         full_content = self.start_content + self.content + self.end_content
