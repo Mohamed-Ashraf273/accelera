@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.svm import SVC
+from sklearn.datasets import load_iris
 
 tatanic_df = pd.read_csv("Titanic-Dataset.csv")
 tatanic_df_copy = tatanic_df[:5].copy()
@@ -63,10 +64,24 @@ print(model.score(X_val, y_val))
 print(mean_squared_error(y_val, model.predict(X_val)))
 #####################################################3
 print("Hear Disease df")
-heart_df=pd.read_csv("./heart.csv")
+heart_df = pd.read_csv("./heart.csv")
 
 training_preprocessor = TrainingPreprocessing(
     heart_df, "target", "classification", "./heart"
+)
+X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
+print("Random Forest Classifier")
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+print(model.score(X_val, y_val))
+#######################################
+print("Iris dataset")
+
+iris = load_iris()
+iris_df = pd.DataFrame(iris.data, columns=iris.feature_names)
+iris_df["species"] = iris.target
+training_preprocessor = TrainingPreprocessing(
+    iris_df, "species", "classification", "./iris"
 )
 X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
 print("Random Forest Classifier")
