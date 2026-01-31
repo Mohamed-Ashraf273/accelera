@@ -20,34 +20,34 @@ class PreprocessingReport(ReportBase):
 
     def show_info(self, obj):
         self.content += "<h3>Data Information:</h3>\n"
-        self.content += f"<pre>{obj["info"]}</pre>\n"
+        self.content += f"<pre>{obj['info']}</pre>\n"
 
     def show_numeric_statis(self, obj):
         if not obj["numerical_describe"] is None:
             self.content += "<h3>Numerical Statistics:</h3>\n"
-            self.content += f"{obj["numerical_describe"].to_html()}\n"
+            self.content += f"{obj['numerical_describe'].to_html()}\n"
 
     def show_categoric_statis(self, obj):
         if not obj["categorical_describe"] is None:
             self.content += "<h3>Categorical Statistics:</h3>\n"
-            self.content += f"{obj["categorical_describe"].to_html()}\n"
+            self.content += f"{obj['categorical_describe'].to_html()}\n"
 
     def show_nulls(self, obj):
         self.content += "<h3>Missing Values:</h3>\n"
         self.content += (
-            f"{obj["missing_values"].to_frame(name='Missing Values').to_html()}\n"
+            f"{obj['missing_values'].to_frame(name='Missing Values').to_html()}\n"
         )
 
     def show_dupplicats(self, obj):
         self.content += "<h3>Duplicates:</h3>\n"
-        self.content += f"<p> number of duplicates rows: {obj["duplicates_sum"]}</p>\n"
+        self.content += f"<p> number of duplicates rows: {obj['duplicates_sum']}</p>\n"
         self.content += (
-            f"<p> Percentage of duplicates rows: {obj["duplicates_percentage"]} %</p>\n"
+            f"<p> Percentage of duplicates rows: {obj['duplicates_percentage']} %</p>\n"
         )
 
     def show_shape(self, obj):
         self.content += "<h3>Data Shape:</h3>\n"
-        self.content += f"<p> {obj["shape"]}</p> \n"
+        self.content += f"<p> {obj['shape']}</p> \n"
 
     def show_data_overview(self):
         self.content += "<div>\n"
@@ -76,13 +76,13 @@ class PreprocessingReport(ReportBase):
         self.content += "<div>\n"
         self.content += "<h2> Train / Validation Split</h2>\n"
         self.content += "<h3> Test Size</h3>\n"
-        self.content += f"<p>{self.split["test_size"]}</p>\n"
+        self.content += f"<p>{self.split['test_size']}</p>\n"
         self.content += f"<h3>Training set</h3>\n"
-        self.content += f"X_train shape : {self.split["X_train_shape"]}</p>\n"
-        self.content += f"y_train shape : {self.split["y_train_shape"]}</p>\n"
+        self.content += f"X_train shape : {self.split['X_train_shape']}</p>\n"
+        self.content += f"y_train shape : {self.split['y_train_shape']}</p>\n"
         self.content += f"<h3>validation set</h3>\n"
-        self.content += f"X_val shape : {self.split["X_val_shape"]}</p>\n"
-        self.content += f"y_val shape : {self.split["y_val_shape"]}</p>\n"
+        self.content += f"X_val shape : {self.split['X_val_shape']}</p>\n"
+        self.content += f"y_val shape : {self.split['y_val_shape']}</p>\n"
         self.content += "</div>\n"
 
     def show_drop_col(self):
