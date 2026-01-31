@@ -8,16 +8,21 @@ class ReportBase:
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Accelera Graph Report</title>
+          <title>Accelera Report</title>
           <style>
           body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
             background-color: #000000;
             color: #ffffff;
+            margin-left:30px
             }
             h1 {
             color: #ffcc00;
+            text-align: center;
+            }
+            h2{
+            font-style:italic;
             text-align: center;
             }
             h3{
@@ -34,14 +39,16 @@ class ReportBase:
              th, td {
             border: 1px solid #444;
             padding: 6px;
-            text_align: center;
+            text-align: center;
             }
             .metric-container {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 20px;
             }
-            
+            div{
+                margin:40px 10px ;
+            }
         </style>
         </head>
         <body>

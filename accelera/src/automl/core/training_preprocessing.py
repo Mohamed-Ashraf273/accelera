@@ -20,6 +20,7 @@ from accelera.src.automl.wrappers.categorical_classification import (
 )
 import numpy as np
 import os
+import io
 
 from accelera.src.automl.wrappers.numerical_classification import (
     NumericalClassification,
@@ -61,6 +62,7 @@ class TrainingPreprocessing(PreprocessingBase):
         self.categorical_ratio_threshold = categorical_ratio_threshold
         self.missing_threshold = missing_threshold
         self.unique_threshold = unique_threshold
+        self.report_data = {}
 
         if self.problem_type not in ["classification", "regression"]:
             raise ValueError(
@@ -140,6 +142,7 @@ class TrainingPreprocessing(PreprocessingBase):
                 is_drop, reason = self.is_drop_column(info, col)
                 if is_drop:
                     col_drop[col] = reason
+
         return info, col_drop
 
     def detect_column_types(self, X_train, info):
@@ -257,7 +260,10 @@ class TrainingPreprocessing(PreprocessingBase):
     def make_graphs(self, X_train, y_train, info):
         new_df = X_train.copy()
         new_df[self.target_col] = y_train
-
+        self.report_data["graphs"] = {
+            "folder_path": self.folder_path,
+            "images_name": [],
+        }
         for col in X_train.columns:
             if (
                 info[col]["col_type"]
@@ -271,6 +277,7 @@ class TrainingPreprocessing(PreprocessingBase):
                     folder_path=self.folder_path,
                 )
                 graph.build_graph()
+                self.report_data["graphs"]["images_name"].append(f"{col}")
             if (
                 info[col]["col_type"]
                 in ["binary", "categorical_one_hot", "categorical_frequency"]
@@ -283,6 +290,8 @@ class TrainingPreprocessing(PreprocessingBase):
                     folder_path=self.folder_path,
                 )
                 graph.build_graph()
+                self.report_data["graphs"]["images_name"].append(f"{col}")
+
             if (
                 info[col]["col_type"] == "ordinal"
                 and self.problem_type == "classification"
@@ -294,6 +303,7 @@ class TrainingPreprocessing(PreprocessingBase):
                     folder_path=self.folder_path,
                 )
                 graph.build_graph()
+                self.report_data["graphs"]["images_name"].append(f"{col}")
             if info[col]["col_type"] == "ordinal" and self.problem_type == "regression":
                 graph = OrdinalRegression(
                     new_df,
@@ -302,6 +312,7 @@ class TrainingPreprocessing(PreprocessingBase):
                     folder_path=self.folder_path,
                 )
                 graph.build_graph()
+                self.report_data["graphs"]["images_name"].append(f"{col}")
             if (
                 info[col]["col_type"] in ["continuous", "numerical"]
                 and self.problem_type == "classification"
@@ -313,6 +324,7 @@ class TrainingPreprocessing(PreprocessingBase):
                     folder_path=self.folder_path,
                 )
                 graph.build_graph()
+                self.report_data["graphs"]["images_name"].append(f"{col}")
             if (
                 info[col]["col_type"] in ["continuous", "numerical"]
                 and self.problem_type == "regression"
@@ -324,6 +336,7 @@ class TrainingPreprocessing(PreprocessingBase):
                     folder_path=self.folder_path,
                 )
                 graph.build_graph()
+                self.report_data["graphs"]["images_name"].append(f"{col}")
             if info[col]["col_type"] == "text":
                 text_graph = TextGraph(
                     new_df,
@@ -332,6 +345,7 @@ class TrainingPreprocessing(PreprocessingBase):
                     folder_path=self.folder_path,
                 )
                 text_graph.build_graph()
+                self.report_data["graphs"]["images_name"].append(f"{col}")
         if self.problem_type == "classification":
             target_graph = TargetClassification(
                 new_df,
@@ -340,6 +354,7 @@ class TrainingPreprocessing(PreprocessingBase):
                 folder_path=self.folder_path,
             )
             target_graph.build_graph()
+            self.report_data["graphs"]["images_name"].append(self.target_col)
         if self.problem_type == "regression":
             target_graph = TargetRegression(
                 new_df,
@@ -348,6 +363,7 @@ class TrainingPreprocessing(PreprocessingBase):
                 folder_path=self.folder_path,
             )
             target_graph.build_graph()
+            self.report_data["graphs"]["images_name"].append(self.target_col)
 
         correlation_graph = CorrelationGraph(
             new_df,
@@ -356,9 +372,15 @@ class TrainingPreprocessing(PreprocessingBase):
             folder_path=self.folder_path,
         )
         correlation_graph.build_graph()
+        self.report_data["graphs"]["images_name"].append("correlation_matrix")
 
     def drop_duplicates(self):
         self.df.drop_duplicates(inplace=True)
+        self.report_data["drop_duplicates"] = {
+            "shape": self.df.shape,
+            "duplicates_sum": self.df.duplicated().sum(),
+            "duplicates_percentage": self.df.duplicated().mean() * 100,
+        }
 
     def make_text_transformers(self, text_cols):
         transformers = []
@@ -480,25 +502,58 @@ class TrainingPreprocessing(PreprocessingBase):
         X_train, X_val, y_train, y_val = train_test_split(
             X, y, test_size=self.test_size, random_state=self.random_state
         )
+        self.report_data["split"] = {
+            "test_size": self.test_size,
+            "X_train_shape": X_train.shape,
+            "X_val_shape": X_val.shape,
+            "y_train_shape": y_train.shape,
+            "y_val_shape": y_val.shape,
+        }
         return X_train, X_val, y_train, y_val
 
-    def common_preprocessing(self):
-        # 1- drop duplictes
-        # 2- lower data
-        # 3- split data
-        # 4- get data info
-        # 5- drop columns
-        # 6- features preprocessing
-        # 7- target preprocessing
-        report = PreprocessingReport(self.folder_path, self.df)
-        report.execute()
-        self.drop_duplicates()
+    def data_overview(self):
+        data_head = self.df.head()
         self.lower_data()
+        lower_data_head = self.df.head()
+        io_buffer = io.StringIO()
+        self.df.info(buf=io_buffer)
+        data_info = io_buffer.getvalue()
+        numerical_df = self.df.select_dtypes(include="number")
+        categorical_df = self.df.select_dtypes(include="object")
+        numerical_describe, categorical_describe = None, None
+        if not numerical_df.empty:
+            numerical_describe = numerical_df.describe()
+        if not categorical_df.empty:
+            categorical_describe = categorical_df.describe()
+        missing_values = self.df.isnull().sum()
+        duplicates_sum = self.df.duplicated().sum()
+        duplicates_percentage = self.df.duplicated().mean() * 100
+        self.report_data["data_overview"] = {
+            "data_head": data_head,
+            "lower_data_head": lower_data_head,
+            "info": data_info,
+            "numerical_describe": numerical_describe,
+            "categorical_describe": categorical_describe,
+            "missing_values": missing_values,
+            "duplicates_sum": duplicates_sum,
+            "duplicates_percentage": duplicates_percentage,
+            "shape": self.df.shape,
+        }
+
+    def drop_col(self, X_train, X_val, col_drop):
+        self.drop_columns(X_train, col_drop)
+        self.drop_columns(X_val, col_drop)
+        self.report_data["drop_columns"] = {
+            "col_drop": col_drop,
+            "X_trian_head": X_train.head(),
+        }
+
+    def common_preprocessing(self):
+        self.data_overview()
+        self.drop_duplicates()
         X_train, X_val, y_train, y_val = self.split_data()
         info, col_drop = self.get_data_info(X_train, y_train)
-        # save column drop for testing
-        self.drop_columns(X_train, col_drop)
-
+        self.drop_col(X_train, X_val, col_drop)
         self.save_pikle(col_drop, "col_drop.pkl")
         (
             binary_cols,
@@ -509,9 +564,7 @@ class TrainingPreprocessing(PreprocessingBase):
             ordinal_cols,
             _,
         ) = self.detect_column_types(X_train, info)
-
         self.make_graphs(X_train, y_train, info)
-
         X_train, X_val = self.features_preprocessing(
             X_train,
             X_val,
@@ -524,4 +577,6 @@ class TrainingPreprocessing(PreprocessingBase):
             ordinal_cols,
         )
         y_train, y_val = self.target_preprocessing(y_train, y_val, info)
+        report = PreprocessingReport(self.folder_path, self.report_data)
+        report.execute()
         return X_train, y_train, X_val, y_val
