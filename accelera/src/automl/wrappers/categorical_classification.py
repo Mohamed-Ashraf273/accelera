@@ -17,23 +17,34 @@ class CategoricalClassification(GraphBase):
             self.is_top5_applied = False
 
     def build_graph(self):
-        _, ax = plt.subplots(1, 2, figsize=(12, 4))
-        sns.countplot(data=self.graph_df, x=self.col_name, ax=ax[0])
+        _, ax = plt.subplots(1, 3, figsize=(12, 4))
+        # pie plot of nulls percent
+        ax[0].pie(
+            [float(self.nulls_percent), float(100 - self.nulls_percent)],
+            labels=["Nulls", "Not Nulls"],
+            autopct="%1.1f%%",
+            colors=["#021D25", "#ADD8E6"],
+        )
+        ax[0].set_title(f"{self.col_name} Null percentage")
+        # countplot
+        sns.countplot(data=self.graph_df, x=self.col_name, ax=ax[1])
         if self.is_top5_applied:
-            ax[0].set_title(f"{self.col_name} Distribution (Top 5 Categories + Other)")
-            ax[1].set_title(
+            ax[1].set_title(f"{self.col_name} Distribution (Top 5 Categories + Other)")
+            ax[2].set_title(
                 f"{self.col_name} (Top 5 Categories + Other) vs {self.target_name} Distribution"
             )
         else:
-            ax[0].set_title(f"{self.col_name} Distribution")
-            ax[1].set_title(f"{self.col_name} vs {self.target_name} Distribution")
-        ax[0].set_xlabel(self.col_name)
-        ax[0].set_ylabel("Count")
-        sns.countplot(
-            data=self.graph_df, x=self.col_name, hue=self.target_name, ax=ax[1]
-        )
+            ax[1].set_title(f"{self.col_name} Distribution")
+            ax[2].set_title(f"{self.col_name} vs {self.target_name} Distribution")
         ax[1].set_xlabel(self.col_name)
-        ax[1].set_ylabel(self.target_name)
+        ax[1].set_ylabel("Count")
+        # remove target columns of nulls
+        self.graph_df = self.graph_df[[self.col_name, self.target_name]].dropna()
+        sns.countplot(
+            data=self.graph_df, x=self.col_name, hue=self.target_name, ax=ax[2]
+        )
+        ax[2].set_xlabel(self.col_name)
+        ax[2].set_ylabel(self.target_name)
         plt.tight_layout()
         plt.savefig(os.path.join(self.folder_path, f"{self.col_name}.png"))
         plt.close()

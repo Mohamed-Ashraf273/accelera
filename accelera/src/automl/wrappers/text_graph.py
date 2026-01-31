@@ -13,11 +13,19 @@ class TextGraph(GraphBase):
         self.word, self.count = zip(*top_5_words)
 
     def build_graph(self):
-        _, ax = plt.subplots(1, 1, figsize=(12, 4))
-        sns.barplot(x=list(self.word), y=list(self.count), ax=ax)
-        ax.set_title(f"Top 5 words in {self.col_name}")
-        ax.set_xlabel("Words")
-        ax.set_ylabel("Count")
+        _, ax = plt.subplots(1, 2, figsize=(12, 4))
+        # pie plot of nulls percent
+        ax[0].pie(
+            [float(self.nulls_percent), float(100 - self.nulls_percent)],
+            labels=["Nulls", "Not Nulls"],
+            autopct="%1.1f%%",
+            colors=["#021D25", "#ADD8E6"],
+        )
+        self.graph_df = self.graph_df[[self.col_name, self.target_name]].dropna()
+        sns.barplot(x=list(self.word), y=list(self.count), ax=ax[1])
+        ax[1].set_title(f"Top 5 words in {self.col_name}")
+        ax[1].set_xlabel("Words")
+        ax[1].set_ylabel("Count")
 
         plt.tight_layout()
         plt.savefig(os.path.join(self.folder_path, f"{self.col_name}.png"))

@@ -344,15 +344,15 @@ class TrainingPreprocessing(PreprocessingBase):
             target_graph = TargetRegression(
                 new_df,
                 col_name=self.target_col,
-                target_name=self.target_col,
+                target_name=None,
                 folder_path=self.folder_path,
             )
             target_graph.build_graph()
 
         correlation_graph = CorrelationGraph(
             new_df,
-            col_name=self.target_col,
-            target_name=self.target_col,
+            col_name=None,
+            target_name=None,
             folder_path=self.folder_path,
         )
         correlation_graph.build_graph()
