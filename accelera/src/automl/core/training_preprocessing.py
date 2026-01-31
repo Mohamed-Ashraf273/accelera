@@ -77,16 +77,13 @@ class TrainingPreprocessing(PreprocessingBase):
         # drop column if it is constent, percent of unique values > 90% (likely ID),
         # or percent of missing > 50%
         if info[col].get("is_constant", False):
-            print(f"Drop {col} column it is constant")
             return True, "The column is constant"
         elif (
             info[col].get("p_unique", 0) > self.unique_threshold
             and info[col].get("dtype") != "float64"
         ):
-            print(f"Drop {col} column it is likely an ID")
             return True, f"It is above unique_threshold {self.unique_threshold}"
         elif info[col].get("p_missing", 0) > self.missing_threshold:
-            print(f"Drop {col} column it is missing")
             return True, f"missing above missing_threshold {self.missing_threshold}"
         return False, None
 
@@ -153,16 +150,18 @@ class TrainingPreprocessing(PreprocessingBase):
         text_cols = []
         ordinal_cols = []
         others = []
+        self.report_data["preprocessing"] = []
         for col in X_train.columns:
             # first check if binary
             is_binary = self.check_binary(col, info)
             if is_binary:
                 info[col]["col_type"] = "binary"
+                info[col]["preprossing_steps"] = [
+                    "fill missing with most frequent",
+                    "ordinal encoding",
+                ]
                 binary_cols.append(col)
-                continue
-
-            # if it is integer it may be ordinal, categorical_frequency or numerical
-            if np.issubdtype(info[col]["dtype"], np.integer):
+            elif np.issubdtype(info[col]["dtype"], np.integer):
                 if info[col]["n_unique"] <= self.max_unique_ordinal:
                     sorted_unique_values = np.sort(X_train[col].dropna().unique())
                     diff = np.diff(sorted_unique_values)
@@ -170,14 +169,14 @@ class TrainingPreprocessing(PreprocessingBase):
                         info[col]["col_type"] = "ordinal"
                         info[col]["preprossing_steps"] = [
                             "fill missing with most frequent",
-                            "ordinal_encoding",
+                            "ordinal encoding",
                         ]
                         ordinal_cols.append(col)
                     else:
                         info[col]["col_type"] = "categorical_frequency"
                         info[col]["preprossing_steps"] = [
                             "fill missing with most frequent",
-                            "frequency_encoding",
+                            "frequency encoding",
                         ]
                         frequency_cols.append(col)
 
@@ -185,7 +184,7 @@ class TrainingPreprocessing(PreprocessingBase):
                     info[col]["col_type"] = "categorical_frequency"
                     info[col]["preprossing_steps"] = [
                         "fill missing with most frequent",
-                        "frequency_encoding",
+                        "frequency encoding",
                     ]
                     frequency_cols.append(col)
 
@@ -193,7 +192,7 @@ class TrainingPreprocessing(PreprocessingBase):
                     info[col]["col_type"] = "numerical"
                     info[col]["preprossing_steps"] = [
                         "fill missing with median",
-                        "IQR_transform",
+                        "IQR transform",
                         "standered scaling",
                     ]
                     numerical_cols.append(col)
@@ -203,7 +202,7 @@ class TrainingPreprocessing(PreprocessingBase):
                 info[col]["col_type"] = "continuous"
                 info[col]["preprossing_steps"] = [
                     "fill missing with median",
-                    "IQR_transform",
+                    "IQR transform",
                     "standered scaling",
                 ]
                 numerical_cols.append(col)
@@ -233,20 +232,19 @@ class TrainingPreprocessing(PreprocessingBase):
                         info[col]["col_type"] = "categorical_frequency"
                         info[col]["preprossing_steps"] = [
                             "fill missing with most frequent",
-                            "frequency_encoding",
+                            "frequency encoding",
                         ]
                         frequency_cols.append(col)
             else:
                 info[col]["col_type"] = "other"
+                info[col]["preprossing_steps"] = None
                 others.append(col)
-        print("Detected column types:")
-        print(f"Binary columns: {binary_cols}")
-        print(f"Numerical columns: {numerical_cols}")
-        print(f"One-hot columns: {one_hot_cols}")
-        print(f"Frequency-encoded columns: {frequency_cols}")
-        print(f"Text columns: {text_cols}")
-        print(f"Ordinal columns: {ordinal_cols}")
-        print(f"Other columns: {others}")
+            self.report_data["preprocessing"].append(
+                {
+                    "col_name": col,
+                    "col_preprocessing": info[col]["preprossing_steps"],
+                }
+            )
         return (
             binary_cols,
             numerical_cols,
@@ -483,7 +481,15 @@ class TrainingPreprocessing(PreprocessingBase):
             y_val = label_encoder.transform(y_val)
             self.save_pikle(label_encoder, "target_preprocessor.pkl")
             target_dict["mode"] = info[self.target_col]["mode"]
-
+            self.report_data["preprocessing"].append(
+                {
+                    "col_name": self.target_col,
+                    "col_preprocessing": [
+                        "fill missing with most frequent",
+                        "label encoding",
+                    ],
+                }
+            )
         elif self.problem_type == "regression":
             y_train = y_train.fillna(info[self.target_col]["median"])
             y_val = y_val.fillna(info[self.target_col]["median"])
@@ -494,6 +500,15 @@ class TrainingPreprocessing(PreprocessingBase):
             ).ravel()
             y_val = stander_scaler.transform(y_val.values.reshape(-1, 1)).ravel()
             self.save_pikle(stander_scaler, "target_preprocessor.pkl")
+            self.report_data["preprocessing"].append(
+                {
+                    "col_name": self.target_col,
+                    "col_preprocessing": [
+                        "fill missing with median",
+                        "stander scaling",
+                    ],
+                }
+            )
         self.save_pikle(target_dict, "target_info.pkl")
         return y_train, y_val
 
