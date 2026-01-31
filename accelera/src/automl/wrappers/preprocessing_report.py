@@ -10,29 +10,47 @@ class PreprocessingReport(ReportBase):
         self.numeric_df = self.df.select_dtypes(include="number")
         self.categorical_df = self.df.select_dtypes(include="object")
 
-    def show_data_overview(self):
-        self.content += "<h2>Data Overview</h2>\n"
+    def show_data_heads(self):
         self.content += f"""<h3>First 5 rows of the dataset:</h3>\n
         {self.df.head().to_html(index=False, border=1, justify='center')}"""
-        self.content += "<h3>Data Information:</h3>\n"
+
+    def show_info(self):
         io_buffer = io.StringIO()
         self.df.info(buf=io_buffer)
+        self.content += "<h3>Data Information:</h3>\n"
         self.content += f"<pre>{io_buffer.getvalue()}</pre>\n"
+
+    def show_numeric_statis(self):
         if not self.numeric_df.empty:
             self.content += "<h3>Numerical Statistics:</h3>\n"
             self.content += f"{self.numeric_df.describe().to_html()}"
+
+    def show_categoric_statis(self):
         if not self.categorical_df.empty:
             self.content += "<h3>Categorical Statistics:</h3>\n"
             self.content += (
                 f"{self.categorical_df.describe().to_html( border=1, justify='center')}"
             )
+
+    def show_nulls(self):
         self.content += "<h3>Missing Values:</h3>\n"
         missing_values = self.df.isnull().sum()
         self.content += f"{missing_values[missing_values > 0].to_frame(name='Missing Values').to_html( border=1, justify='center')}"
+
+    def show_dupplicats(self):
         self.content += "<h3>Duplicates:</h3>\n"
         self.content += (
             f"<p> number of duplicates rows: {self.df.duplicated().sum()}</p>\n"
         )
+
+    def show_data_overview(self):
+        self.content += "<h2>Data Overview</h2>\n"
+        self.show_data_heads()
+        self.show_info()
+        self.show_numeric_statis()
+        self.show_categoric_statis()
+        self.show_nulls()
+    
 
     def execute(self):
         self.show_data_overview()
