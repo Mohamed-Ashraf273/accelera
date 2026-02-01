@@ -1,11 +1,16 @@
-from accelera.src.automl.core.training_preprocessing import TrainingPreprocessing
-from accelera.src.automl.core.testing_preprocessing import TestingPreprocessing
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 import pandas as pd
-from sklearn.metrics import mean_squared_error
-from sklearn.linear_model import LogisticRegression, LinearRegression
-from sklearn.svm import SVC
 from sklearn.datasets import load_iris
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import mean_squared_error
+from sklearn.svm import SVC
+
+from accelera.src.automl.core.testing_preprocessing import TestingPreprocessing
+from accelera.src.automl.core.training_preprocessing import (
+    TrainingPreprocessing,
+)
 
 tatanic_df = pd.read_csv("Titanic-Dataset.csv")
 tatanic_df_copy = tatanic_df[:5].copy()
@@ -21,7 +26,9 @@ model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
 print(model.score(X_val, y_val))
 print("testing")
-testing_preprocessor = TestingPreprocessing(tatanic_df_copy, "./titanic_preprocessing")
+testing_preprocessor = TestingPreprocessing(
+    tatanic_df_copy, "./titanic_preprocessing"
+)
 X_test, y_test = testing_preprocessor.common_preprocessing()
 print(X_test)
 print("Predictions:")

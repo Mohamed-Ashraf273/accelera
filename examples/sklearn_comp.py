@@ -22,7 +22,9 @@ def get_memory_info():
         "rss_mb": memory_info.rss / 1024 / 1024,  # Resident Set Size
         "vms_mb": memory_info.vms / 1024 / 1024,  # Virtual Memory Size
         "swap_mb": (
-            memory_full.swap / 1024 / 1024 if hasattr(memory_full, "swap") else 0
+            memory_full.swap / 1024 / 1024
+            if hasattr(memory_full, "swap")
+            else 0
         ),
     }
 
@@ -90,9 +92,7 @@ acc_pipe.branch(
     "models",
     acc_pipe.model("model_lr", LogisticRegression(max_iter=1000), branch=True),
     acc_pipe.model("model_svc", SVC(C=10), branch=True),
-).predict(
-    "predict", test_data=test_data
-).metric(
+).predict("predict", test_data=test_data).metric(
     "metric",
     "accuracy_score",
     y_true=y_test,

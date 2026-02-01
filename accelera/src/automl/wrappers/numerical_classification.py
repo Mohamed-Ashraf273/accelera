@@ -1,7 +1,9 @@
-from accelera.src.automl.wrappers.graph_base import GraphBase
-import seaborn as sns
-import matplotlib.pyplot as plt
 import os
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from accelera.src.automl.wrappers.graph_base import GraphBase
 
 
 class NumericalClassification(GraphBase):
@@ -22,8 +24,12 @@ class NumericalClassification(GraphBase):
         ax[1].set_title(f"{self.col_name} Distribution")
         ax[1].set_xlabel(self.col_name)
         ax[1].set_ylabel("Count")
-        self.graph_df = self.graph_df[[self.col_name, self.target_name]].dropna()
-        sns.boxplot(data=self.graph_df, x=self.target_name, y=self.col_name, ax=ax[2])
+        self.graph_df = self.graph_df[
+            [self.col_name, self.target_name]
+        ].dropna()
+        sns.boxplot(
+            data=self.graph_df, x=self.target_name, y=self.col_name, ax=ax[2]
+        )
         ax[2].set_title(f"{self.col_name} Distribution by {self.target_name}")
         ax[2].set_xlabel(self.target_name)
         ax[2].set_ylabel(self.col_name)

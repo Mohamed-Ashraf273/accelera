@@ -1,4 +1,6 @@
-from accelera.src.automl.core.training_preprocessing import TrainingPreprocessing
+from accelera.src.automl.core.training_preprocessing import (
+    TrainingPreprocessing,
+)
 from accelera.src.automl.utils.sampler import sample
 from accelera.src.utils.accelera_utils import print_msg
 

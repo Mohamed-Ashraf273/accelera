@@ -1,4 +1,5 @@
 import os
+
 import matplotlib.pyplot as plt
 
 
@@ -10,7 +11,7 @@ class GraphBase:
         self.folder_path = os.path.join(folder_path, "graphs")
         if not os.path.exists(self.folder_path):
             os.makedirs(self.folder_path)
-        if not self.col_name is None:
+        if self.col_name is not None:
             self.nulls_percent = 100 * self.df[col_name].isna().mean()
 
             self.graph_df = self.df.dropna(subset=[self.col_name])

@@ -11,4 +11,4 @@ from accelera.src.core import node as node
 from accelera.src.core import pipeline as pipeline
 from accelera.src.core import pipeline_base as pipeline_base
 from accelera.src.core import pipeline_test as pipeline_test
-from accelera.src.wrappers import graph_pipeline_report as graph_pipeline_report
+from accelera.src.core import report_base as report_base

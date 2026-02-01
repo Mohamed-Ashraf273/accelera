@@ -1,8 +1,6 @@
-import os
-
-
 import numpy as np
 
+from accelera.src.core.report_base import ReportBase
 from accelera.src.utils.accelera_utils import create_folder
 from accelera.src.wrappers.display_array_multi import DisplayMultiArray
 from accelera.src.wrappers.display_array_single import DisplayArraySingle
@@ -11,7 +9,7 @@ from accelera.src.wrappers.display_figure import DisplayFigure
 from accelera.src.wrappers.display_single_number import DisplaySingleNumber
 from accelera.src.wrappers.display_string import DisplayString
 from accelera.src.wrappers.display_tuple_not_curve import DisplayTupleNotCurve
-from accelera.src.core.report_base import ReportBase
+
 
 class GraphPipelineReport(ReportBase):
     def __init__(self, folderpath, results):
@@ -93,5 +91,6 @@ class GraphPipelineReport(ReportBase):
                     content = obj.execute()
             metric_content = metric_content + "\n" + content
         return metric_content
+
     def execute(self):
         pass

@@ -1,7 +1,9 @@
 import os
-from accelera.src.automl.wrappers.graph_base import GraphBase
-import seaborn as sns
+
 import matplotlib.pyplot as plt
+import seaborn as sns
+
+from accelera.src.automl.wrappers.graph_base import GraphBase
 
 
 class CorrelationGraph(GraphBase):
@@ -16,5 +18,7 @@ class CorrelationGraph(GraphBase):
             sns.heatmap(corr, annot=True, cmap="coolwarm", ax=ax)
             ax.set_title("Correlation Matrix")
             plt.tight_layout()
-            plt.savefig(os.path.join(self.folder_path, f"correlation_matrix.png"))
+            plt.savefig(
+                os.path.join(self.folder_path, "correlation_matrix.png")
+            )
             plt.close()

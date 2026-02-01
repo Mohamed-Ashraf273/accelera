@@ -1,16 +1,21 @@
 import os
-from accelera.src.automl.wrappers.graph_base import GraphBase
-import seaborn as sns
+
 import matplotlib.pyplot as plt
+import seaborn as sns
+
+from accelera.src.automl.wrappers.graph_base import GraphBase
 
 
 class CategoricalClassification(GraphBase):
     def __init__(self, df, col_name, target_name, folder_path):
         super().__init__(df, col_name, target_name, folder_path)
         if self.graph_df[col_name].nunique() > 5:
-            top_5_categories = self.graph_df[col_name].value_counts().nlargest(5)
+            top_5_categories = (
+                self.graph_df[col_name].value_counts().nlargest(5)
+            )
             self.graph_df[col_name] = self.graph_df[col_name].where(
-                self.graph_df[col_name].isin(top_5_categories.index), other="Other"
+                self.graph_df[col_name].isin(top_5_categories.index),
+                other="Other",
             )
             self.is_top5_applied = True
         else:
@@ -29,17 +34,25 @@ class CategoricalClassification(GraphBase):
         # countplot
         sns.countplot(data=self.graph_df, x=self.col_name, ax=ax[1])
         if self.is_top5_applied:
-            ax[1].set_title(f"{self.col_name} Distribution (Top 5 Categories + Other)")
-            ax[2].set_title(
-                f"{self.col_name} (Top 5 Categories + Other) vs {self.target_name} Distribution"
+            ax[1].set_title(
+                f"{self.col_name} Distribution (Top 5 Categories + Other)"
             )
+            title = (
+                f"{self.col_name} (Top 5 Categories + Other) "
+                f"vs {self.target_name} Distribution"
+            )
+            ax[2].set_title(title)
         else:
             ax[1].set_title(f"{self.col_name} Distribution")
-            ax[2].set_title(f"{self.col_name} vs {self.target_name} Distribution")
+            ax[2].set_title(
+                f"{self.col_name} vs {self.target_name} Distribution"
+            )
         ax[1].set_xlabel(self.col_name)
         ax[1].set_ylabel("Count")
         # remove target columns of nulls
-        self.graph_df = self.graph_df[[self.col_name, self.target_name]].dropna()
+        self.graph_df = self.graph_df[
+            [self.col_name, self.target_name]
+        ].dropna()
         sns.countplot(
             data=self.graph_df, x=self.col_name, hue=self.target_name, ax=ax[2]
         )

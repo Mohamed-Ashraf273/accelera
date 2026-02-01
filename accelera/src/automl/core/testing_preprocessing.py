@@ -1,5 +1,6 @@
-from accelera.src.automl.core.preprocessing_base import PreprocessingBase
 import os
+
+from accelera.src.automl.core.preprocessing_base import PreprocessingBase
 
 
 class TestingPreprocessing(PreprocessingBase):
@@ -18,7 +19,9 @@ class TestingPreprocessing(PreprocessingBase):
         self.col_drop = self.load_pickle("col_drop.pkl")
         self.target_info = self.load_pickle("target_info.pkl")
         self.target_preprocessor = self.load_pickle("target_preprocessor.pkl")
-        self.training_preprocessor = self.load_pickle("training_preprocessor.pkl")
+        self.training_preprocessor = self.load_pickle(
+            "training_preprocessor.pkl"
+        )
         self.features_only = False
         if self.target_info["col_name"] not in self.df.columns:
             self.features_only = True

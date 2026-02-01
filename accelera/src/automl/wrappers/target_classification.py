@@ -1,7 +1,9 @@
-from accelera.src.automl.wrappers.graph_base import GraphBase
-import seaborn as sns
-import matplotlib.pyplot as plt
 import os
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from accelera.src.automl.wrappers.graph_base import GraphBase
 
 
 class TargetClassification(GraphBase):

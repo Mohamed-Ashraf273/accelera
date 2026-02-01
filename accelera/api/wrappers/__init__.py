@@ -13,6 +13,7 @@ from accelera.src.wrappers import display_string as display_string
 from accelera.src.wrappers import (
     display_tuple_not_curve as display_tuple_not_curve,
 )
+from accelera.src.wrappers import graph_pipeline_report as graph_pipeline_report
 from accelera.src.wrappers import graph_report as graph_report
 from accelera.src.wrappers import model_report as model_report
 from accelera.src.wrappers import supervised_metric as supervised_metric

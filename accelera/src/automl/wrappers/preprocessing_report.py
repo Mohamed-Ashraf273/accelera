@@ -1,5 +1,6 @@
-from accelera.src.core.report_base import ReportBase
 import os
+
+from accelera.src.core.report_base import ReportBase
 
 
 class PreprocessingReport(ReportBase):
@@ -23,27 +24,27 @@ class PreprocessingReport(ReportBase):
         self.content += f"<pre>{obj['info']}</pre>\n"
 
     def show_numeric_statis(self, obj):
-        if not obj["numerical_describe"] is None:
+        if obj["numerical_describe"] is not None:
             self.content += "<h3>Numerical Statistics:</h3>\n"
             self.content += f"{obj['numerical_describe'].to_html()}\n"
 
     def show_categoric_statis(self, obj):
-        if not obj["categorical_describe"] is None:
+        if obj["categorical_describe"] is not None:
             self.content += "<h3>Categorical Statistics:</h3>\n"
             self.content += f"{obj['categorical_describe'].to_html()}\n"
 
     def show_nulls(self, obj):
         self.content += "<h3>Missing Values:</h3>\n"
-        self.content += (
-            f"{obj['missing_values'].to_frame(name='Missing Values').to_html()}\n"
-        )
+        missing_df = obj["missing_values"].to_frame(name="Missing Values")
+        self.content += f"{missing_df.to_html()}\n"
 
     def show_dupplicats(self, obj):
         self.content += "<h3>Duplicates:</h3>\n"
-        self.content += f"<p> number of duplicates rows: {obj['duplicates_sum']}</p>\n"
         self.content += (
-            f"<p> Percentage of duplicates rows: {obj['duplicates_percentage']} %</p>\n"
+            f"<p> number of duplicates rows: {obj['duplicates_sum']}</p>\n"
         )
+        self.content += "<p> Percentage of duplicates "
+        self.content += f"rows: {obj['duplicates_percentage']} %</p>\n"
 
     def show_shape(self, obj):
         self.content += "<h3>Data Shape:</h3>\n"
@@ -77,10 +78,10 @@ class PreprocessingReport(ReportBase):
         self.content += "<h2> Train / Validation Split</h2>\n"
         self.content += "<h3> Test Size</h3>\n"
         self.content += f"<p>{self.split['test_size']}</p>\n"
-        self.content += f"<h3>Training set</h3>\n"
+        self.content += "<h3>Training set</h3>\n"
         self.content += f"X_train shape : {self.split['X_train_shape']}</p>\n"
         self.content += f"y_train shape : {self.split['y_train_shape']}</p>\n"
-        self.content += f"<h3>validation set</h3>\n"
+        self.content += "<h3>validation set</h3>\n"
         self.content += f"X_val shape : {self.split['X_val_shape']}</p>\n"
         self.content += f"y_val shape : {self.split['y_val_shape']}</p>\n"
         self.content += "</div>\n"
@@ -114,8 +115,11 @@ class PreprocessingReport(ReportBase):
             for image_name in self.graphs["images_name"]:
                 image_file = os.path.join(folder_path, f"{image_name}.png")
                 if os.path.exists(image_file):
-                    image_file = os.path.join(".", "graphs", f"{image_name}.png")
-                    self.content += f"<img src='{image_file}' style='max-width:100%; margin:10px 0;'/>\n"
+                    image_file = os.path.join(
+                        ".", "graphs", f"{image_name}.png"
+                    )
+                    self.content += f"<img src='{image_file}' "
+                    self.content += "style='max-width:100%; margin:10px 0;'/>\n"
         self.content += "</div>\n"
 
     def show_preprocessing(self):
@@ -125,15 +129,18 @@ class PreprocessingReport(ReportBase):
         self.content += "<tr><th>Column</th><th>Preprocessing Steps</th></tr>\n"
 
         for item in self.preprocessing:
-            col_name, col_preprocessing = item["col_name"], item["col_preprocessing"]
+            col_name, col_preprocessing = (
+                item["col_name"],
+                item["col_preprocessing"],
+            )
             self.content += f"<tr><td>{col_name}</td>"
-            self.content += f"<td>"
+            self.content += "<td>"
             for i, step in enumerate(col_preprocessing):
                 self.content += f"{step} "
                 if i != len(col_preprocessing) - 1:
                     self.content += "-> "
-            self.content += f"</td>"
-            self.content += f"</tr>\n"
+            self.content += "</td>"
+            self.content += "</tr>\n"
 
         self.content += "</table>\n"
         self.content += "</div>\n"

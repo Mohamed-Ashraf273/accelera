@@ -1,8 +1,10 @@
-from accelera.src.automl.wrappers.graph_base import GraphBase
-import seaborn as sns
-import matplotlib.pyplot as plt
-from collections import Counter
 import os
+from collections import Counter
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from accelera.src.automl.wrappers.graph_base import GraphBase
 
 
 class TextGraph(GraphBase):
@@ -21,7 +23,9 @@ class TextGraph(GraphBase):
             autopct="%1.1f%%",
             colors=["#021D25", "#ADD8E6"],
         )
-        self.graph_df = self.graph_df[[self.col_name, self.target_name]].dropna()
+        self.graph_df = self.graph_df[
+            [self.col_name, self.target_name]
+        ].dropna()
         sns.barplot(x=list(self.word), y=list(self.count), ax=ax[1])
         ax[1].set_title(f"Top 5 words in {self.col_name}")
         ax[1].set_xlabel("Words")

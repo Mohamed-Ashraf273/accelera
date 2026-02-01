@@ -1,4 +1,6 @@
 import os
+
+
 class ReportBase:
     def __init__(self, folderpath):
         self.folderpath = folderpath
@@ -58,9 +60,11 @@ class ReportBase:
         </body>
         </html>
         """
+
     def create_html_file(self, content):
         readme_path = os.path.join(self.folderpath, "report.html")
         with open(readme_path, encoding="utf-8", mode="w") as f:
             f.write(content)
+
     def execute(self):
         raise NotImplementedError("Subclasses must implement this method")

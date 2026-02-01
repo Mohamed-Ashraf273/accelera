@@ -1,38 +1,47 @@
-from accelera.src.automl.core.preprocessing_base import PreprocessingBase
-from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import (
-    LabelEncoder,
-    OneHotEncoder,
-    StandardScaler,
-    OrdinalEncoder,
-)
+import io
+import os
+
+import numpy as np
 from sklearn.compose import ColumnTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
-from accelera.src.automl.wrappers.IQR_transform import IQRTransform
-from accelera.src.automl.wrappers.categorical_regression import CategoricalRegression
-from accelera.src.automl.wrappers.frequency_encoder_transform import (
-    FrequencyEncoderTransform,
-)
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OrdinalEncoder
+from sklearn.preprocessing import StandardScaler
+
+from accelera.src.automl.core.preprocessing_base import PreprocessingBase
 from accelera.src.automl.wrappers.categorical_classification import (
     CategoricalClassification,
 )
-import numpy as np
-import os
-import io
-
+from accelera.src.automl.wrappers.categorical_regression import (
+    CategoricalRegression,
+)
+from accelera.src.automl.wrappers.correlation_graph import CorrelationGraph
+from accelera.src.automl.wrappers.frequency_encoder_transform import (
+    FrequencyEncoderTransform,
+)
+from accelera.src.automl.wrappers.IQR_transform import IQRTransform
 from accelera.src.automl.wrappers.numerical_classification import (
     NumericalClassification,
 )
-from accelera.src.automl.wrappers.numerical_regression import NumericalRegression
-from accelera.src.automl.wrappers.ordinal_classification import OrdinalClassification
+from accelera.src.automl.wrappers.numerical_regression import (
+    NumericalRegression,
+)
+from accelera.src.automl.wrappers.ordinal_classification import (
+    OrdinalClassification,
+)
 from accelera.src.automl.wrappers.ordinal_regression import OrdinalRegression
-from accelera.src.automl.wrappers.preprocessing_report import PreprocessingReport
+from accelera.src.automl.wrappers.preprocessing_report import (
+    PreprocessingReport,
+)
+from accelera.src.automl.wrappers.target_classification import (
+    TargetClassification,
+)
 from accelera.src.automl.wrappers.target_regression import TargetRegression
-from accelera.src.automl.wrappers.target_classification import TargetClassification
 from accelera.src.automl.wrappers.text_graph import TextGraph
-from accelera.src.automl.wrappers.correlation_graph import CorrelationGraph
 
 
 class TrainingPreprocessing(PreprocessingBase):
@@ -74,7 +83,8 @@ class TrainingPreprocessing(PreprocessingBase):
         self.save_pikle(self.df.columns.tolist(), "data_columns.pkl")
 
     def is_drop_column(self, info, col):
-        # drop column if it is constent, percent of unique values > 90% (likely ID),
+        # drop column if it is constent,
+        # percent of unique values > 90% (likely ID),
         # or percent of missing > 50%
         if info[col].get("is_constant", False):
             return True, "The column is constant"
@@ -84,7 +94,10 @@ class TrainingPreprocessing(PreprocessingBase):
         ):
             return True, f"It is above unique_threshold {self.unique_threshold}"
         elif info[col].get("p_missing", 0) > self.missing_threshold:
-            return True, f"missing above missing_threshold {self.missing_threshold}"
+            return (
+                True,
+                f"missing above missing_threshold {self.missing_threshold}",
+            )
         return False, None
 
     def outliers_info(self, info, col):
@@ -99,11 +112,15 @@ class TrainingPreprocessing(PreprocessingBase):
         return (lower, upper)
 
     def check_binary(self, col, info):
-        if info[col].get("n_unique", 0) == 2 or info[col].get("dtype") == "bool":
+        if (
+            info[col].get("n_unique", 0) == 2
+            or info[col].get("dtype") == "bool"
+        ):
             return True
 
     def get_data_info(self, X_train, y_train):
-        # this function return info about the training data like mean, median, dtype, n_unique, p_unique, missing, p_missing
+        # this function return info about the training data
+        # like mean, median, dtype, n_unique, p_unique, missing, p_missing
         col_drop = {}
         info = {}
         df_new = X_train.copy()
@@ -163,7 +180,9 @@ class TrainingPreprocessing(PreprocessingBase):
                 binary_cols.append(col)
             elif np.issubdtype(info[col]["dtype"], np.integer):
                 if info[col]["n_unique"] <= self.max_unique_ordinal:
-                    sorted_unique_values = np.sort(X_train[col].dropna().unique())
+                    sorted_unique_values = np.sort(
+                        X_train[col].dropna().unique()
+                    )
                     diff = np.diff(sorted_unique_values)
                     if np.all(diff == 1):
                         info[col]["col_type"] = "ordinal"
@@ -219,7 +238,10 @@ class TrainingPreprocessing(PreprocessingBase):
                     one_hot_cols.append(col)
                 else:
                     avg_length = (
-                        X_train[col].dropna().apply(lambda x: len(str(x))).mean()
+                        X_train[col]
+                        .dropna()
+                        .apply(lambda x: len(str(x)))
+                        .mean()
                     )
                     if avg_length > self.text_threshold:
                         info[col]["col_type"] = "text"
@@ -302,7 +324,10 @@ class TrainingPreprocessing(PreprocessingBase):
                 )
                 graph.build_graph()
                 self.report_data["graphs"]["images_name"].append(f"{col}")
-            if info[col]["col_type"] == "ordinal" and self.problem_type == "regression":
+            if (
+                info[col]["col_type"] == "ordinal"
+                and self.problem_type == "regression"
+            ):
                 graph = OrdinalRegression(
                     new_df,
                     col,
@@ -387,10 +412,15 @@ class TrainingPreprocessing(PreprocessingBase):
                 f"{col}_tfidf",
                 Pipeline(
                     [
-                        ("imputer", SimpleImputer(strategy="constant", fill_value="")),
+                        (
+                            "imputer",
+                            SimpleImputer(strategy="constant", fill_value=""),
+                        ),
                         (
                             "tfidf",
-                            TfidfVectorizer(max_features=1000, stop_words="english"),
+                            TfidfVectorizer(
+                                max_features=1000, stop_words="english"
+                            ),
                         ),
                     ]
                 ),
@@ -411,7 +441,6 @@ class TrainingPreprocessing(PreprocessingBase):
         text_cols,
         ordinal_cols,
     ):
-
         # Pipelines
         numerical_pipeline = Pipeline(
             [
@@ -426,7 +455,9 @@ class TrainingPreprocessing(PreprocessingBase):
                 (
                     "one_hot_encoder",
                     OneHotEncoder(
-                        handle_unknown="ignore", sparse_output=False, drop="first"
+                        handle_unknown="ignore",
+                        sparse_output=False,
+                        drop="first",
                     ),
                 ),
             ]
@@ -498,7 +529,9 @@ class TrainingPreprocessing(PreprocessingBase):
             y_train = stander_scaler.fit_transform(
                 y_train.values.reshape(-1, 1)
             ).ravel()
-            y_val = stander_scaler.transform(y_val.values.reshape(-1, 1)).ravel()
+            y_val = stander_scaler.transform(
+                y_val.values.reshape(-1, 1)
+            ).ravel()
             self.save_pikle(stander_scaler, "target_preprocessor.pkl")
             self.report_data["preprocessing"].append(
                 {
