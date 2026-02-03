@@ -4,6 +4,7 @@ import tempfile
 import shutil
 import os
 from accelera.src.automl.core.training_preprocessing import TrainingPreprocessing
+from sklearn.model_selection import train_test_split
 
 
 class TestTrainingPreprocessing:
@@ -200,3 +201,63 @@ class TestTrainingPreprocessing:
         assert data_overview["missing_values"].equals(
             self.df_classification.isnull().sum()
         )
+
+    def test_drop_dupplicates(self):
+        training_preprocessing = TrainingPreprocessing(
+            df=self.df_classification,
+            target_col="target",
+            problem_type="classification",
+            folder_path=self.temp_dir,
+        )
+        shape_before_drop = training_preprocessing.df.shape
+        training_preprocessing.drop_duplicates()
+        shape_after_drop = training_preprocessing.df.shape
+        assert shape_after_drop[0] == shape_before_drop[0] - 1
+        assert shape_after_drop[1] == shape_before_drop[1]
+        assert (
+            training_preprocessing.report_data["drop_duplicates"]["shape"]
+            == shape_after_drop
+        )
+        assert self.df_classification.duplicated().sum() == 0
+        assert (
+            training_preprocessing.report_data["drop_duplicates"]["duplicates_sum"] == 0
+        )
+        assert (
+            training_preprocessing.report_data["drop_duplicates"][
+                "duplicates_percentage"
+            ]
+            == 0
+        )
+
+    def test_split_data(self):
+        training_preprocessing = TrainingPreprocessing(
+            df=self.df_classification,
+            target_col="target",
+            problem_type="classification",
+            folder_path=self.temp_dir,
+        )
+        X_train_1, X_val_1, y_train_1, y_val_1 = train_test_split(
+            training_preprocessing.df.drop(columns=["target"]),
+            training_preprocessing.df["target"],
+            test_size=0.2,
+            random_state=42,
+        )
+        X_train, X_val, y_train, y_val = training_preprocessing.split_data()
+        assert X_train.shape[0] == X_train_1.shape[0]
+        assert X_val.shape[0] == X_val_1.shape[0]
+        assert y_train.shape[0] == y_train_1.shape[0]
+        assert y_val.shape[0] == y_val_1.shape[0]
+        assert (
+            training_preprocessing.report_data["split"]["X_train_shape"]
+            == X_train.shape
+        )
+        assert training_preprocessing.report_data["split"]["X_val_shape"] == X_val.shape
+        assert (
+            training_preprocessing.report_data["split"]["y_train_shape"]
+            == y_train.shape
+        )
+        assert training_preprocessing.report_data["split"]["y_val_shape"] == y_val.shape
+        assert X_train.equals(X_train_1)
+        assert X_val.equals(X_val_1)
+        assert y_train.equals(y_train_1)
+        assert y_val.equals(y_val_1)

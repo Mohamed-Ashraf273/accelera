@@ -72,8 +72,6 @@ class TrainingPreprocessing(PreprocessingBase):
         self.missing_threshold = missing_threshold
         self.unique_threshold = unique_threshold
         self.report_data = {}
-        if self.df is None:
-            raise ValueError("Dataframe cannot be None")
         if self.problem_type not in ["classification", "regression"]:
             raise ValueError(
                 "problem_type must be either 'classification' or 'regression'"
@@ -180,7 +178,7 @@ class TrainingPreprocessing(PreprocessingBase):
                 if info[col]["n_unique"] <= self.max_unique_ordinal:
                     sorted_unique_values = np.sort(X_train[col].dropna().unique())
                     diff = np.diff(sorted_unique_values)
-                    if np.all(diff == 1):
+                    if np.all(diff == 1) and sorted_unique_values[0] in [0, 1]:
                         info[col]["col_type"] = "ordinal"
                         info[col]["preprossing_steps"] = [
                             "Fill missing with most frequent",
