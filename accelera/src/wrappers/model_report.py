@@ -3,10 +3,10 @@ import textwrap
 
 import matplotlib.pyplot as plt
 
-from accelera.src.core.report import Report
+from accelera.src.wrappers.graph_pipeline_report import GraphPipelineReport
 
 
-class ModelReport(Report):
+class ModelReport(GraphPipelineReport):
     def __init__(self, folderpath, results, history=None):
         super().__init__(folderpath, results)
         if history and not isinstance(history, dict):

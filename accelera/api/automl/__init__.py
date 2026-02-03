@@ -7,3 +7,4 @@ since your modifications would be overwritten.
 from accelera.src.automl import algorithms as algorithms
 from accelera.src.automl import core as core
 from accelera.src.automl import utils as utils
+from accelera.src.automl import wrappers as wrappers
