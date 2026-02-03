@@ -72,7 +72,8 @@ class TrainingPreprocessing(PreprocessingBase):
         self.missing_threshold = missing_threshold
         self.unique_threshold = unique_threshold
         self.report_data = {}
-
+        if self.df is None:
+            raise ValueError("Dataframe cannot be None")
         if self.problem_type not in ["classification", "regression"]:
             raise ValueError(
                 "problem_type must be either 'classification' or 'regression'"
@@ -112,10 +113,7 @@ class TrainingPreprocessing(PreprocessingBase):
         return (lower, upper)
 
     def check_binary(self, col, info):
-        if (
-            info[col].get("n_unique", 0) == 2
-            or info[col].get("dtype") == "bool"
-        ):
+        if info[col].get("n_unique", 0) == 2 or info[col].get("dtype") == "bool":
             return True
 
     def get_data_info(self, X_train, y_train):
@@ -174,45 +172,43 @@ class TrainingPreprocessing(PreprocessingBase):
             if is_binary:
                 info[col]["col_type"] = "binary"
                 info[col]["preprossing_steps"] = [
-                    "fill missing with most frequent",
-                    "ordinal encoding",
+                    "Fill missing with most frequent",
+                    "Ordinal encoding",
                 ]
                 binary_cols.append(col)
             elif np.issubdtype(info[col]["dtype"], np.integer):
                 if info[col]["n_unique"] <= self.max_unique_ordinal:
-                    sorted_unique_values = np.sort(
-                        X_train[col].dropna().unique()
-                    )
+                    sorted_unique_values = np.sort(X_train[col].dropna().unique())
                     diff = np.diff(sorted_unique_values)
                     if np.all(diff == 1):
                         info[col]["col_type"] = "ordinal"
                         info[col]["preprossing_steps"] = [
-                            "fill missing with most frequent",
-                            "ordinal encoding",
+                            "Fill missing with most frequent",
+                            "Ordinal encoding",
                         ]
                         ordinal_cols.append(col)
                     else:
                         info[col]["col_type"] = "categorical_frequency"
                         info[col]["preprossing_steps"] = [
-                            "fill missing with most frequent",
-                            "frequency encoding",
+                            "Fill missing with most frequent",
+                            "Frequency encoding",
                         ]
                         frequency_cols.append(col)
 
                 elif info[col]["p_unique"] < self.categorical_ratio_threshold:
                     info[col]["col_type"] = "categorical_frequency"
                     info[col]["preprossing_steps"] = [
-                        "fill missing with most frequent",
-                        "frequency encoding",
+                        "Fill missing with most frequent",
+                        "Frequency encoding",
                     ]
                     frequency_cols.append(col)
 
                 else:
                     info[col]["col_type"] = "numerical"
                     info[col]["preprossing_steps"] = [
-                        "fill missing with median",
+                        "Fill missing with median",
                         "IQR transform",
-                        "standered scaling",
+                        "Standard scaling",
                     ]
                     numerical_cols.append(col)
             # if it is float it is continuous
@@ -220,9 +216,9 @@ class TrainingPreprocessing(PreprocessingBase):
             elif np.issubdtype(info[col]["dtype"], np.floating):
                 info[col]["col_type"] = "continuous"
                 info[col]["preprossing_steps"] = [
-                    "fill missing with median",
+                    "Fill missing with median",
                     "IQR transform",
-                    "standered scaling",
+                    "Standard scaling",
                 ]
                 numerical_cols.append(col)
             # if it is object may be categorical(one hot, frequency) or text
@@ -232,29 +228,26 @@ class TrainingPreprocessing(PreprocessingBase):
                 if n_unique <= self.one_hot_threshold:
                     info[col]["col_type"] = "categorical_one_hot"
                     info[col]["preprossing_steps"] = [
-                        "fill missing with most frequent",
-                        "one hot encoding",
+                        "Fill missing with most frequent",
+                        "One hot encoding",
                     ]
                     one_hot_cols.append(col)
                 else:
                     avg_length = (
-                        X_train[col]
-                        .dropna()
-                        .apply(lambda x: len(str(x)))
-                        .mean()
+                        X_train[col].dropna().apply(lambda x: len(str(x))).mean()
                     )
                     if avg_length > self.text_threshold:
                         info[col]["col_type"] = "text"
                         info[col]["preprossing_steps"] = [
-                            "fill missing with empty string",
-                            "tfidf vectorization",
+                            "Fill missing with empty string",
+                            "TF-IDF vectorization",
                         ]
                         text_cols.append(col)
                     else:
                         info[col]["col_type"] = "categorical_frequency"
                         info[col]["preprossing_steps"] = [
-                            "fill missing with most frequent",
-                            "frequency encoding",
+                            "Fill missing with most frequent",
+                            "Frequency encoding",
                         ]
                         frequency_cols.append(col)
             else:
@@ -324,10 +317,7 @@ class TrainingPreprocessing(PreprocessingBase):
                 )
                 graph.build_graph()
                 self.report_data["graphs"]["images_name"].append(f"{col}")
-            if (
-                info[col]["col_type"] == "ordinal"
-                and self.problem_type == "regression"
-            ):
+            if info[col]["col_type"] == "ordinal" and self.problem_type == "regression":
                 graph = OrdinalRegression(
                     new_df,
                     col,
@@ -418,9 +408,7 @@ class TrainingPreprocessing(PreprocessingBase):
                         ),
                         (
                             "tfidf",
-                            TfidfVectorizer(
-                                max_features=1000, stop_words="english"
-                            ),
+                            TfidfVectorizer(max_features=1000, stop_words="english"),
                         ),
                     ]
                 ),
@@ -516,8 +504,8 @@ class TrainingPreprocessing(PreprocessingBase):
                 {
                     "col_name": self.target_col,
                     "col_preprocessing": [
-                        "fill missing with most frequent",
-                        "label encoding",
+                        "Fill missing with most frequent",
+                        "Label encoding",
                     ],
                 }
             )
@@ -529,16 +517,14 @@ class TrainingPreprocessing(PreprocessingBase):
             y_train = stander_scaler.fit_transform(
                 y_train.values.reshape(-1, 1)
             ).ravel()
-            y_val = stander_scaler.transform(
-                y_val.values.reshape(-1, 1)
-            ).ravel()
+            y_val = stander_scaler.transform(y_val.values.reshape(-1, 1)).ravel()
             self.save_pikle(stander_scaler, "target_preprocessor.pkl")
             self.report_data["preprocessing"].append(
                 {
                     "col_name": self.target_col,
                     "col_preprocessing": [
-                        "fill missing with median",
-                        "stander scaling",
+                        "Fill missing with median",
+                        "Standard scaling",
                     ],
                 }
             )
