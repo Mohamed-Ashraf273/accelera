@@ -110,7 +110,7 @@ class TrainingPreprocessing(PreprocessingBase):
         elif info[col].get("p_missing", 0) > self.missing_threshold:
             return (
                 True,
-                f"missing above missing_threshold {self.missing_threshold}",
+                f"Missing above missing_threshold {self.missing_threshold}",
             )
         return False, None
 
@@ -470,14 +470,24 @@ class TrainingPreprocessing(PreprocessingBase):
         binary_pipeline = Pipeline(
             [
                 ("imputer", SimpleImputer(strategy="most_frequent")),
-                ("ordinal", OrdinalEncoder()),
+                (
+                    "ordinal",
+                    OrdinalEncoder(
+                        handle_unknown="use_encoded_value", unknown_value=-1
+                    ),
+                ),
             ]
         )
         text_pipeline = self.make_text_transformers(text_cols)
         ordinal_pipeline = Pipeline(
             [
                 ("imputer", SimpleImputer(strategy="most_frequent")),
-                ("ordinal", OrdinalEncoder()),
+                (
+                    "ordinal",
+                    OrdinalEncoder(
+                        handle_unknown="use_encoded_value", unknown_value=-1
+                    ),
+                ),
             ]
         )
         # Column Transformer
@@ -592,6 +602,7 @@ class TrainingPreprocessing(PreprocessingBase):
             "col_drop": col_drop,
             "X_trian_head": X_train.head(),
         }
+        self.save_pikle(col_drop, "col_drop.pkl")
 
     def common_preprocessing(self):
         self.data_overview()
@@ -599,7 +610,7 @@ class TrainingPreprocessing(PreprocessingBase):
         X_train, X_val, y_train, y_val = self.split_data()
         info, col_drop = self.get_data_info(X_train, y_train)
         self.drop_col(X_train, X_val, col_drop)
-        self.save_pikle(col_drop, "col_drop.pkl")
+
         (
             binary_cols,
             numerical_cols,

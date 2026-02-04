@@ -39,7 +39,7 @@ class TestTrainingPreprocessing:
                     None,
                 ],
                 "binary_feature": [0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
-                "ordinal_feature": [1, 2, 3, 4, 5, 6, 7, 7, 8, 7, 6, 5, 4, 3, 2, 1],
+                "ordinal_feature": [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 4, 3, 2, 1],
                 "frequency_feature_numbers": [
                     1,
                     5,
@@ -62,19 +62,19 @@ class TestTrainingPreprocessing:
                     "A",
                     "B",
                     "C",
-                    "D",
-                    "E",
-                    "F",
                     "A",
                     "B",
                     "C",
-                    "D",
-                    "E",
-                    "F",
                     "A",
                     "B",
                     "C",
-                    "D",
+                    "A",
+                    "B",
+                    "C",
+                    "A",
+                    "B",
+                    "C",
+                    "A",
                 ],
                 "continuous_feature": [
                     10.5,
@@ -103,7 +103,7 @@ class TestTrainingPreprocessing:
                     "F",
                     "G",
                     "H",
-                    "A",
+                    "J",
                     "B",
                     "C",
                     "D",
@@ -317,7 +317,7 @@ class TestTrainingPreprocessing:
         assert "most_nulls_feature" in col_drop
         assert col_drop["ID"] == "It is above unique_threshold 0.9"
         assert col_drop["const_feature"] == "The column is constant"
-        assert col_drop["most_nulls_feature"] == "missing above missing_threshold 0.5"
+        assert col_drop["most_nulls_feature"] == "Missing above missing_threshold 0.5"
         assert (
             col_drop["Name_feature"]
             == "It is above unique_threshold 0.9 and not detected as text column"
@@ -340,22 +340,87 @@ class TestTrainingPreprocessing:
         for col in col_drop.keys():
             assert col not in X_train.columns
             assert col not in X_val.columns
-        assert X_train.shape[1] ==7
-        assert X_val.shape[1] ==7
-    def test_save_drop_columns(self):
+        assert X_train.shape[1] == 7
+        assert X_val.shape[1] == 7
+        assert os.path.exists(os.path.join(self.temp_dir, "col_drop.pkl"))
+        loaded_col_drop = training_preprocessing.load_pickle("col_drop.pkl")
+        assert loaded_col_drop == col_drop
+
+    def test_detect_column_types(self):
         training_preprocessing = TrainingPreprocessing(
             df=self.df_classification,
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
             text_colums_name=["text_feature"],
+            one_hot_threshold=6,
+            max_unique_ordinal=8,
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
         X_train, X_val, y_train, y_val = training_preprocessing.split_data()
         info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
-        training_preprocessing.save_pikle(col_drop, "col_drop.pkl")
-        assert os.path.exists(os.path.join(self.temp_dir, "col_drop.pkl"))
-        loaded_col_drop = training_preprocessing.load_pickle("col_drop.pkl")
-        assert loaded_col_drop == col_drop
+        training_preprocessing.drop_col(X_train, X_val, col_drop)
+        (
+            binary_cols,
+            numerical_cols,
+            one_hot_cols,
+            frequency_cols,
+            text_cols,
+            ordinal_cols,
+            _,
+        ) = training_preprocessing.detect_column_types(X_train, info)
+        assert set(binary_cols) == {"binary_feature"}
+        assert set(one_hot_cols) == {"one_hot_feature"}
+        assert set(frequency_cols) == {"frequency_feature", "frequency_feature_numbers"}
+        assert set(text_cols) == {"text_feature"}
+        assert set(numerical_cols) == {"continuous_feature"}
+        assert set(ordinal_cols) == {"ordinal_feature"}
+    def test_make_graphs(self):
+        training_preprocessing = TrainingPreprocessing(
+            df=self.df_classification,
+            target_col="target",
+            problem_type="classification",
+            folder_path=self.temp_dir,
+            text_colums_name=["text_feature"],
+            one_hot_threshold=6,
+            max_unique_ordinal=8,
+        )
+        training_preprocessing.data_overview()
+        training_preprocessing.drop_duplicates()
+        X_train, X_val, y_train, y_val = training_preprocessing.split_data()
+        info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
+        training_preprocessing.drop_col(X_train, X_val, col_drop)
+        (
+            binary_cols,
+            numerical_cols,
+            one_hot_cols,
+            frequency_cols,
+            text_cols,
+            ordinal_cols,
+            _,
+        ) = training_preprocessing.detect_column_types(X_train, info)
+        training_preprocessing.make_graphs(X_train, y_train, info)
+        graphs_path = os.path.join(self.temp_dir, "graphs")
+        assert os.path.exists(graphs_path)
+        graphs_files = os.listdir(graphs_path)
+        expected_num_graphs = (
+            len(binary_cols)
+            + len(numerical_cols)
+            + len(one_hot_cols)
+            + len(frequency_cols)
+            + len(ordinal_cols)
+            + len(text_cols)
+            +2
+        )
+        assert len(graphs_files) == expected_num_graphs
+        assert "binary_feature.png" in graphs_files
+        assert "continuous_feature.png" in graphs_files
+        assert "one_hot_feature.png" in graphs_files
+        assert "frequency_feature.png" in graphs_files
+        assert "frequency_feature_numbers.png" in graphs_files
+        assert "ordinal_feature.png" in graphs_files
+        assert "text_feature.png" in graphs_files
+        assert "target.png" in graphs_files
+        assert "correlation_matrix.png" in graphs_files
     
