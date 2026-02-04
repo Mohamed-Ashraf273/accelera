@@ -16,6 +16,14 @@ import numpy as np
 from accelera.src.utils.accelera_utils import print_msg
 
 
+def extract_loops(file_path: str, clang_args: list = ["-std=c++17"]) -> list:
+    return _extract_loops(file_path, clang_args)
+
+
+def write_loops_to_json(loops: list, output_json: str) -> bool:
+    return _write_loops_to_json(loops, output_json)
+
+
 def pragma_to_class(label: str, pragma: str) -> str:
     if label == "False":
         return "none"
@@ -292,50 +300,6 @@ def generate_omp_pragma(loop_code: str, predicted_class: str) -> str:
     return code_with_pragma
 
 
-def extract_loops(cpp_code: str, clang_args: list = ["-std=c++17"]) -> list:
-    return _extract_loops(cpp_code, clang_args)
-
-
-def write_loops_to_json(loops: list, output_json: str) -> bool:
-    return _write_loops_to_json(loops, output_json)
-
-
-def clean_response(response: str) -> str:
-    if "```cpp" in response:
-        start = response.find("```cpp") + 6
-        end = response.find("```", start)
-        if end != -1:
-            response = response[start:end].strip()
-    elif "```" in response:
-        start = response.find("```") + 3
-        end = response.find("```", start)
-        if end != -1:
-            response = response[start:end].strip()
-
-    response = response.rstrip("`").strip()
-
-    lines = response.split("\n")
-    cleaned_lines = []
-    for line in lines:
-        if line.strip() not in ["```", "``", "`", "````"]:
-            cleaned_lines.append(line)
-    response = "\n".join(cleaned_lines)
-
-    unwanted_prefixes = [
-        "Here's the C++ code:",
-        "Here is the converted code:",
-        "C++ code:",
-        "```cpp",
-        "```",
-    ]
-
-    for prefix in unwanted_prefixes:
-        if response.startswith(prefix):
-            response = response[len(prefix) :].strip()
-
-    return response
-
-
 def format_cpp_file(filename: str) -> bool:
     try:
         subprocess.run(
@@ -358,14 +322,3 @@ def format_cpp_file(filename: str) -> bool:
         print_msg("Install with: sudo apt install clang-format (Ubuntu/Debian)")
         print_msg("Or: brew install clang-format (macOS)")
         return False
-
-
-def write_file(filename: str, python_code: str, response) -> str:
-    assert filename.endswith(".cpp"), "Filename must have a .cpp extension"
-    cleaned_response = clean_response(response)
-
-    with open(filename, "w") as f:
-        f.write(cleaned_response)
-
-    format_cpp_file(filename)
-    return cleaned_response
