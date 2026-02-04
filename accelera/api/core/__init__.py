@@ -8,6 +8,7 @@ from accelera.src.core import executed_graph as executed_graph
 from accelera.src.core import metric as metric
 from accelera.src.core import metric_display as metric_display
 from accelera.src.core import node as node
+from accelera.src.core import parallelizer as parallelizer
 from accelera.src.core import pipeline as pipeline
 from accelera.src.core import pipeline_base as pipeline_base
 from accelera.src.core import pipeline_test as pipeline_test
