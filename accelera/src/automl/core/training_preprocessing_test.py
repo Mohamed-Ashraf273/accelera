@@ -3,8 +3,21 @@ import pandas as pd
 import tempfile
 import shutil
 import os
+import numpy as np
+from sklearn.impute import SimpleImputer
 from accelera.src.automl.core.training_preprocessing import TrainingPreprocessing
 from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from accelera.src.automl.wrappers.IQR_transform import IQRTransform
+from sklearn.preprocessing import (
+    OneHotEncoder,
+    OrdinalEncoder,
+    StandardScaler,
+    LabelEncoder,
+)
+from accelera.src.automl.wrappers.frequency_encoder_transform import (
+    FrequencyEncoderTransform,
+)
 
 
 class TestTrainingPreprocessing:
@@ -180,7 +193,7 @@ class TestTrainingPreprocessing:
             TrainingPreprocessing(
                 df=self.df_classification,
                 target_col="target",
-                problem_type="Classification",
+                problem_type="Crassification",
                 folder_path=self.temp_dir,
             )
         with pytest.raises(ValueError):
@@ -212,6 +225,13 @@ class TestTrainingPreprocessing:
                 problem_type="regression",
                 folder_path=self.temp_dir,
                 text_colums_name=["continuous_feature"],
+            )
+        with pytest.raises(ValueError):
+            TrainingPreprocessing(
+                df=self.df_classification,
+                target_col="target",
+                problem_type=None,
+                folder_path=self.temp_dir,
             )
 
     def test_data_overview(self):
@@ -376,6 +396,7 @@ class TestTrainingPreprocessing:
         assert set(text_cols) == {"text_feature"}
         assert set(numerical_cols) == {"continuous_feature"}
         assert set(ordinal_cols) == {"ordinal_feature"}
+
     def test_make_graphs(self):
         training_preprocessing = TrainingPreprocessing(
             df=self.df_classification,
@@ -411,7 +432,7 @@ class TestTrainingPreprocessing:
             + len(frequency_cols)
             + len(ordinal_cols)
             + len(text_cols)
-            +2
+            + 2
         )
         assert len(graphs_files) == expected_num_graphs
         assert "binary_feature.png" in graphs_files
@@ -423,4 +444,408 @@ class TestTrainingPreprocessing:
         assert "text_feature.png" in graphs_files
         assert "target.png" in graphs_files
         assert "correlation_matrix.png" in graphs_files
-    
+
+    def test_features_preprocessing(self):
+        training_preprocessing = TrainingPreprocessing(
+            df=self.df_classification,
+            target_col="target",
+            problem_type="classification",
+            folder_path=self.temp_dir,
+            text_colums_name=["text_feature"],
+            one_hot_threshold=6,
+            max_unique_ordinal=8,
+        )
+        training_preprocessing.data_overview()
+        training_preprocessing.drop_duplicates()
+        X_train, X_val, y_train, y_val = training_preprocessing.split_data()
+        info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
+        training_preprocessing.drop_col(X_train, X_val, col_drop)
+        (
+            binary_cols,
+            numerical_cols,
+            one_hot_cols,
+            frequency_cols,
+            text_cols,
+            ordinal_cols,
+            _,
+        ) = training_preprocessing.detect_column_types(X_train, info)
+        X_train_processed, X_val_processed = (
+            training_preprocessing.features_preprocessing(
+                X_train,
+                X_val,
+                info,
+                binary_cols,
+                numerical_cols,
+                one_hot_cols,
+                frequency_cols,
+                text_cols,
+                ordinal_cols,
+            )
+        )
+        assert X_train_processed.shape[0] == X_train.shape[0]
+        assert X_val_processed.shape[0] == X_val.shape[0]
+        assert os.path.exists(os.path.join(self.temp_dir, "training_preprocessor.pkl"))
+
+    def test_text_preprocessing_pipeline(self):
+        training_preprocessing = TrainingPreprocessing(
+            df=self.df_classification[["text_feature", "target"]].copy(),
+            target_col="target",
+            problem_type="classification",
+            folder_path=self.temp_dir,
+            text_colums_name=["text_feature"],
+            one_hot_threshold=6,
+            max_unique_ordinal=8,
+        )
+        training_preprocessing.data_overview()
+        X_train, X_val, y_train, y_val = training_preprocessing.split_data()
+        info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
+        training_preprocessing.drop_col(X_train, X_val, col_drop)
+        (
+            binary_cols,
+            numerical_cols,
+            one_hot_cols,
+            frequency_cols,
+            text_cols,
+            ordinal_cols,
+            _,
+        ) = training_preprocessing.detect_column_types(X_train, info)
+        X_train_processed, X_val_processed = (
+            training_preprocessing.features_preprocessing(
+                X_train,
+                X_val,
+                info,
+                binary_cols,
+                numerical_cols,
+                one_hot_cols,
+                frequency_cols,
+                text_cols,
+                ordinal_cols,
+            )
+        )
+        tfidf_vectorizer = TfidfVectorizer(max_features=1000, stop_words="english")
+        X_train_manual = X_train["text_feature"].fillna("").values.ravel()
+        X_val_manual = X_val["text_feature"].fillna("").values.ravel()
+        X_train_tfidf_manual = tfidf_vectorizer.fit_transform(X_train_manual)
+        X_val_tfidf_manual = tfidf_vectorizer.transform(X_val_manual)
+        assert X_train_processed.shape == X_train_tfidf_manual.shape
+        assert X_val_processed.shape == X_val_tfidf_manual.shape
+        assert (X_train_processed != X_train_tfidf_manual).nnz == 0
+        assert (X_val_processed != X_val_tfidf_manual).nnz == 0
+
+    def test_numerical_preprocessing_pipeline(self):
+        training_preprocessing = TrainingPreprocessing(
+            df=self.df_classification[["continuous_feature", "target"]].copy(),
+            target_col="target",
+            problem_type="classification",
+            folder_path=self.temp_dir,
+            text_colums_name=[],
+            one_hot_threshold=6,
+            max_unique_ordinal=8,
+        )
+        training_preprocessing.data_overview()
+        X_train, X_val, y_train, y_val = training_preprocessing.split_data()
+        info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
+        training_preprocessing.drop_col(X_train, X_val, col_drop)
+        (
+            binary_cols,
+            numerical_cols,
+            one_hot_cols,
+            frequency_cols,
+            text_cols,
+            ordinal_cols,
+            _,
+        ) = training_preprocessing.detect_column_types(X_train, info)
+        X_train_processed, X_val_processed = (
+            training_preprocessing.features_preprocessing(
+                X_train,
+                X_val,
+                info,
+                binary_cols,
+                numerical_cols,
+                one_hot_cols,
+                frequency_cols,
+                text_cols,
+                ordinal_cols,
+            )
+        )
+        imputer = SimpleImputer(strategy="median")
+        iqr_trasnform = IQRTransform(info, ["continuous_feature"])
+        scaler = StandardScaler()
+        X_train_manual = X_train[["continuous_feature"]].values
+        X_val_manual = X_val[["continuous_feature"]].values
+        X_train_imputed = imputer.fit_transform(X_train_manual)
+        X_val_imputed = imputer.transform(X_val_manual)
+        iqr_trasnform.fit(X_train_imputed)
+        X_train_iqr = iqr_trasnform.transform(X_train_imputed)
+        X_val_iqr = iqr_trasnform.transform(X_val_imputed)
+        X_train_scaled = scaler.fit_transform(X_train_iqr)
+        X_val_scaled = scaler.transform(X_val_iqr)
+        assert X_train_processed.shape == X_train_scaled.shape
+        assert X_val_processed.shape == X_val_scaled.shape
+        assert np.allclose(X_train_processed, X_train_scaled, atol=1e-6)
+        assert np.allclose(X_val_processed, X_val_scaled, atol=1e-6)
+
+    def test_binary_preprocessing_pipeline(self):
+        training_preprocessing = TrainingPreprocessing(
+            df=self.df_classification[["binary_feature", "target"]].copy(),
+            target_col="target",
+            problem_type="classification",
+            folder_path=self.temp_dir,
+            text_colums_name=[],
+            one_hot_threshold=6,
+            max_unique_ordinal=8,
+        )
+        training_preprocessing.data_overview()
+        X_train, X_val, y_train, y_val = training_preprocessing.split_data()
+        info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
+        training_preprocessing.drop_col(X_train, X_val, col_drop)
+        (
+            binary_cols,
+            numerical_cols,
+            one_hot_cols,
+            frequency_cols,
+            text_cols,
+            ordinal_cols,
+            _,
+        ) = training_preprocessing.detect_column_types(X_train, info)
+        X_train_processed, X_val_processed = (
+            training_preprocessing.features_preprocessing(
+                X_train,
+                X_val,
+                info,
+                binary_cols,
+                numerical_cols,
+                one_hot_cols,
+                frequency_cols,
+                text_cols,
+                ordinal_cols,
+            )
+        )
+        imputer = SimpleImputer(strategy="most_frequent")
+        ordinal_encoder = OrdinalEncoder(
+            handle_unknown="use_encoded_value", unknown_value=-1
+        )
+        X_train_manual = X_train[["binary_feature"]].values
+        X_val_manual = X_val[["binary_feature"]].values
+        X_train_imputed = imputer.fit_transform(X_train_manual)
+        X_val_imputed = imputer.transform(X_val_manual)
+        X_train_encoded = ordinal_encoder.fit_transform(X_train_imputed)
+        X_val_encoded = ordinal_encoder.transform(X_val_imputed)
+        assert X_train_processed.shape == X_train_encoded.shape
+        assert X_val_processed.shape == X_val_encoded.shape
+        assert np.allclose(X_train_processed, X_train_encoded, atol=1e-6)
+        assert np.allclose(X_val_processed, X_val_encoded, atol=1e-6)
+
+    def test_one_hot_preprocessing_pipeline(self):
+        training_preprocessing = TrainingPreprocessing(
+            df=self.df_classification[["one_hot_feature", "target"]].copy(),
+            target_col="target",
+            problem_type="classification",
+            folder_path=self.temp_dir,
+            text_colums_name=[],
+            one_hot_threshold=6,
+            max_unique_ordinal=8,
+        )
+        training_preprocessing.data_overview()
+        X_train, X_val, y_train, y_val = training_preprocessing.split_data()
+        info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
+        training_preprocessing.drop_col(X_train, X_val, col_drop)
+        (
+            binary_cols,
+            numerical_cols,
+            one_hot_cols,
+            frequency_cols,
+            text_cols,
+            ordinal_cols,
+            _,
+        ) = training_preprocessing.detect_column_types(X_train, info)
+        X_train_processed, X_val_processed = (
+            training_preprocessing.features_preprocessing(
+                X_train,
+                X_val,
+                info,
+                binary_cols,
+                numerical_cols,
+                one_hot_cols,
+                frequency_cols,
+                text_cols,
+                ordinal_cols,
+            )
+        )
+        imputer = SimpleImputer(strategy="most_frequent")
+        one_hot_encoder = OneHotEncoder(
+            handle_unknown="ignore",
+            sparse_output=False,
+            drop="first",
+        )
+        X_train_manual = X_train[["one_hot_feature"]].values
+        X_val_manual = X_val[["one_hot_feature"]].values
+        X_train_imputed = imputer.fit_transform(X_train_manual)
+        X_val_imputed = imputer.transform(X_val_manual)
+        X_train_onehot = one_hot_encoder.fit_transform(X_train_imputed)
+        X_val_onehot = one_hot_encoder.transform(X_val_imputed)
+        assert X_train_processed.shape == X_train_onehot.shape
+        assert X_val_processed.shape == X_val_onehot.shape
+        assert np.allclose(X_train_processed, X_train_onehot, atol=1e-6)
+        assert np.allclose(X_val_processed, X_val_onehot, atol=1e-6)
+
+    def test_frequency_preprocessing_pipeline(self):
+        training_preprocessing = TrainingPreprocessing(
+            df=self.df_classification[["frequency_feature", "target"]].copy(),
+            target_col="target",
+            problem_type="classification",
+            folder_path=self.temp_dir,
+            text_colums_name=[],
+            one_hot_threshold=6,
+            max_unique_ordinal=8,
+        )
+        training_preprocessing.data_overview()
+        X_train, X_val, y_train, y_val = training_preprocessing.split_data()
+        info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
+        training_preprocessing.drop_col(X_train, X_val, col_drop)
+        (
+            binary_cols,
+            numerical_cols,
+            one_hot_cols,
+            frequency_cols,
+            text_cols,
+            ordinal_cols,
+            _,
+        ) = training_preprocessing.detect_column_types(X_train, info)
+        X_train_processed, X_val_processed = (
+            training_preprocessing.features_preprocessing(
+                X_train,
+                X_val,
+                info,
+                binary_cols,
+                numerical_cols,
+                one_hot_cols,
+                frequency_cols,
+                text_cols,
+                ordinal_cols,
+            )
+        )
+        imputer = SimpleImputer(strategy="most_frequent")
+        frequency_encoder = FrequencyEncoderTransform()
+        X_train_manual = X_train[["frequency_feature"]].values
+        X_val_manual = X_val[["frequency_feature"]].values
+        X_train_imputed = imputer.fit_transform(X_train_manual)
+        X_val_imputed = imputer.transform(X_val_manual)
+        X_train_processed_manual = frequency_encoder.fit_transform(X_train_imputed)
+        X_val_processed_manual = frequency_encoder.transform(X_val_imputed)
+        assert X_train_processed.shape == X_train_processed_manual.shape
+        assert X_val_processed.shape == X_val_processed_manual.shape
+        assert np.allclose(X_train_processed, X_train_processed_manual, atol=1e-6)
+        assert np.allclose(X_val_processed, X_val_processed_manual, atol=1e-6)
+
+    def test_target_classification_preprocessing(self):
+        training_preprocessing = TrainingPreprocessing(
+            df=self.df_classification,
+            target_col="target",
+            problem_type="classification",
+            folder_path=self.temp_dir,
+            text_colums_name=["text_feature"],
+            one_hot_threshold=6,
+            max_unique_ordinal=8,
+        )
+        training_preprocessing.data_overview()
+        training_preprocessing.drop_duplicates()
+        X_train, X_val, y_train, y_val = training_preprocessing.split_data()
+        info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
+        training_preprocessing.drop_col(X_train, X_val, col_drop)
+        (
+            binary_cols,
+            numerical_cols,
+            one_hot_cols,
+            frequency_cols,
+            text_cols,
+            ordinal_cols,
+            _,
+        ) = training_preprocessing.detect_column_types(X_train, info)
+        X_train_processed, X_val_processed = (
+            training_preprocessing.features_preprocessing(
+                X_train,
+                X_val,
+                info,
+                binary_cols,
+                numerical_cols,
+                one_hot_cols,
+                frequency_cols,
+                text_cols,
+                ordinal_cols,
+            )
+        )
+        y_train_processed, y_val_processed = (
+            training_preprocessing.target_preprocessing(y_train, y_val, info)
+        )
+        mode = y_train.mode()[0]
+        label_encoder = LabelEncoder()
+        y_train_filled = y_train.fillna(mode)
+        y_val_filled = y_val.fillna(mode)
+        y_train_encoded = label_encoder.fit_transform(y_train_filled)
+        y_val_encoded = label_encoder.transform(y_val_filled)
+        assert y_train_processed.shape == y_train_encoded.shape
+        assert y_val_processed.shape == y_val_encoded.shape
+        assert np.allclose(y_train_processed, y_train_encoded, atol=1e-6)
+        assert np.allclose(y_val_processed, y_val_encoded, atol=1e-6)
+        assert os.path.exists(os.path.join(self.temp_dir, "target_preprocessor.pkl"))
+        assert os.path.exists(os.path.join(self.temp_dir, "target_info.pkl"))
+
+    def test_target_regression_preprocessing(self):
+        df_regression = self.df_classification.copy()
+        df_regression["target"] = df_regression["continuous_feature"] + np.random.randn(
+            len(df_regression)
+        )
+        training_preprocessing = TrainingPreprocessing(
+            df=df_regression,
+            target_col="target",
+            problem_type="regression",
+            folder_path=self.temp_dir,
+            text_colums_name=["text_feature"],
+            one_hot_threshold=6,
+            max_unique_ordinal=8,
+        )
+        training_preprocessing.data_overview()
+        training_preprocessing.drop_duplicates()
+        X_train, X_val, y_train, y_val = training_preprocessing.split_data()
+        info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
+        training_preprocessing.drop_col(X_train, X_val, col_drop)
+        (
+            binary_cols,
+            numerical_cols,
+            one_hot_cols,
+            frequency_cols,
+            text_cols,
+            ordinal_cols,
+            _,
+        ) = training_preprocessing.detect_column_types(X_train, info)
+        X_train_processed, X_val_processed = (
+            training_preprocessing.features_preprocessing(
+                X_train,
+                X_val,
+                info,
+                binary_cols,
+                numerical_cols,
+                one_hot_cols,
+                frequency_cols,
+                text_cols,
+                ordinal_cols,
+            )
+        )
+        y_train_processed, y_val_processed = (
+            training_preprocessing.target_preprocessing(y_train, y_val, info)
+        )
+        median = y_train.median()
+        y_train_filled = y_train.fillna(median)
+        y_val_filled = y_val.fillna(median)
+        stander = StandardScaler()
+        y_train_scaled = stander.fit_transform(
+            y_train_filled.values.reshape(-1, 1)
+        ).ravel()
+        y_val_scaled = stander.transform(y_val_filled.values.reshape(-1, 1)).ravel()
+        assert y_train_processed.shape == y_train_scaled.shape
+        assert y_val_processed.shape == y_val_scaled.shape
+        assert np.allclose(y_train_processed, y_train_scaled, atol=1e-6)
+        assert np.allclose(y_val_processed, y_val_scaled, atol=1e-6)
+        assert os.path.exists(os.path.join(self.temp_dir, "target_preprocessor.pkl"))
+        assert os.path.exists(os.path.join(self.temp_dir, "target_info.pkl"))

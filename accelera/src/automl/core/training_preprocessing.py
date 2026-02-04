@@ -6,7 +6,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import FunctionTransformer, Pipeline
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OrdinalEncoder
@@ -44,6 +44,10 @@ from accelera.src.automl.wrappers.target_regression import TargetRegression
 from accelera.src.automl.wrappers.text_graph import TextGraph
 
 
+def flatten_1d(x):
+    return x.ravel()
+
+
 class TrainingPreprocessing(PreprocessingBase):
     def __init__(
         self,
@@ -73,6 +77,9 @@ class TrainingPreprocessing(PreprocessingBase):
         self.unique_threshold = unique_threshold
 
         self.report_data = {}
+        if self.problem_type is None:
+            raise ValueError("problem_type cannot be None")
+        self.problem_type = problem_type.lower()
         if self.problem_type not in ["classification", "regression"]:
             raise ValueError(
                 "problem_type must be either 'classification' or 'regression'"
@@ -418,12 +425,19 @@ class TrainingPreprocessing(PreprocessingBase):
                             SimpleImputer(strategy="constant", fill_value=""),
                         ),
                         (
+                            "flatten",
+                            FunctionTransformer(
+                                flatten_1d,
+                                validate=False,
+                            ),
+                        ),
+                        (
                             "tfidf",
                             TfidfVectorizer(max_features=1000, stop_words="english"),
                         ),
                     ]
                 ),
-                col,
+                [col],
             )
             transformers.append(transform)
         return transformers
