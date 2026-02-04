@@ -53,7 +53,7 @@ class TrainingPreprocessing(PreprocessingBase):
         folder_path=None,
         test_size=0.2,
         random_state=42,
-        text_threshold=40,
+        text_colums_name=None,
         one_hot_threshold=8,
         max_unique_ordinal=6,
         categorical_ratio_threshold=0.05,
@@ -65,17 +65,23 @@ class TrainingPreprocessing(PreprocessingBase):
         self.problem_type = problem_type
         self.test_size = test_size
         self.random_state = random_state
-        self.text_threshold = text_threshold
+        self.text_colums_name = text_colums_name if text_colums_name else []
         self.one_hot_threshold = one_hot_threshold
         self.max_unique_ordinal = max_unique_ordinal
         self.categorical_ratio_threshold = categorical_ratio_threshold
         self.missing_threshold = missing_threshold
         self.unique_threshold = unique_threshold
+
         self.report_data = {}
         if self.problem_type not in ["classification", "regression"]:
             raise ValueError(
                 "problem_type must be either 'classification' or 'regression'"
             )
+        for col in self.text_colums_name:
+            if col not in df.columns:
+                raise ValueError(f"Text column {col} not found in dataframe columns")
+            if df[col].dtype != "object":
+                raise ValueError(f"Text column {col} must be of type object")
         if target_col not in df.columns:
             raise ValueError("target_col must be one of the dataframe columns")
         os.makedirs(self.folder_path, exist_ok=True)
@@ -89,7 +95,16 @@ class TrainingPreprocessing(PreprocessingBase):
             return True, "The column is constant"
         elif (
             info[col].get("p_unique", 0) > self.unique_threshold
-            and info[col].get("dtype") != "float64"
+            and info[col].get("dtype") == "object"
+            and col not in self.text_colums_name
+        ):
+            return (
+                True,
+                f"It is above unique_threshold {self.unique_threshold} and not detected as text column",
+            )
+        elif (
+            info[col].get("dtype") == "int64"
+            and info[col].get("p_unique", 0) > self.unique_threshold
         ):
             return True, f"It is above unique_threshold {self.unique_threshold}"
         elif info[col].get("p_missing", 0) > self.missing_threshold:
@@ -141,7 +156,6 @@ class TrainingPreprocessing(PreprocessingBase):
                 info[col]["median"] = df_new[col].median()
                 info[col]["mean"] = df_new[col].mean()
                 info[col]["outliers_info"] = self.outliers_info(info, col)
-
             mode = df_new[col].mode()
             if not mode.empty:
                 info[col]["mode"] = mode[0]
@@ -231,15 +245,14 @@ class TrainingPreprocessing(PreprocessingBase):
                     ]
                     one_hot_cols.append(col)
                 else:
-                    avg_length = (
-                        X_train[col].dropna().apply(lambda x: len(str(x))).mean()
-                    )
-                    if avg_length > self.text_threshold:
+
+                    if col in self.text_colums_name:
                         info[col]["col_type"] = "text"
                         info[col]["preprossing_steps"] = [
                             "Fill missing with empty string",
                             "TF-IDF vectorization",
                         ]
+                        print(f"Detected text column: {col}")
                         text_cols.append(col)
                     else:
                         info[col]["col_type"] = "categorical_frequency"
@@ -410,7 +423,7 @@ class TrainingPreprocessing(PreprocessingBase):
                         ),
                     ]
                 ),
-                [col],
+                col,
             )
             transformers.append(transform)
         return transformers

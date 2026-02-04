@@ -130,6 +130,24 @@ class TestTrainingPreprocessing:
                     "Another sample text.",
                     "Final text data point.",
                 ],
+                "Name_feature": [
+                    "Alice",
+                    "Bob",
+                    "Charlie",
+                    "David",
+                    "Eve",
+                    "Frank",
+                    "Grace",
+                    "Heidi",
+                    "Ivan kan ",
+                    "Judy Karl Karl",
+                    "Karl Karl Karl",
+                    "Liam Karl",
+                    "Mia Karl",
+                    "Nina",
+                    "Oscar",
+                    "Peggy",
+                ],
                 "target": [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
             }
         )
@@ -179,6 +197,22 @@ class TestTrainingPreprocessing:
                 problem_type="regression",
                 folder_path=None,
             )
+        with pytest.raises(ValueError):
+            TrainingPreprocessing(
+                df=self.df_classification,
+                target_col="target",
+                problem_type="regression",
+                folder_path=self.temp_dir,
+                text_colums_name=["review"],
+            )
+        with pytest.raises(ValueError):
+            TrainingPreprocessing(
+                df=self.df_classification,
+                target_col="target",
+                problem_type="regression",
+                folder_path=self.temp_dir,
+                text_colums_name=["continuous_feature"],
+            )
 
     def test_data_overview(self):
         training_preprocessing = TrainingPreprocessing(
@@ -191,13 +225,13 @@ class TestTrainingPreprocessing:
         assert training_preprocessing.report_data is not None
         assert "data_overview" in training_preprocessing.report_data
         data_overview = training_preprocessing.report_data["data_overview"]
-        assert data_overview["shape"] == (17, 11)
+        assert data_overview["shape"] == (17, 12)
         assert data_overview["duplicates_sum"] == 1
         assert data_overview["duplicates_percentage"] == float(1 / 17) * 100
         assert data_overview["numerical_describe"] is not None
         assert data_overview["categorical_describe"] is not None
-        assert data_overview["data_head"].shape == (5, 11)
-        assert data_overview["lower_data_head"].shape == (5, 11)
+        assert data_overview["data_head"].shape == (5, 12)
+        assert data_overview["lower_data_head"].shape == (5, 12)
         assert data_overview["missing_values"].equals(
             self.df_classification.isnull().sum()
         )
@@ -261,3 +295,41 @@ class TestTrainingPreprocessing:
         assert X_val.equals(X_val_1)
         assert y_train.equals(y_train_1)
         assert y_val.equals(y_val_1)
+
+    def test_get_info(self):
+        training_preprocessing = TrainingPreprocessing(
+            df=self.df_classification,
+            target_col="target",
+            problem_type="classification",
+            folder_path=self.temp_dir,
+            text_colums_name=["text_feature"],
+        )
+        X_train, X_val, y_train, y_val = training_preprocessing.split_data()
+        info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
+        assert len(col_drop) == 4
+        assert "ID" in col_drop
+        assert "const_feature" in col_drop
+        assert "most_nulls_feature" in col_drop
+        assert col_drop["ID"] == "It is above unique_threshold 0.9"
+        assert col_drop["const_feature"] == "The column is constant"
+        assert col_drop["most_nulls_feature"] == "missing above missing_threshold 0.5"
+        assert (
+            col_drop["Name_feature"]
+            == "It is above unique_threshold 0.9 and not detected as text column"
+        )
+        assert isinstance(info, dict)
+
+    def test_drop_columns(self):
+        training_preprocessing = TrainingPreprocessing(
+            df=self.df_classification,
+            target_col="target",
+            problem_type="classification",
+            folder_path=self.temp_dir,
+            text_colums_name=["text_feature"],
+        )
+        X_train, X_val, y_train, y_val = training_preprocessing.split_data()
+        info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
+        training_preprocessing.drop_col(X_train, X_val, col_drop)
+        for col in col_drop.keys():
+            assert col not in X_train.columns
+            assert col not in X_val.columns
