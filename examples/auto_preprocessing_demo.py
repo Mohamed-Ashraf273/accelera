@@ -70,7 +70,7 @@ model.fit(X_train, y_train)
 print(model.score(X_val, y_val))
 print(mean_squared_error(y_val, model.predict(X_val)))
 #####################################################3
-print("Heat Disease df")
+print("Heart Disease df")
 heart_df = pd.read_csv("./heart.csv")
 
 training_preprocessor = TrainingPreprocessing(

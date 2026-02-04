@@ -244,6 +244,7 @@ class TestTrainingPreprocessing:
             folder_path=self.temp_dir,
         )
         shape_before_drop = training_preprocessing.df.shape
+        training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
         shape_after_drop = training_preprocessing.df.shape
         assert shape_after_drop[0] == shape_before_drop[0] - 1
@@ -270,6 +271,8 @@ class TestTrainingPreprocessing:
             problem_type="classification",
             folder_path=self.temp_dir,
         )
+        training_preprocessing.data_overview()
+        training_preprocessing.drop_duplicates()
         X_train_1, X_val_1, y_train_1, y_val_1 = train_test_split(
             training_preprocessing.df.drop(columns=["target"]),
             training_preprocessing.df["target"],
@@ -304,6 +307,8 @@ class TestTrainingPreprocessing:
             folder_path=self.temp_dir,
             text_colums_name=["text_feature"],
         )
+        training_preprocessing.data_overview()
+        training_preprocessing.drop_duplicates()
         X_train, X_val, y_train, y_val = training_preprocessing.split_data()
         info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
         assert len(col_drop) == 4
@@ -327,9 +332,30 @@ class TestTrainingPreprocessing:
             folder_path=self.temp_dir,
             text_colums_name=["text_feature"],
         )
+        training_preprocessing.data_overview()
+        training_preprocessing.drop_duplicates()
         X_train, X_val, y_train, y_val = training_preprocessing.split_data()
         info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
         training_preprocessing.drop_col(X_train, X_val, col_drop)
         for col in col_drop.keys():
             assert col not in X_train.columns
             assert col not in X_val.columns
+        assert X_train.shape[1] ==7
+        assert X_val.shape[1] ==7
+    def test_save_drop_columns(self):
+        training_preprocessing = TrainingPreprocessing(
+            df=self.df_classification,
+            target_col="target",
+            problem_type="classification",
+            folder_path=self.temp_dir,
+            text_colums_name=["text_feature"],
+        )
+        training_preprocessing.data_overview()
+        training_preprocessing.drop_duplicates()
+        X_train, X_val, y_train, y_val = training_preprocessing.split_data()
+        info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
+        training_preprocessing.save_pikle(col_drop, "col_drop.pkl")
+        assert os.path.exists(os.path.join(self.temp_dir, "col_drop.pkl"))
+        loaded_col_drop = training_preprocessing.load_pickle("col_drop.pkl")
+        assert loaded_col_drop == col_drop
+    
