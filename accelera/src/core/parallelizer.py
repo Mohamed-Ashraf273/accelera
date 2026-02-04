@@ -28,7 +28,7 @@ class Parallelizer:
         features = extract_features(code)
         embedding = feature_dict_to_vector(features)
         embedding = embedding.reshape(1, -1)
-        pred = self.model.predict(embedding)
+        pred = self.classifier.predict(embedding)
         pred_class = self.encoder.inverse_transform(pred)
         predicted_pragma = generate_omp_pragma(code, pred_class)
         return predicted_pragma
