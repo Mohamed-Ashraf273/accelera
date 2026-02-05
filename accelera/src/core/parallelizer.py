@@ -4,11 +4,12 @@ from pathlib import Path
 
 import requests
 
+from accelera.src.utils.code_utils import add_collapse_pragma
 from accelera.src.utils.code_utils import extract_features
 from accelera.src.utils.code_utils import extract_loops
 from accelera.src.utils.code_utils import feature_dict_to_vector
+from accelera.src.utils.code_utils import fix_reduction_pragma
 from accelera.src.utils.code_utils import format_cpp_file
-from accelera.src.utils.code_utils import generate_omp_pragma
 from accelera.src.utils.code_utils import write_loops_to_json
 
 
@@ -26,6 +27,24 @@ class Parallelizer:
         )
         result = response.json()
         return result["result"]
+
+    def _generate_omp_pragma(self, loop_code: str, loop_class: str) -> str:
+        if loop_class == "none":
+            return loop_code
+
+        if loop_class == "parallel_for":
+            pragma = "#pragma omp parallel for"
+            code_with_pragma = f"{pragma}\n{loop_code}"
+
+        elif loop_class == "reduction":
+            pragma = "#pragma omp parallel for reduction(sum)"
+            code_with_pragma = f"{pragma}\n{loop_code}"
+            code_with_pragma = fix_reduction_pragma(code_with_pragma, loop_code)
+        else:
+            raise ValueError(f"Unknown class: {loop_class}")
+
+        code_with_pragma = add_collapse_pragma(code_with_pragma, loop_code)
+        return code_with_pragma
 
     def parallelize(self, file_path: str) -> str:
         with open(file_path, "r") as file:
@@ -60,7 +79,9 @@ class Parallelizer:
             pred_class = self._classify(embedding)
 
             if pred_class != "none":
-                pragma_with_loop = generate_omp_pragma(loop_code, pred_class)
+                pragma_with_loop = self._generate_omp_pragma(
+                    loop_code, pred_class
+                )
                 new_lines = pragma_with_loop.split("\n")
                 code_lines[start_line - 1 + shift : end_line + shift] = (
                     new_lines

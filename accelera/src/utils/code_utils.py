@@ -281,25 +281,6 @@ def fix_reduction_pragma(code: str, original_loop: str) -> str:
     )
 
 
-def generate_omp_pragma(loop_code: str, predicted_class: str) -> str:
-    if predicted_class == "none":
-        return loop_code
-
-    if predicted_class == "parallel_for":
-        pragma = "#pragma omp parallel for"
-        code_with_pragma = f"{pragma}\n{loop_code}"
-
-    elif predicted_class == "reduction":
-        pragma = "#pragma omp parallel for reduction(sum)"
-        code_with_pragma = f"{pragma}\n{loop_code}"
-        code_with_pragma = fix_reduction_pragma(code_with_pragma, loop_code)
-    else:
-        raise ValueError(f"Unknown class: {predicted_class}")
-
-    code_with_pragma = add_collapse_pragma(code_with_pragma, loop_code)
-    return code_with_pragma
-
-
 def format_cpp_file(filename: str) -> bool:
     try:
         subprocess.run(
