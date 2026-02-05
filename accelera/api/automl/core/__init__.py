@@ -12,3 +12,6 @@ from accelera.src.automl.core import (
 from accelera.src.automl.core import (
     training_preprocessing as training_preprocessing,
 )
+from accelera.src.automl.core import (
+    training_preprocessing_test as training_preprocessing_test,
+)
