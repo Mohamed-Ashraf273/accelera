@@ -1,5 +1,6 @@
 import os
 import pickle
+import pandas as pd
 
 
 class PreprocessingBase:
@@ -8,6 +9,8 @@ class PreprocessingBase:
         self.folder_path = folder_path
         if df is None:
             raise ValueError("Dataframe cannot be None")
+        if df is not None and not isinstance(df, pd.DataFrame):
+            raise ValueError("df must be a pandas DataFrame")
         if folder_path is None:
             raise ValueError("folder_path cannot be None")
 
@@ -19,7 +22,9 @@ class PreprocessingBase:
     def lower_data(self):
         for col in self.df.columns:
             if self.df[col].dtype == "object":
-                self.df[col] = self.df[col].str.lower()
+                self.df[col] = self.df[col].apply(
+                    lambda x: x.lower() if isinstance(x, str) else x
+                )
 
     def drop_columns(self, X, col_drop):
         col_drop = list(col_drop.keys())

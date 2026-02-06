@@ -1,12 +1,13 @@
 import io
 import os
+from scipy import sparse
 
 import numpy as np
+import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import FunctionTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
@@ -24,6 +25,7 @@ from accelera.src.automl.wrappers.correlation_graph import CorrelationGraph
 from accelera.src.automl.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
 )
+from accelera.src.automl.wrappers.flatten_1d_transform import Flatten1DTransform
 from accelera.src.automl.wrappers.IQR_transform import IQRTransform
 from accelera.src.automl.wrappers.numerical_classification import (
     NumericalClassification,
@@ -87,9 +89,7 @@ class TrainingPreprocessing(PreprocessingBase):
             )
         for col in self.text_colums_name:
             if col not in df.columns:
-                raise ValueError(
-                    f"Text column {col} not found in dataframe columns"
-                )
+                raise ValueError(f"Text column {col} not found in dataframe columns")
             if df[col].dtype != "object":
                 raise ValueError(f"Text column {col} must be of type object")
         if target_col not in df.columns:
@@ -114,7 +114,7 @@ class TrainingPreprocessing(PreprocessingBase):
                 f"and not detected as text column",
             )
         elif (
-            info[col].get("dtype") == "int64"
+            np.issubdtype(info[col].get("dtype"), np.integer)
             and info[col].get("p_unique", 0) > self.unique_threshold
         ):
             return True, f"It is above unique_threshold {self.unique_threshold}"
@@ -137,10 +137,7 @@ class TrainingPreprocessing(PreprocessingBase):
         return (lower, upper)
 
     def check_binary(self, col, info):
-        if (
-            info[col].get("n_unique", 0) == 2
-            or info[col].get("dtype") == "bool"
-        ):
+        if info[col].get("n_unique", 0) == 2 or info[col].get("dtype") == "bool":
             return True
 
     def get_data_info(self, X_train, y_train):
@@ -160,7 +157,7 @@ class TrainingPreprocessing(PreprocessingBase):
                 "is_constant": df_new[col].nunique() == 1,
             }
 
-            if info[col]["dtype"] in ["int64", "float64"]:
+            if np.issubdtype(df_new[col].dtype, np.number):
                 info[col]["skew"] = df_new[col].skew()
                 info[col]["variance"] = df_new[col].var()
                 info[col]["Q1"] = df_new[col].quantile(0.25)
@@ -204,9 +201,7 @@ class TrainingPreprocessing(PreprocessingBase):
                 binary_cols.append(col)
             elif np.issubdtype(info[col]["dtype"], np.integer):
                 if info[col]["n_unique"] <= self.max_unique_ordinal:
-                    sorted_unique_values = np.sort(
-                        X_train[col].dropna().unique()
-                    )
+                    sorted_unique_values = np.sort(X_train[col].dropna().unique())
                     diff = np.diff(sorted_unique_values)
                     if np.all(diff == 1) and sorted_unique_values[0] in [0, 1]:
                         info[col]["col_type"] = "ordinal"
@@ -343,10 +338,7 @@ class TrainingPreprocessing(PreprocessingBase):
                 )
                 graph.build_graph()
                 self.report_data["graphs"]["images_name"].append(f"{col}")
-            if (
-                info[col]["col_type"] == "ordinal"
-                and self.problem_type == "regression"
-            ):
+            if info[col]["col_type"] == "ordinal" and self.problem_type == "regression":
                 graph = OrdinalRegression(
                     new_df,
                     col,
@@ -437,16 +429,11 @@ class TrainingPreprocessing(PreprocessingBase):
                         ),
                         (
                             "flatten",
-                            FunctionTransformer(
-                                flatten_1d,
-                                validate=False,
-                            ),
+                            Flatten1DTransform(flatten_1d),
                         ),
                         (
                             "tfidf",
-                            TfidfVectorizer(
-                                max_features=1000, stop_words="english"
-                            ),
+                            TfidfVectorizer(max_features=1000, stop_words="english"),
                         ),
                     ]
                 ),
@@ -533,6 +520,23 @@ class TrainingPreprocessing(PreprocessingBase):
         X_val_processed = preprocessor.transform(X_val)
         # save the processor
         self.save_pikle(preprocessor, "training_preprocessor.pkl")
+        farures_names = [
+            x.split("__")[-1] for x in preprocessor.get_feature_names_out()
+        ]
+        self.save_pikle(farures_names, "feature_names.pkl")
+        if sparse.issparse(X_train_processed):
+            X_train_processed = X_train_processed.toarray()
+        if sparse.issparse(X_val_processed):
+            X_val_processed = X_val_processed.toarray()
+        self.report_data["after_preprocessing"] = {
+            "X_train_processed": pd.DataFrame(
+                X_train_processed, columns=farures_names
+            ).head(),
+            "X_val_processed": pd.DataFrame(
+                X_val_processed, columns=farures_names
+            ).head(),
+        }
+
         return X_train_processed, X_val_processed
 
     def target_preprocessing(self, y_train, y_val, info):
@@ -565,9 +569,7 @@ class TrainingPreprocessing(PreprocessingBase):
             y_train = stander_scaler.fit_transform(
                 y_train.values.reshape(-1, 1)
             ).ravel()
-            y_val = stander_scaler.transform(
-                y_val.values.reshape(-1, 1)
-            ).ravel()
+            y_val = stander_scaler.transform(y_val.values.reshape(-1, 1)).ravel()
             self.save_pikle(stander_scaler, "target_preprocessor.pkl")
             self.report_data["preprocessing"].append(
                 {
@@ -578,6 +580,12 @@ class TrainingPreprocessing(PreprocessingBase):
                     ],
                 }
             )
+        self.report_data["after_preprocessing"]["y_train_processed"] = pd.DataFrame(
+            y_train, columns=[self.target_col]
+        ).head()
+        self.report_data["after_preprocessing"]["y_val_processed"] = pd.DataFrame(
+            y_val, columns=[self.target_col]
+        ).head()
         self.save_pikle(target_dict, "target_info.pkl")
         return y_train, y_val
 
@@ -630,6 +638,7 @@ class TrainingPreprocessing(PreprocessingBase):
         self.report_data["drop_columns"] = {
             "col_drop": col_drop,
             "X_trian_head": X_train.head(),
+            "X_val_head": X_val.head(),
         }
         self.save_pikle(col_drop, "col_drop.pkl")
 

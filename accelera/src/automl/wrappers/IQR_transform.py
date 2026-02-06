@@ -16,3 +16,6 @@ class IQRTransform(CustomTransformer):
                 lower, upper = self.info[col]["outliers_info"]
                 X_copy[:, i] = X_copy[:, i].clip(lower, upper)
         return X_copy
+    def get_feature_names_out(self, input_features=None):
+        return input_features
+

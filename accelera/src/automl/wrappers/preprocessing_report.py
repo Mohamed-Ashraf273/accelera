@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 
 from accelera.src.core.report_base import ReportBase
 
@@ -14,6 +15,7 @@ class PreprocessingReport(ReportBase):
         self.drop_columns = self.report_data["drop_columns"]
         self.graphs = self.report_data["graphs"]
         self.preprocessing = self.report_data["preprocessing"]
+        self.after_preprocessing = self.report_data["after_preprocessing"]
 
     def show_data_heads(self, obj, field_name, name="dataset"):
         self.content += f"""<h3>First 5 rows of the {name}:</h3>\n
@@ -40,9 +42,7 @@ class PreprocessingReport(ReportBase):
 
     def show_dupplicats(self, obj):
         self.content += "<h3>Duplicates:</h3>\n"
-        self.content += (
-            f"<p> number of duplicates rows: {obj['duplicates_sum']}</p>\n"
-        )
+        self.content += f"<p> number of duplicates rows: {obj['duplicates_sum']}</p>\n"
         self.content += "<p> Percentage of duplicates "
         self.content += f"rows: {obj['duplicates_percentage']} %</p>\n"
 
@@ -98,6 +98,7 @@ class PreprocessingReport(ReportBase):
                 self.content += f"<tr><td>{col}</td><td>{reason}</td></tr>\n"
             self.content += "</table>\n"
             self.show_data_heads(self.drop_columns, "X_trian_head", "X train")
+            self.show_data_heads(self.drop_columns, "X_val_head", "X validation")
 
         else:
             self.content += "<p>No columns were dropped</p>\n"
@@ -115,9 +116,7 @@ class PreprocessingReport(ReportBase):
             for image_name in self.graphs["images_name"]:
                 image_file = os.path.join(folder_path, f"{image_name}.png")
                 if os.path.exists(image_file):
-                    image_file = os.path.join(
-                        ".", "graphs", f"{image_name}.png"
-                    )
+                    image_file = os.path.join(".", "graphs", f"{image_name}.png")
                     self.content += f"<img src='{image_file}' "
                     self.content += "style='max-width:100%; margin:10px 0;'/>\n"
         self.content += "</div>\n"
@@ -145,6 +144,33 @@ class PreprocessingReport(ReportBase):
         self.content += "</table>\n"
         self.content += "</div>\n"
 
+    def show_after_preprocessing(self):
+        self.content += "<div>\n"
+        self.content += "<h2>After Preprocessing</h2>\n"
+        training_df = pd.concat(
+            [
+                self.after_preprocessing["X_train_processed"],
+                self.after_preprocessing["y_train_processed"],
+            ],
+            axis=1,
+        )
+        val_df = pd.concat(
+            [
+                self.after_preprocessing["X_val_processed"],
+                self.after_preprocessing["y_val_processed"],
+            ],
+            axis=1,
+        )
+        self.after_preprocessing["training_df"] = training_df
+        self.after_preprocessing["val_df"] = val_df
+        self.show_data_heads(
+            self.after_preprocessing, "training_df", "Training After Preprocessing Head"
+        )
+        self.show_data_heads(
+            self.after_preprocessing, "val_df", "Validation After Preprocessing Head"
+        )
+        self.content += "</div>\n"
+
     def execute(self):
         self.show_data_overview()
         self.show_drop_duplicates()
@@ -152,5 +178,6 @@ class PreprocessingReport(ReportBase):
         self.show_drop_col()
         self.show_graphs()
         self.show_preprocessing()
+        self.show_after_preprocessing()
         full_content = self.start_content + self.content + self.end_content
         self.create_html_file(full_content)

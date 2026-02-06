@@ -328,10 +328,7 @@ class TestTrainingPreprocessing:
         )
         assert self.df_classification.duplicated().sum() == 0
         assert (
-            training_preprocessing.report_data["drop_duplicates"][
-                "duplicates_sum"
-            ]
-            == 0
+            training_preprocessing.report_data["drop_duplicates"]["duplicates_sum"] == 0
         )
         assert (
             training_preprocessing.report_data["drop_duplicates"][
@@ -364,18 +361,12 @@ class TestTrainingPreprocessing:
             training_preprocessing.report_data["split"]["X_train_shape"]
             == X_train.shape
         )
-        assert (
-            training_preprocessing.report_data["split"]["X_val_shape"]
-            == X_val.shape
-        )
+        assert training_preprocessing.report_data["split"]["X_val_shape"] == X_val.shape
         assert (
             training_preprocessing.report_data["split"]["y_train_shape"]
             == y_train.shape
         )
-        assert (
-            training_preprocessing.report_data["split"]["y_val_shape"]
-            == y_val.shape
-        )
+        assert training_preprocessing.report_data["split"]["y_val_shape"] == y_val.shape
         assert X_train.equals(X_train_1)
         assert X_val.equals(X_val_1)
         assert y_train.equals(y_train_1)
@@ -399,10 +390,7 @@ class TestTrainingPreprocessing:
         assert "most_nulls_feature" in col_drop
         assert col_drop["ID"] == "It is above unique_threshold 0.9"
         assert col_drop["const_feature"] == "The column is constant"
-        assert (
-            col_drop["most_nulls_feature"]
-            == "Missing above missing_threshold 0.5"
-        )
+        assert col_drop["most_nulls_feature"] == "Missing above missing_threshold 0.5"
         assert (
             col_drop["Name_feature"] == "It is above unique_threshold 0.9 "
             "and not detected as text column"
@@ -552,9 +540,8 @@ class TestTrainingPreprocessing:
         )
         assert X_train_processed.shape[0] == X_train.shape[0]
         assert X_val_processed.shape[0] == X_val.shape[0]
-        assert os.path.exists(
-            os.path.join(self.temp_dir, "training_preprocessor.pkl")
-        )
+        assert os.path.exists(os.path.join(self.temp_dir, "training_preprocessor.pkl"))
+        assert os.path.exists(os.path.join(self.temp_dir, "feature_names.pkl"))
 
     def test_text_preprocessing_pipeline(self):
         training_preprocessing = TrainingPreprocessing(
@@ -592,17 +579,15 @@ class TestTrainingPreprocessing:
                 ordinal_cols,
             )
         )
-        tfidf_vectorizer = TfidfVectorizer(
-            max_features=1000, stop_words="english"
-        )
+        tfidf_vectorizer = TfidfVectorizer(max_features=1000, stop_words="english")
         X_train_manual = X_train["text_feature"].fillna("").values.ravel()
         X_val_manual = X_val["text_feature"].fillna("").values.ravel()
         X_train_tfidf_manual = tfidf_vectorizer.fit_transform(X_train_manual)
         X_val_tfidf_manual = tfidf_vectorizer.transform(X_val_manual)
         assert X_train_processed.shape == X_train_tfidf_manual.shape
         assert X_val_processed.shape == X_val_tfidf_manual.shape
-        assert (X_train_processed != X_train_tfidf_manual).nnz == 0
-        assert (X_val_processed != X_val_tfidf_manual).nnz == 0
+        assert np.allclose(X_train_processed, X_train_tfidf_manual.toarray(), atol=1e-6)
+        assert np.allclose(X_val_processed, X_val_tfidf_manual.toarray(), atol=1e-6)
 
     def test_numerical_preprocessing_pipeline(self):
         training_preprocessing = TrainingPreprocessing(
@@ -760,10 +745,14 @@ class TestTrainingPreprocessing:
         assert X_val_processed.shape == X_val_onehot.shape
         assert np.allclose(X_train_processed, X_train_onehot, atol=1e-6)
         assert np.allclose(X_val_processed, X_val_onehot, atol=1e-6)
+        assert X_train_processed.shape[1] == X_train["one_hot_feature"].nunique() - 1
+        assert X_val_processed.shape[1] == X_train["one_hot_feature"].nunique() - 1
 
     def test_frequency_preprocessing_pipeline(self):
         training_preprocessing = TrainingPreprocessing(
-            df=self.df_classification[["frequency_feature", "target"]].copy(),
+            df=self.df_classification[
+                ["frequency_feature", "frequency_feature_numbers", "target"]
+            ].copy(),
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
@@ -799,20 +788,28 @@ class TestTrainingPreprocessing:
         )
         imputer = SimpleImputer(strategy="most_frequent")
         frequency_encoder = FrequencyEncoderTransform()
-        X_train_manual = X_train[["frequency_feature"]].values
-        X_val_manual = X_val[["frequency_feature"]].values
-        X_train_imputed = imputer.fit_transform(X_train_manual)
-        X_val_imputed = imputer.transform(X_val_manual)
-        X_train_processed_manual = frequency_encoder.fit_transform(
-            X_train_imputed
-        )
-        X_val_processed_manual = frequency_encoder.transform(X_val_imputed)
-        assert X_train_processed.shape == X_train_processed_manual.shape
-        assert X_val_processed.shape == X_val_processed_manual.shape
+        X_train_1_manual = X_train[["frequency_feature"]].values
+        X_val_1_manual = X_val[["frequency_feature"]].values
+        X_train_1_imputed = imputer.fit_transform(X_train_1_manual)
+        X_val_1_imputed = imputer.transform(X_val_1_manual)
+        X_train_2_manual = X_train[["frequency_feature_numbers"]].values
+        X_val_2_manual = X_val[["frequency_feature_numbers"]].values
+        X_train_2_imputed = imputer.fit_transform(X_train_2_manual)
+        X_val_2_imputed = imputer.transform(X_val_2_manual)
+        X_train_processed_manual = frequency_encoder.fit_transform(X_train_1_imputed)
+        X_val_processed_manual = frequency_encoder.transform(X_val_1_imputed)
+        X_train_processed_2_manual = frequency_encoder.fit_transform(X_train_2_imputed)
+        X_val_processed_2_manual = frequency_encoder.transform(X_val_2_imputed)
         assert np.allclose(
-            X_train_processed, X_train_processed_manual, atol=1e-6
+            X_train_processed[:, 0], X_train_processed_manual.ravel(), atol=1e-6
         )
-        assert np.allclose(X_val_processed, X_val_processed_manual, atol=1e-6)
+        assert np.allclose(
+            X_val_processed[:, 0], X_val_processed_manual.ravel(), atol=1e-6
+        )
+        assert np.allclose(
+            X_train_processed[:, 1:], X_train_processed_2_manual, atol=1e-6
+        )
+        assert np.allclose(X_val_processed[:, 1:], X_val_processed_2_manual, atol=1e-6)
 
     def test_target_classification_preprocessing(self):
         training_preprocessing = TrainingPreprocessing(
@@ -864,16 +861,14 @@ class TestTrainingPreprocessing:
         assert y_val_processed.shape == y_val_encoded.shape
         assert np.allclose(y_train_processed, y_train_encoded, atol=1e-6)
         assert np.allclose(y_val_processed, y_val_encoded, atol=1e-6)
-        assert os.path.exists(
-            os.path.join(self.temp_dir, "target_preprocessor.pkl")
-        )
+        assert os.path.exists(os.path.join(self.temp_dir, "target_preprocessor.pkl"))
         assert os.path.exists(os.path.join(self.temp_dir, "target_info.pkl"))
 
     def test_target_regression_preprocessing(self):
         df_regression = self.df_classification.copy()
-        df_regression["target"] = df_regression[
-            "continuous_feature"
-        ] + np.random.randn(len(df_regression))
+        df_regression["target"] = df_regression["continuous_feature"] + np.random.randn(
+            len(df_regression)
+        )
         training_preprocessing = TrainingPreprocessing(
             df=df_regression,
             target_col="target",
@@ -920,14 +915,10 @@ class TestTrainingPreprocessing:
         y_train_scaled = stander.fit_transform(
             y_train_filled.values.reshape(-1, 1)
         ).ravel()
-        y_val_scaled = stander.transform(
-            y_val_filled.values.reshape(-1, 1)
-        ).ravel()
+        y_val_scaled = stander.transform(y_val_filled.values.reshape(-1, 1)).ravel()
         assert y_train_processed.shape == y_train_scaled.shape
         assert y_val_processed.shape == y_val_scaled.shape
         assert np.allclose(y_train_processed, y_train_scaled, atol=1e-6)
         assert np.allclose(y_val_processed, y_val_scaled, atol=1e-6)
-        assert os.path.exists(
-            os.path.join(self.temp_dir, "target_preprocessor.pkl")
-        )
+        assert os.path.exists(os.path.join(self.temp_dir, "target_preprocessor.pkl"))
         assert os.path.exists(os.path.join(self.temp_dir, "target_info.pkl"))
