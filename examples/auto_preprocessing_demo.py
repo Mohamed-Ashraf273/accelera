@@ -14,12 +14,10 @@ from accelera.src.automl.core.training_preprocessing import (
 
 tatanic_df = pd.read_csv("Titanic-Dataset.csv")
 tatanic_df_copy = tatanic_df[:5].copy()
-print(tatanic_df.head())
 training_preprocessor = TrainingPreprocessing(
     tatanic_df, "Survived", "classification", "./titanic_preprocessing"
 )
 X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
-print(X_train[:5])
 print("Titanic Dataset")
 print("Random Forest Classifier")
 model = RandomForestClassifier(random_state=42)
@@ -30,7 +28,7 @@ testing_preprocessor = TestingPreprocessing(
     tatanic_df_copy, "./titanic_preprocessing"
 )
 X_test, y_test = testing_preprocessor.common_preprocessing()
-print(X_test)
+
 print("Predictions:")
 print(model.predict(X_test), y_test)
 print("Logistic Regression")
@@ -52,7 +50,6 @@ training_preprocessor = TrainingPreprocessing(
 )
 X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
 
-print(X_train[:5])
 print("Random Forest Regressor")
 model = RandomForestRegressor(random_state=42)
 model.fit(X_train, y_train)
