@@ -1,8 +1,9 @@
-from nltk.tokenize import word_tokenize
+import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 import re
-
+nltk.download("punkt")  
+nltk.download("stopwords")
 
 def flatten_1d(x):
     return x.ravel()
