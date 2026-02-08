@@ -235,8 +235,15 @@ class TrainingPreprocessing(PreprocessingBase):
                 numerical_cols.append(col)
 
             elif info[col]["dtype"] == "object":
-                n_unique = info[col]["n_unique"]
-                if n_unique <= self.cardinality_threshold:
+                if col in self.text_colums_name:
+                    info[col]["col_type"] = "text"
+                    info[col]["preprossing_steps"] = [
+                        "Fill missing with empty string",
+                        "Cleaning Splitting and Stemming",
+                        "TF-IDF vectorization",
+                    ]
+                    text_cols.append(col)
+                elif info[col]["n_unique"] <= self.cardinality_threshold:
                     info[col]["col_type"] = "categorical_one_hot"
                     info[col]["preprossing_steps"] = [
                         "Fill missing with most frequent",
@@ -244,23 +251,15 @@ class TrainingPreprocessing(PreprocessingBase):
                     ]
                     one_hot_cols.append(col)
                 else:
-                    if col in self.text_colums_name:
-                        info[col]["col_type"] = "text"
-                        info[col]["preprossing_steps"] = [
-                            "Fill missing with empty string",
-                            "TF-IDF vectorization",
-                        ]
-                        text_cols.append(col)
-                    else:
-                        info[col]["col_type"] = "categorical_frequency"
-                        info[col]["preprossing_steps"] = [
-                            "Fill missing with most frequent",
-                            "Frequency encoding",
-                        ]
-                        frequency_cols.append(col)
+                    info[col]["col_type"] = "categorical_frequency"
+                    info[col]["preprossing_steps"] = [
+                        "Fill missing with most frequent",
+                        "Frequency encoding",
+                    ]
+                    frequency_cols.append(col)
             else:
                 info[col]["col_type"] = "other"
-                info[col]["preprossing_steps"] = None
+                info[col]["preprossing_steps"] = f"Drop column because its type {info[col]['dtype']} is not supported"
                 others.append(col)
             self.report_data["preprocessing"].append(
                 {
@@ -506,7 +505,7 @@ class TrainingPreprocessing(PreprocessingBase):
                 ("frequency", frequency_pipeline, frequency_cols),
                 ("ordinal", ordinal_pipeline, ordinal_cols),
             ],
-            remainder="passthrough",
+            remainder="drop",
         )
         X_train_processed = preprocessor.fit_transform(X_train)
         X_val_processed = preprocessor.transform(X_val)
@@ -639,7 +638,6 @@ class TrainingPreprocessing(PreprocessingBase):
         X_train, X_val, y_train, y_val = self.split_data()
         info, col_drop = self.get_data_info(X_train, y_train)
         self.drop_col(X_train, X_val, col_drop)
-
         (
             binary_cols,
             numerical_cols,
