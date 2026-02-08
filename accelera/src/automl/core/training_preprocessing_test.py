@@ -20,6 +20,7 @@ from accelera.src.automl.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
 )
 from accelera.src.automl.wrappers.IQR_transform import IQRTransform
+from accelera.src.automl.utils.preprocessing import custom_text_tokenizer
 
 
 class TestTrainingPreprocessing:
@@ -584,7 +585,7 @@ class TestTrainingPreprocessing:
             ngram_range=(1, 2),
             min_df=2,
             max_df=0.8,
-            stop_words="english",
+            tokenizer=custom_text_tokenizer,
         )
         X_train_manual = X_train["text_feature"].fillna("").values.ravel()
         X_val_manual = X_val["text_feature"].fillna("").values.ravel()

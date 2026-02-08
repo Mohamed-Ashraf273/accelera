@@ -45,10 +45,7 @@ from accelera.src.automl.wrappers.target_classification import (
 )
 from accelera.src.automl.wrappers.target_regression import TargetRegression
 from accelera.src.automl.wrappers.text_graph import TextGraph
-
-
-def flatten_1d(x):
-    return x.ravel()
+from accelera.src.automl.utils.preprocessing import flatten_1d, custom_text_tokenizer
 
 
 class TrainingPreprocessing(PreprocessingBase):
@@ -428,7 +425,8 @@ class TrainingPreprocessing(PreprocessingBase):
                                 ngram_range=(1, 2),
                                 max_df=0.8,
                                 min_df=2,
-                                stop_words="english",
+                                tokenizer=custom_text_tokenizer,
+                                token_pattern=None,
                             ),
                         ),
                     ]
