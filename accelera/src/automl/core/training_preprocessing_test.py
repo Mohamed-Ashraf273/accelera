@@ -107,24 +107,7 @@ class TestTrainingPreprocessing:
                     2,
                     1,
                 ],
-                "frequency_feature_numbers": [
-                    1,
-                    5,
-                    4,
-                    3,
-                    1,
-                    3,
-                    4,
-                    6,
-                    4,
-                    4,
-                    5,
-                    6,
-                    3,
-                    1,
-                    5,
-                    1,
-                ],
+                
                 "one_hot_feature": [
                     "A",
                     "B",
@@ -299,13 +282,13 @@ class TestTrainingPreprocessing:
         assert training_preprocessing.report_data is not None
         assert "data_overview" in training_preprocessing.report_data
         data_overview = training_preprocessing.report_data["data_overview"]
-        assert data_overview["shape"] == (17, 12)
+        assert data_overview["shape"] == (17, 11)
         assert data_overview["duplicates_sum"] == 1
         assert data_overview["duplicates_percentage"] == float(1 / 17) * 100
         assert data_overview["numerical_describe"] is not None
         assert data_overview["categorical_describe"] is not None
-        assert data_overview["data_head"].shape == (5, 12)
-        assert data_overview["lower_data_head"].shape == (5, 12)
+        assert data_overview["data_head"].shape == (5, 11)
+        assert data_overview["lower_data_head"].shape == (5, 11)
         assert data_overview["missing_values"].equals(
             self.df_classification.isnull().sum()
         )
@@ -414,8 +397,8 @@ class TestTrainingPreprocessing:
         for col in col_drop.keys():
             assert col not in X_train.columns
             assert col not in X_val.columns
-        assert X_train.shape[1] == 7
-        assert X_val.shape[1] == 7
+        assert X_train.shape[1] == 6
+        assert X_val.shape[1] == 6
         assert os.path.exists(os.path.join(self.temp_dir, "col_drop.pkl"))
         loaded_col_drop = training_preprocessing.load_pickle("col_drop.pkl")
         assert loaded_col_drop == col_drop
@@ -448,7 +431,6 @@ class TestTrainingPreprocessing:
         assert set(one_hot_cols) == {"one_hot_feature"}
         assert set(frequency_cols) == {
             "frequency_feature",
-            "frequency_feature_numbers",
         }
         assert set(text_cols) == {"text_feature"}
         assert set(numerical_cols) == {"continuous_feature"}
@@ -496,7 +478,6 @@ class TestTrainingPreprocessing:
         assert "continuous_feature.png" in graphs_files
         assert "one_hot_feature.png" in graphs_files
         assert "frequency_feature.png" in graphs_files
-        assert "frequency_feature_numbers.png" in graphs_files
         assert "ordinal_feature.png" in graphs_files
         assert "text_feature.png" in graphs_files
         assert "target.png" in graphs_files
@@ -758,7 +739,7 @@ class TestTrainingPreprocessing:
     def test_frequency_preprocessing_pipeline(self):
         training_preprocessing = TrainingPreprocessing(
             df=self.df_classification[
-                ["frequency_feature", "frequency_feature_numbers", "target"]
+                ["frequency_feature", "target"]
             ].copy(),
             target_col="target",
             problem_type="classification",
@@ -799,24 +780,14 @@ class TestTrainingPreprocessing:
         X_val_1_manual = X_val[["frequency_feature"]].values
         X_train_1_imputed = imputer.fit_transform(X_train_1_manual)
         X_val_1_imputed = imputer.transform(X_val_1_manual)
-        X_train_2_manual = X_train[["frequency_feature_numbers"]].values
-        X_val_2_manual = X_val[["frequency_feature_numbers"]].values
-        X_train_2_imputed = imputer.fit_transform(X_train_2_manual)
-        X_val_2_imputed = imputer.transform(X_val_2_manual)
         X_train_processed_manual = frequency_encoder.fit_transform(X_train_1_imputed)
         X_val_processed_manual = frequency_encoder.transform(X_val_1_imputed)
-        X_train_processed_2_manual = frequency_encoder.fit_transform(X_train_2_imputed)
-        X_val_processed_2_manual = frequency_encoder.transform(X_val_2_imputed)
         assert np.allclose(
             X_train_processed[:, 0], X_train_processed_manual.ravel(), atol=1e-6
         )
         assert np.allclose(
             X_val_processed[:, 0], X_val_processed_manual.ravel(), atol=1e-6
         )
-        assert np.allclose(
-            X_train_processed[:, 1:], X_train_processed_2_manual, atol=1e-6
-        )
-        assert np.allclose(X_val_processed[:, 1:], X_val_processed_2_manual, atol=1e-6)
 
     def test_target_classification_preprocessing(self):
         training_preprocessing = TrainingPreprocessing(

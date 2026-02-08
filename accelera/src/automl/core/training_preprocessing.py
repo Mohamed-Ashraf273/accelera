@@ -59,7 +59,7 @@ class TrainingPreprocessing(PreprocessingBase):
         random_state=42,
         text_colums_name=None,
         cardinality_threshold=8,
-        max_unique_ordinal=6,
+        max_unique_ordinal=10,
         categorical_ratio_threshold=0.05,
         missing_threshold=0.5,
         unique_threshold=0.9,
@@ -191,31 +191,12 @@ class TrainingPreprocessing(PreprocessingBase):
                 binary_cols.append(col)
             elif np.issubdtype(info[col]["dtype"], np.integer):
                 if info[col]["n_unique"] <= self.max_unique_ordinal:
-                    sorted_unique_values = np.sort(X_train[col].dropna().unique())
-                    diff = np.diff(sorted_unique_values)
-                    if np.all(diff == 1) and sorted_unique_values[0] in [0, 1]:
-                        info[col]["col_type"] = "ordinal"
-                        info[col]["preprossing_steps"] = [
-                            "Fill missing with most frequent",
-                            "Ordinal encoding",
-                        ]
-                        ordinal_cols.append(col)
-                    else:
-                        info[col]["col_type"] = "categorical_frequency"
-                        info[col]["preprossing_steps"] = [
-                            "Fill missing with most frequent",
-                            "Frequency encoding",
-                        ]
-                        frequency_cols.append(col)
-
-                elif info[col]["p_unique"] < self.categorical_ratio_threshold:
-                    info[col]["col_type"] = "categorical_frequency"
+                    info[col]["col_type"] = "ordinal"
                     info[col]["preprossing_steps"] = [
                         "Fill missing with most frequent",
-                        "Frequency encoding",
+                        "Ordinal encoding",
                     ]
-                    frequency_cols.append(col)
-
+                    ordinal_cols.append(col)
                 else:
                     info[col]["col_type"] = "numerical"
                     info[col]["preprossing_steps"] = [
@@ -259,7 +240,9 @@ class TrainingPreprocessing(PreprocessingBase):
                     frequency_cols.append(col)
             else:
                 info[col]["col_type"] = "other"
-                info[col]["preprossing_steps"] = f"Drop column because its type {info[col]['dtype']} is not supported"
+                info[col][
+                    "preprossing_steps"
+                ] = f"Drop column because its type {info[col]['dtype']} is not supported"
                 others.append(col)
             self.report_data["preprocessing"].append(
                 {
