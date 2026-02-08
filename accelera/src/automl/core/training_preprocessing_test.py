@@ -107,7 +107,6 @@ class TestTrainingPreprocessing:
                     2,
                     1,
                 ],
-                
                 "one_hot_feature": [
                     "A",
                     "B",
@@ -738,9 +737,7 @@ class TestTrainingPreprocessing:
 
     def test_frequency_preprocessing_pipeline(self):
         training_preprocessing = TrainingPreprocessing(
-            df=self.df_classification[
-                ["frequency_feature", "target"]
-            ].copy(),
+            df=self.df_classification[["frequency_feature", "target"]].copy(),
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,

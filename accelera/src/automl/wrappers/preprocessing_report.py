@@ -125,17 +125,20 @@ class PreprocessingReport(ReportBase):
         self.content += "<div>\n"
         self.content += "<h2>Preprocessing</h2>\n"
         self.content += "<table>\n"
-        self.content += "<tr><th>Column</th><th>Preprocessing Steps</th></tr>\n"
+
+        self.content += "<tr><th>Column</th><th>Predicted Type</th><th>Preprocessing Steps</th></tr>\n"
 
         for item in self.preprocessing:
-            col_name, col_preprocessing = (
+            col_name, col_type, col_preprocessing = (
                 item["col_name"],
+                item["col_type"].title(),
                 item["col_preprocessing"],
             )
             self.content += f"<tr><td>{col_name}</td>"
+            self.content += f"<td>{col_type}</td>"
             self.content += "<td>"
             for i, step in enumerate(col_preprocessing):
-                self.content += f"{step} "
+                self.content += f"{step.title()} "
                 if i != len(col_preprocessing) - 1:
                     self.content += "-> "
             self.content += "</td>"

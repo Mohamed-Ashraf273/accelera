@@ -225,14 +225,14 @@ class TrainingPreprocessing(PreprocessingBase):
                     ]
                     text_cols.append(col)
                 elif info[col]["n_unique"] <= self.cardinality_threshold:
-                    info[col]["col_type"] = "categorical_one_hot"
+                    info[col]["col_type"] = "low level cardinality"
                     info[col]["preprossing_steps"] = [
                         "Fill missing with most frequent",
                         "One hot encoding",
                     ]
                     one_hot_cols.append(col)
                 else:
-                    info[col]["col_type"] = "categorical_frequency"
+                    info[col]["col_type"] = "high level cardinality"
                     info[col]["preprossing_steps"] = [
                         "Fill missing with most frequent",
                         "Frequency encoding",
@@ -247,6 +247,7 @@ class TrainingPreprocessing(PreprocessingBase):
             self.report_data["preprocessing"].append(
                 {
                     "col_name": col,
+                    "col_type": info[col]["col_type"],
                     "col_preprocessing": info[col]["preprossing_steps"],
                 }
             )
@@ -270,7 +271,7 @@ class TrainingPreprocessing(PreprocessingBase):
         for col in X_train.columns:
             if (
                 info[col]["col_type"]
-                in ["binary", "categorical_one_hot", "categorical_frequency"]
+                in ["binary", "low level cardinality", "high level cardinality"]
                 and self.problem_type == "classification"
             ):
                 graph = CategoricalClassification(
@@ -283,7 +284,7 @@ class TrainingPreprocessing(PreprocessingBase):
                 self.report_data["graphs"]["images_name"].append(f"{col}")
             if (
                 info[col]["col_type"]
-                in ["binary", "categorical_one_hot", "categorical_frequency"]
+                in ["binary", "low level cardinality", "high level cardinality"]
                 and self.problem_type == "regression"
             ):
                 graph = CategoricalRegression(
@@ -389,7 +390,7 @@ class TrainingPreprocessing(PreprocessingBase):
         transformers = []
         for col in text_cols:
             transform = (
-                f"{col}_tfidf",
+                f"tfidf_{col}",
                 Pipeline(
                     [
                         (
@@ -528,6 +529,7 @@ class TrainingPreprocessing(PreprocessingBase):
             self.report_data["preprocessing"].append(
                 {
                     "col_name": self.target_col,
+                    "col_type": self.problem_type,
                     "col_preprocessing": [
                         "Fill missing with most frequent",
                         "Label encoding",
@@ -547,6 +549,7 @@ class TrainingPreprocessing(PreprocessingBase):
             self.report_data["preprocessing"].append(
                 {
                     "col_name": self.target_col,
+                    "col_type": self.problem_type,
                     "col_preprocessing": [
                         "Fill missing with median",
                         "Standard scaling",
