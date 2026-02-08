@@ -6,7 +6,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import mean_squared_error
 from sklearn.svm import SVC
-
+from sklearn.metrics import confusion_matrix, classification_report
 from accelera.src.automl.core.testing_preprocessing import TestingPreprocessing
 from accelera.src.automl.core.training_preprocessing import (
     TrainingPreprocessing,
@@ -24,9 +24,7 @@ model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
 print(model.score(X_val, y_val))
 print("testing")
-testing_preprocessor = TestingPreprocessing(
-    tatanic_df_copy, "./titanic_preprocessing"
-)
+testing_preprocessor = TestingPreprocessing(tatanic_df_copy, "./titanic_preprocessing")
 X_test, y_test = testing_preprocessor.common_preprocessing()
 
 print("Predictions:")
@@ -92,3 +90,27 @@ print("Random Forest Classifier")
 model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
 print(model.score(X_val, y_val))
+
+print("Review dataset")
+review_df = pd.read_csv("./TestReviews.csv")
+training_preprocessor = TrainingPreprocessing(
+    review_df, "class", "classification", "./reviews", text_colums_name=["review"]
+)
+X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
+print("Random Forest Classifier")
+model = RandomForestClassifier(random_state=42, class_weight="balanced")
+model.fit(X_train, y_train)
+print(model.score(X_val, y_val))
+print("Logistic Regression")
+model = LogisticRegression(random_state=42, class_weight="balanced")
+model.fit(X_train, y_train)
+print(model.score(X_val, y_val))
+print(confusion_matrix(y_val, model.predict(X_val)))
+test_data = pd.DataFrame(
+    {"review": ["This product is great!", "this product is terrible!"], "class": [1, 0]}
+)
+testing_preprocessor = TestingPreprocessing(test_data, "./reviews")
+X_test, y_test = testing_preprocessor.common_preprocessing()
+print("Predictions:")
+print(model.predict(X_test))
+print("correct prediction:", y_test)
