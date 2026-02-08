@@ -426,7 +426,7 @@ class TestTrainingPreprocessing:
             problem_type="classification",
             folder_path=self.temp_dir,
             text_colums_name=["text_feature"],
-            one_hot_threshold=6,
+            cardinality_threshold=6,
             max_unique_ordinal=8,
         )
         training_preprocessing.data_overview()
@@ -460,7 +460,7 @@ class TestTrainingPreprocessing:
             problem_type="classification",
             folder_path=self.temp_dir,
             text_colums_name=["text_feature"],
-            one_hot_threshold=6,
+            cardinality_threshold=6,
             max_unique_ordinal=8,
         )
         training_preprocessing.data_overview()
@@ -508,7 +508,7 @@ class TestTrainingPreprocessing:
             problem_type="classification",
             folder_path=self.temp_dir,
             text_colums_name=["text_feature"],
-            one_hot_threshold=6,
+            cardinality_threshold=6,
             max_unique_ordinal=8,
         )
         training_preprocessing.data_overview()
@@ -550,7 +550,7 @@ class TestTrainingPreprocessing:
             problem_type="classification",
             folder_path=self.temp_dir,
             text_colums_name=["text_feature"],
-            one_hot_threshold=6,
+            cardinality_threshold=6,
             max_unique_ordinal=8,
         )
         training_preprocessing.data_overview()
@@ -579,7 +579,13 @@ class TestTrainingPreprocessing:
                 ordinal_cols,
             )
         )
-        tfidf_vectorizer = TfidfVectorizer(max_features=1000, stop_words="english")
+        tfidf_vectorizer = TfidfVectorizer(
+            max_features=5000,
+            ngram_range=(1, 2),
+            min_df=2,
+            max_df=0.8,
+            stop_words="english",
+        )
         X_train_manual = X_train["text_feature"].fillna("").values.ravel()
         X_val_manual = X_val["text_feature"].fillna("").values.ravel()
         X_train_tfidf_manual = tfidf_vectorizer.fit_transform(X_train_manual)
@@ -596,7 +602,7 @@ class TestTrainingPreprocessing:
             problem_type="classification",
             folder_path=self.temp_dir,
             text_colums_name=[],
-            one_hot_threshold=6,
+            cardinality_threshold=6,
             max_unique_ordinal=8,
         )
         training_preprocessing.data_overview()
@@ -649,7 +655,7 @@ class TestTrainingPreprocessing:
             problem_type="classification",
             folder_path=self.temp_dir,
             text_colums_name=[],
-            one_hot_threshold=6,
+            cardinality_threshold=6,
             max_unique_ordinal=8,
         )
         training_preprocessing.data_overview()
@@ -700,7 +706,7 @@ class TestTrainingPreprocessing:
             problem_type="classification",
             folder_path=self.temp_dir,
             text_colums_name=[],
-            one_hot_threshold=6,
+            cardinality_threshold=6,
             max_unique_ordinal=8,
         )
         training_preprocessing.data_overview()
@@ -757,7 +763,7 @@ class TestTrainingPreprocessing:
             problem_type="classification",
             folder_path=self.temp_dir,
             text_colums_name=[],
-            one_hot_threshold=6,
+            cardinality_threshold=6,
             max_unique_ordinal=8,
         )
         training_preprocessing.data_overview()
@@ -818,7 +824,7 @@ class TestTrainingPreprocessing:
             problem_type="classification",
             folder_path=self.temp_dir,
             text_colums_name=["text_feature"],
-            one_hot_threshold=6,
+            cardinality_threshold=6,
             max_unique_ordinal=8,
         )
         training_preprocessing.data_overview()
@@ -875,7 +881,7 @@ class TestTrainingPreprocessing:
             problem_type="regression",
             folder_path=self.temp_dir,
             text_colums_name=["text_feature"],
-            one_hot_threshold=6,
+            cardinality_threshold=6,
             max_unique_ordinal=8,
         )
         training_preprocessing.data_overview()

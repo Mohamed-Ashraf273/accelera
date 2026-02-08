@@ -7,6 +7,7 @@ import pandas as pd
 from accelera.src.automl.core.testing_preprocessing import TestingPreprocessing
 from sklearn.preprocessing import LabelEncoder
 
+
 class TestTestingPreprocessing:
     @pytest.fixture(autouse=True)
     def initializetion(self):
@@ -68,7 +69,9 @@ class TestTestingPreprocessing:
         with pytest.raises(ValueError):
             TestingPreprocessing(df=self.df, folder_path=self.temp_dir)
         with pytest.raises(ValueError):
-            TestingPreprocessing(df=self.df.drop(columns=["feature1"]), folder_path=self.temp_dir)
+            TestingPreprocessing(
+                df=self.df.drop(columns=["feature1"]), folder_path=self.temp_dir
+            )
 
     def test_constructor(self):
         with open(os.path.join(self.temp_dir, "target_preprocessor.pkl"), "wb") as f:
@@ -139,7 +142,7 @@ class TestTestingPreprocessing:
         tp = TestingPreprocessing(df=self.df, folder_path=self.temp_dir)
         assert tp.X_test["feature1"].tolist() == ["a", "b", "c"]
         assert tp.y_test.tolist() == ["a", None, "c"]
-    
+
     def test_target_preprocessing_test(self):
         target_df = pd.DataFrame({"target": ["a", "b", "c"]})
         label_encoder = LabelEncoder()
@@ -148,7 +151,7 @@ class TestTestingPreprocessing:
             pickle.dump(label_encoder, f)
         with open(os.path.join(self.temp_dir, "training_preprocessor.pkl"), "wb") as f:
             pickle.dump({}, f)
-        
+
         target_info = {
             "col_name": "target",
             "problem_type": "classification",
@@ -161,4 +164,3 @@ class TestTestingPreprocessing:
         tp = TestingPreprocessing(df=self.df, folder_path=self.temp_dir)
         tp.target_preprocessing()
         assert tp.y_test.tolist() == [0, 1, 2]
-    

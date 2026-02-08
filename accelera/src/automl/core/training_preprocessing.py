@@ -61,7 +61,7 @@ class TrainingPreprocessing(PreprocessingBase):
         test_size=0.2,
         random_state=42,
         text_colums_name=None,
-        one_hot_threshold=8,
+        cardinality_threshold=8,
         max_unique_ordinal=6,
         categorical_ratio_threshold=0.05,
         missing_threshold=0.5,
@@ -73,7 +73,7 @@ class TrainingPreprocessing(PreprocessingBase):
         self.test_size = test_size
         self.random_state = random_state
         self.text_colums_name = text_colums_name if text_colums_name else []
-        self.one_hot_threshold = one_hot_threshold
+        self.cardinality_threshold = cardinality_threshold
         self.max_unique_ordinal = max_unique_ordinal
         self.categorical_ratio_threshold = categorical_ratio_threshold
         self.missing_threshold = missing_threshold
@@ -98,9 +98,6 @@ class TrainingPreprocessing(PreprocessingBase):
         self.save_pikle(self.df.columns.tolist(), "data_columns.pkl")
 
     def is_drop_column(self, info, col):
-        # drop column if it is constent,
-        # percent of unique values > 90% (likely ID),
-        # or percent of missing > 50%
         if info[col].get("is_constant", False):
             return True, "The column is constant"
         elif (
@@ -126,7 +123,6 @@ class TrainingPreprocessing(PreprocessingBase):
         return False, None
 
     def outliers_info(self, info, col):
-        # get lower and upper bounds of outliers
         Q1 = info[col]["Q1"]
         Q3 = info[col]["Q3"]
         min_value = info[col]["min"]
@@ -141,8 +137,6 @@ class TrainingPreprocessing(PreprocessingBase):
             return True
 
     def get_data_info(self, X_train, y_train):
-        # this function return info about the training data
-        # like mean, median, dtype, n_unique, p_unique, missing, p_missing
         col_drop = {}
         info = {}
         df_new = X_train.copy()
@@ -190,7 +184,6 @@ class TrainingPreprocessing(PreprocessingBase):
         others = []
         self.report_data["preprocessing"] = []
         for col in X_train.columns:
-            # first check if binary
             is_binary = self.check_binary(col, info)
             if is_binary:
                 info[col]["col_type"] = "binary"
@@ -234,7 +227,6 @@ class TrainingPreprocessing(PreprocessingBase):
                         "Standard scaling",
                     ]
                     numerical_cols.append(col)
-            # if it is float it is continuous
 
             elif np.issubdtype(info[col]["dtype"], np.floating):
                 info[col]["col_type"] = "continuous"
@@ -244,11 +236,10 @@ class TrainingPreprocessing(PreprocessingBase):
                     "Standard scaling",
                 ]
                 numerical_cols.append(col)
-            # if it is object may be categorical(one hot, frequency) or text
 
             elif info[col]["dtype"] == "object":
                 n_unique = info[col]["n_unique"]
-                if n_unique <= self.one_hot_threshold:
+                if n_unique <= self.cardinality_threshold:
                     info[col]["col_type"] = "categorical_one_hot"
                     info[col]["preprossing_steps"] = [
                         "Fill missing with most frequent",
@@ -262,7 +253,6 @@ class TrainingPreprocessing(PreprocessingBase):
                             "Fill missing with empty string",
                             "TF-IDF vectorization",
                         ]
-                        print(f"Detected text column: {col}")
                         text_cols.append(col)
                     else:
                         info[col]["col_type"] = "categorical_frequency"
@@ -433,7 +423,13 @@ class TrainingPreprocessing(PreprocessingBase):
                         ),
                         (
                             "tfidf",
-                            TfidfVectorizer(max_features=1000, stop_words="english"),
+                            TfidfVectorizer(
+                                max_features=5000,
+                                ngram_range=(1, 2),
+                                max_df=0.8,
+                                min_df=2,
+                                stop_words="english",
+                            ),
                         ),
                     ]
                 ),
@@ -454,7 +450,6 @@ class TrainingPreprocessing(PreprocessingBase):
         text_cols,
         ordinal_cols,
     ):
-        # Pipelines
         numerical_pipeline = Pipeline(
             [
                 ("imputer", SimpleImputer(strategy="median")),
@@ -504,7 +499,6 @@ class TrainingPreprocessing(PreprocessingBase):
                 ),
             ]
         )
-        # Column Transformer
         preprocessor = ColumnTransformer(
             transformers=[
                 *text_pipeline,
@@ -518,7 +512,6 @@ class TrainingPreprocessing(PreprocessingBase):
         )
         X_train_processed = preprocessor.fit_transform(X_train)
         X_val_processed = preprocessor.transform(X_val)
-        # save the processor
         self.save_pikle(preprocessor, "training_preprocessor.pkl")
         farures_names = [
             x.split("__")[-1] for x in preprocessor.get_feature_names_out()
