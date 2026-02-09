@@ -12,35 +12,33 @@ from accelera.src.automl.core.training_preprocessing import (
     TrainingPreprocessing,
 )
 
-tatanic_df = pd.read_csv("Titanic-Dataset.csv")
-tatanic_df_copy = tatanic_df[:5].copy()
+print("----------------------------Titanic Dataset-----------------------")
+titanic_df = pd.read_csv("Titanic-Dataset.csv")
+titanic_df_copy = titanic_df[:5].copy()
 training_preprocessor = TrainingPreprocessing(
-    tatanic_df, "Survived", "classification", "./titanic_preprocessing"
+    titanic_df, "Survived", "classification", "./titanic_preprocessing"
 )
 X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
-print("Titanic Dataset")
 print("Random Forest Classifier")
 model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
 print(model.score(X_val, y_val))
-print("testing")
-testing_preprocessor = TestingPreprocessing(tatanic_df_copy, "./titanic_preprocessing")
-X_test, y_test = testing_preprocessor.common_preprocessing()
-
-print("Predictions:")
-print(model.predict(X_test), y_test)
 print("Logistic Regression")
 model = LogisticRegression(random_state=42)
 model.fit(X_train, y_train)
-print(model.score(X_val, y_val))
+print("Score:", model.score(X_val, y_val))
 print("SVC")
 model = SVC()
 model.fit(X_train, y_train)
-print(model.score(X_val, y_val))
-
+print("Score : ", model.score(X_val, y_val))
+print("Testing")
+testing_preprocessor = TestingPreprocessing(titanic_df_copy, "./titanic_preprocessing")
+X_test, y_test = testing_preprocessor.common_preprocessing()
+print("Predictions SVC:")
+print(model.predict(X_test))
+print("Actual", y_test)
 ##############################################
-print("House Price")
-
+print("----------------------------House Prices Dataset-----------------------")
 price_df = pd.read_csv("Housing.csv")
 price_df_copy = price_df[:5].copy()
 training_preprocessor = TrainingPreprocessing(
@@ -51,21 +49,25 @@ X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
 print("Random Forest Regressor")
 model = RandomForestRegressor(random_state=42)
 model.fit(X_train, y_train)
-print(model.score(X_val, y_val))
-print(mean_squared_error(y_val, model.predict(X_val)))
+print("Score: ", model.score(X_val, y_val))
+print("MSE: ", mean_squared_error(y_val, model.predict(X_val)))
+print("Linear Regression")
+model = LinearRegression()
+model.fit(X_train, y_train)
+print("Score: ", model.score(X_val, y_val))
+print("MSE: ", mean_squared_error(y_val, model.predict(X_val)))
+print("Testing")
 testing_preprocessor = TestingPreprocessing(
     price_df_copy, "./house_price_preprocessing"
 )
 X_test, y_test = testing_preprocessor.common_preprocessing()
 print("Predictions:")
-print(model.predict(X_test), y_test)
-model = LinearRegression()
-print("Linear Regression")
-model.fit(X_train, y_train)
-print(model.score(X_val, y_val))
-print(mean_squared_error(y_val, model.predict(X_val)))
+print(model.predict(X_test))
+print("Actual")
+print(y_test)
 #####################################################3
-print("Heart Disease df")
+print("----------------------------Heart Disease Dataset-----------------------")
+
 heart_df = pd.read_csv("./heart.csv")
 
 training_preprocessor = TrainingPreprocessing(
@@ -75,9 +77,13 @@ X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
 print("Random Forest Classifier")
 model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
-print(model.score(X_val, y_val))
+print("Score: ", model.score(X_val, y_val))
+print("Logistic Regression")
+model = LogisticRegression(random_state=42)
+model.fit(X_train, y_train)
+print("Score:", model.score(X_val, y_val))
 #######################################
-print("Iris dataset")
+print("----------------------------Iris Dataset-----------------------")
 
 iris = load_iris()
 iris_df = pd.DataFrame(iris.data, columns=iris.feature_names)
@@ -89,9 +95,12 @@ X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
 print("Random Forest Classifier")
 model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
-print(model.score(X_val, y_val))
-
-print("Review dataset")
+print("Score: ", model.score(X_val, y_val))
+print("Logistic Regression")
+model = LogisticRegression(random_state=42)
+model.fit(X_train, y_train)
+print("Score:", model.score(X_val, y_val))
+print("----------------------------Review dataset-----------------------")
 review_df = pd.read_csv("./TestReviews.csv")
 training_preprocessor = TrainingPreprocessing(
     review_df, "class", "classification", "./reviews", text_colums_name=["review"]
@@ -100,18 +109,46 @@ X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
 print("Random Forest Classifier")
 model = RandomForestClassifier(random_state=42, class_weight="balanced")
 model.fit(X_train, y_train)
-print(model.score(X_val, y_val))
+print("Score: ", model.score(X_val, y_val))
 print("Logistic Regression")
 model = LogisticRegression(random_state=42, class_weight="balanced")
 model.fit(X_train, y_train)
-print(model.score(X_val, y_val))
+print("Score: ", model.score(X_val, y_val))
+print("Confusion Matrix")
 print(confusion_matrix(y_val, model.predict(X_val)))
+print("Classification Report")
+
+print(classification_report(y_val, model.predict(X_val)))
 test_data = pd.DataFrame(
     {"review": ["This product is great!", "this product is terrible!"], "class": [1, 0]}
 )
+print("Testing")
 testing_preprocessor = TestingPreprocessing(test_data, "./reviews")
 X_test, y_test = testing_preprocessor.common_preprocessing()
 print("Predictions:")
 print(model.predict(X_test))
 print("correct prediction:", y_test)
+print("----------------------------Sentiment analysis dataset-----------------------")
+
+sentiment_df = pd.read_csv("./DailyDialog.csv")
+training_preprocessor = TrainingPreprocessing(
+    sentiment_df,
+    "sentiment",
+    "classification",
+    "./sentiment",
+    text_colums_name=["text"],
+)
+
+X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
+print("Random Forest Classifier")
+model = RandomForestClassifier(random_state=42, class_weight="balanced")
+model.fit(X_train, y_train)
+print("Score:", model.score(X_val, y_val))
+print("Logistic Regression")
+model = LogisticRegression(random_state=42, class_weight="balanced")
+model.fit(X_train, y_train)
+print("Score: ", model.score(X_val, y_val))
+print("Confusion Matrix")
+print(confusion_matrix(y_val, model.predict(X_val)))
+print("Classification Report")
 print(classification_report(y_val, model.predict(X_val)))
