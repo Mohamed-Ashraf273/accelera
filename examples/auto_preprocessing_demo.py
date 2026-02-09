@@ -36,7 +36,12 @@ testing_preprocessor = TestingPreprocessing(titanic_df_copy, "./titanic_preproce
 X_test, y_test = testing_preprocessor.common_preprocessing()
 print("Predictions SVC:")
 print(model.predict(X_test))
-print("Actual", y_test)
+print("Actual\n", y_test)
+print("Confusion Matrix")
+print(confusion_matrix(y_val, model.predict(X_val)))
+print("Classification Report")
+print(classification_report(y_val, model.predict(X_val)))
+
 ##############################################
 print("----------------------------House Prices Dataset-----------------------")
 price_df = pd.read_csv("Housing.csv")
@@ -65,6 +70,7 @@ print("Predictions:")
 print(model.predict(X_test))
 print("Actual")
 print(y_test)
+
 #####################################################3
 print("----------------------------Heart Disease Dataset-----------------------")
 
@@ -82,7 +88,34 @@ print("Logistic Regression")
 model = LogisticRegression(random_state=42)
 model.fit(X_train, y_train)
 print("Score:", model.score(X_val, y_val))
+print("Confusion Matrix")
+print(confusion_matrix(y_val, model.predict(X_val)))
+print("Classification Report")
+print(classification_report(y_val, model.predict(X_val)))
+
 #######################################
+print("----------------------------Purchase Dataset-----------------------")
+
+purchase_df = pd.read_csv("./customer_purchase_data.csv")
+
+training_preprocessor = TrainingPreprocessing(
+    purchase_df, "PurchaseStatus", "classification", "./PurchaseStatus"
+)
+X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
+print("Random Forest Classifier")
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+print("Score: ", model.score(X_val, y_val))
+print("Logistic Regression")
+model = LogisticRegression(random_state=42)
+model.fit(X_train, y_train)
+print("Score:", model.score(X_val, y_val))
+print("Confusion Matrix")
+print(confusion_matrix(y_val, model.predict(X_val)))
+print("Classification Report")
+print(classification_report(y_val, model.predict(X_val)))
+
+####################################
 print("----------------------------Iris Dataset-----------------------")
 
 iris = load_iris()
@@ -100,6 +133,11 @@ print("Logistic Regression")
 model = LogisticRegression(random_state=42)
 model.fit(X_train, y_train)
 print("Score:", model.score(X_val, y_val))
+print("Confusion Matrix")
+print(confusion_matrix(y_val, model.predict(X_val)))
+print("Classification Report")
+print(classification_report(y_val, model.predict(X_val)))
+
 print("----------------------------Review dataset-----------------------")
 review_df = pd.read_csv("./TestReviews.csv")
 training_preprocessor = TrainingPreprocessing(
