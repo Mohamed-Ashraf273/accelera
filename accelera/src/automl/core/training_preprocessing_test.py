@@ -563,7 +563,7 @@ class TestTrainingPreprocessing:
         tfidf_vectorizer = TfidfVectorizer(
             max_features=5000,
             ngram_range=(1, 2),
-            min_df=2,
+            min_df=3,
             max_df=0.8,
             tokenizer=custom_text_tokenizer,
         )
