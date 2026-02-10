@@ -4,8 +4,8 @@ import pandas as pd
 from accelera.src.core.report_base import ReportBase
 
 
-class PreprocessingReport(ReportBase):
-    def __init__(self, folderpath, report_data):
+class TabularPreprocessingReport(ReportBase):
+    def __init__(self, folderpath, report_data, text_based=False):
         super().__init__(folderpath)
         self.content = ""
         self.report_data = report_data
@@ -16,6 +16,7 @@ class PreprocessingReport(ReportBase):
         self.graphs = self.report_data["graphs"]
         self.preprocessing = self.report_data["preprocessing"]
         self.after_preprocessing = self.report_data["after_preprocessing"]
+        self.text_based = text_based
 
     def show_data_heads(self, obj, field_name, name="dataset"):
         self.content += f"""<h3>First 5 rows of the {name}:</h3>\n
@@ -178,7 +179,8 @@ class PreprocessingReport(ReportBase):
         self.show_data_overview()
         self.show_drop_duplicates()
         self.show_split()
-        self.show_drop_col()
+        if not self.text_based:
+            self.show_drop_col()
         self.show_graphs()
         self.show_preprocessing()
         self.show_after_preprocessing()

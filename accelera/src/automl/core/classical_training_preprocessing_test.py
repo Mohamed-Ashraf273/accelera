@@ -5,7 +5,6 @@ import tempfile
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -13,17 +12,20 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import StandardScaler
 
-from accelera.src.automl.core.training_preprocessing import (
-    TrainingPreprocessing,
+from accelera.src.automl.core.classical_training_preprocessing import (
+    ClassicalTrainingPreprocessing,
 )
 from accelera.src.automl.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
 )
 from accelera.src.automl.wrappers.IQR_transform import IQRTransform
-from accelera.src.automl.utils.preprocessing import custom_text_tokenizer
+from accelera.src.automl.utils.preprocessing import (
+    load_pickle,
+    check_path_exists,
+)
 
 
-class TestTrainingPreprocessing:
+class TestClassicalTrainingPreprocessing:
     @pytest.fixture(autouse=True)
     def temp_folder(self):
         self.temp_dir = tempfile.mkdtemp()
@@ -205,8 +207,8 @@ class TestTrainingPreprocessing:
             ignore_index=True,
         )
 
-    def test_setup(self):
-        training_preprocessing = TrainingPreprocessing(
+    def test_classical_training_preprocessing_setup(self):
+        training_preprocessing = ClassicalTrainingPreprocessing(
             df=self.df_classification,
             target_col="target",
             problem_type="classification",
@@ -215,63 +217,54 @@ class TestTrainingPreprocessing:
         assert training_preprocessing.df is not None
         assert training_preprocessing.target_col == "target"
         assert training_preprocessing.problem_type == "classification"
-        assert os.path.exists(self.temp_dir)
+        assert check_path_exists(self.temp_dir, "")
 
-    def test_setup_errors_check(self):
+    def test_classical_errors_check(self):
         with pytest.raises(ValueError):
-            TrainingPreprocessing(
+            ClassicalTrainingPreprocessing(
                 df=self.df_classification,
                 target_col="col1",
                 problem_type="classification",
                 folder_path=self.temp_dir,
             )
         with pytest.raises(ValueError):
-            TrainingPreprocessing(
+            ClassicalTrainingPreprocessing(
                 df=self.df_classification,
                 target_col="target",
                 problem_type="Crassification",
                 folder_path=self.temp_dir,
             )
         with pytest.raises(ValueError):
-            TrainingPreprocessing(
+            ClassicalTrainingPreprocessing(
                 df=None,
                 target_col="target",
                 problem_type="regression",
                 folder_path=self.temp_dir,
             )
         with pytest.raises(ValueError):
-            TrainingPreprocessing(
+            ClassicalTrainingPreprocessing(
+                df=self.df_classification,
+                target_col="target",
+                problem_type="regression",
+                folder_path=self.temp_dir,
+            )
+        with pytest.raises(ValueError):
+            ClassicalTrainingPreprocessing(
                 df=self.df_classification,
                 target_col="target",
                 problem_type="regression",
                 folder_path=None,
             )
         with pytest.raises(ValueError):
-            TrainingPreprocessing(
-                df=self.df_classification,
-                target_col="target",
-                problem_type="regression",
-                folder_path=self.temp_dir,
-                text_colums_name=["review"],
-            )
-        with pytest.raises(ValueError):
-            TrainingPreprocessing(
-                df=self.df_classification,
-                target_col="target",
-                problem_type="regression",
-                folder_path=self.temp_dir,
-                text_colums_name=["continuous_feature"],
-            )
-        with pytest.raises(ValueError):
-            TrainingPreprocessing(
+            ClassicalTrainingPreprocessing(
                 df=self.df_classification,
                 target_col="target",
                 problem_type=None,
                 folder_path=self.temp_dir,
             )
 
-    def test_data_overview(self):
-        training_preprocessing = TrainingPreprocessing(
+    def test_classical_data_overview(self):
+        training_preprocessing = ClassicalTrainingPreprocessing(
             df=self.df_classification,
             target_col="target",
             problem_type="classification",
@@ -292,8 +285,8 @@ class TestTrainingPreprocessing:
             self.df_classification.isnull().sum()
         )
 
-    def test_drop_dupplicates(self):
-        training_preprocessing = TrainingPreprocessing(
+    def test_classical_drop_dupplicates(self):
+        training_preprocessing = ClassicalTrainingPreprocessing(
             df=self.df_classification,
             target_col="target",
             problem_type="classification",
@@ -320,8 +313,8 @@ class TestTrainingPreprocessing:
             == 0
         )
 
-    def test_split_data(self):
-        training_preprocessing = TrainingPreprocessing(
+    def test_classical_split_data(self):
+        training_preprocessing = ClassicalTrainingPreprocessing(
             df=self.df_classification,
             target_col="target",
             problem_type="classification",
@@ -355,38 +348,35 @@ class TestTrainingPreprocessing:
         assert y_train.equals(y_train_1)
         assert y_val.equals(y_val_1)
 
-    def test_get_info(self):
-        training_preprocessing = TrainingPreprocessing(
+    def test_classical_get_info(self):
+        training_preprocessing = ClassicalTrainingPreprocessing(
             df=self.df_classification,
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
-            text_colums_name=["text_feature"],
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
         X_train, X_val, y_train, y_val = training_preprocessing.split_data()
         info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
-        assert len(col_drop) == 4
+        assert len(col_drop) == 5
         assert "ID" in col_drop
         assert "const_feature" in col_drop
         assert "most_nulls_feature" in col_drop
+        assert "text_feature" in col_drop
         assert col_drop["ID"] == "It is above unique_threshold 0.9"
         assert col_drop["const_feature"] == "The column is constant"
         assert col_drop["most_nulls_feature"] == "Missing above missing_threshold 0.5"
-        assert (
-            col_drop["Name_feature"] == "It is above unique_threshold 0.9 "
-            "and not detected as text column"
-        )
+        assert col_drop["Name_feature"] == "It is above unique_threshold 0.9"
+        assert col_drop["text_feature"] == "It is above unique_threshold 0.9"
         assert isinstance(info, dict)
 
-    def test_drop_columns(self):
-        training_preprocessing = TrainingPreprocessing(
+    def test_classical_drop_columns(self):
+        training_preprocessing = ClassicalTrainingPreprocessing(
             df=self.df_classification,
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
-            text_colums_name=["text_feature"],
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
@@ -396,19 +386,18 @@ class TestTrainingPreprocessing:
         for col in col_drop.keys():
             assert col not in X_train.columns
             assert col not in X_val.columns
-        assert X_train.shape[1] == 6
-        assert X_val.shape[1] == 6
-        assert os.path.exists(os.path.join(self.temp_dir, "col_drop.pkl"))
-        loaded_col_drop = training_preprocessing.load_pickle("col_drop.pkl")
+        assert X_train.shape[1] == 5
+        assert X_val.shape[1] == 5
+        assert check_path_exists(self.temp_dir, "col_drop.pkl")
+        loaded_col_drop = load_pickle(self.temp_dir, "col_drop.pkl")
         assert loaded_col_drop == col_drop
 
-    def test_detect_column_types(self):
-        training_preprocessing = TrainingPreprocessing(
+    def test_classical_detect_column_types(self):
+        training_preprocessing = ClassicalTrainingPreprocessing(
             df=self.df_classification,
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
-            text_colums_name=["text_feature"],
             cardinality_threshold=6,
             max_unique_ordinal=8,
         )
@@ -422,7 +411,6 @@ class TestTrainingPreprocessing:
             numerical_cols,
             one_hot_cols,
             frequency_cols,
-            text_cols,
             ordinal_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
@@ -431,17 +419,15 @@ class TestTrainingPreprocessing:
         assert set(frequency_cols) == {
             "frequency_feature",
         }
-        assert set(text_cols) == {"text_feature"}
         assert set(numerical_cols) == {"continuous_feature"}
         assert set(ordinal_cols) == {"ordinal_feature"}
 
-    def test_make_graphs(self):
-        training_preprocessing = TrainingPreprocessing(
+    def test_classical_make_graphs(self):
+        training_preprocessing = ClassicalTrainingPreprocessing(
             df=self.df_classification,
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
-            text_colums_name=["text_feature"],
             cardinality_threshold=6,
             max_unique_ordinal=8,
         )
@@ -455,13 +441,12 @@ class TestTrainingPreprocessing:
             numerical_cols,
             one_hot_cols,
             frequency_cols,
-            text_cols,
             ordinal_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
         training_preprocessing.make_graphs(X_train, y_train, info)
         graphs_path = os.path.join(self.temp_dir, "graphs")
-        assert os.path.exists(graphs_path)
+        assert check_path_exists(graphs_path, "")
         graphs_files = os.listdir(graphs_path)
         expected_num_graphs = (
             len(binary_cols)
@@ -469,7 +454,6 @@ class TestTrainingPreprocessing:
             + len(one_hot_cols)
             + len(frequency_cols)
             + len(ordinal_cols)
-            + len(text_cols)
             + 2
         )
         assert len(graphs_files) == expected_num_graphs
@@ -478,17 +462,15 @@ class TestTrainingPreprocessing:
         assert "one_hot_feature.png" in graphs_files
         assert "frequency_feature.png" in graphs_files
         assert "ordinal_feature.png" in graphs_files
-        assert "text_feature.png" in graphs_files
         assert "target.png" in graphs_files
         assert "correlation_matrix.png" in graphs_files
 
-    def test_features_preprocessing(self):
-        training_preprocessing = TrainingPreprocessing(
+    def test_classical_features_preprocessing(self):
+        training_preprocessing = ClassicalTrainingPreprocessing(
             df=self.df_classification,
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
-            text_colums_name=["text_feature"],
             cardinality_threshold=6,
             max_unique_ordinal=8,
         )
@@ -502,7 +484,6 @@ class TestTrainingPreprocessing:
             numerical_cols,
             one_hot_cols,
             frequency_cols,
-            text_cols,
             ordinal_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
@@ -515,76 +496,20 @@ class TestTrainingPreprocessing:
                 numerical_cols,
                 one_hot_cols,
                 frequency_cols,
-                text_cols,
                 ordinal_cols,
             )
         )
         assert X_train_processed.shape[0] == X_train.shape[0]
         assert X_val_processed.shape[0] == X_val.shape[0]
-        assert os.path.exists(os.path.join(self.temp_dir, "training_preprocessor.pkl"))
-        assert os.path.exists(os.path.join(self.temp_dir, "feature_names.pkl"))
+        assert check_path_exists(self.temp_dir, "training_preprocessor.pkl")
+        assert check_path_exists(self.temp_dir, "feature_names.pkl")
 
-    def test_text_preprocessing_pipeline(self):
-        training_preprocessing = TrainingPreprocessing(
-            df=self.df_classification[["text_feature", "target"]].copy(),
-            target_col="target",
-            problem_type="classification",
-            folder_path=self.temp_dir,
-            text_colums_name=["text_feature"],
-            cardinality_threshold=6,
-            max_unique_ordinal=8,
-        )
-        training_preprocessing.data_overview()
-        X_train, X_val, y_train, y_val = training_preprocessing.split_data()
-        info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
-        training_preprocessing.drop_col(X_train, X_val, col_drop)
-        (
-            binary_cols,
-            numerical_cols,
-            one_hot_cols,
-            frequency_cols,
-            text_cols,
-            ordinal_cols,
-            _,
-        ) = training_preprocessing.detect_column_types(X_train, info)
-        X_train_processed, X_val_processed = (
-            training_preprocessing.features_preprocessing(
-                X_train,
-                X_val,
-                info,
-                binary_cols,
-                numerical_cols,
-                one_hot_cols,
-                frequency_cols,
-                text_cols,
-                ordinal_cols,
-            )
-        )
-        tfidf_vectorizer = TfidfVectorizer(
-            max_features=5000,
-            ngram_range=(1, 2),
-            min_df=3,
-            max_df=0.8,
-            tokenizer=custom_text_tokenizer,
-        )
-        X_train_manual = X_train["text_feature"].fillna("").values.ravel()
-        X_val_manual = X_val["text_feature"].fillna("").values.ravel()
-        X_train_tfidf_manual = tfidf_vectorizer.fit_transform(X_train_manual)
-        X_val_tfidf_manual = tfidf_vectorizer.transform(X_val_manual)
-        assert X_train_processed.shape == X_train_tfidf_manual.shape
-        assert X_val_processed.shape == X_val_tfidf_manual.shape
-        assert X_train_processed.shape[1] == X_val_processed.shape[1]
-        assert X_train_tfidf_manual.shape[1] == X_val_tfidf_manual.shape[1]
-        assert np.allclose(X_train_processed, X_train_tfidf_manual.toarray(), atol=1e-6)
-        assert np.allclose(X_val_processed, X_val_tfidf_manual.toarray(), atol=1e-6)
-
-    def test_numerical_preprocessing_pipeline(self):
-        training_preprocessing = TrainingPreprocessing(
+    def test_classical_numerical_preprocessing_pipeline(self):
+        training_preprocessing = ClassicalTrainingPreprocessing(
             df=self.df_classification[["continuous_feature", "target"]].copy(),
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
-            text_colums_name=[],
             cardinality_threshold=6,
             max_unique_ordinal=8,
         )
@@ -597,7 +522,6 @@ class TestTrainingPreprocessing:
             numerical_cols,
             one_hot_cols,
             frequency_cols,
-            text_cols,
             ordinal_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
@@ -610,7 +534,6 @@ class TestTrainingPreprocessing:
                 numerical_cols,
                 one_hot_cols,
                 frequency_cols,
-                text_cols,
                 ordinal_cols,
             )
         )
@@ -631,13 +554,12 @@ class TestTrainingPreprocessing:
         assert np.allclose(X_train_processed, X_train_scaled, atol=1e-6)
         assert np.allclose(X_val_processed, X_val_scaled, atol=1e-6)
 
-    def test_binary_preprocessing_pipeline(self):
-        training_preprocessing = TrainingPreprocessing(
+    def test_classical_binary_preprocessing_pipeline(self):
+        training_preprocessing = ClassicalTrainingPreprocessing(
             df=self.df_classification[["binary_feature", "target"]].copy(),
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
-            text_colums_name=[],
             cardinality_threshold=6,
             max_unique_ordinal=8,
         )
@@ -650,7 +572,6 @@ class TestTrainingPreprocessing:
             numerical_cols,
             one_hot_cols,
             frequency_cols,
-            text_cols,
             ordinal_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
@@ -663,7 +584,6 @@ class TestTrainingPreprocessing:
                 numerical_cols,
                 one_hot_cols,
                 frequency_cols,
-                text_cols,
                 ordinal_cols,
             )
         )
@@ -682,13 +602,12 @@ class TestTrainingPreprocessing:
         assert np.allclose(X_train_processed, X_train_encoded, atol=1e-6)
         assert np.allclose(X_val_processed, X_val_encoded, atol=1e-6)
 
-    def test_one_hot_preprocessing_pipeline(self):
-        training_preprocessing = TrainingPreprocessing(
+    def test_classical_one_hot_preprocessing_pipeline(self):
+        training_preprocessing = ClassicalTrainingPreprocessing(
             df=self.df_classification[["one_hot_feature", "target"]].copy(),
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
-            text_colums_name=[],
             cardinality_threshold=6,
             max_unique_ordinal=8,
         )
@@ -701,7 +620,6 @@ class TestTrainingPreprocessing:
             numerical_cols,
             one_hot_cols,
             frequency_cols,
-            text_cols,
             ordinal_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
@@ -714,7 +632,6 @@ class TestTrainingPreprocessing:
                 numerical_cols,
                 one_hot_cols,
                 frequency_cols,
-                text_cols,
                 ordinal_cols,
             )
         )
@@ -737,13 +654,12 @@ class TestTrainingPreprocessing:
         assert X_train_processed.shape[1] == X_train["one_hot_feature"].nunique() - 1
         assert X_val_processed.shape[1] == X_train["one_hot_feature"].nunique() - 1
 
-    def test_frequency_preprocessing_pipeline(self):
-        training_preprocessing = TrainingPreprocessing(
+    def test_classical_frequency_preprocessing_pipeline(self):
+        training_preprocessing = ClassicalTrainingPreprocessing(
             df=self.df_classification[["frequency_feature", "target"]].copy(),
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
-            text_colums_name=[],
             cardinality_threshold=6,
             max_unique_ordinal=8,
         )
@@ -756,7 +672,6 @@ class TestTrainingPreprocessing:
             numerical_cols,
             one_hot_cols,
             frequency_cols,
-            text_cols,
             ordinal_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
@@ -769,7 +684,6 @@ class TestTrainingPreprocessing:
                 numerical_cols,
                 one_hot_cols,
                 frequency_cols,
-                text_cols,
                 ordinal_cols,
             )
         )
@@ -788,13 +702,12 @@ class TestTrainingPreprocessing:
             X_val_processed[:, 0], X_val_processed_manual.ravel(), atol=1e-6
         )
 
-    def test_target_classification_preprocessing(self):
-        training_preprocessing = TrainingPreprocessing(
+    def test_classical_target_classification_preprocessing(self):
+        training_preprocessing = ClassicalTrainingPreprocessing(
             df=self.df_classification,
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
-            text_colums_name=["text_feature"],
             cardinality_threshold=6,
             max_unique_ordinal=8,
         )
@@ -808,7 +721,6 @@ class TestTrainingPreprocessing:
             numerical_cols,
             one_hot_cols,
             frequency_cols,
-            text_cols,
             ordinal_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
@@ -821,7 +733,6 @@ class TestTrainingPreprocessing:
                 numerical_cols,
                 one_hot_cols,
                 frequency_cols,
-                text_cols,
                 ordinal_cols,
             )
         )
@@ -838,20 +749,19 @@ class TestTrainingPreprocessing:
         assert y_val_processed.shape == y_val_encoded.shape
         assert np.allclose(y_train_processed, y_train_encoded, atol=1e-6)
         assert np.allclose(y_val_processed, y_val_encoded, atol=1e-6)
-        assert os.path.exists(os.path.join(self.temp_dir, "target_preprocessor.pkl"))
-        assert os.path.exists(os.path.join(self.temp_dir, "target_info.pkl"))
+        assert check_path_exists(self.temp_dir, "target_preprocessor.pkl")
+        assert check_path_exists(self.temp_dir, "target_info.pkl")
 
-    def test_target_regression_preprocessing(self):
+    def test_classical_target_regression_preprocessing(self):
         df_regression = self.df_classification.copy()
         df_regression["target"] = df_regression["continuous_feature"] + np.random.randn(
             len(df_regression)
         )
-        training_preprocessing = TrainingPreprocessing(
+        training_preprocessing = ClassicalTrainingPreprocessing(
             df=df_regression,
             target_col="target",
             problem_type="regression",
             folder_path=self.temp_dir,
-            text_colums_name=["text_feature"],
             cardinality_threshold=6,
             max_unique_ordinal=8,
         )
@@ -865,7 +775,6 @@ class TestTrainingPreprocessing:
             numerical_cols,
             one_hot_cols,
             frequency_cols,
-            text_cols,
             ordinal_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
@@ -878,7 +787,6 @@ class TestTrainingPreprocessing:
                 numerical_cols,
                 one_hot_cols,
                 frequency_cols,
-                text_cols,
                 ordinal_cols,
             )
         )
@@ -897,5 +805,5 @@ class TestTrainingPreprocessing:
         assert y_val_processed.shape == y_val_scaled.shape
         assert np.allclose(y_train_processed, y_train_scaled, atol=1e-6)
         assert np.allclose(y_val_processed, y_val_scaled, atol=1e-6)
-        assert os.path.exists(os.path.join(self.temp_dir, "target_preprocessor.pkl"))
-        assert os.path.exists(os.path.join(self.temp_dir, "target_info.pkl"))
+        assert check_path_exists(self.temp_dir, "target_preprocessor.pkl")
+        assert check_path_exists(self.temp_dir, "target_info.pkl")

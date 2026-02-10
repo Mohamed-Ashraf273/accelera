@@ -25,5 +25,6 @@ class FrequencyEncoderTransform(CustomTransformer):
         for col in self.cols_:
             X_copy[col] = X_copy[col].map(self.mapping_[col]).fillna(0)
         return X_copy.values
+
     def get_feature_names_out(self, input_features=None):
         return input_features

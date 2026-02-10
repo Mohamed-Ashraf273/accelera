@@ -5,13 +5,13 @@ since your modifications would be overwritten.
 """
 
 from accelera.src.automl.core import agent as agent
-from accelera.src.automl.core import preprocessing_base as preprocessing_base
+from accelera.src.automl.core import tabular_preprocessing_base as tabular_preprocessing_base
 from accelera.src.automl.core import (
-    testing_preprocessing as testing_preprocessing,
+    classical_testing_preprocessing as classical_testing_preprocessing,
 )
 from accelera.src.automl.core import (
-    training_preprocessing as training_preprocessing,
+    classical_training_preprocessing as classical_training_preprocessing,
 )
 from accelera.src.automl.core import (
-    training_preprocessing_test as training_preprocessing_test,
+    classical_training_preprocessing_test as classical_training_preprocessing_test,
 )

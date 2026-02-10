@@ -1,31 +1,33 @@
-import nltk
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
-import re
-
-nltk.download("punkt")
-nltk.download("stopwords")
+import os
+import pickle
 
 
-def flatten_1d(x):
-    return x.ravel()
+def check_path_exists(folder_path, filename):
+    path = os.path.join(folder_path, filename)
+    if not os.path.exists(path):
+        raise ValueError(f"{path} does not exist")
+    return True
 
 
-def custom_text_tokenizer(text):
-    stop_words = set(stopwords.words("english")) - {"not", "no"}
-    stem = PorterStemmer()
-    text = text.lower().strip()
-    text=re.sub(r"’","'",text)
-    text=re.sub(r"can[o']t","can not",text)
-    text=re.sub(r"won[o']t","will not",text)
-    text=re.sub(r"shan[o']t","shall not",text)
-    text = re.sub(r"n't\b", " not ", text)
-    text = re.sub(r"(\d)([a-zA-Z])", r"\1 \2", text)
-    text = re.sub(r"([a-zA-Z])(\d)", r"\1 \2", text)
-    text=re.sub(r"[^a-zA-Z0-9']"," ",text)
-    text = re.sub(r"\s+", " ", text)
-    tokens = [word.strip("'").strip('"').strip() for word in text.split()]
-    tokens = [
-        stem.stem(word) for word in tokens if word not in stop_words and len(word) > 1
-    ]
-    return tokens
+def save_pickle(folder_path, obj, filename):
+    filepath = os.path.join(folder_path, filename)
+    with open(filepath, "wb") as f:
+        pickle.dump(obj, f)
+
+
+def load_pickle(folder_path, filename):
+    filepath = os.path.join(folder_path, filename)
+    with open(filepath, "rb") as f:
+        obj = pickle.load(f)
+    return obj
+
+
+def lower_data(df):
+    for col in df.columns:
+        if df[col].dtype == "object":
+            df[col] = df[col].apply(lambda x: x.lower() if isinstance(x, str) else x)
+            
+def drop_columns(X, col_drop):
+    col_drop = list(col_drop.keys())
+    if col_drop:
+        X.drop(columns=col_drop, inplace=True, errors="ignore")

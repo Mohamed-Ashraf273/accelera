@@ -29,7 +29,7 @@ from accelera.src.automl.wrappers import (
     ordinal_regression as ordinal_regression,
 )
 from accelera.src.automl.wrappers import (
-    preprocessing_report as preprocessing_report,
+    tabular_preprocessing_report as tabular_preprocessing_report,
 )
 from accelera.src.automl.wrappers import (
     target_classification as target_classification,

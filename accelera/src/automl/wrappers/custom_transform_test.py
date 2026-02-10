@@ -80,9 +80,7 @@ class TestCustomTransform:
             }
         )
         pipeline = Pipeline([("freq_encoder", FrequencyEncoderTransform())])
-        transformer = ColumnTransformer(
-            [("freq_encoder", pipeline, ["color", "size"])]
-        )
+        transformer = ColumnTransformer([("freq_encoder", pipeline, ["color", "size"])])
         transformed_data = transformer.fit_transform(df)
         assert np.array_equal(transformed_data, expected_output.values)
 
@@ -140,9 +138,7 @@ class TestCustomTransform:
         pipeline = Pipeline(
             [("iqr_transform", IQRTransform(info=info, cols=["col", "col2"]))]
         )
-        transformer = ColumnTransformer(
-            [("iqr_transform", pipeline, ["col", "col2"])]
-        )
+        transformer = ColumnTransformer([("iqr_transform", pipeline, ["col", "col2"])])
         output = transformer.fit_transform(data)
         assert np.array_equal(output, expected_output.values)
 

@@ -1,20 +1,16 @@
-import io
-import os
-from scipy import sparse
-
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
-from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import StandardScaler
 
-from accelera.src.automl.core.preprocessing_base import PreprocessingBase
+from accelera.src.automl.core.training_tabular_preprocessing_base import (
+    TrainingTabularPreprocessingBase,
+)
 from accelera.src.automl.wrappers.categorical_classification import (
     CategoricalClassification,
 )
@@ -25,7 +21,6 @@ from accelera.src.automl.wrappers.correlation_graph import CorrelationGraph
 from accelera.src.automl.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
 )
-from accelera.src.automl.wrappers.flatten_1d_transform import Flatten1DTransform
 from accelera.src.automl.wrappers.IQR_transform import IQRTransform
 from accelera.src.automl.wrappers.numerical_classification import (
     NumericalClassification,
@@ -37,18 +32,20 @@ from accelera.src.automl.wrappers.ordinal_classification import (
     OrdinalClassification,
 )
 from accelera.src.automl.wrappers.ordinal_regression import OrdinalRegression
-from accelera.src.automl.wrappers.preprocessing_report import (
-    PreprocessingReport,
+from accelera.src.automl.wrappers.tabular_preprocessing_report import (
+    TabularPreprocessingReport,
 )
 from accelera.src.automl.wrappers.target_classification import (
     TargetClassification,
 )
 from accelera.src.automl.wrappers.target_regression import TargetRegression
-from accelera.src.automl.wrappers.text_graph import TextGraph
-from accelera.src.automl.utils.preprocessing import flatten_1d, custom_text_tokenizer
+from accelera.src.automl.utils.preprocessing import (
+    save_pickle,
+    drop_columns,
+)
 
 
-class TrainingPreprocessing(PreprocessingBase):
+class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
     def __init__(
         self,
         df,
@@ -57,26 +54,20 @@ class TrainingPreprocessing(PreprocessingBase):
         folder_path=None,
         test_size=0.2,
         random_state=42,
-        text_colums_name=None,
         cardinality_threshold=8,
         max_unique_ordinal=10,
         categorical_ratio_threshold=0.05,
         missing_threshold=0.5,
         unique_threshold=0.9,
     ):
-        super().__init__(df, folder_path)
-        self.target_col = target_col
+        super().__init__(df, target_col, test_size, random_state, folder_path)
         self.problem_type = problem_type
-        self.test_size = test_size
-        self.random_state = random_state
-        self.text_colums_name = text_colums_name if text_colums_name else []
         self.cardinality_threshold = cardinality_threshold
         self.max_unique_ordinal = max_unique_ordinal
         self.categorical_ratio_threshold = categorical_ratio_threshold
         self.missing_threshold = missing_threshold
         self.unique_threshold = unique_threshold
 
-        self.report_data = {}
         if self.problem_type is None:
             raise ValueError("problem_type cannot be None")
         self.problem_type = problem_type.lower()
@@ -84,85 +75,30 @@ class TrainingPreprocessing(PreprocessingBase):
             raise ValueError(
                 "problem_type must be either 'classification' or 'regression'"
             )
-        for col in self.text_colums_name:
-            if col not in df.columns:
-                raise ValueError(f"Text column {col} not found in dataframe columns")
-            if df[col].dtype != "object":
-                raise ValueError(f"Text column {col} must be of type object")
-        if target_col not in df.columns:
-            raise ValueError("target_col must be one of the dataframe columns")
-        os.makedirs(self.folder_path, exist_ok=True)
-        self.save_pikle(self.df.columns.tolist(), "data_columns.pkl")
-
-    def data_overview(self):
-        data_head = self.df.head()
-        self.lower_data()
-        lower_data_head = self.df.head()
-        io_buffer = io.StringIO()
-        self.df.info(buf=io_buffer)
-        data_info = io_buffer.getvalue()
-        numerical_df = self.df.select_dtypes(include="number")
-        categorical_df = self.df.select_dtypes(include="object")
-        numerical_describe, categorical_describe = None, None
-        if not numerical_df.empty:
-            numerical_describe = numerical_df.describe()
-        if not categorical_df.empty:
-            categorical_describe = categorical_df.describe()
-        missing_values = self.df.isnull().sum()
-        duplicates_sum = self.df.duplicated().sum()
-        duplicates_percentage = self.df.duplicated().mean() * 100
-        self.report_data["data_overview"] = {
-            "data_head": data_head,
-            "lower_data_head": lower_data_head,
-            "info": data_info,
-            "numerical_describe": numerical_describe,
-            "categorical_describe": categorical_describe,
-            "missing_values": missing_values,
-            "duplicates_sum": duplicates_sum,
-            "duplicates_percentage": duplicates_percentage,
-            "shape": self.df.shape,
-        }
-
-    def drop_duplicates(self):
-        self.df.drop_duplicates(inplace=True)
-        self.report_data["drop_duplicates"] = {
-            "shape": self.df.shape,
-            "duplicates_sum": self.df.duplicated().sum(),
-            "duplicates_percentage": self.df.duplicated().mean() * 100,
-        }
-
-    def split_data(self):
-        X, y = self.df.drop(columns=[self.target_col]), self.df[self.target_col]
-        X_train, X_val, y_train, y_val = train_test_split(
-            X, y, test_size=self.test_size, random_state=self.random_state
-        )
-        self.report_data["split"] = {
-            "test_size": self.test_size,
-            "X_train_shape": X_train.shape,
-            "X_val_shape": X_val.shape,
-            "y_train_shape": y_train.shape,
-            "y_val_shape": y_val.shape,
-        }
-        return X_train, X_val, y_train, y_val
+        if self.problem_type == "classification" and not (
+            np.issubdtype(self.target_type, np.integer)
+            or self.target_type == "object"
+            or self.target_type == "bool"
+        ):
+            raise ValueError(
+                "Target must be integer or object fro classification problem"
+            )
+        if self.problem_type == "regression" and (
+            not np.issubdtype(self.target_type, np.number)
+            or self.target_type == "bool"
+            or self.df[self.target_col].nunique() == 2
+        ):
+            raise ValueError("Target must be numeric for regression problem")
+        save_pickle(self.folder_path, self.df.columns.tolist(), "data_columns.pkl")
 
     def is_drop_column(self, info, col):
         if info[col].get("is_constant", False):
             return True, "The column is constant"
-        elif (
-            info[col].get("p_unique", 0) > self.unique_threshold
-            and info[col].get("dtype") == "object"
-            and col not in self.text_colums_name
+        elif info[col].get("p_unique", 0) > self.unique_threshold and (
+            info[col].get("dtype") == "object"
+            or np.issubdtype(info[col].get("dtype"), np.integer)
         ):
-            return (
-                True,
-                f"It is above unique_threshold {self.unique_threshold} "
-                f"and not detected as text column",
-            )
-        elif (
-            np.issubdtype(info[col].get("dtype"), np.integer)
-            and info[col].get("p_unique", 0) > self.unique_threshold
-        ):
-            return True, f"It is above unique_threshold {self.unique_threshold}"
+            return (True, f"It is above unique_threshold {self.unique_threshold}")
         elif info[col].get("p_missing", 0) > self.missing_threshold:
             return (
                 True,
@@ -223,21 +159,20 @@ class TrainingPreprocessing(PreprocessingBase):
         return info, col_drop
 
     def drop_col(self, X_train, X_val, col_drop):
-        self.drop_columns(X_train, col_drop)
-        self.drop_columns(X_val, col_drop)
+        drop_columns(X_train, col_drop)
+        drop_columns(X_val, col_drop)
         self.report_data["drop_columns"] = {
             "col_drop": col_drop,
             "X_trian_head": X_train.head(),
             "X_val_head": X_val.head(),
         }
-        self.save_pikle(col_drop, "col_drop.pkl")
+        save_pickle(self.folder_path, col_drop, "col_drop.pkl")
 
     def detect_column_types(self, X_train, info):
         binary_cols = []
         numerical_cols = []
         one_hot_cols = []
         frequency_cols = []
-        text_cols = []
         ordinal_cols = []
         others = []
         self.report_data["preprocessing"] = []
@@ -277,15 +212,7 @@ class TrainingPreprocessing(PreprocessingBase):
                 numerical_cols.append(col)
 
             elif info[col]["dtype"] == "object":
-                if col in self.text_colums_name:
-                    info[col]["col_type"] = "text"
-                    info[col]["preprossing_steps"] = [
-                        "Fill missing with empty string",
-                        "Cleaning Splitting and Stemming",
-                        "TF-IDF vectorization",
-                    ]
-                    text_cols.append(col)
-                elif info[col]["n_unique"] <= self.cardinality_threshold:
+                if info[col]["n_unique"] <= self.cardinality_threshold:
                     info[col]["col_type"] = "low level cardinality"
                     info[col]["preprossing_steps"] = [
                         "Fill missing with most frequent",
@@ -317,7 +244,6 @@ class TrainingPreprocessing(PreprocessingBase):
             numerical_cols,
             one_hot_cols,
             frequency_cols,
-            text_cols,
             ordinal_cols,
             others,
         )
@@ -402,15 +328,6 @@ class TrainingPreprocessing(PreprocessingBase):
                 )
                 graph.build_graph()
                 self.report_data["graphs"]["images_name"].append(f"{col}")
-            if info[col]["col_type"] == "text":
-                text_graph = TextGraph(
-                    new_df,
-                    col_name=col,
-                    target_name=self.target_col,
-                    folder_path=self.folder_path,
-                )
-                text_graph.build_graph()
-                self.report_data["graphs"]["images_name"].append(f"{col}")
         if self.problem_type == "classification":
             target_graph = TargetClassification(
                 new_df,
@@ -439,39 +356,6 @@ class TrainingPreprocessing(PreprocessingBase):
         correlation_graph.build_graph()
         self.report_data["graphs"]["images_name"].append("correlation_matrix")
 
-    def make_text_transformers(self, text_cols):
-        transformers = []
-        for col in text_cols:
-            transform = (
-                f"tfidf_{col}",
-                Pipeline(
-                    [
-                        (
-                            "imputer",
-                            SimpleImputer(strategy="constant", fill_value=""),
-                        ),
-                        (
-                            "flatten",
-                            Flatten1DTransform(flatten_1d),
-                        ),
-                        (
-                            "tfidf",
-                            TfidfVectorizer(
-                                max_features=5000,
-                                ngram_range=(1, 2),
-                                max_df=0.8,
-                                min_df=3,
-                                tokenizer=custom_text_tokenizer,
-                                token_pattern=None,
-                            ),
-                        ),
-                    ]
-                ),
-                [col],
-            )
-            transformers.append(transform)
-        return transformers
-
     def features_preprocessing(
         self,
         X_train,
@@ -481,7 +365,6 @@ class TrainingPreprocessing(PreprocessingBase):
         numerical_cols,
         one_hot_cols,
         frequency_cols,
-        text_cols,
         ordinal_cols,
     ):
         numerical_pipeline = Pipeline(
@@ -521,7 +404,6 @@ class TrainingPreprocessing(PreprocessingBase):
                 ),
             ]
         )
-        text_pipeline = self.make_text_transformers(text_cols)
         ordinal_pipeline = Pipeline(
             [
                 ("imputer", SimpleImputer(strategy="most_frequent")),
@@ -535,7 +417,6 @@ class TrainingPreprocessing(PreprocessingBase):
         )
         preprocessor = ColumnTransformer(
             transformers=[
-                *text_pipeline,
                 ("onehot", one_hot_pipeline, one_hot_cols),
                 ("numerical", numerical_pipeline, numerical_cols),
                 ("binary", binary_pipeline, binary_cols),
@@ -546,15 +427,11 @@ class TrainingPreprocessing(PreprocessingBase):
         )
         X_train_processed = preprocessor.fit_transform(X_train)
         X_val_processed = preprocessor.transform(X_val)
-        self.save_pikle(preprocessor, "training_preprocessor.pkl")
+        save_pickle(self.folder_path, preprocessor, "training_preprocessor.pkl")
         farures_names = [
             x.split("__")[-1] for x in preprocessor.get_feature_names_out()
         ]
-        self.save_pikle(farures_names, "feature_names.pkl")
-        if sparse.issparse(X_train_processed):
-            X_train_processed = X_train_processed.toarray()
-        if sparse.issparse(X_val_processed):
-            X_val_processed = X_val_processed.toarray()
+        save_pickle(self.folder_path, farures_names, "feature_names.pkl")
         self.report_data["after_preprocessing"] = {
             "X_train_processed": pd.DataFrame(
                 X_train_processed, columns=farures_names
@@ -577,7 +454,7 @@ class TrainingPreprocessing(PreprocessingBase):
             label_encoder = LabelEncoder()
             y_train = label_encoder.fit_transform(y_train)
             y_val = label_encoder.transform(y_val)
-            self.save_pikle(label_encoder, "target_preprocessor.pkl")
+            save_pickle(self.folder_path, label_encoder, "target_preprocessor.pkl")
             target_dict["mode"] = info[self.target_col]["mode"]
             self.report_data["preprocessing"].append(
                 {
@@ -598,7 +475,7 @@ class TrainingPreprocessing(PreprocessingBase):
                 y_train.values.reshape(-1, 1)
             ).ravel()
             y_val = stander_scaler.transform(y_val.values.reshape(-1, 1)).ravel()
-            self.save_pikle(stander_scaler, "target_preprocessor.pkl")
+            save_pickle(self.folder_path, stander_scaler, "target_preprocessor.pkl")
             self.report_data["preprocessing"].append(
                 {
                     "col_name": self.target_col,
@@ -615,7 +492,7 @@ class TrainingPreprocessing(PreprocessingBase):
         self.report_data["after_preprocessing"]["y_val_processed"] = pd.DataFrame(
             y_val, columns=[self.target_col]
         ).head()
-        self.save_pikle(target_dict, "target_info.pkl")
+        save_pickle(self.folder_path, target_dict, "target_info.pkl")
         return y_train, y_val
 
     def common_preprocessing(self):
@@ -629,7 +506,6 @@ class TrainingPreprocessing(PreprocessingBase):
             numerical_cols,
             one_hot_cols,
             frequency_cols,
-            text_cols,
             ordinal_cols,
             _,
         ) = self.detect_column_types(X_train, info)
@@ -642,10 +518,9 @@ class TrainingPreprocessing(PreprocessingBase):
             numerical_cols,
             one_hot_cols,
             frequency_cols,
-            text_cols,
             ordinal_cols,
         )
         y_train, y_val = self.target_preprocessing(y_train, y_val, info)
-        report = PreprocessingReport(self.folder_path, self.report_data)
+        report = TabularPreprocessingReport(self.folder_path, self.report_data)
         report.execute()
         return X_train, y_train, X_val, y_val

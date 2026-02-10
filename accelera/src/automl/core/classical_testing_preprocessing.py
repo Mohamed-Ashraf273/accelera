@@ -1,30 +1,24 @@
-import os
+from accelera.src.automl.core.testing_tabular_preprocessing_base import (
+    TestingTabularPreprocessingBase,
+)
+from accelera.src.automl.utils.preprocessing import (
+    check_path_exists,
+    load_pickle,
+    lower_data,
+    drop_columns,
+)
 
-from accelera.src.automl.core.preprocessing_base import PreprocessingBase
 
-
-class TestingPreprocessing(PreprocessingBase):
+class ClassicalTestingPreprocessing(TestingTabularPreprocessingBase):
     def __init__(self, df, folder_path=None):
         super().__init__(df, folder_path=folder_path)
-        self.check_path_exists("data_columns.pkl")
-        self.check_path_exists("col_drop.pkl")
-        self.check_path_exists("target_info.pkl")
-        self.check_path_exists("target_preprocessor.pkl")
-        self.check_path_exists("training_preprocessor.pkl")
-        self.data_columns = self.load_pickle("data_columns.pkl")
-        self.col_drop = self.load_pickle("col_drop.pkl")
-        self.target_info = self.load_pickle("target_info.pkl")
-        self.target_preprocessor = self.load_pickle("target_preprocessor.pkl")
-        self.training_preprocessor = self.load_pickle("training_preprocessor.pkl")
-        self.features_only = False
-        if self.target_preprocessor is None:
-            raise ValueError(
-                "target_preprocessor cannot be None please run training preprocessing first to create the target preprocessor"
-            )
-        if self.training_preprocessor is None:
-            raise ValueError(
-                "training_preprocessor cannot be None please run training preprocessing first to create the training preprocessor"
-            )
+        check_path_exists(self.folder_path, "data_columns.pkl")
+        check_path_exists(self.folder_path, "col_drop.pkl")
+        check_path_exists(self.folder_path, "target_info.pkl")
+        self.data_columns = load_pickle(self.folder_path, "data_columns.pkl")
+        self.col_drop = load_pickle(self.folder_path, "col_drop.pkl")
+        self.target_info = load_pickle(self.folder_path, "target_info.pkl")
+
         if self.target_info is None:
             raise ValueError(
                 "target_info cannot be None please run training preprocessing first to create the target info"
@@ -53,7 +47,7 @@ class TestingPreprocessing(PreprocessingBase):
             raise ValueError(
                 "training data columns do not match the testing data columns"
             )
-        self.lower_data()
+        lower_data(self.df)
         if self.features_only:
             self.X_test = self.df
             self.y_test = None
@@ -75,12 +69,8 @@ class TestingPreprocessing(PreprocessingBase):
             raise ValueError(f"Error in target preprocessing: {e}")
 
     def common_preprocessing(self):
-        # 1- lower data
-        # 2- drop columns
-        # 3- apply feature preprocessing
-        # 4- apply target preprocessing
         try:
-            self.drop_columns(self.X_test, self.col_drop)
+            drop_columns(self.X_test, self.col_drop)
             self.X_test = self.training_preprocessor.transform(self.X_test)
             if not self.features_only:
                 self.target_preprocessing()
