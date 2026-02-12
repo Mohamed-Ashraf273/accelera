@@ -1,0 +1,2 @@
+class ImageClassificationDataset:
+    pass

@@ -9,15 +9,22 @@ import io
 
 
 class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
-    def __init__(self, df, target_col, test_size, random_state, folder_path=None):
+    def __init__(self, df, target_col, val_size, random_state, folder_path=None):
         super().__init__(df, folder_path)
         self.target_col = target_col
-        self.test_size = test_size
+        self.val_size = val_size
         self.random_state = random_state
         self.report_data = {}
 
         if self.target_col not in self.df.columns:
             raise ValueError("target_col must be one of the dataframe columns")
+        if (not (isinstance(self.val_size, (int, float)))) or (
+            not (0 < self.val_size < 0.5)
+        ):
+            raise ValueError("test size is invalid it must be less than 0.5")
+        if not (self.random_state is None) and not (isinstance(self.random_state, int)):
+            raise ValueError("random state is invalid it must be integer or None")
+
         self.target_type = self.df[self.target_col].dtype
         os.makedirs(self.folder_path, exist_ok=True)
 
@@ -61,10 +68,10 @@ class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
     def split_data(self):
         X, y = self.df.drop(columns=[self.target_col]), self.df[self.target_col]
         X_train, X_val, y_train, y_val = train_test_split(
-            X, y, test_size=self.test_size, random_state=self.random_state
+            X, y, test_size=self.val_size, random_state=self.random_state
         )
         self.report_data["split"] = {
-            "test_size": self.test_size,
+            "val_size": self.val_size,
             "X_train_shape": X_train.shape,
             "X_val_shape": X_val.shape,
             "y_train_shape": y_train.shape,

@@ -61,6 +61,25 @@ class ReportBase:
         </html>
         """
 
+    def show_graphs(self, graphs):
+        if graphs is None:
+            return
+        self.content += "<div>\n"
+        self.content += "<h2>Graphs</h2>\n"
+        folder_path = os.path.join(graphs["folder_path"], "graphs")
+        if not os.path.exists(folder_path):
+            self.content += (
+                f"<h3>There is no any image in the folder {folder_path}</h3>\n"
+            )
+        else:
+            for image_name in graphs["images_name"]:
+                image_file = os.path.join(folder_path, f"{image_name}.png")
+                if os.path.exists(image_file):
+                    image_file = os.path.join(".", "graphs", f"{image_name}.png")
+                    self.content += f"<img src='{image_file}' "
+                    self.content += "style='max-width:100%; margin:10px 0;'/>\n"
+        self.content += "</div>\n"
+
     def create_html_file(self, content):
         readme_path = os.path.join(self.folderpath, "report.html")
         with open(readme_path, encoding="utf-8", mode="w") as f:

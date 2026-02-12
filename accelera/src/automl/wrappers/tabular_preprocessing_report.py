@@ -77,8 +77,8 @@ class TabularPreprocessingReport(ReportBase):
     def show_split(self):
         self.content += "<div>\n"
         self.content += "<h2> Train / Validation Split</h2>\n"
-        self.content += "<h3> Test Size</h3>\n"
-        self.content += f"<p>{self.split['test_size']}</p>\n"
+        self.content += "<h3> Val Size</h3>\n"
+        self.content += f"<p>{self.split['val_size']}</p>\n"
         self.content += "<h3>Training set</h3>\n"
         self.content += f"X_train shape : {self.split['X_train_shape']}</p>\n"
         self.content += f"y_train shape : {self.split['y_train_shape']}</p>\n"
@@ -103,23 +103,6 @@ class TabularPreprocessingReport(ReportBase):
 
         else:
             self.content += "<p>No columns were dropped</p>\n"
-        self.content += "</div>\n"
-
-    def show_graphs(self):
-        self.content += "<div>\n"
-        self.content += "<h2>Graphs</h2>\n"
-        folder_path = os.path.join(self.graphs["folder_path"], "graphs")
-        if not os.path.exists(folder_path):
-            self.content += (
-                f"<h3>There is no any image in the folder {folder_path}</h3>\n"
-            )
-        else:
-            for image_name in self.graphs["images_name"]:
-                image_file = os.path.join(folder_path, f"{image_name}.png")
-                if os.path.exists(image_file):
-                    image_file = os.path.join(".", "graphs", f"{image_name}.png")
-                    self.content += f"<img src='{image_file}' "
-                    self.content += "style='max-width:100%; margin:10px 0;'/>\n"
         self.content += "</div>\n"
 
     def show_preprocessing(self):
@@ -181,7 +164,7 @@ class TabularPreprocessingReport(ReportBase):
         self.show_split()
         if not self.text_based:
             self.show_drop_col()
-        self.show_graphs()
+        self.show_graphs(self.graphs)
         self.show_preprocessing()
         self.show_after_preprocessing()
         full_content = self.start_content + self.content + self.end_content

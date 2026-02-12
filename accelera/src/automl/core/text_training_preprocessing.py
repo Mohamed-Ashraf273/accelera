@@ -24,10 +24,10 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
         target_col: str,
         text_col: str,
         folder_path=None,
-        test_size=0.2,
+        val_size=0.2,
         random_state=42,
     ):
-        super().__init__(df, target_col, test_size, random_state, folder_path)
+        super().__init__(df, target_col, val_size, random_state, folder_path)
         self.text_col = text_col
         if target_col == text_col:
             raise ValueError("target column and text column must not be the same")

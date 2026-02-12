@@ -9,6 +9,15 @@ def check_path_exists(folder_path, filename):
     return True
 
 
+def get_sub_folders_names(folder_path):
+    sub_folders_name = [
+        class_name
+        for class_name in os.listdir(folder_path)
+        if os.path.isdir(os.path.join(folder_path, class_name))
+    ]
+    return sub_folders_name
+
+
 def save_pickle(folder_path, obj, filename):
     filepath = os.path.join(folder_path, filename)
     with open(filepath, "wb") as f:
@@ -26,7 +35,8 @@ def lower_data(df):
     for col in df.columns:
         if df[col].dtype == "object":
             df[col] = df[col].apply(lambda x: x.lower() if isinstance(x, str) else x)
-            
+
+
 def drop_columns(X, col_drop):
     col_drop = list(col_drop.keys())
     if col_drop:

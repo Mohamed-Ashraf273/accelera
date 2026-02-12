@@ -3,10 +3,10 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from accelera.src.automl.wrappers.graph_base import GraphBase
+from accelera.src.automl.wrappers.tabular_graph_base import TabularGraphBase
 
 
-class TargetClassification(GraphBase):
+class TargetClassification(TabularGraphBase):
     def __init__(self, df, col_name, target_name, folder_path):
         super().__init__(df, col_name, target_name, folder_path)
 

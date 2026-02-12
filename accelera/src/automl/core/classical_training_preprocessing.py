@@ -52,7 +52,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         target_col: str,
         problem_type="classification",
         folder_path=None,
-        test_size=0.2,
+        val_size=0.2,
         random_state=42,
         cardinality_threshold=8,
         max_unique_ordinal=10,
@@ -60,7 +60,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         missing_threshold=0.5,
         unique_threshold=0.9,
     ):
-        super().__init__(df, target_col, test_size, random_state, folder_path)
+        super().__init__(df, target_col, val_size, random_state, folder_path)
         self.problem_type = problem_type
         self.cardinality_threshold = cardinality_threshold
         self.max_unique_ordinal = max_unique_ordinal
