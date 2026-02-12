@@ -8,3 +8,5 @@ from accelera.src.utils import accelera_utils as accelera_utils
 from accelera.src.utils import accelera_utils_test as accelera_utils_test
 from accelera.src.utils import array_utils as array_utils
 from accelera.src.utils import array_utils_test as array_utils_test
+from accelera.src.utils import code_utils as code_utils
+from accelera.src.utils import code_utils_test as code_utils_test
