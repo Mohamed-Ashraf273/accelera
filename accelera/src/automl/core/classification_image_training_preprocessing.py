@@ -38,6 +38,17 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
         val_size=0.2,
         random_state=42,
         images_size=(224, 224),
+        augment=True,
+        batch_size=16,
+        augmentation_probability=0.5,
+        horizontal_flip=True,
+        vertical_flip=True,
+        rotation=True,
+        rotation_angle=30,
+        brightness=True,
+        brightness_factors=(0.8, 1.2),
+        contrast=True,
+        contrast_factors=(0.8, 1.2),
     ):
         super().__init__(
             training_folder_images,
@@ -47,6 +58,17 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             val_size,
             random_state,
             images_size,
+            augment,
+            batch_size,
+            augmentation_probability,
+            horizontal_flip,
+            vertical_flip,
+            rotation,
+            rotation_angle,
+            brightness,
+            brightness_factors,
+            contrast,
+            contrast_factors
         )
         self.training_class = get_sub_folders_names(self.training_folder_images)
         self.validation_class = None
