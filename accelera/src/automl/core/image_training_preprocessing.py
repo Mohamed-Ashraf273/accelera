@@ -77,6 +77,18 @@ class ImageTrainingPreprocessing(PreprocessingBase):
             raise ValueError(
                 "Image size is must be greater than or equal 32 and less than or equal 1024"
             )
+        if not isinstance(self.image_size, tuple):
+            raise ValueError("Image size must be tuple")
+        if not isinstance(self.image_size[0], int) or not isinstance(
+            self.image_size[1], int
+        ):
+            raise ValueError("Image size is not integer")
+        if not (32 <= self.image_size[0] <= 1024) or not (
+            32 <= self.image_size[1] <= 1024
+        ):
+            raise ValueError(
+                "Image size is must be greater than or equal 32 and less than or equal 1024"
+            )
 
         if not isinstance(self.augment, bool):
             raise ValueError("augment must be a boolean")
@@ -118,7 +130,6 @@ class ImageTrainingPreprocessing(PreprocessingBase):
             raise ValueError(
                 "contrast_factors must be tuple of two items float or integers"
             )
-
         os.makedirs(self.folder_path, exist_ok=True)
 
     def get_sample_random(self, data_type, images_path, labels, num_samples=5):
