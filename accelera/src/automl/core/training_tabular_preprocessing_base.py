@@ -18,10 +18,12 @@ class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
 
         if self.target_col not in self.df.columns:
             raise ValueError("target_col must be one of the dataframe columns")
+
         if (not (isinstance(self.val_size, (int, float)))) or (
-            not (0 < self.val_size < 0.5)
+            not (0 <= self.val_size <= 0.5)
         ):
-            raise ValueError("test size is invalid it must be less than 0.5")
+            raise ValueError("test size is invalid it must be less than or equal 0.5")
+
         if not (self.random_state is None) and not (isinstance(self.random_state, int)):
             raise ValueError("random state is invalid it must be integer or None")
 

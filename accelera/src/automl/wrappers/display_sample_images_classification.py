@@ -37,7 +37,7 @@ class DisplaySampleImagesClassification(GraphBase):
         fig, ax = plt.subplots(
             num_rows, self.n_sample, figsize=(4 * self.n_sample, 4 * num_rows)
         )
-        fig.suptitle(self.title)
+        fig.suptitle(self.title, fontsize=20)
         ax = np.atleast_2d(ax)
         for row, class_name in enumerate(classes):
             paths = self.temp_df[class_name]

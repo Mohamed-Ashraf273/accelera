@@ -56,7 +56,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         random_state=42,
         cardinality_threshold=8,
         max_unique_ordinal=10,
-        categorical_ratio_threshold=0.05,
         missing_threshold=0.5,
         unique_threshold=0.9,
     ):
@@ -64,7 +63,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         self.problem_type = problem_type
         self.cardinality_threshold = cardinality_threshold
         self.max_unique_ordinal = max_unique_ordinal
-        self.categorical_ratio_threshold = categorical_ratio_threshold
         self.missing_threshold = missing_threshold
         self.unique_threshold = unique_threshold
 

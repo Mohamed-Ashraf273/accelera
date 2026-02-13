@@ -41,8 +41,12 @@ class ImageLabelClassification(GraphBase):
             self.length = [1, 0]
 
     def build_graph(self):
-        fig, ax = plt.subplots(1, 4, figsize=(24, 6))
-        fig.suptitle(self.title)
+        if self.invalid_df is not None:
+            fig, ax = plt.subplots(1, 4, figsize=(16, 5))
+        else:
+            fig, ax = plt.subplots(1, 3, figsize=(12, 5))
+
+        fig.suptitle(self.title, fontsize=20)
         sns.countplot(data=self.total_df, x="labels", ax=ax[0])
         ax[0].set_title("Total images classes distribution")
         ax[0].set_xlabel("Classes")
@@ -63,8 +67,6 @@ class ImageLabelClassification(GraphBase):
             ax[3].set_title("Invalid images classes distribution")
             ax[3].set_xlabel("Classes")
             ax[3].set_ylabel("Count")
-        else:
-            ax[3].axis("off")
         plt.tight_layout()
         plt.savefig(os.path.join(self.folder_path, f"{self.file_name}.png"))
         plt.close()

@@ -1,9 +1,15 @@
 import os
-import pandas as pd
+
+from torch.utils.data import DataLoader
+
 from accelera.src.automl.core.image_training_preprocessing import (
     ImageTrainingPreprocessing,
 )
-from accelera.src.automl.utils.preprocessing import get_sub_folders_names, save_pickle
+from accelera.src.automl.utils.preprocessing import (
+    get_sub_folders_names,
+    save_pickle,
+    is_valid_image,
+)
 from sklearn.model_selection import train_test_split
 from accelera.src.automl.wrappers.image_label_classification import (
     ImageLabelClassification,
@@ -13,6 +19,12 @@ from accelera.src.automl.wrappers.display_sample_images_classification import (
 )
 from accelera.src.automl.wrappers.image_preprocessing_report import (
     ImagePreprocessingReport,
+)
+from accelera.src.automl.core.classification_image_dataset import (
+    ClassificationImageDataset,
+)
+from accelera.src.automl.wrappers.classification_images_after_loader import (
+    ClassificationImagesAfterLoader,
 )
 
 
@@ -53,6 +65,8 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             None,
             None,
         )
+        data_info = {"image_size": self.image_size}
+        save_pickle(self.folder_path, data_info, "data_info.pkl")
 
     def get_classes_mapping(self):
         self.class2label_mapping = {}
@@ -77,7 +91,7 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             for path in os.listdir(sub_folder_path):
                 path = os.path.join(sub_folder_path, path)
                 mapping = self.class2label_mapping[class_name]
-                if self.is_valid_image(path):
+                if is_valid_image(path):
                     paths.append(path)
                     labels.append(mapping)
                 else:
@@ -206,7 +220,7 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             self.training_folder_images_labels,
             self.label2class_mapping,
             self.folder_path,
-            title="Training Folder Random Samples",
+            title=" Random Samples of Training Folder",
             file_name="training_folder_random_samples",
         ).build_graph()
         self.report_data["graphs"]["images_name"].append(
@@ -218,7 +232,7 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
                 self.validation_folder_images_labels,
                 self.label2class_mapping,
                 self.folder_path,
-                title="Validation Folder Random Samples",
+                title="Random Samples of Validation Folder",
                 file_name="validation_folder_random_samples",
             ).build_graph()
             self.report_data["graphs"]["images_name"].append(
@@ -230,7 +244,7 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
                 self.training_labels,
                 self.label2class_mapping,
                 self.folder_path,
-                title="Training Data After Splitting Random Samples",
+                title="Samples of Training Data After Splitting",
                 file_name="training_after_splitting_random_samples",
             ).build_graph()
             self.report_data["graphs"]["images_name"].append(
@@ -241,11 +255,49 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
                 self.validation_labels,
                 self.label2class_mapping,
                 self.folder_path,
-                title="Validation Data After Splitting Random Samples",
+                title="Samples of Validation Data After Splitting",
                 file_name="validation_after_splitting_random_samples",
             ).build_graph()
             self.report_data["graphs"]["images_name"].append(
                 "validation_after_splitting_random_samples"
+            )
+
+    def make_graphs_loader(self):
+        training_images, training_labels = next(iter(self.training_loader))
+        n_samples = min(5, len(training_images))
+
+        training_images, training_labels = (
+            training_images[:n_samples],
+            training_labels[:n_samples],
+        )
+        ClassificationImagesAfterLoader(
+            training_images,
+            training_labels,
+            self.label2class_mapping,
+            self.folder_path,
+            title="Samples of Training Data After Data Loader",
+            file_name="training_after_data_loader_samples",
+        ).build_graph()
+        self.report_data["graphs"]["images_name"].append(
+            "training_after_data_loader_samples"
+        )
+        if self.validation_loader is not None:
+            validation_images, validation_labels = next(iter(self.validation_loader))
+            n_samples = min(5, len(validation_images))
+            validation_images, validation_labels = (
+                validation_images[:n_samples],
+                validation_labels[:n_samples],
+            )
+            ClassificationImagesAfterLoader(
+                validation_images,
+                validation_labels,
+                self.label2class_mapping,
+                self.folder_path,
+                title="Samples of Validation Data After Data Loader",
+                file_name="validation_after_data_loader_samples",
+            ).build_graph()
+            self.report_data["graphs"]["images_name"].append(
+                "validation_after_data_loader_samples"
             )
 
     def make_graphs(self):
@@ -255,8 +307,50 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
         }
         self.make_graphs_label_summary()
         self.make_garphs_sample()
+        self.make_graphs_loader()
+
+    def get_loaders(self):
+        training_dataset = ClassificationImageDataset(
+            self.training_paths,
+            self.training_labels,
+            self.image_size,
+            self.augment,
+            self.augmentation_probability,
+            self.horizontal_flip,
+            self.vertical_flip,
+            self.rotation,
+            self.rotation_angle,
+            self.brightness,
+            self.brightness_factors,
+            self.contrast,
+            self.contrast_factors,
+        )
+        self.training_loader = DataLoader(
+            training_dataset, batch_size=self.batch_size, shuffle=True
+        )
+        self.validation_loader = None
+        if self.validation_paths is not None:
+            validation_dataset = ClassificationImageDataset(
+                self.validation_paths,
+                self.validation_labels,
+                self.image_size,
+                False,
+                self.augmentation_probability,
+                self.horizontal_flip,
+                self.vertical_flip,
+                self.rotation,
+                self.rotation_angle,
+                self.brightness,
+                self.brightness_factors,
+                self.contrast,
+                self.contrast_factors,
+            )
+            self.validation_loader = DataLoader(
+                validation_dataset, batch_size=self.batch_size, shuffle=False
+            )
 
     def common_preprocessing(self):
+
         self.get_classes_mapping()
         self.training_folder_images_paths, self.training_folder_images_labels = (
             self.data_preparing(
@@ -278,6 +372,9 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             )
         self.data_overview()
         self.splitting()
+        self.get_loaders()
         self.make_graphs()
+
         report = ImagePreprocessingReport(self.folder_path, self.report_data)
         report.execute()
+        return self.training_loader, self.validation_loader

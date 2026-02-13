@@ -2,7 +2,6 @@ from accelera.src.automl.core.preprocessing_base import PreprocessingBase
 from accelera.src.automl.utils.preprocessing import check_path_exists
 import os
 import pandas as pd
-from PIL import Image
 
 
 class ImageTrainingPreprocessing(PreprocessingBase):
@@ -15,6 +14,17 @@ class ImageTrainingPreprocessing(PreprocessingBase):
         val_size,
         random_state,
         images_size,
+        augment=True,
+        batch_size=16,
+        augmentation_probability=0.5,
+        horizontal_flip=True,
+        vertical_flip=True,
+        rotation=True,
+        rotation_angle=30,
+        brightness=True,
+        brightness_factors=(0.8, 1.2),
+        contrast=True,
+        contrast_factors=(0.8, 1.2),
     ):
         super().__init__(folder_path)
         self.training_folder_images = training_folder_images
@@ -23,8 +33,18 @@ class ImageTrainingPreprocessing(PreprocessingBase):
         self.val_size = val_size
         self.random_state = random_state
         self.image_size = images_size
+        self.augment = augment
+        self.batch_size = batch_size
+        self.horizontal_flip = horizontal_flip
+        self.vertical_flip = vertical_flip
+        self.augmentation_probability = augmentation_probability
+        self.rotation = rotation
+        self.rotation_angle = rotation_angle
+        self.brightness = brightness
+        self.brightness_factors = brightness_factors
+        self.contrast = contrast
+        self.contrast_factors = contrast_factors
         self.report_data = {}
-        self.valid_extension = (".jpg", ".png", ".jpeg")
         if self.training_folder_images is None:
             raise ValueError("Training folder must be not null")
         check_path_exists(self.training_folder_images, "")
@@ -39,15 +59,12 @@ class ImageTrainingPreprocessing(PreprocessingBase):
                     "The validation folder and training folder must be different"
                 )
 
-        if self.split_training:
-            if (not (isinstance(self.val_size, (int, float)))) or (
-                not (0 < self.val_size < 0.5)
-            ):
-                raise ValueError("Test size is invalid it must be less than 0.5")
-            if (self.random_state is not None) and not (
-                isinstance(self.random_state, int)
-            ):
-                raise ValueError("Random state is invalid it must be integer or None")
+        if (not (isinstance(self.val_size, (int, float)))) or (
+            not (0 < self.val_size < 0.5)
+        ):
+            raise ValueError("Test size is invalid it must be less than 0.5")
+        if (self.random_state is not None) and not (isinstance(self.random_state, int)):
+            raise ValueError("Random state is invalid it must be integer or None")
         if not isinstance(self.image_size, tuple):
             raise ValueError("Image size must be tuple")
         if not isinstance(self.image_size[0], int) or not isinstance(
@@ -60,6 +77,48 @@ class ImageTrainingPreprocessing(PreprocessingBase):
             raise ValueError(
                 "Image size is must be greater than or equal 32 and less than or equal 1024"
             )
+
+        if not isinstance(self.augment, bool):
+            raise ValueError("augment must be a boolean")
+
+        if not isinstance(self.horizontal_flip, bool):
+            raise ValueError("horizontal_flip must be a boolean")
+
+        if not isinstance(self.vertical_flip, bool):
+            raise ValueError("vertical_flip must be a boolean")
+
+        if not isinstance(self.rotation, bool):
+            raise ValueError("rotation must be a boolean")
+
+        if not isinstance(self.brightness, bool):
+            raise ValueError("brightness must be a boolean")
+
+        if not isinstance(self.contrast, bool):
+            raise ValueError("contrast must be a boolean")
+        if not isinstance(self.augmentation_probability, (int, float)) or not (
+            0 <= self.augmentation_probability <= 1
+        ):
+            raise ValueError("augmentation_probability must be between [0,1]")
+        if not isinstance(self.rotation_angle, (int, float)) or self.rotation_angle < 0:
+            raise ValueError("rotation_angle mustn't be negative")
+
+        if (
+            not isinstance(self.brightness_factors, tuple)
+            or len(self.brightness_factors) != 2
+            or not all(isinstance(x, (int, float)) for x in self.brightness_factors)
+        ):
+            raise ValueError(
+                "brightness_factors must be tuple of two items float or integers"
+            )
+        if (
+            not isinstance(self.contrast_factors, tuple)
+            or len(self.contrast_factors) != 2
+            or not all(isinstance(x, (int, float)) for x in self.contrast_factors)
+        ):
+            raise ValueError(
+                "contrast_factors must be tuple of two items float or integers"
+            )
+
         os.makedirs(self.folder_path, exist_ok=True)
 
     def get_sample_random(self, data_type, images_path, labels, num_samples=5):
@@ -74,13 +133,3 @@ class ImageTrainingPreprocessing(PreprocessingBase):
             .reset_index(drop=True)
         ).head(num_samples)
         return df
-
-    def is_valid_image(self, image_path):
-        if image_path.endswith(self.valid_extension):
-            try:
-                with Image.open(image_path) as img:
-                    img.load()
-                return True
-            except Exception:
-                return False
-        return False
