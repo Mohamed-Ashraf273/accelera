@@ -19,7 +19,9 @@ class Sampler:
     ):
         self.target_size = target_size
         self.sampling_ratio = sampling_ratio or self.DEFAULT_SAMPLING_RATIO
-        self.min_samples_per_class = min_samples_per_class or self.MIN_SAMPLES_PER_CLASS
+        self.min_samples_per_class = (
+            min_samples_per_class or self.MIN_SAMPLES_PER_CLASS
+        )
         self.random_state = random_state
         self.rng = np.random.RandomState(random_state)
 
@@ -47,7 +49,9 @@ class Sampler:
             return (
                 X,
                 y,
-                self._create_metadata(n_samples, n_samples, y_array, "no_sampling"),
+                self._create_metadata(
+                    n_samples, n_samples, y_array, "no_sampling"
+                ),
             )
 
         if y_array is not None and self._is_classification(y_array):
@@ -105,7 +109,9 @@ class Sampler:
             if len(class_indices) <= n_needed:
                 all_indices.extend(class_indices)
             else:
-                selected = self._sample_class(X[class_mask], class_indices, n_needed)
+                selected = self._sample_class(
+                    X[class_mask], class_indices, n_needed
+                )
                 all_indices.extend(selected)
 
         return np.array(all_indices)
@@ -123,7 +129,9 @@ class Sampler:
         n_boundary = int(n_samples * 0.25)
         n_random = n_samples - n_clusters_samples - n_boundary
 
-        n_clusters = min(max(n_clusters_samples // 2, 5), len(X_class) // 5, 100)
+        n_clusters = min(
+            max(n_clusters_samples // 2, 5), len(X_class) // 5, 100
+        )
 
         try:
             scaler = StandardScaler()
@@ -152,7 +160,9 @@ class Sampler:
                 cluster_idx = np.where(mask)[0]
                 center = kmeans.cluster_centers_[cluster_id]
 
-                distances = np.linalg.norm(X_scaled[cluster_idx] - center, axis=1)
+                distances = np.linalg.norm(
+                    X_scaled[cluster_idx] - center, axis=1
+                )
                 n_take = min(samples_per_cluster, cluster_size)
                 closest = cluster_idx[np.argsort(distances)[:n_take]]
                 cluster_samples.extend(class_indices[closest])
@@ -161,7 +171,9 @@ class Sampler:
             boundary_samples = []
             if n_boundary > 0:
                 all_centers = kmeans.cluster_centers_[labels]
-                distances_to_center = np.linalg.norm(X_scaled - all_centers, axis=1)
+                distances_to_center = np.linalg.norm(
+                    X_scaled - all_centers, axis=1
+                )
 
                 available_mask = np.ones(len(X_class), dtype=bool)
                 for idx in cluster_samples:
@@ -182,7 +194,9 @@ class Sampler:
             random_samples = []
             if n_random > 0:
                 selected_set = set(cluster_samples + boundary_samples)
-                available = [idx for idx in class_indices if idx not in selected_set]
+                available = [
+                    idx for idx in class_indices if idx not in selected_set
+                ]
 
                 if available:
                     n_random_take = min(n_random, len(available))
@@ -195,7 +209,9 @@ class Sampler:
             return all_selected[:n_samples]
 
         except Exception as e:
-            print_msg(f"Advanced sampling failed, using random: {e}", level="warning")
+            print_msg(
+                f"Advanced sampling failed, using random: {e}", level="warning"
+            )
             return self._random_sample(class_indices, n_samples)
 
     def _random_sample(self, X, target_size):
@@ -206,7 +222,9 @@ class Sampler:
             return False
         unique_values = len(np.unique(y))
         n_samples = len(y)
-        return unique_values < max(20, 0.05 * n_samples) or np.all(y == y.astype(int))
+        return unique_values < max(20, 0.05 * n_samples) or np.all(
+            y == y.astype(int)
+        )
 
     def _extract(self, data, indices):
         if data is None:

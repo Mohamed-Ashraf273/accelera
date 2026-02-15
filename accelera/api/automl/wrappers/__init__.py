@@ -11,11 +11,29 @@ from accelera.src.automl.wrappers import (
 from accelera.src.automl.wrappers import (
     categorical_regression as categorical_regression,
 )
+from accelera.src.automl.wrappers import (
+    classification_images_after_loader as classification_images_after_loader,
+)
 from accelera.src.automl.wrappers import correlation_graph as correlation_graph
+from accelera.src.automl.wrappers import (
+    custom_transform_test as custom_transform_test,
+)
+from accelera.src.automl.wrappers import (
+    display_sample_images_classification as display_sample_images_classification,
+)
+from accelera.src.automl.wrappers import (
+    flatten_1d_transform as flatten_1d_transform,
+)
 from accelera.src.automl.wrappers import (
     frequency_encoder_transform as frequency_encoder_transform,
 )
 from accelera.src.automl.wrappers import graph_base as graph_base
+from accelera.src.automl.wrappers import (
+    image_label_classification as image_label_classification,
+)
+from accelera.src.automl.wrappers import (
+    image_preprocessing_report as image_preprocessing_report,
+)
 from accelera.src.automl.wrappers import (
     numerical_classification as numerical_classification,
 )
@@ -27,6 +45,9 @@ from accelera.src.automl.wrappers import (
 )
 from accelera.src.automl.wrappers import (
     ordinal_regression as ordinal_regression,
+)
+from accelera.src.automl.wrappers import (
+    tabular_graph_base as tabular_graph_base,
 )
 from accelera.src.automl.wrappers import (
     tabular_preprocessing_report as tabular_preprocessing_report,

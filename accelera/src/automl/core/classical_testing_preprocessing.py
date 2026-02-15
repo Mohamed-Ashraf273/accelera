@@ -1,12 +1,10 @@
 from accelera.src.automl.core.testing_tabular_preprocessing_base import (
     TestingTabularPreprocessingBase,
 )
-from accelera.src.automl.utils.preprocessing import (
-    check_path_exists,
-    load_pickle,
-    lower_data,
-    drop_columns,
-)
+from accelera.src.automl.utils.preprocessing import check_path_exists
+from accelera.src.automl.utils.preprocessing import drop_columns
+from accelera.src.automl.utils.preprocessing import load_pickle
+from accelera.src.automl.utils.preprocessing import lower_data
 
 
 class ClassicalTestingPreprocessing(TestingTabularPreprocessingBase):
@@ -21,23 +19,34 @@ class ClassicalTestingPreprocessing(TestingTabularPreprocessingBase):
 
         if self.target_info is None:
             raise ValueError(
-                "target_info cannot be None please run training preprocessing first to create the target info"
+                "target_info cannot be None please run training "
+                "preprocessing first to create the target info"
             )
         if self.target_info.get("col_name") is None:
             raise ValueError(
-                "target_info must contain 'col_name' key with the target column run training preprocessing first to create the target info"
+                "target_info must contain 'col_name' key with the target "
+                "column run training preprocessing first to create the "
+                "target info"
             )
         if self.target_info["col_name"] not in self.data_columns:
             raise ValueError(
-                "target column specified in target_info not found in data_columns run training preprocessing first to create the correct data columns"
+                "target column specified in target_info not found in "
+                "data_columns run training preprocessing first to create "
+                "the correct data columns"
             )
         if self.target_info.get("problem_type") is None:
             raise ValueError(
-                "target_info must contain 'problem_type' key with the target problem type run training preprocessing first to create the target info"
+                "target_info must contain 'problem_type' key with the "
+                "target problem type run training preprocessing first to "
+                "create the target info"
             )
-        if self.target_info["problem_type"] not in ["classification", "regression"]:
+        if self.target_info["problem_type"] not in [
+            "classification",
+            "regression",
+        ]:
             raise ValueError(
-                "problem_type in target_info must be either 'classification' or 'regression'"
+                "problem_type in target_info must be either "
+                "'classification' or 'regression'"
             )
 
         if self.target_info["col_name"] not in self.df.columns:

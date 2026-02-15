@@ -1,7 +1,8 @@
 from accelera.src.automl.core.tabular_preprocessing_base import (
     TabularPreprocessingBase,
 )
-from accelera.src.automl.utils.preprocessing import check_path_exists, load_pickle
+from accelera.src.automl.utils.preprocessing import check_path_exists
+from accelera.src.automl.utils.preprocessing import load_pickle
 
 
 class TestingTabularPreprocessingBase(TabularPreprocessingBase):
@@ -17,11 +18,13 @@ class TestingTabularPreprocessingBase(TabularPreprocessingBase):
         )
         if self.target_preprocessor is None:
             raise ValueError(
-                "target_preprocessor cannot be None please run training preprocessing first to create the target preprocessor"
+                "target_preprocessor cannot be None please run training "
+                "preprocessing first to create the target preprocessor"
             )
 
         if self.training_preprocessor is None:
             raise ValueError(
-                "training_preprocessor cannot be None please run training preprocessing first to create the training preprocessor"
+                "training_preprocessor cannot be None please run training "
+                "preprocessing first to create the training preprocessor"
             )
         self.features_only = False

@@ -1,7 +1,9 @@
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
 import os
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+
 from accelera.src.automl.wrappers.graph_base import GraphBase
 
 
@@ -18,7 +20,9 @@ class ImageLabelClassification(GraphBase):
         super().__init__(folder_path)
         label2class_mapping = label2class_mapping
         self.valid_df = pd.DataFrame({"labels": labels})
-        self.valid_df["labels"] = self.valid_df["labels"].map(label2class_mapping)
+        self.valid_df["labels"] = self.valid_df["labels"].map(
+            label2class_mapping
+        )
         self.total_df = None
         self.invalid_df = None
         self.title = title
@@ -32,7 +36,9 @@ class ImageLabelClassification(GraphBase):
                 [self.valid_df, self.invalid_df], axis=0, ignore_index=True
             )
             self.length = [0, 0]
-            self.length[0] = len(self.valid_df["labels"]) / len(self.total_df["labels"])
+            self.length[0] = len(self.valid_df["labels"]) / len(
+                self.total_df["labels"]
+            )
             self.length[1] = len(self.invalid_df["labels"]) / len(
                 self.total_df["labels"]
             )

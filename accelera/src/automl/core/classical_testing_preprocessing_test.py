@@ -1,12 +1,15 @@
-import pytest
 import shutil
 import tempfile
+
 import pandas as pd
+import pytest
+from sklearn.preprocessing import LabelEncoder
+
 from accelera.src.automl.core.classical_testing_preprocessing import (
     ClassicalTestingPreprocessing,
 )
-from sklearn.preprocessing import LabelEncoder
-from accelera.src.automl.utils.preprocessing import save_pickle, drop_columns
+from accelera.src.automl.utils.preprocessing import drop_columns
+from accelera.src.automl.utils.preprocessing import save_pickle
 
 
 class TestClassicalTestingPreprocessing:
@@ -94,7 +97,9 @@ class TestClassicalTestingPreprocessing:
         assert tp.data_columns == ["feature1", "feature2"]
         assert tp.y_test is None
         assert tp.X_test.equals(lower_df.drop(columns=["target"]))
-        tp = ClassicalTestingPreprocessing(df=self.df, folder_path=self.temp_dir)
+        tp = ClassicalTestingPreprocessing(
+            df=self.df, folder_path=self.temp_dir
+        )
         assert tp.features_only is False
         assert list(tp.X_test.columns) == ["feature1", "feature2"]
         assert tp.data_columns == ["feature1", "feature2", "target"]
@@ -113,7 +118,9 @@ class TestClassicalTestingPreprocessing:
         }
         save_pickle(self.temp_dir, target_info, "target_info.pkl")
 
-        tp = ClassicalTestingPreprocessing(df=self.df, folder_path=self.temp_dir)
+        tp = ClassicalTestingPreprocessing(
+            df=self.df, folder_path=self.temp_dir
+        )
         drop_columns(tp.X_test, tp.col_drop)
         assert list(tp.X_test.columns) == ["feature1"]
 
@@ -129,7 +136,9 @@ class TestClassicalTestingPreprocessing:
         }
         save_pickle(self.temp_dir, target_info, "target_info.pkl")
 
-        tp = ClassicalTestingPreprocessing(df=self.df, folder_path=self.temp_dir)
+        tp = ClassicalTestingPreprocessing(
+            df=self.df, folder_path=self.temp_dir
+        )
         assert tp.X_test["feature1"].tolist() == ["a", "b", "c"]
         assert tp.y_test.tolist() == ["a", None, "c"]
 
@@ -149,6 +158,8 @@ class TestClassicalTestingPreprocessing:
         }
         save_pickle(self.temp_dir, target_info, "target_info.pkl")
 
-        tp = ClassicalTestingPreprocessing(df=self.df, folder_path=self.temp_dir)
+        tp = ClassicalTestingPreprocessing(
+            df=self.df, folder_path=self.temp_dir
+        )
         tp.target_preprocessing()
         assert tp.y_test.tolist() == [0, 1, 2]

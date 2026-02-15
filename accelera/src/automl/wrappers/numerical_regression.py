@@ -24,7 +24,9 @@ class NumericalRegression(TabularGraphBase):
         ax[1].set_title(f"{self.col_name} Distribution")
         ax[1].set_xlabel(self.col_name)
         ax[1].set_ylabel("Count")
-        self.graph_df = self.graph_df[[self.col_name, self.target_name]].dropna()
+        self.graph_df = self.graph_df[
+            [self.col_name, self.target_name]
+        ].dropna()
         sns.scatterplot(
             data=self.graph_df, x=self.col_name, y=self.target_name, ax=ax[2]
         )

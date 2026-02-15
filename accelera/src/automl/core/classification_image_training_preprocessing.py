@@ -1,30 +1,28 @@
 import os
 
+from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
+from accelera.src.automl.core.classification_image_dataset import (
+    ClassificationImageDataset,
+)
 from accelera.src.automl.core.image_training_preprocessing import (
     ImageTrainingPreprocessing,
 )
-from accelera.src.automl.utils.preprocessing import (
-    get_sub_folders_names,
-    save_pickle,
-    is_valid_image,
-)
-from sklearn.model_selection import train_test_split
-from accelera.src.automl.wrappers.image_label_classification import (
-    ImageLabelClassification,
+from accelera.src.automl.utils.preprocessing import get_sub_folders_names
+from accelera.src.automl.utils.preprocessing import is_valid_image
+from accelera.src.automl.utils.preprocessing import save_pickle
+from accelera.src.automl.wrappers.classification_images_after_loader import (
+    ClassificationImagesAfterLoader,
 )
 from accelera.src.automl.wrappers.display_sample_images_classification import (
     DisplaySampleImagesClassification,
 )
+from accelera.src.automl.wrappers.image_label_classification import (
+    ImageLabelClassification,
+)
 from accelera.src.automl.wrappers.image_preprocessing_report import (
     ImagePreprocessingReport,
-)
-from accelera.src.automl.core.classification_image_dataset import (
-    ClassificationImageDataset,
-)
-from accelera.src.automl.wrappers.classification_images_after_loader import (
-    ClassificationImagesAfterLoader,
 )
 
 
@@ -68,7 +66,7 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             brightness,
             brightness_factors,
             contrast,
-            contrast_factors
+            contrast_factors,
         )
         self.training_class = get_sub_folders_names(self.training_folder_images)
         self.validation_class = None
@@ -77,13 +75,19 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
         self.validation_folder_invalid_images = []
         self.validation_folder_invalid_images_labels = []
         if self.validation_folder_images is not None:
-            self.validation_class = get_sub_folders_names(self.validation_folder_images)
+            self.validation_class = get_sub_folders_names(
+                self.validation_folder_images
+            )
             for class_name in self.validation_class:
                 if class_name not in self.training_class:
                     raise ValueError(
-                        f"This category {class_name} not in the training categories which are {self.training_class}"
+                        f"This category {class_name} not in the training "
+                        f"categories which are {self.training_class}"
                     )
-        self.validation_folder_images_paths, self.validation_folder_images_labels = (
+        (
+            self.validation_folder_images_paths,
+            self.validation_folder_images_labels,
+        ) = (
             None,
             None,
         )
@@ -97,10 +101,14 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             self.class2label_mapping[class_name] = idx
             self.label2class_mapping[idx] = class_name
         save_pickle(
-            self.folder_path, self.class2label_mapping, "class2label_mapping.pkl"
+            self.folder_path,
+            self.class2label_mapping,
+            "class2label_mapping.pkl",
         )
         save_pickle(
-            self.folder_path, self.label2class_mapping, "label2class_mapping.pkl"
+            self.folder_path,
+            self.label2class_mapping,
+            "label2class_mapping.pkl",
         )
 
     def data_preparing(
@@ -304,7 +312,9 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             "training_after_data_loader_samples"
         )
         if self.validation_loader is not None:
-            validation_images, validation_labels = next(iter(self.validation_loader))
+            validation_images, validation_labels = next(
+                iter(self.validation_loader)
+            )
             n_samples = min(5, len(validation_images))
             validation_images, validation_labels = (
                 validation_images[:n_samples],
@@ -372,15 +382,15 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             )
 
     def common_preprocessing(self):
-
         self.get_classes_mapping()
-        self.training_folder_images_paths, self.training_folder_images_labels = (
-            self.data_preparing(
-                self.training_folder_images,
-                self.training_folder_invalid_images,
-                self.training_folder_invalid_images_labels,
-                self.training_class,
-            )
+        (
+            self.training_folder_images_paths,
+            self.training_folder_images_labels,
+        ) = self.data_preparing(
+            self.training_folder_images,
+            self.training_folder_invalid_images,
+            self.training_folder_invalid_images_labels,
+            self.training_class,
         )
         if self.validation_folder_images is not None:
             (

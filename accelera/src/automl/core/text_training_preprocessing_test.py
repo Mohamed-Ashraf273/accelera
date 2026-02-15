@@ -1,16 +1,18 @@
-import pytest
+import os
 import shutil
 import tempfile
-import os
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+import pytest
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+
 from accelera.src.automl.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )
-from sklearn.model_selection import train_test_split
 from accelera.src.automl.utils.preprocessing import check_path_exists
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.preprocessing import LabelEncoder
 
 
 class TestTextTrainingPreprocessing:
@@ -55,11 +57,17 @@ class TestTextTrainingPreprocessing:
     def test_text_error_checks(self):
         with pytest.raises(ValueError):
             TextTrainingPreprocessing(
-                df=None, target_col="class", text_col="text", folder_path=self.temp_dir
+                df=None,
+                target_col="class",
+                text_col="text",
+                folder_path=self.temp_dir,
             )
         with pytest.raises(ValueError):
             TextTrainingPreprocessing(
-                df=self.df, target_col="class", text_col="text", folder_path=None
+                df=self.df,
+                target_col="class",
+                text_col="text",
+                folder_path=None,
             )
 
         with pytest.raises(ValueError):
@@ -156,11 +164,13 @@ class TestTextTrainingPreprocessing:
         )
         tp.data_overview()
         tp.drop_duplicates()
-        X_train_manual, X_val_manual, y_train_manual, y_val_manual = train_test_split(
-            tp.df.drop(columns=["class"]),
-            tp.df["class"],
-            test_size=0.2,
-            random_state=42,
+        X_train_manual, X_val_manual, y_train_manual, y_val_manual = (
+            train_test_split(
+                tp.df.drop(columns=["class"]),
+                tp.df["class"],
+                test_size=0.2,
+                random_state=42,
+            )
         )
         X_train, X_val, y_train, y_val = tp.split_data()
         assert X_train.shape[0] == X_train_manual.shape[0]
@@ -220,7 +230,9 @@ class TestTextTrainingPreprocessing:
         X_train, X_val, y_train, y_val = tp.split_data()
         X_train_filled = X_train["text"].fillna("")
         X_val_filled = X_val["text"].fillna("")
-        X_train_processed, X_val_processed = tp.features_preprocessing(X_train, X_val)
+        X_train_processed, X_val_processed = tp.features_preprocessing(
+            X_train, X_val
+        )
         training_preprocessor = TfidfVectorizer(
             max_features=5000,
             ngram_range=(1, 2),
@@ -231,13 +243,17 @@ class TestTextTrainingPreprocessing:
             lowercase=False,
         )
 
-        X_train_processed_manual = training_preprocessor.fit_transform(X_train_filled)
+        X_train_processed_manual = training_preprocessor.fit_transform(
+            X_train_filled
+        )
         X_val_processed_manual = training_preprocessor.transform(X_val_filled)
         assert X_train_processed_manual.shape == X_train_processed.shape
         assert np.allclose(
             X_train_processed_manual.toarray(), X_train_processed.toarray()
         )
-        assert np.allclose(X_val_processed_manual.toarray(), X_val_processed.toarray())
+        assert np.allclose(
+            X_val_processed_manual.toarray(), X_val_processed.toarray()
+        )
         assert check_path_exists(self.temp_dir, "training_preprocessor.pkl")
 
     def test_text_target_preprocessing(self):
@@ -258,7 +274,9 @@ class TestTextTrainingPreprocessing:
         y_val_fill = y_val.fillna(mode)
         y_train_manual = encoder.fit_transform(y_train_fill)
         y_val_manual = encoder.transform(y_val_fill)
-        y_train_processed, y_val_processed = tp.target_preprocessing(y_train, y_val)
+        y_train_processed, y_val_processed = tp.target_preprocessing(
+            y_train, y_val
+        )
         assert tp.info["target_mode"] == mode
         assert np.allclose(y_val_manual, y_val_processed)
         assert np.allclose(y_train_manual, y_train_processed)

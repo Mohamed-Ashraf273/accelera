@@ -1,20 +1,24 @@
-import pandas as pd
-import numpy as np
+import re
+
 import nltk
+import numpy as np
+import pandas as pd
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
-import re
-from accelera.src.automl.utils.preprocessing import save_pickle
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import LabelEncoder
+
 from accelera.src.automl.core.training_tabular_preprocessing_base import (
     TrainingTabularPreprocessingBase,
 )
+from accelera.src.automl.utils.preprocessing import save_pickle
 from accelera.src.automl.wrappers.tabular_preprocessing_report import (
     TabularPreprocessingReport,
 )
-from sklearn.feature_extraction.text import TfidfVectorizer
+from accelera.src.automl.wrappers.target_classification import (
+    TargetClassification,
+)
 from accelera.src.automl.wrappers.text_graph import TextGraph
-from accelera.src.automl.wrappers.target_classification import TargetClassification
-from sklearn.preprocessing import LabelEncoder
 
 
 class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
@@ -30,9 +34,13 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
         super().__init__(df, target_col, val_size, random_state, folder_path)
         self.text_col = text_col
         if target_col == text_col:
-            raise ValueError("target column and text column must not be the same")
+            raise ValueError(
+                "target column and text column must not be the same"
+            )
         if text_col not in df.columns:
-            raise ValueError(f"Text column {text_col} not found in dataframe columns")
+            raise ValueError(
+                f"Text column {text_col} not found in dataframe columns"
+            )
         if df[text_col].dtype != "object":
             raise ValueError(f"Text column {text_col} must be of type object")
         if not (
@@ -128,18 +136,24 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
         X_train_head_cleaned = (
             X_train_head[self.text_col]
             .apply(lambda x: " ".join(self.custom_text_tokenizer(x)))
-            .to_frame(name=f"{self.text_col} After Cleaning & Tokeniztion & Stemming")
+            .to_frame(
+                name=f"{self.text_col} After Cleaning & Tokeniztion & Stemming"
+            )
         )
         X_val_head_cleaned = (
             X_val_head[self.text_col]
             .apply(lambda x: " ".join(self.custom_text_tokenizer(x)))
-            .to_frame(name=f"{self.text_col} After Cleaning & Tokeniztion & Stemming")
+            .to_frame(
+                name=f"{self.text_col} After Cleaning & Tokeniztion & Stemming"
+            )
         )
         self.report_data["after_preprocessing"] = {
             "X_train_processed": pd.concat(
                 [X_train_head, X_train_head_cleaned], axis=1
             ),
-            "X_val_processed": pd.concat([X_val_head, X_val_head_cleaned], axis=1),
+            "X_val_processed": pd.concat(
+                [X_val_head, X_val_head_cleaned], axis=1
+            ),
         }
         training_preprocessor = TfidfVectorizer(
             max_features=5000,
@@ -154,7 +168,9 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
         X_train_preprocessed = training_preprocessor.fit_transform(
             X_train[self.text_col]
         )
-        X_val_preprocessed = training_preprocessor.transform(X_val[self.text_col])
+        X_val_preprocessed = training_preprocessor.transform(
+            X_val[self.text_col]
+        )
 
         save_pickle(
             self.folder_path, training_preprocessor, "training_preprocessor.pkl"
@@ -179,12 +195,12 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
         label_encoder = LabelEncoder()
         y_train_preprocessed = label_encoder.fit_transform(y_train)
         y_val_preprocessed = label_encoder.transform(y_val)
-        self.report_data["after_preprocessing"]["y_train_processed"] = pd.DataFrame(
-            y_train_preprocessed, columns=[self.target_col]
-        ).head()
-        self.report_data["after_preprocessing"]["y_val_processed"] = pd.DataFrame(
-            y_val_preprocessed, columns=[self.target_col]
-        ).head()
+        self.report_data["after_preprocessing"]["y_train_processed"] = (
+            pd.DataFrame(y_train_preprocessed, columns=[self.target_col]).head()
+        )
+        self.report_data["after_preprocessing"]["y_val_processed"] = (
+            pd.DataFrame(y_val_preprocessed, columns=[self.target_col]).head()
+        )
         save_pickle(self.folder_path, label_encoder, "target_preprocessor.pkl")
         save_pickle(self.folder_path, self.info, "data_info.pkl")
         return y_train_preprocessed, y_val_preprocessed

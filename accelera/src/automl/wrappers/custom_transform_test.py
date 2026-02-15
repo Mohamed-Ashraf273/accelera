@@ -1,12 +1,13 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+
 from accelera.src.automl.wrappers.flatten_1d_transform import Flatten1DTransform
 from accelera.src.automl.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
 )
 from accelera.src.automl.wrappers.IQR_transform import IQRTransform
-from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer
 
 
 class TestCustomTransform:
@@ -50,7 +51,9 @@ class TestCustomTransform:
                 "size": ["S", "L", "L", "S", "S", "L"],
             }
         )
-        testing_data = pd.DataFrame({"color": ["red", "yellow"], "size": ["S", "XL"]})
+        testing_data = pd.DataFrame(
+            {"color": ["red", "yellow"], "size": ["S", "XL"]}
+        )
         expected_output = pd.DataFrame(
             {"color": [0.3333333333333333, 0], "size": [0.5, 0]}
         )
@@ -80,7 +83,9 @@ class TestCustomTransform:
             }
         )
         pipeline = Pipeline([("freq_encoder", FrequencyEncoderTransform())])
-        transformer = ColumnTransformer([("freq_encoder", pipeline, ["color", "size"])])
+        transformer = ColumnTransformer(
+            [("freq_encoder", pipeline, ["color", "size"])]
+        )
         transformed_data = transformer.fit_transform(df)
         assert np.array_equal(transformed_data, expected_output.values)
 
@@ -100,7 +105,9 @@ class TestCustomTransform:
             [
                 (
                     "flatten",
-                    Flatten1DTransform(func=lambda x: x.values.ravel()[:, np.newaxis]),
+                    Flatten1DTransform(
+                        func=lambda x: x.values.ravel()[:, np.newaxis]
+                    ),
                 )
             ]
         )
@@ -138,7 +145,9 @@ class TestCustomTransform:
         pipeline = Pipeline(
             [("iqr_transform", IQRTransform(info=info, cols=["col", "col2"]))]
         )
-        transformer = ColumnTransformer([("iqr_transform", pipeline, ["col", "col2"])])
+        transformer = ColumnTransformer(
+            [("iqr_transform", pipeline, ["col", "col2"])]
+        )
         output = transformer.fit_transform(data)
         assert np.array_equal(output, expected_output.values)
 

@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 
 from accelera.src.core.report_base import ReportBase
@@ -45,16 +44,20 @@ class ImagePreprocessingReport(ReportBase):
     def show_folder_overview(self, over_view, folder_type):
         self.content += "<div>\n"
         self.content += f"<h3>{folder_type} Folder Overview</h2>\n"
-        self.show_unoreder_list(over_view["classes"], f"<h4>Classes</h4>")
+        self.show_unoreder_list(over_view["classes"], "<h4>Classes</h4>")
         if over_view.get("mapping") is not None:
-            df = pd.DataFrame(over_view["mapping"].items(), columns=["Class", "Label"])
-            self.show_table_section_from_df(df, f"<h4>Classes 2 Labels Mapping </h4>")
+            df = pd.DataFrame(
+                over_view["mapping"].items(), columns=["Class", "Label"]
+            )
+            self.show_table_section_from_df(
+                df, "<h4>Classes 2 Labels Mapping </h4>"
+            )
         self.show_paragraph_section(
-            f"Count : {over_view["images_len"]}", f"<h4>Total Images </h4>"
+            f"Count : {over_view['images_len']}", "<h4>Total Images </h4>"
         )
         self.content += "<div>\n"
         self.content += "<h4>Invalid Images</h4>\n"
-        self.show_paragraph_section(f"Count : {over_view["invalid_len"]}")
+        self.show_paragraph_section(f"Count : {over_view['invalid_len']}")
         self.show_unoreder_list(over_view["invalid_images"])
         self.content += "</div>\n"
         self.show_table_section_from_df(
@@ -76,25 +79,29 @@ class ImagePreprocessingReport(ReportBase):
         self.content += "<div>\n"
         self.content += "<h2>Splitting</h2>\n"
         self.show_paragraph_section(
-            f"{self.split_data["validation_size"]}", "<h3>Validation Size</h3>\n"
+            f"{self.split_data['validation_size']}",
+            "<h3>Validation Size</h3>\n",
         )
         self.content += "<div>\n"
         self.content += "<h3>Training After Splitting</h3>\n"
         self.show_paragraph_section(
-            f"{self.split_data["training_data_size"]}", f"<h4>Total Images </h4>"
+            f"{self.split_data['training_data_size']}", "<h4>Total Images </h4>"
         )
         self.show_table_section_from_df(
-            self.split_data["random_training_sample"], "<h4>Random Sample</h4>\n"
+            self.split_data["random_training_sample"],
+            "<h4>Random Sample</h4>\n",
         )
 
         self.content += "</div>\n"
         self.content += "<div>\n"
         self.content += "<h3>Validation After Splitting</h3>\n"
         self.show_paragraph_section(
-            f"{self.split_data["validation_data_size"]}", f"<h4>Total Images </h4>"
+            f"{self.split_data['validation_data_size']}",
+            "<h4>Total Images </h4>",
         )
         self.show_table_section_from_df(
-            self.split_data["random_validation_sample"], "<h4>Random Sample</h4>\n"
+            self.split_data["random_validation_sample"],
+            "<h4>Random Sample</h4>\n",
         )
         self.content += "</div>\n"
         self.content += "</div>\n"

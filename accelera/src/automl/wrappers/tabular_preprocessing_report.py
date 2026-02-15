@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 
 from accelera.src.core.report_base import ReportBase
@@ -43,7 +42,9 @@ class TabularPreprocessingReport(ReportBase):
 
     def show_dupplicats(self, obj):
         self.content += "<h3>Duplicates:</h3>\n"
-        self.content += f"<p> number of duplicates rows: {obj['duplicates_sum']}</p>\n"
+        self.content += (
+            f"<p> number of duplicates rows: {obj['duplicates_sum']}</p>\n"
+        )
         self.content += "<p> Percentage of duplicates "
         self.content += f"rows: {obj['duplicates_percentage']} %</p>\n"
 
@@ -99,7 +100,9 @@ class TabularPreprocessingReport(ReportBase):
                 self.content += f"<tr><td>{col}</td><td>{reason}</td></tr>\n"
             self.content += "</table>\n"
             self.show_data_heads(self.drop_columns, "X_trian_head", "X train")
-            self.show_data_heads(self.drop_columns, "X_val_head", "X validation")
+            self.show_data_heads(
+                self.drop_columns, "X_val_head", "X validation"
+            )
 
         else:
             self.content += "<p>No columns were dropped</p>\n"
@@ -110,7 +113,10 @@ class TabularPreprocessingReport(ReportBase):
         self.content += "<h2>Preprocessing</h2>\n"
         self.content += "<table>\n"
 
-        self.content += "<tr><th>Column</th><th>Predicted Type</th><th>Preprocessing Steps</th></tr>\n"
+        self.content += (
+            "<tr><th>Column</th><th>Predicted Type</th>"
+            "<th>Preprocessing Steps</th></tr>\n"
+        )
 
         for item in self.preprocessing:
             col_name, col_type, col_preprocessing = (
@@ -151,10 +157,14 @@ class TabularPreprocessingReport(ReportBase):
         self.after_preprocessing["training_df"] = training_df
         self.after_preprocessing["val_df"] = val_df
         self.show_data_heads(
-            self.after_preprocessing, "training_df", "Training After Preprocessing Head"
+            self.after_preprocessing,
+            "training_df",
+            "Training After Preprocessing Head",
         )
         self.show_data_heads(
-            self.after_preprocessing, "val_df", "Validation After Preprocessing Head"
+            self.after_preprocessing,
+            "val_df",
+            "Validation After Preprocessing Head",
         )
         self.content += "</div>\n"
 

@@ -1,7 +1,9 @@
 import os
 import pickle
-from PIL import Image
+
 import torch
+from PIL import Image
+
 
 def check_path_exists(folder_path, filename):
     path = os.path.join(folder_path, filename)
@@ -35,7 +37,9 @@ def load_pickle(folder_path, filename):
 def lower_data(df):
     for col in df.columns:
         if df[col].dtype == "object":
-            df[col] = df[col].apply(lambda x: x.lower() if isinstance(x, str) else x)
+            df[col] = df[col].apply(
+                lambda x: x.lower() if isinstance(x, str) else x
+            )
 
 
 def drop_columns(X, col_drop):
@@ -57,11 +61,13 @@ def is_valid_image(image_path):
         except Exception:
             return False
     return False
+
+
 def collect_function(batch):
-    images=[item[0]for item in batch]
-    labels=[item[1]for item in batch]
-    images_stack=torch.stack(images,dim=0)
+    images = [item[0] for item in batch]
+    labels = [item[1] for item in batch]
+    images_stack = torch.stack(images, dim=0)
     if labels[0] is None:
         return images_stack
-    labels=torch.tensor(labels,dtype=torch.long)
-    return images_stack,labels
+    labels = torch.tensor(labels, dtype=torch.long)
+    return images_stack, labels

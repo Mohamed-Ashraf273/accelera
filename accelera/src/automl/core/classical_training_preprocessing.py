@@ -11,6 +11,8 @@ from sklearn.preprocessing import StandardScaler
 from accelera.src.automl.core.training_tabular_preprocessing_base import (
     TrainingTabularPreprocessingBase,
 )
+from accelera.src.automl.utils.preprocessing import drop_columns
+from accelera.src.automl.utils.preprocessing import save_pickle
 from accelera.src.automl.wrappers.categorical_classification import (
     CategoricalClassification,
 )
@@ -39,10 +41,6 @@ from accelera.src.automl.wrappers.target_classification import (
     TargetClassification,
 )
 from accelera.src.automl.wrappers.target_regression import TargetRegression
-from accelera.src.automl.utils.preprocessing import (
-    save_pickle,
-    drop_columns,
-)
 
 
 class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
@@ -87,7 +85,9 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             or self.df[self.target_col].nunique() == 2
         ):
             raise ValueError("Target must be numeric for regression problem")
-        save_pickle(self.folder_path, self.df.columns.tolist(), "data_columns.pkl")
+        save_pickle(
+            self.folder_path, self.df.columns.tolist(), "data_columns.pkl"
+        )
 
     def is_drop_column(self, info, col):
         if info[col].get("is_constant", False):
@@ -96,7 +96,10 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             info[col].get("dtype") == "object"
             or np.issubdtype(info[col].get("dtype"), np.integer)
         ):
-            return (True, f"It is above unique_threshold {self.unique_threshold}")
+            return (
+                True,
+                f"It is above unique_threshold {self.unique_threshold}",
+            )
         elif info[col].get("p_missing", 0) > self.missing_threshold:
             return (
                 True,
@@ -115,7 +118,10 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         return (lower, upper)
 
     def check_binary(self, col, info):
-        if info[col].get("n_unique", 0) == 2 or info[col].get("dtype") == "bool":
+        if (
+            info[col].get("n_unique", 0) == 2
+            or info[col].get("dtype") == "bool"
+        ):
             return True
 
     def get_data_info(self, X_train, y_train):
@@ -226,9 +232,10 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                     frequency_cols.append(col)
             else:
                 info[col]["col_type"] = "other"
-                info[col][
-                    "preprossing_steps"
-                ] = f"Drop column because its type {info[col]['dtype']} is not supported"
+                info[col]["preprossing_steps"] = (
+                    f"Drop column because its type {info[col]['dtype']} "
+                    f"is not supported"
+                )
                 others.append(col)
             self.report_data["preprocessing"].append(
                 {
@@ -293,7 +300,10 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 )
                 graph.build_graph()
                 self.report_data["graphs"]["images_name"].append(f"{col}")
-            if info[col]["col_type"] == "ordinal" and self.problem_type == "regression":
+            if (
+                info[col]["col_type"] == "ordinal"
+                and self.problem_type == "regression"
+            ):
                 graph = OrdinalRegression(
                     new_df,
                     col,
@@ -452,7 +462,9 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             label_encoder = LabelEncoder()
             y_train = label_encoder.fit_transform(y_train)
             y_val = label_encoder.transform(y_val)
-            save_pickle(self.folder_path, label_encoder, "target_preprocessor.pkl")
+            save_pickle(
+                self.folder_path, label_encoder, "target_preprocessor.pkl"
+            )
             target_dict["mode"] = info[self.target_col]["mode"]
             self.report_data["preprocessing"].append(
                 {
@@ -472,8 +484,12 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             y_train = stander_scaler.fit_transform(
                 y_train.values.reshape(-1, 1)
             ).ravel()
-            y_val = stander_scaler.transform(y_val.values.reshape(-1, 1)).ravel()
-            save_pickle(self.folder_path, stander_scaler, "target_preprocessor.pkl")
+            y_val = stander_scaler.transform(
+                y_val.values.reshape(-1, 1)
+            ).ravel()
+            save_pickle(
+                self.folder_path, stander_scaler, "target_preprocessor.pkl"
+            )
             self.report_data["preprocessing"].append(
                 {
                     "col_name": self.target_col,
@@ -484,12 +500,12 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                     ],
                 }
             )
-        self.report_data["after_preprocessing"]["y_train_processed"] = pd.DataFrame(
-            y_train, columns=[self.target_col]
-        ).head()
-        self.report_data["after_preprocessing"]["y_val_processed"] = pd.DataFrame(
-            y_val, columns=[self.target_col]
-        ).head()
+        self.report_data["after_preprocessing"]["y_train_processed"] = (
+            pd.DataFrame(y_train, columns=[self.target_col]).head()
+        )
+        self.report_data["after_preprocessing"]["y_val_processed"] = (
+            pd.DataFrame(y_val, columns=[self.target_col]).head()
+        )
         save_pickle(self.folder_path, target_dict, "target_info.pkl")
         return y_train, y_val
 

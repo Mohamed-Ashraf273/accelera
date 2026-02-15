@@ -36,7 +36,9 @@ class TorchDenseModel(CustomClassifier):
 
         self.model = None
         print("cuda" if torch.cuda.is_available() else "cpu")
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu"
+        )
 
     def _build_model(self, input_dim, num_classes):
         return nn.Sequential(
@@ -53,7 +55,9 @@ class TorchDenseModel(CustomClassifier):
         num_classes = len(np.unique(y))
 
         if self.model is None:
-            self.model = self._build_model(n_features, num_classes).to(self.device)
+            self.model = self._build_model(n_features, num_classes).to(
+                self.device
+            )
 
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
@@ -105,7 +109,9 @@ def get_memory_info():
         "rss_mb": memory_info.rss / 1024 / 1024,  # Resident Set Size
         "vms_mb": memory_info.vms / 1024 / 1024,  # Virtual Memory Size
         "swap_mb": (
-            memory_full.swap / 1024 / 1024 if hasattr(memory_full, "swap") else 0
+            memory_full.swap / 1024 / 1024
+            if hasattr(memory_full, "swap")
+            else 0
         ),
     }
 
@@ -250,7 +256,9 @@ p.branch(
         average=None,
         branch=True,
     ),
-    p.metric("f1_sco_2", "f1_score", y_true=y_test, branch=True, average="macro"),
+    p.metric(
+        "f1_sco_2", "f1_score", y_true=y_test, branch=True, average="macro"
+    ),
 )
 
 
@@ -258,7 +266,9 @@ def custom_metric_selector(metrics):
     best_model_name = None
     best_first_class_score = -1
 
-    f1_scores = [d["result"][0] for d in metrics if d["metric name"] == "f1_score"]
+    f1_scores = [
+        d["result"][0] for d in metrics if d["metric name"] == "f1_score"
+    ]
 
     for i, f1_score in enumerate(f1_scores):
         if f1_score > best_first_class_score:

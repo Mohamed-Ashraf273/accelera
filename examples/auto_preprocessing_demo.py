@@ -4,15 +4,19 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
 from sklearn.metrics import mean_squared_error
 from sklearn.svm import SVC
-from sklearn.metrics import confusion_matrix, classification_report
+
 from accelera.src.automl.core.classical_testing_preprocessing import (
     ClassicalTestingPreprocessing,
 )
-from accelera.src.automl.core.text_testing_preprocesing import TextTestingPreprocessing
 from accelera.src.automl.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
+)
+from accelera.src.automl.core.text_testing_preprocesing import (
+    TextTestingPreprocessing,
 )
 from accelera.src.automl.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
@@ -80,7 +84,9 @@ print("Actual")
 print(y_test)
 
 #####################################################3
-print("----------------------------Heart Disease Dataset-----------------------")
+print(
+    "----------------------------Heart Disease Dataset-----------------------"
+)
 
 heart_df = pd.read_csv("./heart.csv")
 
@@ -182,7 +188,9 @@ X_test, y_test = testing_preprocessor.common_preprocessing()
 print("Predictions:")
 print(model.predict(X_test))
 print("correct prediction:", y_test)
-print("----------------------------Sentiment analysis dataset-----------------------")
+print(
+    "------------------------Sentiment analysis dataset-----------------------"
+)
 
 sentiment_df = pd.read_csv("./DailyDialog.csv")
 training_preprocessor = TextTrainingPreprocessing(

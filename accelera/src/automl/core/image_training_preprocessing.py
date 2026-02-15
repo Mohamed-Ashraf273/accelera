@@ -1,7 +1,9 @@
+import os
+
+import pandas as pd
+
 from accelera.src.automl.core.preprocessing_base import PreprocessingBase
 from accelera.src.automl.utils.preprocessing import check_path_exists
-import os
-import pandas as pd
 
 
 class ImageTrainingPreprocessing(PreprocessingBase):
@@ -50,32 +52,26 @@ class ImageTrainingPreprocessing(PreprocessingBase):
         check_path_exists(self.training_folder_images, "")
         if self.validation_folder_images is not None:
             check_path_exists(self.validation_folder_images, "")
-            if self.split_training == True:
+            if self.split_training:
                 raise ValueError(
-                    "The validation folder not none so there is no need for splitting data again to training and validation"
+                    "The validation folder not none so there is no need "
+                    "for splitting data again to training and validation"
                 )
             if self.training_folder_images == self.validation_folder_images:
                 raise ValueError(
-                    "The validation folder and training folder must be different"
+                    "The validation folder and training folder must be "
+                    "different"
                 )
 
         if (not (isinstance(self.val_size, (int, float)))) or (
             not (0 < self.val_size < 0.5)
         ):
             raise ValueError("Test size is invalid it must be less than 0.5")
-        if (self.random_state is not None) and not (isinstance(self.random_state, int)):
-            raise ValueError("Random state is invalid it must be integer or None")
-        if not isinstance(self.image_size, tuple):
-            raise ValueError("Image size must be tuple")
-        if not isinstance(self.image_size[0], int) or not isinstance(
-            self.image_size[1], int
-        ):
-            raise ValueError("Image size is not integer")
-        if not (32 <= self.image_size[0] <= 1024) or not (
-            32 <= self.image_size[1] <= 1024
+        if (self.random_state is not None) and not (
+            isinstance(self.random_state, int)
         ):
             raise ValueError(
-                "Image size is must be greater than or equal 32 and less than or equal 1024"
+                "Random state is invalid it must be integer or None"
             )
         if not isinstance(self.image_size, tuple):
             raise ValueError("Image size must be tuple")
@@ -87,7 +83,21 @@ class ImageTrainingPreprocessing(PreprocessingBase):
             32 <= self.image_size[1] <= 1024
         ):
             raise ValueError(
-                "Image size is must be greater than or equal 32 and less than or equal 1024"
+                "Image size is must be greater than or equal 32 and "
+                "less than or equal 1024"
+            )
+        if not isinstance(self.image_size, tuple):
+            raise ValueError("Image size must be tuple")
+        if not isinstance(self.image_size[0], int) or not isinstance(
+            self.image_size[1], int
+        ):
+            raise ValueError("Image size is not integer")
+        if not (32 <= self.image_size[0] <= 1024) or not (
+            32 <= self.image_size[1] <= 1024
+        ):
+            raise ValueError(
+                "Image size is must be greater than or equal 32 and "
+                "less than or equal 1024"
             )
 
         if not isinstance(self.augment, bool):
@@ -111,21 +121,29 @@ class ImageTrainingPreprocessing(PreprocessingBase):
             0 <= self.augmentation_probability <= 1
         ):
             raise ValueError("augmentation_probability must be between [0,1]")
-        if not isinstance(self.rotation_angle, (int, float)) or self.rotation_angle < 0:
+        if (
+            not isinstance(self.rotation_angle, (int, float))
+            or self.rotation_angle < 0
+        ):
             raise ValueError("rotation_angle mustn't be negative")
 
         if (
             not isinstance(self.brightness_factors, tuple)
             or len(self.brightness_factors) != 2
-            or not all(isinstance(x, (int, float)) for x in self.brightness_factors)
+            or not all(
+                isinstance(x, (int, float)) for x in self.brightness_factors
+            )
         ):
             raise ValueError(
-                "brightness_factors must be tuple of two items float or integers"
+                "brightness_factors must be tuple of two items float "
+                "or integers"
             )
         if (
             not isinstance(self.contrast_factors, tuple)
             or len(self.contrast_factors) != 2
-            or not all(isinstance(x, (int, float)) for x in self.contrast_factors)
+            or not all(
+                isinstance(x, (int, float)) for x in self.contrast_factors
+            )
         ):
             raise ValueError(
                 "contrast_factors must be tuple of two items float or integers"

@@ -1,15 +1,18 @@
+import io
+import os
+
+from sklearn.model_selection import train_test_split
+
 from accelera.src.automl.core.tabular_preprocessing_base import (
     TabularPreprocessingBase,
 )
 from accelera.src.automl.utils.preprocessing import lower_data
 
-from sklearn.model_selection import train_test_split
-import os
-import io
-
 
 class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
-    def __init__(self, df, target_col, val_size, random_state, folder_path=None):
+    def __init__(
+        self, df, target_col, val_size, random_state, folder_path=None
+    ):
         super().__init__(df, folder_path)
         self.target_col = target_col
         self.val_size = val_size
@@ -22,10 +25,16 @@ class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
         if (not (isinstance(self.val_size, (int, float)))) or (
             not (0 <= self.val_size <= 0.5)
         ):
-            raise ValueError("test size is invalid it must be less than or equal 0.5")
+            raise ValueError(
+                "test size is invalid it must be less than or equal 0.5"
+            )
 
-        if not (self.random_state is None) and not (isinstance(self.random_state, int)):
-            raise ValueError("random state is invalid it must be integer or None")
+        if self.random_state is not None and not (
+            isinstance(self.random_state, int)
+        ):
+            raise ValueError(
+                "random state is invalid it must be integer or None"
+            )
 
         self.target_type = self.df[self.target_col].dtype
         os.makedirs(self.folder_path, exist_ok=True)

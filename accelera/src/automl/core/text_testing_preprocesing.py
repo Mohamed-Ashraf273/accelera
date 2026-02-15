@@ -1,11 +1,9 @@
 from accelera.src.automl.core.testing_tabular_preprocessing_base import (
     TestingTabularPreprocessingBase,
 )
-from accelera.src.automl.utils.preprocessing import (
-    load_pickle,
-    check_path_exists,
-    lower_data,
-)
+from accelera.src.automl.utils.preprocessing import check_path_exists
+from accelera.src.automl.utils.preprocessing import load_pickle
+from accelera.src.automl.utils.preprocessing import lower_data
 
 
 class TextTestingPreprocessing(TestingTabularPreprocessingBase):
@@ -17,7 +15,9 @@ class TextTestingPreprocessing(TestingTabularPreprocessingBase):
         self.text_col = self.data_info["text_col"]
         self.target_mode = self.data_info["target_mode"]
         if self.text_col == self.target_col:
-            raise ValueError("target column and text column must not be the same")
+            raise ValueError(
+                "target column and text column must not be the same"
+            )
         if self.text_col not in self.df.columns:
             raise ValueError(f"data dose not has this text col {self.text_col}")
         if self.target_col not in self.df.columns:
