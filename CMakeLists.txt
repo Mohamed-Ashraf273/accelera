@@ -11,7 +11,7 @@ endif()
 if(UNIX AND NOT APPLE)
     message(STATUS "Linux detected - Setting up LLVM/Clang for code parallelizer")
     
-    # Try to find LLVM 18 first (the version we install in CI)
+    # Try to find LLVM 18 first
     find_package(LLVM 18 QUIET CONFIG)
     if(NOT LLVM_FOUND)
         # Fallback to any LLVM version if 18 not found
