@@ -26,13 +26,14 @@ jobs:
           sudo apt-get install -y cmake build-essential
       - name: Install LLVM/Clang for code parallelizer
         run: |
-          # Remove broken LLVM cmake configs to force finding LLVM 18
-          sudo rm -rf /usr/lib/cmake/clang-* /usr/lib/llvm-*/lib/cmake 2>/dev/null || true
-          # Install LLVM 18
+          # Install LLVM 18 first
           sudo bash shell/install_llvm.sh 18
+          # Remove broken LLVM cmake configs from other versions (but keep LLVM 18)
+          sudo rm -rf /usr/lib/cmake/clang-1[0-7] /usr/lib/llvm-1[0-7]/lib/cmake 2>/dev/null || true
           # Verify LLVM 18 is properly installed
           llvm-config-18 --version
           clang-18 --version
+          ls -la /usr/lib/llvm-18/lib/cmake/
           clang-18 --version
       - name: Get pip cache dir
         id: pip-cache
