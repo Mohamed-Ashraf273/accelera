@@ -27,6 +27,11 @@ jobs:
       - name: Install LLVM/Clang for code parallelizer
         run: |
           sudo bash shell/install_llvm.sh 18
+          sudo rm -rf /usr/lib/cmake/clang-1[0-7] /usr/lib/llvm-1[0-7]/lib/cmake 2>/dev/null || true
+          llvm-config-18 --version
+          clang-18 --version
+          ls -la /usr/lib/llvm-18/lib/cmake/
+          clang-18 --version
       - name: Get pip cache dir
         id: pip-cache
         run: |

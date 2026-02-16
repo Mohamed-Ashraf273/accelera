@@ -6,4 +6,15 @@ __pycache__/
 cache/
 report/
 test.xml
+examples/PetImages
+examples/PetImagesReport
+examples/reviews
+examples/sentiment
+examples/iris
+examples/titanic_preprocessing
+examples/heart
+examples/house_price_preprocessing
+examples/PurchaseStatus
+
+
 /models

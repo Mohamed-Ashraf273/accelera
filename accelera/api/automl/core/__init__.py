@@ -5,10 +5,49 @@ since your modifications would be overwritten.
 """
 
 from accelera.src.automl.core import agent as agent
-from accelera.src.automl.core import preprocessing_base as preprocessing_base
 from accelera.src.automl.core import (
-    testing_preprocessing as testing_preprocessing,
+    classical_testing_preprocessing as classical_testing_preprocessing,
 )
 from accelera.src.automl.core import (
-    training_preprocessing as training_preprocessing,
+    classical_testing_preprocessing_test as classical_testing_preprocessing_test,
+)
+from accelera.src.automl.core import (
+    classical_training_preprocessing as classical_training_preprocessing,
+)
+from accelera.src.automl.core import (
+    classical_training_preprocessing_test as classical_training_preprocessing_test,
+)
+from accelera.src.automl.core import (
+    classification_image_dataset as classification_image_dataset,
+)
+from accelera.src.automl.core import (
+    classification_image_testing_preprocessing as classification_image_testing_preprocessing,
+)
+from accelera.src.automl.core import (
+    classification_image_training_preprocessing as classification_image_training_preprocessing,
+)
+from accelera.src.automl.core import (
+    image_training_preprocessing as image_training_preprocessing,
+)
+from accelera.src.automl.core import preprocessing_base as preprocessing_base
+from accelera.src.automl.core import (
+    tabular_preprocessing_base as tabular_preprocessing_base,
+)
+from accelera.src.automl.core import (
+    testing_tabular_preprocessing_base as testing_tabular_preprocessing_base,
+)
+from accelera.src.automl.core import (
+    text_testing_preprocesing as text_testing_preprocesing,
+)
+from accelera.src.automl.core import (
+    text_testing_preprocessing_test as text_testing_preprocessing_test,
+)
+from accelera.src.automl.core import (
+    text_training_preprocessing as text_training_preprocessing,
+)
+from accelera.src.automl.core import (
+    text_training_preprocessing_test as text_training_preprocessing_test,
+)
+from accelera.src.automl.core import (
+    training_tabular_preprocessing_base as training_tabular_preprocessing_base,
 )

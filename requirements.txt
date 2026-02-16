@@ -19,3 +19,5 @@ pytest-cov
 namex
 matplotlib
 seaborn
+nltk
+torch

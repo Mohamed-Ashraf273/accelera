@@ -1,5 +1,5 @@
-from accelera.src.automl.core.training_preprocessing import (
-    TrainingPreprocessing,
+from accelera.src.automl.core.classical_training_preprocessing import (
+    ClassicalTrainingPreprocessing,
 )
 from accelera.src.automl.utils.sampler import sample
 from accelera.src.utils.accelera_utils import print_msg
@@ -20,7 +20,7 @@ class AutoAccelera:
 
     def get_pipeline(self, df, target_column: str):
         print_msg("Getting pipeline for the given dataset...", level="info")
-        tp = TrainingPreprocessing(
+        tp = ClassicalTrainingPreprocessing(
             df,
             target_column,
             problem_type=self.problem_type,
