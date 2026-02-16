@@ -20,3 +20,4 @@ namex
 matplotlib
 seaborn
 nltk
+torch
