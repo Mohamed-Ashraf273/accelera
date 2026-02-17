@@ -145,7 +145,6 @@ class TestTextTrainingPreprocessing:
         tp.data_overview()
         tp.drop_duplicates()
         shape_after_drop = tp.df.shape
-        print("shape", self.df, "shape", shape_after_drop)
         assert shape_after_drop[0] == shape_before_drop[0] - 1
         assert shape_after_drop[1] == shape_before_drop[1]
         assert tp.report_data["drop_duplicates"]["shape"] == shape_after_drop
@@ -236,7 +235,7 @@ class TestTextTrainingPreprocessing:
         training_preprocessor = TfidfVectorizer(
             max_features=5000,
             ngram_range=(1, 2),
-            max_df=0.8,
+            max_df=0.85,
             min_df=3,
             tokenizer=tp.custom_text_tokenizer,
             token_pattern=None,

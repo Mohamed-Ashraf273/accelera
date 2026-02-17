@@ -422,6 +422,7 @@ class TestClassicalTrainingPreprocessing:
             one_hot_cols,
             frequency_cols,
             ordinal_cols,
+            date_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
         assert set(binary_cols) == {"binary_feature"}
@@ -452,6 +453,7 @@ class TestClassicalTrainingPreprocessing:
             one_hot_cols,
             frequency_cols,
             ordinal_cols,
+            date_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
         training_preprocessing.make_graphs(X_train, y_train, info)
@@ -495,6 +497,7 @@ class TestClassicalTrainingPreprocessing:
             one_hot_cols,
             frequency_cols,
             ordinal_cols,
+            date_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
         X_train_processed, X_val_processed = (
@@ -507,6 +510,7 @@ class TestClassicalTrainingPreprocessing:
                 one_hot_cols,
                 frequency_cols,
                 ordinal_cols,
+                date_cols
             )
         )
         assert X_train_processed.shape[0] == X_train.shape[0]
@@ -533,6 +537,7 @@ class TestClassicalTrainingPreprocessing:
             one_hot_cols,
             frequency_cols,
             ordinal_cols,
+            date_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
         X_train_processed, X_val_processed = (
@@ -545,6 +550,7 @@ class TestClassicalTrainingPreprocessing:
                 one_hot_cols,
                 frequency_cols,
                 ordinal_cols,
+                date_cols
             )
         )
         imputer = SimpleImputer(strategy="median")
@@ -583,6 +589,7 @@ class TestClassicalTrainingPreprocessing:
             one_hot_cols,
             frequency_cols,
             ordinal_cols,
+            date_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
         X_train_processed, X_val_processed = (
@@ -595,6 +602,7 @@ class TestClassicalTrainingPreprocessing:
                 one_hot_cols,
                 frequency_cols,
                 ordinal_cols,
+                date_cols
             )
         )
         imputer = SimpleImputer(strategy="most_frequent")
@@ -631,6 +639,7 @@ class TestClassicalTrainingPreprocessing:
             one_hot_cols,
             frequency_cols,
             ordinal_cols,
+            date_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
         X_train_processed, X_val_processed = (
@@ -643,6 +652,7 @@ class TestClassicalTrainingPreprocessing:
                 one_hot_cols,
                 frequency_cols,
                 ordinal_cols,
+                date_cols
             )
         )
         imputer = SimpleImputer(strategy="most_frequent")
@@ -688,6 +698,7 @@ class TestClassicalTrainingPreprocessing:
             one_hot_cols,
             frequency_cols,
             ordinal_cols,
+            date_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
         X_train_processed, X_val_processed = (
@@ -700,6 +711,7 @@ class TestClassicalTrainingPreprocessing:
                 one_hot_cols,
                 frequency_cols,
                 ordinal_cols,
+                date_cols
             )
         )
         imputer = SimpleImputer(strategy="most_frequent")
@@ -739,6 +751,7 @@ class TestClassicalTrainingPreprocessing:
             one_hot_cols,
             frequency_cols,
             ordinal_cols,
+            date_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
         X_train_processed, X_val_processed = (
@@ -751,6 +764,7 @@ class TestClassicalTrainingPreprocessing:
                 one_hot_cols,
                 frequency_cols,
                 ordinal_cols,
+                date_cols
             )
         )
         y_train_processed, y_val_processed = (
@@ -793,6 +807,7 @@ class TestClassicalTrainingPreprocessing:
             one_hot_cols,
             frequency_cols,
             ordinal_cols,
+            date_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
         X_train_processed, X_val_processed = (
@@ -805,6 +820,7 @@ class TestClassicalTrainingPreprocessing:
                 one_hot_cols,
                 frequency_cols,
                 ordinal_cols,
+                date_cols
             )
         )
         y_train_processed, y_val_processed = (

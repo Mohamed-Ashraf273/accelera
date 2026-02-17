@@ -41,7 +41,7 @@ from accelera.src.automl.wrappers.target_classification import (
     TargetClassification,
 )
 from accelera.src.automl.wrappers.target_regression import TargetRegression
-
+from accelera.src.automl.wrappers.date_feature_extractor import DateFeatureExtractor
 
 class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
     def __init__(
@@ -85,9 +85,25 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             or self.df[self.target_col].nunique() == 2
         ):
             raise ValueError("Target must be numeric for regression problem")
-        save_pickle(
-            self.folder_path, self.df.columns.tolist(), "data_columns.pkl"
-        )
+
+        if (
+            not isinstance(self.cardinality_threshold, int)
+            or self.cardinality_threshold < 0
+        ):
+            raise ValueError("cardinality_threshold must be positive integer")
+
+        if not isinstance(self.max_unique_ordinal, int) or self.max_unique_ordinal < 0:
+            raise ValueError("max_unique_ordinal must be positive integer")
+        if not isinstance(self.missing_threshold, float) or not (
+            0 <= self.missing_threshold <= 1
+        ):
+            raise ValueError("missing_threshold must be float between 0 and 1")
+        if not isinstance(self.unique_threshold, float) or not (
+            0 <= self.unique_threshold <= 1
+        ):
+            raise ValueError("unique_threshold must be float between 0 and 1")
+
+        save_pickle(self.folder_path, self.df.columns.tolist(), "data_columns.pkl")
 
     def is_drop_column(self, info, col):
         if info[col].get("is_constant", False):
@@ -118,10 +134,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         return (lower, upper)
 
     def check_binary(self, col, info):
-        if (
-            info[col].get("n_unique", 0) == 2
-            or info[col].get("dtype") == "bool"
-        ):
+        if info[col].get("n_unique", 0) == 2 or info[col].get("dtype") == "bool":
             return True
 
     def get_data_info(self, X_train, y_train):
@@ -179,10 +192,17 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         frequency_cols = []
         ordinal_cols = []
         others = []
+        date_cols=[]
         self.report_data["preprocessing"] = []
         for col in X_train.columns:
-            is_binary = self.check_binary(col, info)
-            if is_binary:
+            if np.issubdtype(info[col]["dtype"],np.datetime64):
+                date_cols.append(col)
+                info[col]["col_type"] = "datetime64"
+                info[col]["preprossing_steps"] = [
+                        "Fill missing with most frequent",
+                        "Extract year, month, day, weekday, hour",
+                    ]
+            elif self.check_binary(col, info):
                 info[col]["col_type"] = "binary"
                 info[col]["preprossing_steps"] = [
                     "Fill missing with most frequent",
@@ -214,7 +234,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                     "Standard scaling",
                 ]
                 numerical_cols.append(col)
-
+            
             elif info[col]["dtype"] == "object":
                 if info[col]["n_unique"] <= self.cardinality_threshold:
                     info[col]["col_type"] = "low level cardinality"
@@ -230,6 +250,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                         "Frequency encoding",
                     ]
                     frequency_cols.append(col)
+                
             else:
                 info[col]["col_type"] = "other"
                 info[col]["preprossing_steps"] = (
@@ -250,6 +271,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             one_hot_cols,
             frequency_cols,
             ordinal_cols,
+            date_cols,
             others,
         )
 
@@ -300,10 +322,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 )
                 graph.build_graph()
                 self.report_data["graphs"]["images_name"].append(f"{col}")
-            if (
-                info[col]["col_type"] == "ordinal"
-                and self.problem_type == "regression"
-            ):
+            if info[col]["col_type"] == "ordinal" and self.problem_type == "regression":
                 graph = OrdinalRegression(
                     new_df,
                     col,
@@ -374,6 +393,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         one_hot_cols,
         frequency_cols,
         ordinal_cols,
+        date_cols
     ):
         numerical_pipeline = Pipeline(
             [
@@ -423,6 +443,14 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 ),
             ]
         )
+        date_pipeline=Pipeline(
+            [
+                (
+                    "date_extractor",
+                    DateFeatureExtractor(cols=date_cols),
+                ),
+            ]
+        )
         preprocessor = ColumnTransformer(
             transformers=[
                 ("onehot", one_hot_pipeline, one_hot_cols),
@@ -430,6 +458,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 ("binary", binary_pipeline, binary_cols),
                 ("frequency", frequency_pipeline, frequency_cols),
                 ("ordinal", ordinal_pipeline, ordinal_cols),
+                ("date", date_pipeline, date_cols),
             ],
             remainder="drop",
         )
@@ -462,9 +491,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             label_encoder = LabelEncoder()
             y_train = label_encoder.fit_transform(y_train)
             y_val = label_encoder.transform(y_val)
-            save_pickle(
-                self.folder_path, label_encoder, "target_preprocessor.pkl"
-            )
+            save_pickle(self.folder_path, label_encoder, "target_preprocessor.pkl")
             target_dict["mode"] = info[self.target_col]["mode"]
             self.report_data["preprocessing"].append(
                 {
@@ -484,12 +511,8 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             y_train = stander_scaler.fit_transform(
                 y_train.values.reshape(-1, 1)
             ).ravel()
-            y_val = stander_scaler.transform(
-                y_val.values.reshape(-1, 1)
-            ).ravel()
-            save_pickle(
-                self.folder_path, stander_scaler, "target_preprocessor.pkl"
-            )
+            y_val = stander_scaler.transform(y_val.values.reshape(-1, 1)).ravel()
+            save_pickle(self.folder_path, stander_scaler, "target_preprocessor.pkl")
             self.report_data["preprocessing"].append(
                 {
                     "col_name": self.target_col,
@@ -500,12 +523,12 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                     ],
                 }
             )
-        self.report_data["after_preprocessing"]["y_train_processed"] = (
-            pd.DataFrame(y_train, columns=[self.target_col]).head()
-        )
-        self.report_data["after_preprocessing"]["y_val_processed"] = (
-            pd.DataFrame(y_val, columns=[self.target_col]).head()
-        )
+        self.report_data["after_preprocessing"]["y_train_processed"] = pd.DataFrame(
+            y_train, columns=[self.target_col]
+        ).head()
+        self.report_data["after_preprocessing"]["y_val_processed"] = pd.DataFrame(
+            y_val, columns=[self.target_col]
+        ).head()
         save_pickle(self.folder_path, target_dict, "target_info.pkl")
         return y_train, y_val
 
@@ -521,8 +544,10 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             one_hot_cols,
             frequency_cols,
             ordinal_cols,
+            date_cols,
             _,
         ) = self.detect_column_types(X_train, info)
+        print(date_cols)
         self.make_graphs(X_train, y_train, info)
         X_train, X_val = self.features_preprocessing(
             X_train,
@@ -533,6 +558,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             one_hot_cols,
             frequency_cols,
             ordinal_cols,
+            date_cols
         )
         y_train, y_val = self.target_preprocessing(y_train, y_val, info)
         report = TabularPreprocessingReport(self.folder_path, self.report_data)

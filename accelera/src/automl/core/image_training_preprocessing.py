@@ -64,7 +64,7 @@ class ImageTrainingPreprocessing(PreprocessingBase):
                 )
 
         if (not (isinstance(self.val_size, (int, float)))) or (
-            not (0 < self.val_size < 0.5)
+            not (0 < self.val_size <= 0.5)
         ):
             raise ValueError("Test size is invalid it must be less than 0.5")
         if (self.random_state is not None) and not (
