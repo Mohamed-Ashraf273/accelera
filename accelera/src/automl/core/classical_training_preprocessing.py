@@ -547,7 +547,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             date_cols,
             _,
         ) = self.detect_column_types(X_train, info)
-        print(date_cols)
         self.make_graphs(X_train, y_train, info)
         X_train, X_val = self.features_preprocessing(
             X_train,

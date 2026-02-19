@@ -16,6 +16,8 @@ examples/heart
 examples/house_price_preprocessing
 examples/PurchaseStatus
 examples/date
+examples/segmentation_dataset
+examples/SegmentationReport
 
 
 /models

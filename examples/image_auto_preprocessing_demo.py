@@ -7,7 +7,7 @@ from accelera.src.automl.core.classification_image_training_preprocessing import
 from accelera.src.automl.wrappers.classification_images_after_loader import (
     ClassificationImagesAfterLoader,
 )
-
+from accelera.src.automl.core.segmentation_image_training_preprocessing import SegmentationImageTrainingPreprocessing
 training_preprocessor = ClassificationImageTrainingPreprocessing(
     training_folder_images="./PetImages",
     folder_path="PetImagesReport",
@@ -36,3 +36,16 @@ graph = ClassificationImagesAfterLoader(
     file_name="Testing",
 )
 graph.build_graph()
+#--------------------------------------------------------
+# Segementation
+
+training_preprocessor = SegmentationImageTrainingPreprocessing(
+    training_folder_images="./segmentation_dataset/segmentation_full_body/images",
+    training_folder_masks="./segmentation_dataset/segmentation_full_body/masks",
+    folder_path="SegmentationReport",
+    validation_folder_images=None,
+    split_training=True,
+    val_size=0.2,
+    random_state=23,
+    images_size=(224, 224),
+).common_preprocessing()

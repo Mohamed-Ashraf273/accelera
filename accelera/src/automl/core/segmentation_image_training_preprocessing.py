@@ -2,35 +2,38 @@ import os
 
 from torch.utils.data import DataLoader
 
-from accelera.src.automl.core.classification_image_dataset import (
-    ClassificationImageDataset,
-)
+
 from accelera.src.automl.core.image_training_preprocessing import (
     ImageTrainingPreprocessing,
 )
-from accelera.src.automl.utils.preprocessing import get_sub_folders_names
 from accelera.src.automl.utils.preprocessing import is_valid_image
-from accelera.src.automl.utils.preprocessing import save_pickle
-from accelera.src.automl.wrappers.classification_images_after_loader import (
-    ClassificationImagesAfterLoader,
+from accelera.src.automl.utils.preprocessing import save_pickle, check_path_exists
+from accelera.src.automl.wrappers.segmentation_images_after_loader import (
+    SegmentationImagesAfterLoader,
 )
-from accelera.src.automl.wrappers.display_sample_images_classification import (
-    DisplaySampleImagesClassification,
+from accelera.src.automl.wrappers.display_sample_images_segmentation import (
+    DisplaySampleImagesSegmentation,
 )
-from accelera.src.automl.wrappers.image_label_classification import (
-    ImageLabelClassification,
-)
+
 from accelera.src.automl.wrappers.image_preprocessing_report import (
     ImagePreprocessingReport,
 )
+from accelera.src.automl.core.segmentation_image_dataset import SegmentationImageDataset
+from accelera.src.automl.wrappers.segmentation_data_summary import (
+    Segmentation_data_summary,
+)
 
 
-class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
+class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
     def __init__(
         self,
         training_folder_images,
+        training_folder_masks,
         folder_path,
+        mask_type="binary",
+        mask_classes=0,
         validation_folder_images=None,
+        validation_folder_masks=None,
         split_training=False,
         val_size=0.2,
         random_state=42,
@@ -67,160 +70,149 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             contrast,
             contrast_factors,
         )
-        self.training_class = get_sub_folders_names(self.training_folder)
-        self.validation_class = None
-        self.training_folder_invalid_images = []
-        self.training_folder_invalid_images_labels = []
-        self.validation_folder_invalid_images = []
-        self.validation_folder_invalid_images_labels = []
-        if self.validation_folder is not None:
-            self.validation_class = get_sub_folders_names(self.validation_folder)
-            for class_name in self.validation_class:
-                if class_name not in self.training_class:
-                    raise ValueError(
-                        f"This category {class_name} not in the training "
-                        f"categories which are {self.training_class}"
-                    )
+
+        self.training_folder_masks = training_folder_masks
+        self.validation_folder_masks = validation_folder_masks
+        self.mask_type = mask_type
+        self.mask_classes = mask_classes
         (
             self.validation_folder_images_paths,
-            self.validation_folder_images_labels,
+            self.validation_folder_masks_paths,
         ) = (
             None,
             None,
         )
-        data_info = {"image_size": self.image_size}
+        self.training_invalid_images_paths = []
+        self.training_invalid_masks_paths = []
+        self.validation_invalid_images_paths = []
+        self.validation_invalid_masks_paths = []
+        if self.training_folder_masks is None:
+            raise ValueError("Training folder masks must be not null")
+        check_path_exists(self.training_folder_masks, "")
+        if self.training_folder == self.training_folder_masks:
+            raise ValueError(
+                "training folder images and training folder masks must be different"
+            )
+        if self.mask_type is None or self.mask_type.lower() not in [
+            "binary",
+            "multi_class",
+            "color_map",
+        ]:
+            raise ValueError("mask type must be in ['binary','multi_class']")
+        if self.mask_type == "multi_class" and (
+            self.mask_classes is None or self.mask_classes <=2
+        ):
+            raise ValueError(
+                "mask_classes must be greater than 2  because mask type is multi_class"
+            )
+        if self.validation_folder is not None:
+            if self.validation_folder_masks is None:
+                raise ValueError("Validation folder masks must be not null")
+            check_path_exists(self.validation_folder_masks, "")
+            if self.validation_folder == self.validation_folder_masks:
+                raise ValueError(
+                    "validation folder images and validation folder masks must be different"
+                )
+        data_info = {"image_size": self.image_size, "mask_type": self.mask_type}
         save_pickle(self.folder_path, data_info, "data_info.pkl")
 
-    def get_classes_mapping(self):
-        self.class2label_mapping = {}
-        self.label2class_mapping = {}
-        for idx, class_name in enumerate(sorted(self.training_class)):
-            self.class2label_mapping[class_name] = idx
-            self.label2class_mapping[idx] = class_name
-        save_pickle(
-            self.folder_path,
-            self.class2label_mapping,
-            "class2label_mapping.pkl",
-        )
-        save_pickle(
-            self.folder_path,
-            self.label2class_mapping,
-            "label2class_mapping.pkl",
-        )
-
     def data_preparing(
-        self, folder_path, invalid_list_paths, invalid_list_labels, classes_name
+        self,
+        images_folder_path,
+        masks_folder_path,
+        invalid_images_paths,
+        invalid_masks_paths,
     ):
-        paths = []
-        labels = []
-        for class_name in classes_name:
-            sub_folder_path = os.path.join(folder_path, class_name)
-            for path in os.listdir(sub_folder_path):
-                path = os.path.join(sub_folder_path, path)
-                mapping = self.class2label_mapping[class_name]
-                if is_valid_image(path):
-                    paths.append(path)
-                    labels.append(mapping)
-                else:
-                    invalid_list_paths.append(path)
-                    invalid_list_labels.append(mapping)
-        return paths, labels
+        images_paths = []
+        masks_paths = []
+        images_dict = {
+            os.path.splitext(image_path)[0]: image_path
+            for image_path in os.listdir(images_folder_path)
+        }
+        masks_dict = {
+            os.path.splitext(mask_path)[0]: mask_path
+            for mask_path in os.listdir(masks_folder_path)
+        }
+        matches = set(images_dict.keys()) & set(masks_dict.keys())
+        if len(matches) == 0:
+            raise ValueError("no matches between masks and images names")
+
+        for key in matches:
+            image_path = os.path.join(images_folder_path, images_dict[key])
+            mask_path = os.path.join(masks_folder_path, masks_dict[key])
+            if is_valid_image(image_path) and is_valid_image(mask_path):
+                images_paths.append(image_path)
+                masks_paths.append(mask_path)
+            else:
+                invalid_images_paths.append(image_path)
+                invalid_masks_paths.append(mask_path)
+        return images_paths, masks_paths
 
     def data_overview(self):
         train_df = self.get_sample_random(
             "training_folder",
             self.training_folder_images_paths,
-            self.training_folder_images_labels,
+            self.training_folder_masks_paths,
         )
         self.report_data["data_overview"] = {}
         self.report_data["data_overview"]["training_folder"] = {
-            "classes": self.training_class,
             "images_len": len(self.training_folder_images_paths),
             "random_sample": train_df.head(),
-            "invalid_len": len(self.training_folder_invalid_images),
-            "invalid_images": self.training_folder_invalid_images,
-            "mapping": self.class2label_mapping,
+            "invalid_len": len(self.training_invalid_images_paths),
+            "invalid_images": self.training_invalid_images_paths,
+            "invalid_masks": self.training_invalid_masks_paths,
         }
 
         if self.validation_folder is not None:
             val_df = self.get_sample_random(
                 "validation_folder",
                 self.validation_folder_images_paths,
-                self.validation_folder_images_labels,
+                self.validation_folder_masks_paths,
             )
             self.report_data["data_overview"]["validation_folder"] = {
-                "classes": self.validation_class,
                 "images_len": len(self.validation_folder_images_paths),
                 "random_sample": val_df.head(),
-                "invalid_len": len(self.validation_folder_invalid_images),
-                "invalid_images": self.validation_folder_invalid_images,
+                "invalid_len": len(self.validation_invalid_images_paths),
+                "invalid_images": self.validation_invalid_images_paths,
+                "invalid_masks": self.validation_invalid_masks_paths,
             }
 
-    def make_graphs_label_summary(self):
-        ImageLabelClassification(
-            self.training_folder_images_labels,
-            self.label2class_mapping,
-            self.training_folder_invalid_images_labels,
-            self.folder_path,
-            "Training Folder Labels Summary ",
-            "training_folder_labels_summary",
+    def make_graphs_data_summary(self):
+        Segmentation_data_summary(
+            self.training_paths,
+            self.training_invalid_images_paths,
+            folder_path=self.folder_path,
+            title="Training Folder Summary",
+            file_name="training_folder_summary",
         ).build_graph()
-        self.report_data["graphs"]["images_name"].append(
-            "training_folder_labels_summary"
-        )
+        self.report_data["graphs"]["images_name"].append("training_folder_summary")
         if self.validation_folder is not None:
-            ImageLabelClassification(
-                self.validation_folder_images_labels,
-                self.label2class_mapping,
-                self.validation_folder_invalid_images_labels,
-                self.folder_path,
-                "Validation Folder Labels Summary ",
-                "validation_folder_labels_summary",
+            Segmentation_data_summary(
+                self.validation_paths,
+                self.validation_invalid_images_paths,
+                folder_path=self.folder_path,
+                title="Validation Folder Summary",
+                file_name="validation_folder_summary",
             ).build_graph()
-            self.report_data["graphs"]["images_name"].append(
-                "validation_folder_labels_summary"
-            )
-        if self.split_training:
-            ImageLabelClassification(
-                self.training_labels,
-                self.label2class_mapping,
-                None,
-                self.folder_path,
-                "Training Data After Splitting Labels Summary ",
-                "training_after_splitting_labels_summary",
-            ).build_graph()
-            self.report_data["graphs"]["images_name"].append(
-                "training_after_splitting_labels_summary"
-            )
-            ImageLabelClassification(
-                self.validation_labels,
-                self.label2class_mapping,
-                None,
-                self.folder_path,
-                "Validation Data After Splitting Labels Summary ",
-                "validation_after_splitting_labels_summary",
-            ).build_graph()
-            self.report_data["graphs"]["images_name"].append(
-                "validation_after_splitting_labels_summary"
-            )
+        self.report_data["graphs"]["images_name"].append("validation_folder_summary")
 
     def make_garphs_sample(self):
-        DisplaySampleImagesClassification(
+        DisplaySampleImagesSegmentation(
             self.training_folder_images_paths,
-            self.training_folder_images_labels,
-            self.label2class_mapping,
+            self.training_folder_masks_paths,
+            self.mask_type,
             self.folder_path,
-            title=" Random Samples of Training Folder",
+            title="Random Samples of Training Folder",
             file_name="training_folder_random_samples",
         ).build_graph()
         self.report_data["graphs"]["images_name"].append(
             "training_folder_random_samples"
         )
         if self.validation_folder is not None:
-            DisplaySampleImagesClassification(
+            DisplaySampleImagesSegmentation(
                 self.validation_folder_images_paths,
-                self.validation_folder_images_labels,
-                self.label2class_mapping,
+                self.validation_folder_masks_paths,
+                self.mask_type,
                 self.folder_path,
                 title="Random Samples of Validation Folder",
                 file_name="validation_folder_random_samples",
@@ -229,10 +221,10 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
                 "validation_folder_random_samples"
             )
         if self.split_training:
-            DisplaySampleImagesClassification(
+            DisplaySampleImagesSegmentation(
                 self.training_paths,
                 self.training_labels,
-                self.label2class_mapping,
+                self.mask_type,
                 self.folder_path,
                 title="Samples of Training Data After Splitting",
                 file_name="training_after_splitting_random_samples",
@@ -240,10 +232,10 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             self.report_data["graphs"]["images_name"].append(
                 "training_after_splitting_random_samples"
             )
-            DisplaySampleImagesClassification(
+            DisplaySampleImagesSegmentation(
                 self.validation_paths,
                 self.validation_labels,
-                self.label2class_mapping,
+                self.mask_type,
                 self.folder_path,
                 title="Samples of Validation Data After Splitting",
                 file_name="validation_after_splitting_random_samples",
@@ -260,10 +252,10 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             training_images[:n_samples],
             training_labels[:n_samples],
         )
-        ClassificationImagesAfterLoader(
+        SegmentationImagesAfterLoader(
             training_images,
             training_labels,
-            self.label2class_mapping,
+            self.mask_type,
             self.folder_path,
             title="Samples of Training Data After Data Loader",
             file_name="training_after_data_loader_samples",
@@ -272,16 +264,18 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             "training_after_data_loader_samples"
         )
         if self.validation_loader is not None:
-            validation_images, validation_labels = next(iter(self.validation_loader))
+            validation_images, validation_labels = next(
+                iter(self.validation_loader)
+            )
             n_samples = min(5, len(validation_images))
             validation_images, validation_labels = (
                 validation_images[:n_samples],
                 validation_labels[:n_samples],
             )
-            ClassificationImagesAfterLoader(
+            SegmentationImagesAfterLoader(
                 validation_images,
                 validation_labels,
-                self.label2class_mapping,
+                self.mask_type,
                 self.folder_path,
                 title="Samples of Validation Data After Data Loader",
                 file_name="validation_after_data_loader_samples",
@@ -295,15 +289,17 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             "folder_path": self.folder_path,
             "images_name": [],
         }
-        self.make_graphs_label_summary()
+        self.make_graphs_data_summary()
         self.make_garphs_sample()
         self.make_graphs_loader()
 
     def get_loaders(self):
-        training_dataset = ClassificationImageDataset(
+        training_dataset = SegmentationImageDataset(
             self.training_paths,
             self.training_labels,
             self.image_size,
+            self.mask_type,
+            self.mask_classes,
             self.augment,
             self.augmentation_probability,
             self.horizontal_flip,
@@ -320,10 +316,12 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
         )
         self.validation_loader = None
         if self.validation_paths is not None:
-            validation_dataset = ClassificationImageDataset(
+            validation_dataset = SegmentationImageDataset(
                 self.validation_paths,
                 self.validation_labels,
                 self.image_size,
+                self.mask_type,
+                self.mask_classes,
                 False,
                 self.augmentation_probability,
                 self.horizontal_flip,
@@ -340,32 +338,32 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             )
 
     def common_preprocessing(self):
-        self.get_classes_mapping()
         (
             self.training_folder_images_paths,
-            self.training_folder_images_labels,
+            self.training_folder_masks_paths,
         ) = self.data_preparing(
             self.training_folder,
-            self.training_folder_invalid_images,
-            self.training_folder_invalid_images_labels,
-            self.training_class,
+            self.training_folder_masks,
+            self.training_invalid_images_paths,
+            self.training_invalid_masks_paths,
         )
         if self.validation_folder is not None:
             (
                 self.validation_folder_images_paths,
-                self.validation_folder_images_labels,
+                self.validation_folder_masks_paths,
             ) = self.data_preparing(
-                self.validation_folder_images,
-                self.validation_folder_invalid_images,
-                self.validation_folder_invalid_images_labels,
-                self.validation_class,
+                self.validation_folder,
+                self.validation_folder_masks,
+                self.validation_invalid_images_paths,
+                self.validation_invalid_masks_paths,
             )
+
         self.data_overview()
         self.splitting(
             self.training_folder_images_paths,
             self.validation_folder_images_paths,
-            self.training_folder_images_labels,
-            self.validation_folder_images_labels,
+            self.training_folder_masks_paths,
+            self.validation_folder_masks_paths,
         )
         self.get_loaders()
         self.make_graphs()

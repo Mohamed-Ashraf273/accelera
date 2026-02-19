@@ -18,14 +18,15 @@ class ImagePreprocessingReport(ReportBase):
         self.graphs = self.report_data.get("graphs")
 
     def show_unoreder_list(self, classes, title=None):
-        self.content += "<div>\n"
-        if title is not None:
-            self.content += f"{title}\n"
-        self.content += "<ul>\n"
-        for class_name in classes:
-            self.content += f"<li>{class_name}</li>\n"
-        self.content += "</ul>\n"
-        self.content += "</div>\n"
+        if classes is not None:
+            self.content += "<div>\n"
+            if title is not None:
+                self.content += f"{title}\n"
+            self.content += "<ul>\n"
+            for class_name in classes:
+                self.content += f"<li>{class_name}</li>\n"
+            self.content += "</ul>\n"
+            self.content += "</div>\n"
 
     def show_paragraph_section(self, text, title=None):
         self.content += "<div>\n"
@@ -44,7 +45,7 @@ class ImagePreprocessingReport(ReportBase):
     def show_folder_overview(self, over_view, folder_type):
         self.content += "<div>\n"
         self.content += f"<h3>{folder_type} Folder Overview</h2>\n"
-        self.show_unoreder_list(over_view["classes"], "<h4>Classes</h4>")
+        self.show_unoreder_list(over_view.get("classes"), "<h4>Classes</h4>")
         if over_view.get("mapping") is not None:
             df = pd.DataFrame(
                 over_view["mapping"].items(), columns=["Class", "Label"]
