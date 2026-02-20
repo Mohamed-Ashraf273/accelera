@@ -40,7 +40,7 @@ class DisplaySampleImagesSegmentation(GraphBase):
             ax[0][i].set_title(f"image {os.path.split(image_path)[-1]}")
             ax[1][i].axis("off")
             mask = plt.imread(mask_path)
-            if self.mask_type=="binary":
+            if self.mask_type in ["binary","grayscale_intensity"]:
                 ax[1][i].imshow(mask,cmap="gray")
             else:
                 ax[1][i].imshow(mask,cmap="tab20")

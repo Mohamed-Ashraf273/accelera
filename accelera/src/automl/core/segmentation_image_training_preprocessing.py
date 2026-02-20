@@ -96,9 +96,9 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
         if self.mask_type is None or self.mask_type.lower() not in [
             "binary",
             "multi_class",
-            "color_map",
+            "grayscale_intensity",
         ]:
-            raise ValueError("mask type must be in ['binary','multi_class']")
+            raise ValueError("mask type must be in ['binary','multi_class','grayscale_intensity']")
         if self.mask_type == "multi_class" and (
             self.mask_classes is None or self.mask_classes <=2
         ):
@@ -113,7 +113,7 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
                 raise ValueError(
                     "validation folder images and validation folder masks must be different"
                 )
-        data_info = {"image_size": self.image_size, "mask_type": self.mask_type}
+        data_info = {"image_size": self.image_size, "mask_type": self.mask_type,"mask_classes":self.mask_classes}
         save_pickle(self.folder_path, data_info, "data_info.pkl")
 
     def data_preparing(

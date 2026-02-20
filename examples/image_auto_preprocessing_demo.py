@@ -7,7 +7,19 @@ from accelera.src.automl.core.classification_image_training_preprocessing import
 from accelera.src.automl.wrappers.classification_images_after_loader import (
     ClassificationImagesAfterLoader,
 )
-from accelera.src.automl.core.segmentation_image_training_preprocessing import SegmentationImageTrainingPreprocessing
+from accelera.src.automl.core.segmentation_image_training_preprocessing import (
+    SegmentationImageTrainingPreprocessing,
+)
+from accelera.src.automl.core.segmentation_image_testing_preprocessing import (
+    SegmentationImageTestingPreprocessing,
+)
+from accelera.src.automl.wrappers.segmentation_images_after_loader import (
+    SegmentationImagesAfterLoader,
+)
+from accelera.src.automl.wrappers.segmentation_images_after_loader import (
+    SegmentationImagesAfterLoader,
+)
+
 training_preprocessor = ClassificationImageTrainingPreprocessing(
     training_folder_images="./PetImages",
     folder_path="PetImagesReport",
@@ -17,9 +29,7 @@ training_preprocessor = ClassificationImageTrainingPreprocessing(
     random_state=23,
     images_size=(224, 224),
 )
-training_loader, validation_loader = (
-    training_preprocessor.common_preprocessing()
-)
+training_loader, validation_loader = training_preprocessor.common_preprocessing()
 testing_loader, invalid_path = ClassificationImageTestingPreprocessing(
     ["./PetImages/Cat/3.jpg", "./PetImages/Dog/3.jpg"],
     image_class_names=["Cat", "Dog"],
@@ -36,16 +46,41 @@ graph = ClassificationImagesAfterLoader(
     file_name="Testing",
 )
 graph.build_graph()
-#--------------------------------------------------------
+# --------------------------------------------------------
 # Segementation
 
 training_preprocessor = SegmentationImageTrainingPreprocessing(
     training_folder_images="./segmentation_dataset/segmentation_full_body/images",
     training_folder_masks="./segmentation_dataset/segmentation_full_body/masks",
     folder_path="SegmentationReport",
+    mask_type="grayscale_intensity",
     validation_folder_images=None,
     split_training=True,
     val_size=0.2,
     random_state=23,
     images_size=(224, 224),
 ).common_preprocessing()
+
+
+testing_loader, invalid_path = SegmentationImageTestingPreprocessing(
+    [
+        "./segmentation_dataset/segmentation_full_body/images/HipHop_HipHop1_C0_00180.png",
+        "./segmentation_dataset/segmentation_full_body/images/HipHop_HipHop1_C0_00225.png",
+    ],
+    image_masks=[
+        "./segmentation_dataset/segmentation_full_body/masks/HipHop_HipHop1_C0_00180.png",
+        "./segmentation_dataset/segmentation_full_body/masks/HipHop_HipHop1_C0_00225.png",
+    ],
+    folder_path="./SegmentationReport",
+).common_preprocessing()
+images, masks = next(iter(testing_loader))
+
+graph = SegmentationImagesAfterLoader(
+    images=images,
+    masks=masks,
+    mask_type="grayscale_intensity",
+    folder_path="./SegmentationReport",
+    title="Testing",
+    file_name="Testing",
+)
+graph.build_graph()

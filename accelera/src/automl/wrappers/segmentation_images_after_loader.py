@@ -26,8 +26,8 @@ class SegmentationImagesAfterLoader(GraphBase):
     def build_graph(self):
         cols = len(self.images)
         fig, ax = plt.subplots(2, cols, figsize=(4 * cols, 4*2))
-        ax = np.atleast_2d(ax)
-
+        if cols==1:
+            ax=np.array([[ax[0]],[ax[1]]])
         fig.suptitle(self.title, fontsize=20)
         for i, (img,mask) in enumerate(zip(self.images,self.masks)):
             img = img.numpy().transpose(1, 2, 0)
@@ -38,7 +38,7 @@ class SegmentationImagesAfterLoader(GraphBase):
             mask=mask.numpy()
             if mask.ndim==3:
                 mask=mask[0]
-            if self.mask_type=="binary":
+            if self.mask_type in ["binary","grayscale_intensity"]:
                 ax[1][i].imshow(mask,cmap="gray")
             else:
                 ax[1][i].imshow(mask,cmap="tab20")

@@ -49,7 +49,7 @@ class SegmentationImageDataset(ImageDataset):
         mask_array = np.array(mask, dtype=np.int64)
         if self.mask_type=="binary":
             mask_array = (mask_array>0).astype(np.int64)
-        else:
+        elif self.mask_type=="multi_class":
             mask_array[mask_array>=self.mask_classes]=0
         return Image.fromarray(mask_array.astype(np.uint8))
             
@@ -69,8 +69,12 @@ class SegmentationImageDataset(ImageDataset):
         img_tensor = torch.tensor(img_transpose, dtype=torch.float32)
         mask_tensor = None
         if mask is not None:
-            mask_array = np.array(mask, dtype=np.int64)
-            mask_tensor = torch.tensor(mask_array, dtype=torch.long)
+            if self.mask_type=="grayscale_intensity":
+                mask_array = np.array(mask, dtype=np.float32) / 255.0
+                mask_tensor = torch.tensor(mask_array, dtype=torch.float32)
+            else:
+                mask_array = np.array(mask, dtype=np.int64)
+                mask_tensor = torch.tensor(mask_array, dtype=torch.long)
         return img_tensor, mask_tensor
 
     def random_horizontal_flip(self, img, mask):
