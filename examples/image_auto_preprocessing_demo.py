@@ -84,3 +84,44 @@ graph = SegmentationImagesAfterLoader(
     file_name="Testing",
 )
 graph.build_graph()
+#-------------------------------------------------
+# Segementation
+
+training_preprocessor = SegmentationImageTrainingPreprocessing(
+    training_folder_images="./tumer_data/images",
+    training_folder_masks="./tumer_data/masks",
+    folder_path="tumerReport",
+    mask_type="binary",
+    binary_mask_threshold=128,
+    validation_folder_images=None,
+    split_training=True,
+    val_size=0.2,
+    random_state=23,
+    images_size=(224, 224),
+    brightness=False,
+    contrast=False
+).common_preprocessing()
+
+
+testing_loader, invalid_path = SegmentationImageTestingPreprocessing(
+    [
+        "./tumer_data/images/1.png",
+        "./tumer_data/images/2.png",
+    ],
+    image_masks=[
+        "./tumer_data/masks/1.png",
+        "./tumer_data/masks/2.png",
+    ],
+    folder_path="./tumerReport",
+).common_preprocessing()
+images, masks = next(iter(testing_loader))
+
+graph = SegmentationImagesAfterLoader(
+    images=images,
+    masks=masks,
+    mask_type="binary",
+    folder_path="./tumerReport",
+    title="Testing",
+    file_name="Testing",
+)
+graph.build_graph()

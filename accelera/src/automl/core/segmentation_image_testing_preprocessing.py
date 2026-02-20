@@ -51,6 +51,7 @@ class SegmentationImageTestingPreprocessing(PreprocessingBase):
         self.image_size = info["image_size"]
         self.mask_type = info["mask_type"]
         self.mask_classes = info["mask_classes"]
+        self.binary_mask_threshold=info["binary_mask_threshold"]
 
     def common_preprocessing(self):
         self.valid_masks = None if len(self.valid_masks) == 0 else self.valid_masks
@@ -60,6 +61,7 @@ class SegmentationImageTestingPreprocessing(PreprocessingBase):
             self.image_size,
             self.mask_type,
             self.mask_classes,
+            self.binary_mask_threshold,
             augment=False,
         )
         testing_loader = DataLoader(

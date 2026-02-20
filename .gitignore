@@ -18,6 +18,8 @@ examples/PurchaseStatus
 examples/date
 examples/segmentation_dataset
 examples/SegmentationReport
+examples/tumerReport
+examples/tumer_data
 
 
 /models

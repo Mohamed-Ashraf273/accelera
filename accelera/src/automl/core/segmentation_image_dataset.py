@@ -14,6 +14,7 @@ class SegmentationImageDataset(ImageDataset):
         image_size=(224, 224),
         mask_type="binary",
         mask_classes=0,
+        binary_mask_threshold=128,
         augment=True,
         augmentation_probability=0.5,
         horizontal_flip=True,
@@ -42,13 +43,14 @@ class SegmentationImageDataset(ImageDataset):
         )
         self.mask_type=mask_type
         self.mask_classes=mask_classes
+        self.binary_mask_threshold=binary_mask_threshold
     def load_mask(self,index):
         mask_path = self.labels[index]
         mask = Image.open(mask_path)
         mask=mask.convert("L")
         mask_array = np.array(mask, dtype=np.int64)
         if self.mask_type=="binary":
-            mask_array = (mask_array>0).astype(np.int64)
+            mask_array = (mask_array>=self.binary_mask_threshold).astype(np.int64)
         elif self.mask_type=="multi_class":
             mask_array[mask_array>=self.mask_classes]=0
         return Image.fromarray(mask_array.astype(np.uint8))

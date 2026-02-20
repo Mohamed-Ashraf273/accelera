@@ -2,7 +2,7 @@ import os
 
 from torch.utils.data import DataLoader
 
-
+import numpy as np
 from accelera.src.automl.core.image_training_preprocessing import (
     ImageTrainingPreprocessing,
 )
@@ -32,6 +32,7 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
         folder_path,
         mask_type="binary",
         mask_classes=0,
+        binary_mask_threshold=128,
         validation_folder_images=None,
         validation_folder_masks=None,
         split_training=False,
@@ -75,6 +76,7 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
         self.validation_folder_masks = validation_folder_masks
         self.mask_type = mask_type
         self.mask_classes = mask_classes
+        self.binary_mask_threshold = binary_mask_threshold
         (
             self.validation_folder_images_paths,
             self.validation_folder_masks_paths,
@@ -98,13 +100,32 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             "multi_class",
             "grayscale_intensity",
         ]:
-            raise ValueError("mask type must be in ['binary','multi_class','grayscale_intensity']")
-        if self.mask_type == "multi_class" and (
-            self.mask_classes is None or self.mask_classes <=2
-        ):
             raise ValueError(
-                "mask_classes must be greater than 2  because mask type is multi_class"
+                "mask type must be in ['binary','multi_class','grayscale_intensity']"
             )
+        if self.mask_type == "multi_class":
+            if self.mask_classes is None:
+                raise ValueError("mask_classes not none")
+            if not (
+                isinstance(self.mask_classes, int) or (self.mask_classes > 2)
+            ):
+                raise ValueError(
+                    "mask_classes must be greater than 2  because mask type is multi_class"
+                )
+
+        if self.mask_type == "binary":
+            if self.binary_mask_threshold is None:
+                raise ValueError(
+                    "when mask type if binary you must add binary_mask_threshold value if pixel value >= binary_mask_threshold it will be 1 and 0 else"
+                )
+            if not (
+                isinstance(self.binary_mask_threshold, int)
+                or (0 <= self.binary_mask_threshold <= 255)
+            ):
+                raise ValueError(
+                    "binary_mask_threshold must be integer between 0 and 255"
+                )
+
         if self.validation_folder is not None:
             if self.validation_folder_masks is None:
                 raise ValueError("Validation folder masks must be not null")
@@ -113,7 +134,12 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
                 raise ValueError(
                     "validation folder images and validation folder masks must be different"
                 )
-        data_info = {"image_size": self.image_size, "mask_type": self.mask_type,"mask_classes":self.mask_classes}
+        data_info = {
+            "image_size": self.image_size,
+            "mask_type": self.mask_type,
+            "mask_classes": self.mask_classes,
+            "binary_mask_threshold":self.binary_mask_threshold
+        }
         save_pickle(self.folder_path, data_info, "data_info.pkl")
 
     def data_preparing(
@@ -146,7 +172,6 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             else:
                 invalid_images_paths.append(image_path)
                 invalid_masks_paths.append(mask_path)
-        print("sample", images_paths[:5])
         return images_paths, masks_paths
 
     def data_overview(self):
@@ -265,9 +290,7 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             "training_after_data_loader_samples"
         )
         if self.validation_loader is not None:
-            validation_images, validation_labels = next(
-                iter(self.validation_loader)
-            )
+            validation_images, validation_labels = next(iter(self.validation_loader))
             n_samples = min(5, len(validation_images))
             validation_images, validation_labels = (
                 validation_images[:n_samples],
@@ -301,6 +324,7 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             self.image_size,
             self.mask_type,
             self.mask_classes,
+            self.binary_mask_threshold,
             self.augment,
             self.augmentation_probability,
             self.horizontal_flip,
@@ -323,6 +347,7 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
                 self.image_size,
                 self.mask_type,
                 self.mask_classes,
+                self.binary_mask_threshold,
                 False,
                 self.augmentation_probability,
                 self.horizontal_flip,
