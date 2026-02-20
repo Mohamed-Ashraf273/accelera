@@ -137,7 +137,7 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
         if len(matches) == 0:
             raise ValueError("no matches between masks and images names")
 
-        for key in matches:
+        for key in sorted(matches):
             image_path = os.path.join(images_folder_path, images_dict[key])
             mask_path = os.path.join(masks_folder_path, masks_dict[key])
             if is_valid_image(image_path) and is_valid_image(mask_path):
@@ -146,6 +146,7 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             else:
                 invalid_images_paths.append(image_path)
                 invalid_masks_paths.append(mask_path)
+        print("sample", images_paths[:5])
         return images_paths, masks_paths
 
     def data_overview(self):
