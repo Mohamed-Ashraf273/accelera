@@ -12,8 +12,6 @@ class SegmentationImageDataset(ImageDataset):
         image_paths,
         masks=None,
         image_size=(224, 224),
-        mask_type="binary",
-        mask_classes=0,
         binary_mask_threshold=128,
         augment=True,
         augmentation_probability=0.5,
@@ -41,29 +39,19 @@ class SegmentationImageDataset(ImageDataset):
             contrast,
             contrast_factors,
         )
-        self.mask_type=mask_type
-        self.mask_classes=mask_classes
         self.binary_mask_threshold=binary_mask_threshold
-    def load_mask(self,index):
-        mask_path = self.labels[index]
-        mask = Image.open(mask_path)
-        mask=mask.convert("L")
-        mask_array = np.array(mask, dtype=np.int64)
-        if self.mask_type=="binary":
-            mask_array = (mask_array>=self.binary_mask_threshold).astype(np.int64)
-        elif self.mask_type=="multi_class":
-            mask_array[mask_array>=self.mask_classes]=0
-        return Image.fromarray(mask_array.astype(np.uint8))
-            
+    
 
     def load_image_masks(self, index):
         path = self.image_paths[index]
         img = Image.open(path).convert("RGB")
-        img = img.resize(self.image_size)
+        img = img.resize(self.image_size,resample=Image.BILINEAR)
         mask = None
         if self.labels is not None:
-            mask=self.load_mask(index)
+            mask_path = self.labels[index]
+            mask = Image.open(mask_path).convert("L")
             mask = mask.resize(self.image_size, resample=Image.NEAREST)
+
         if self.augment:
             img, mask = self.augmentation(img, mask)
         img_array = np.array(img, dtype=np.float32) / 255.0
@@ -71,12 +59,9 @@ class SegmentationImageDataset(ImageDataset):
         img_tensor = torch.tensor(img_transpose, dtype=torch.float32)
         mask_tensor = None
         if mask is not None:
-            if self.mask_type=="grayscale_intensity":
-                mask_array = np.array(mask, dtype=np.float32) / 255.0
-                mask_tensor = torch.tensor(mask_array, dtype=torch.float32)
-            else:
-                mask_array = np.array(mask, dtype=np.int64)
-                mask_tensor = torch.tensor(mask_array, dtype=torch.long)
+            mask_array = np.array(mask, dtype=np.float32)
+            mask_array = (mask_array >= self.binary_mask_threshold).astype(np.float32)
+            mask_tensor = torch.tensor(mask_array, dtype=torch.float32).unsqueeze(0)
         return img_tensor, mask_tensor
 
     def random_horizontal_flip(self, img, mask):

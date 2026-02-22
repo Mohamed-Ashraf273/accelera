@@ -11,7 +11,6 @@ class SegmentationImagesAfterLoader(GraphBase):
         self,
         images,
         masks,
-        mask_type,
         folder_path,
         title="",
         file_name="",
@@ -21,7 +20,6 @@ class SegmentationImagesAfterLoader(GraphBase):
         self.masks = masks
         self.title = title
         self.file_name = file_name
-        self.mask_type = mask_type
 
     def build_graph(self):
         cols = len(self.images)
@@ -38,10 +36,8 @@ class SegmentationImagesAfterLoader(GraphBase):
             mask=mask.numpy()
             if mask.ndim==3:
                 mask=mask[0]
-            if self.mask_type in ["binary","grayscale_intensity"]:
-                ax[1][i].imshow(mask,cmap="gray")
-            else:
-                ax[1][i].imshow(mask,cmap="tab20")
+            ax[1][i].imshow(mask,cmap="gray")
+    
             ax[1][i].set_title("mask")
             ax[1][i].axis("off")
                 

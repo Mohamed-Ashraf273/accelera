@@ -19,6 +19,7 @@ from accelera.src.automl.wrappers.segmentation_images_after_loader import (
 from accelera.src.automl.wrappers.segmentation_images_after_loader import (
     SegmentationImagesAfterLoader,
 )
+import torch
 
 training_preprocessor = ClassificationImageTrainingPreprocessing(
     training_folder_images="./PetImages",
@@ -49,49 +50,10 @@ graph.build_graph()
 # --------------------------------------------------------
 # Segementation
 
-training_preprocessor = SegmentationImageTrainingPreprocessing(
-    training_folder_images="./segmentation_dataset/segmentation_full_body/images",
-    training_folder_masks="./segmentation_dataset/segmentation_full_body/masks",
-    folder_path="SegmentationReport",
-    mask_type="grayscale_intensity",
-    validation_folder_images=None,
-    split_training=True,
-    val_size=0.2,
-    random_state=23,
-    images_size=(224, 224),
-).common_preprocessing()
-
-
-testing_loader, invalid_path = SegmentationImageTestingPreprocessing(
-    [
-        "./segmentation_dataset/segmentation_full_body/images/HipHop_HipHop1_C0_00180.png",
-        "./segmentation_dataset/segmentation_full_body/images/HipHop_HipHop1_C0_00225.png",
-    ],
-    image_masks=[
-        "./segmentation_dataset/segmentation_full_body/masks/HipHop_HipHop1_C0_00180.png",
-        "./segmentation_dataset/segmentation_full_body/masks/HipHop_HipHop1_C0_00225.png",
-    ],
-    folder_path="./SegmentationReport",
-).common_preprocessing()
-images, masks = next(iter(testing_loader))
-
-graph = SegmentationImagesAfterLoader(
-    images=images,
-    masks=masks,
-    mask_type="grayscale_intensity",
-    folder_path="./SegmentationReport",
-    title="Testing",
-    file_name="Testing",
-)
-graph.build_graph()
-#-------------------------------------------------
-# Segementation
-
-training_preprocessor = SegmentationImageTrainingPreprocessing(
+training_loader,val_loader=training_preprocessor = SegmentationImageTrainingPreprocessing(
     training_folder_images="./tumer_data/images",
     training_folder_masks="./tumer_data/masks",
     folder_path="tumerReport",
-    mask_type="binary",
     binary_mask_threshold=128,
     validation_folder_images=None,
     split_training=True,
@@ -101,6 +63,10 @@ training_preprocessor = SegmentationImageTrainingPreprocessing(
     brightness=False,
     contrast=False
 ).common_preprocessing()
+images, masks = next(iter(training_loader))
+print(images.shape)
+print(masks.shape)
+print(masks[0].dtype, torch.unique(masks[0]))
 
 
 testing_loader, invalid_path = SegmentationImageTestingPreprocessing(
@@ -115,11 +81,11 @@ testing_loader, invalid_path = SegmentationImageTestingPreprocessing(
     folder_path="./tumerReport",
 ).common_preprocessing()
 images, masks = next(iter(testing_loader))
-
+print(images.shape)
+print(masks.shape)
 graph = SegmentationImagesAfterLoader(
     images=images,
     masks=masks,
-    mask_type="binary",
     folder_path="./tumerReport",
     title="Testing",
     file_name="Testing",

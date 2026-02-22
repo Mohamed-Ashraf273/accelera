@@ -30,8 +30,6 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
         training_folder_images,
         training_folder_masks,
         folder_path,
-        mask_type="binary",
-        mask_classes=0,
         binary_mask_threshold=128,
         validation_folder_images=None,
         validation_folder_masks=None,
@@ -74,8 +72,6 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
 
         self.training_folder_masks = training_folder_masks
         self.validation_folder_masks = validation_folder_masks
-        self.mask_type = mask_type
-        self.mask_classes = mask_classes
         self.binary_mask_threshold = binary_mask_threshold
         (
             self.validation_folder_images_paths,
@@ -95,30 +91,12 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             raise ValueError(
                 "training folder images and training folder masks must be different"
             )
-        if self.mask_type is None or self.mask_type.lower() not in [
-            "binary",
-            "multi_class",
-            "grayscale_intensity",
-        ]:
-            raise ValueError(
-                "mask type must be in ['binary','multi_class','grayscale_intensity']"
-            )
-        if self.mask_type == "multi_class":
-            if self.mask_classes is None:
-                raise ValueError("mask_classes not none")
-            if not (
-                isinstance(self.mask_classes, int) or (self.mask_classes > 2)
-            ):
-                raise ValueError(
-                    "mask_classes must be greater than 2  because mask type is multi_class"
-                )
 
-        if self.mask_type == "binary":
-            if self.binary_mask_threshold is None:
+        if self.binary_mask_threshold is None:
                 raise ValueError(
-                    "when mask type if binary you must add binary_mask_threshold value if pixel value >= binary_mask_threshold it will be 1 and 0 else"
+                    "you must add binary_mask_threshold value if pixel value >= binary_mask_threshold it will be 1 and 0 else"
                 )
-            if not (
+        if not (
                 isinstance(self.binary_mask_threshold, int)
                 or (0 <= self.binary_mask_threshold <= 255)
             ):
@@ -136,8 +114,6 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
                 )
         data_info = {
             "image_size": self.image_size,
-            "mask_type": self.mask_type,
-            "mask_classes": self.mask_classes,
             "binary_mask_threshold":self.binary_mask_threshold
         }
         save_pickle(self.folder_path, data_info, "data_info.pkl")
@@ -226,7 +202,6 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
         DisplaySampleImagesSegmentation(
             self.training_folder_images_paths,
             self.training_folder_masks_paths,
-            self.mask_type,
             self.folder_path,
             title="Random Samples of Training Folder",
             file_name="training_folder_random_samples",
@@ -238,7 +213,6 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             DisplaySampleImagesSegmentation(
                 self.validation_folder_images_paths,
                 self.validation_folder_masks_paths,
-                self.mask_type,
                 self.folder_path,
                 title="Random Samples of Validation Folder",
                 file_name="validation_folder_random_samples",
@@ -250,7 +224,6 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             DisplaySampleImagesSegmentation(
                 self.training_paths,
                 self.training_labels,
-                self.mask_type,
                 self.folder_path,
                 title="Samples of Training Data After Splitting",
                 file_name="training_after_splitting_random_samples",
@@ -261,7 +234,6 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             DisplaySampleImagesSegmentation(
                 self.validation_paths,
                 self.validation_labels,
-                self.mask_type,
                 self.folder_path,
                 title="Samples of Validation Data After Splitting",
                 file_name="validation_after_splitting_random_samples",
@@ -281,7 +253,6 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
         SegmentationImagesAfterLoader(
             training_images,
             training_labels,
-            self.mask_type,
             self.folder_path,
             title="Samples of Training Data After Data Loader",
             file_name="training_after_data_loader_samples",
@@ -299,7 +270,6 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             SegmentationImagesAfterLoader(
                 validation_images,
                 validation_labels,
-                self.mask_type,
                 self.folder_path,
                 title="Samples of Validation Data After Data Loader",
                 file_name="validation_after_data_loader_samples",
@@ -322,8 +292,6 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             self.training_paths,
             self.training_labels,
             self.image_size,
-            self.mask_type,
-            self.mask_classes,
             self.binary_mask_threshold,
             self.augment,
             self.augmentation_probability,
@@ -339,14 +307,13 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
         self.training_loader = DataLoader(
             training_dataset, batch_size=self.batch_size, shuffle=True
         )
+
         self.validation_loader = None
         if self.validation_paths is not None:
             validation_dataset = SegmentationImageDataset(
                 self.validation_paths,
                 self.validation_labels,
                 self.image_size,
-                self.mask_type,
-                self.mask_classes,
                 self.binary_mask_threshold,
                 False,
                 self.augmentation_probability,

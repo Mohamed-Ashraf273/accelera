@@ -3,7 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
+from PIL import Image
 from accelera.src.automl.wrappers.graph_base import GraphBase
 
 
@@ -12,7 +12,6 @@ class DisplaySampleImagesSegmentation(GraphBase):
         self,
         paths,
         masks,
-        mask_type,
         folder_path,
         n_sample=4,
         title="",
@@ -22,7 +21,6 @@ class DisplaySampleImagesSegmentation(GraphBase):
         self.title = title
         self.file_name = file_name
         self.n_sample = n_sample
-        self.mask_type=mask_type
         self.df = pd.DataFrame({"paths": paths, "masks": masks})
         self.sample = self.df.sample(n=min(self.n_sample, len(paths)), random_state=42)
 
@@ -35,15 +33,12 @@ class DisplaySampleImagesSegmentation(GraphBase):
             zip(self.sample["paths"], self.sample["masks"])
         ):
             ax[0][i].axis("off")
-            img = plt.imread(image_path)
+            img = np.array(Image.open(image_path).convert("RGB"))
             ax[0][i].imshow(img)
             ax[0][i].set_title(f"image {os.path.split(image_path)[-1]}")
             ax[1][i].axis("off")
             mask = plt.imread(mask_path)
-            if self.mask_type in ["binary","grayscale_intensity"]:
-                ax[1][i].imshow(mask,cmap="gray")
-            else:
-                ax[1][i].imshow(mask,cmap="tab20")
+            ax[1][i].imshow(mask,cmap="gray")
                 
             ax[1][i].set_title(f"mask {os.path.split(mask_path)[-1]}")
         plt.tight_layout()

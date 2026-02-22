@@ -49,8 +49,6 @@ class SegmentationImageTestingPreprocessing(PreprocessingBase):
         check_path_exists(self.folder_path, "data_info.pkl")
         info = load_pickle(self.folder_path, "data_info.pkl")
         self.image_size = info["image_size"]
-        self.mask_type = info["mask_type"]
-        self.mask_classes = info["mask_classes"]
         self.binary_mask_threshold=info["binary_mask_threshold"]
 
     def common_preprocessing(self):
@@ -59,8 +57,6 @@ class SegmentationImageTestingPreprocessing(PreprocessingBase):
             self.valid_images,
             self.valid_masks,
             self.image_size,
-            self.mask_type,
-            self.mask_classes,
             self.binary_mask_threshold,
             augment=False,
         )
