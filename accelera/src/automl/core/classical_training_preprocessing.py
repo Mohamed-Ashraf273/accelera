@@ -41,7 +41,6 @@ from accelera.src.automl.wrappers.target_classification import (
     TargetClassification,
 )
 from accelera.src.automl.wrappers.target_regression import TargetRegression
-from accelera.src.automl.wrappers.date_feature_extractor import DateFeatureExtractor
 
 
 class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
@@ -53,7 +52,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         folder_path=None,
         val_size=0.2,
         random_state=42,
-        date_cols=None,
         cardinality_threshold=8,
         max_unique_ordinal=10,
         missing_threshold=0.5,
@@ -65,7 +63,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         self.max_unique_ordinal = max_unique_ordinal
         self.missing_threshold = missing_threshold
         self.unique_threshold = unique_threshold
-        self.date_cols = date_cols
         if self.problem_type is None:
             raise ValueError("problem_type cannot be None")
         self.problem_type = problem_type.lower()
@@ -104,16 +101,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             0 <= self.unique_threshold <= 1
         ):
             raise ValueError("unique_threshold must be float between 0 and 1")
-        if date_cols is not None:
-            for col in date_cols:
-                if col not in self.df.columns:
-                    raise ValueError(f"This col {col} not exist in data frame columns")
-                if not (
-                    self.df[col].dtype == "object"
-                    or np.issubdtype(self.df[col].dtype, np.datetime64)
-                ):
-                    raise ValueError(f"date column must be object or datetime64")
-                self.df[col] = pd.to_datetime(self.df[col], errors="coerce")
 
         save_pickle(self.folder_path, self.df.columns.tolist(), "data_columns.pkl")
 
@@ -204,17 +191,9 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         frequency_cols = []
         ordinal_cols = []
         others = []
-        date_cols = []
         self.report_data["preprocessing"] = []
         for col in X_train.columns:
-            if np.issubdtype(info[col]["dtype"], np.datetime64):
-                date_cols.append(col)
-                info[col]["col_type"] = "datetime64"
-                info[col]["preprossing_steps"] = [
-                    "Fill missing with most frequent",
-                    "Extract year, month, day, weekday, hour",
-                ]
-            elif self.check_binary(col, info):
+            if self.check_binary(col, info):
                 info[col]["col_type"] = "binary"
                 info[col]["preprossing_steps"] = [
                     "Fill missing with most frequent",
@@ -283,7 +262,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             one_hot_cols,
             frequency_cols,
             ordinal_cols,
-            date_cols,
             others,
         )
 
@@ -405,7 +383,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         one_hot_cols,
         frequency_cols,
         ordinal_cols,
-        date_cols,
     ):
         numerical_pipeline = Pipeline(
             [
@@ -455,14 +432,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 ),
             ]
         )
-        date_pipeline = Pipeline(
-            [
-                (
-                    "date_extractor",
-                    DateFeatureExtractor(cols=date_cols),
-                ),
-            ]
-        )
         preprocessor = ColumnTransformer(
             transformers=[
                 ("onehot", one_hot_pipeline, one_hot_cols),
@@ -470,7 +439,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 ("binary", binary_pipeline, binary_cols),
                 ("frequency", frequency_pipeline, frequency_cols),
                 ("ordinal", ordinal_pipeline, ordinal_cols),
-                ("date", date_pipeline, date_cols),
             ],
             remainder="drop",
         )
@@ -556,7 +524,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             one_hot_cols,
             frequency_cols,
             ordinal_cols,
-            date_cols,
             _,
         ) = self.detect_column_types(X_train, info)
         self.make_graphs(X_train, y_train, info)
@@ -569,7 +536,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             one_hot_cols,
             frequency_cols,
             ordinal_cols,
-            date_cols,
         )
         y_train, y_val = self.target_preprocessing(y_train, y_val, info)
         report = TabularPreprocessingReport(self.folder_path, self.report_data)

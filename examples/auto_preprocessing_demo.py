@@ -152,12 +152,7 @@ print(confusion_matrix(y_val, model.predict(X_val)))
 print("Classification Report")
 print(classification_report(y_val, model.predict(X_val)))
 
-print("----------------------------Date dataset-----------------------")
-date_df=pd.read_csv("./date_train.csv")
-training_preprocessor = ClassicalTrainingPreprocessing(
-    date_df, "output", "classification", "./date",date_cols=["date"]
-)
-X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
+
 print("----------------------------Review dataset-----------------------")
 review_df = pd.read_csv("./TestReviews.csv")
 training_preprocessor = TextTrainingPreprocessing(
