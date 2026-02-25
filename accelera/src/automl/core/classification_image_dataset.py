@@ -12,15 +12,15 @@ class ClassificationImageDataset(ImageDataset):
         image_paths,
         labels=None,
         image_size=(224, 224),
-        augment=True,
+        augment=False,
         augmentation_probability=0.5,
-        horizontal_flip=True,
-        vertical_flip=True,
-        rotation=True,
+        horizontal_flip=False,
+        vertical_flip=False,
+        rotation=False,
         rotation_angle=30,
-        brightness=True,
+        brightness=False,
         brightness_factors=(0.8, 1.2),
-        contrast=True,
+        contrast=False,
         contrast_factors=(0.8, 1.2),
     ):
         super().__init__(
@@ -77,7 +77,6 @@ class ClassificationImageDataset(ImageDataset):
 
     def __getitem__(self, index):
         img_tensor = self.load_image(index)
-
         label_tensor = None
         if self.labels is not None:
             label_tensor = torch.tensor(self.labels[index], dtype=torch.long)

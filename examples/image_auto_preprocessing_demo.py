@@ -29,6 +29,12 @@ training_preprocessor = ClassificationImageTrainingPreprocessing(
     val_size=0.2,
     random_state=23,
     images_size=(224, 224),
+    augment=True,
+    horizontal_flip=True,
+    vertical_flip=True,
+    rotation=True,
+    brightness=True,
+    contrast=True
 )
 training_loader, validation_loader = training_preprocessor.common_preprocessing()
 testing_loader, invalid_path = ClassificationImageTestingPreprocessing(
@@ -56,12 +62,14 @@ training_loader,val_loader=training_preprocessor = SegmentationImageTrainingPrep
     folder_path="tumerReport",
     binary_mask_threshold=128,
     validation_folder_images=None,
+    augment=True,
+    horizontal_flip=True,
+    vertical_flip=True,
+    rotation=True,
     split_training=True,
     val_size=0.2,
     random_state=23,
     images_size=(224, 224),
-    brightness=False,
-    contrast=False
 ).common_preprocessing()
 images, masks = next(iter(training_loader))
 print(images.shape)

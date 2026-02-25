@@ -1,7 +1,5 @@
 import random
 
-import numpy as np
-from PIL import Image
 from PIL import ImageEnhance
 from torch.utils.data import Dataset
 
@@ -39,8 +37,6 @@ class ImageDataset(Dataset):
 
     def __len__(self):
         return len(self.image_paths)
-
-    
 
     def random_brightness(self, img):
         if self.brightness and random.random() < self.augmentation_probability:

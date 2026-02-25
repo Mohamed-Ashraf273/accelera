@@ -64,7 +64,7 @@ class ImageTrainingPreprocessing(PreprocessingBase):
                     "different"
                 )
 
-        if (not (isinstance(self.val_size, (int, float)))) or (
+        if (not (isinstance(self.val_size, (float)))) or (
             not (0 < self.val_size <= 0.5)
         ):
             raise ValueError("Test size is invalid it must be less than 0.5")
@@ -131,7 +131,7 @@ class ImageTrainingPreprocessing(PreprocessingBase):
             not isinstance(self.rotation_angle, (int, float))
             or self.rotation_angle < 0
         ):
-            raise ValueError("rotation_angle mustn't be negative")
+            raise ValueError("rotation_angle must be positive integer or float")
 
         if (
             not isinstance(self.brightness_factors, tuple)
@@ -160,7 +160,7 @@ class ImageTrainingPreprocessing(PreprocessingBase):
         df = (
             pd.DataFrame(
                 {
-                    f"{data_type}_path": images_path,
+                    f"{data_type}_paths": images_path,
                     f"{data_type}_labels": labels,
                 }
             )
