@@ -15,6 +15,11 @@ examples/titanic_preprocessing
 examples/heart
 examples/house_price_preprocessing
 examples/PurchaseStatus
+examples/date
+examples/segmentation_dataset
+examples/SegmentationReport
+examples/tumerReport
+examples/tumer_data
 
 
 /models

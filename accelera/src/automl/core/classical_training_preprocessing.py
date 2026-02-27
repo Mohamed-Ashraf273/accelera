@@ -63,7 +63,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         self.max_unique_ordinal = max_unique_ordinal
         self.missing_threshold = missing_threshold
         self.unique_threshold = unique_threshold
-
         if self.problem_type is None:
             raise ValueError("problem_type cannot be None")
         self.problem_type = problem_type.lower()
@@ -85,6 +84,27 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             or self.df[self.target_col].nunique() == 2
         ):
             raise ValueError("Target must be numeric for regression problem")
+
+        if (
+            not isinstance(self.cardinality_threshold, int)
+            or self.cardinality_threshold < 0
+        ):
+            raise ValueError("cardinality_threshold must be positive integer")
+
+        if (
+            not isinstance(self.max_unique_ordinal, int)
+            or self.max_unique_ordinal < 0
+        ):
+            raise ValueError("max_unique_ordinal must be positive integer")
+        if not isinstance(self.missing_threshold, float) or not (
+            0 <= self.missing_threshold <= 1
+        ):
+            raise ValueError("missing_threshold must be float between 0 and 1")
+        if not isinstance(self.unique_threshold, float) or not (
+            0 <= self.unique_threshold <= 1
+        ):
+            raise ValueError("unique_threshold must be float between 0 and 1")
+
         save_pickle(
             self.folder_path, self.df.columns.tolist(), "data_columns.pkl"
         )
@@ -181,8 +201,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         others = []
         self.report_data["preprocessing"] = []
         for col in X_train.columns:
-            is_binary = self.check_binary(col, info)
-            if is_binary:
+            if self.check_binary(col, info):
                 info[col]["col_type"] = "binary"
                 info[col]["preprossing_steps"] = [
                     "Fill missing with most frequent",
@@ -230,6 +249,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                         "Frequency encoding",
                     ]
                     frequency_cols.append(col)
+
             else:
                 info[col]["col_type"] = "other"
                 info[col]["preprossing_steps"] = (
