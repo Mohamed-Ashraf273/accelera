@@ -73,12 +73,18 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
         self.training_folder_invalid_images_labels = []
         self.validation_folder_invalid_images = []
         self.validation_folder_invalid_images_labels = []
-        if len(self.training_class)==0:
-            raise ValueError("Training Folder dosen't have any folder inside it ")
+        if len(self.training_class) == 0:
+            raise ValueError(
+                "Training Folder dosen't have any folder inside it "
+            )
         if self.validation_folder is not None:
-            self.validation_class = get_sub_folders_names(self.validation_folder)
-            if len(self.validation_class )==0:
-                raise ValueError("Validation Folder dosen't have any folder inside it ")
+            self.validation_class = get_sub_folders_names(
+                self.validation_folder
+            )
+            if len(self.validation_class) == 0:
+                raise ValueError(
+                    "Validation Folder dosen't have any folder inside it "
+                )
             for class_name in self.validation_class:
                 if class_name not in self.training_class:
                     raise ValueError(
@@ -128,7 +134,7 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
                 else:
                     invalid_list_paths.append(path)
                     invalid_list_labels.append(mapping)
-        if len(paths)==0:
+        if len(paths) == 0:
             raise ValueError("There is no valid path")
         return paths, labels
 
@@ -278,7 +284,9 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             "training_after_data_loader_samples"
         )
         if self.validation_loader is not None:
-            validation_images, validation_labels = next(iter(self.validation_loader))
+            validation_images, validation_labels = next(
+                iter(self.validation_loader)
+            )
             n_samples = min(5, len(validation_images))
             validation_images, validation_labels = (
                 validation_images[:n_samples],
@@ -356,7 +364,7 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             self.training_folder_invalid_images_labels,
             self.training_class,
         )
-       
+
         if self.validation_folder is not None:
             (
                 self.validation_folder_images_paths,

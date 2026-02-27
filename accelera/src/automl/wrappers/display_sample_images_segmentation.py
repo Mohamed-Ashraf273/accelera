@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from PIL import Image
+
 from accelera.src.automl.wrappers.graph_base import GraphBase
 
 
@@ -22,11 +23,13 @@ class DisplaySampleImagesSegmentation(GraphBase):
         self.file_name = file_name
         self.n_sample = n_sample
         self.df = pd.DataFrame({"paths": paths, "masks": masks})
-        self.sample = self.df.sample(n=min(self.n_sample, len(paths)), random_state=42)
+        self.sample = self.df.sample(
+            n=min(self.n_sample, len(paths)), random_state=42
+        )
 
     def build_graph(self):
-        cols=len(self.sample)
-        fig, ax = plt.subplots(2,cols , figsize=(4 * cols, 4 * 2))
+        cols = len(self.sample)
+        fig, ax = plt.subplots(2, cols, figsize=(4 * cols, 4 * 2))
         fig.suptitle(self.title, fontsize=20)
         ax = np.atleast_2d(ax)
         for i, (image_path, mask_path) in enumerate(
@@ -38,8 +41,8 @@ class DisplaySampleImagesSegmentation(GraphBase):
             ax[0][i].set_title(f"image {os.path.split(image_path)[-1]}")
             ax[1][i].axis("off")
             mask = plt.imread(mask_path)
-            ax[1][i].imshow(mask,cmap="gray")
-                
+            ax[1][i].imshow(mask, cmap="gray")
+
             ax[1][i].set_title(f"mask {os.path.split(mask_path)[-1]}")
         plt.tight_layout()
         plt.savefig(os.path.join(self.folder_path, f"{self.file_name}.png"))

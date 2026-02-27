@@ -3,12 +3,14 @@ import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
+from accelera.src.automl.wrappers.date_feature_extractor import (
+    DateFeatureExtractor,
+)
 from accelera.src.automl.wrappers.flatten_1d_transform import Flatten1DTransform
 from accelera.src.automl.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
 )
 from accelera.src.automl.wrappers.IQR_transform import IQRTransform
-from accelera.src.automl.wrappers.date_feature_extractor import DateFeatureExtractor
 
 
 class TestCustomTransform:
@@ -52,7 +54,9 @@ class TestCustomTransform:
                 "size": ["S", "L", "L", "S", "S", "L"],
             }
         )
-        testing_data = pd.DataFrame({"color": ["red", "yellow"], "size": ["S", "XL"]})
+        testing_data = pd.DataFrame(
+            {"color": ["red", "yellow"], "size": ["S", "XL"]}
+        )
         expected_output = pd.DataFrame(
             {"color": [0.3333333333333333, 0], "size": [0.5, 0]}
         )
@@ -82,7 +86,9 @@ class TestCustomTransform:
             }
         )
         pipeline = Pipeline([("freq_encoder", FrequencyEncoderTransform())])
-        transformer = ColumnTransformer([("freq_encoder", pipeline, ["color", "size"])])
+        transformer = ColumnTransformer(
+            [("freq_encoder", pipeline, ["color", "size"])]
+        )
         transformed_data = transformer.fit_transform(df)
         assert np.array_equal(transformed_data, expected_output.values)
 
@@ -102,7 +108,9 @@ class TestCustomTransform:
             [
                 (
                     "flatten",
-                    Flatten1DTransform(func=lambda x: x.values.ravel()[:, np.newaxis]),
+                    Flatten1DTransform(
+                        func=lambda x: x.values.ravel()[:, np.newaxis]
+                    ),
                 )
             ]
         )
@@ -140,7 +148,9 @@ class TestCustomTransform:
         pipeline = Pipeline(
             [("iqr_transform", IQRTransform(info=info, cols=["col", "col2"]))]
         )
-        transformer = ColumnTransformer([("iqr_transform", pipeline, ["col", "col2"])])
+        transformer = ColumnTransformer(
+            [("iqr_transform", pipeline, ["col", "col2"])]
+        )
         output = transformer.fit_transform(data)
         assert np.array_equal(output, expected_output.values)
 
@@ -165,7 +175,9 @@ class TestCustomTransform:
     def test_date_faeture_extractor(self):
         data = pd.DataFrame(
             {
-                "date": pd.to_datetime(["2025-01-01", "2025-01-02", "2025-01-03"]),
+                "date": pd.to_datetime(
+                    ["2025-01-01", "2025-01-02", "2025-01-03"]
+                ),
                 "num": [1, 2, 3],
             }
         )
@@ -194,7 +206,9 @@ class TestCustomTransform:
     def test_date_faeture_extractor_pipeline_data_frame(self):
         data = pd.DataFrame(
             {
-                "date": pd.to_datetime(["2025-01-01", "2025-01-02", "2025-01-03"]),
+                "date": pd.to_datetime(
+                    ["2025-01-01", "2025-01-02", "2025-01-03"]
+                ),
                 "num": [1, 2, 3],
             }
         )
@@ -205,10 +219,15 @@ class TestCustomTransform:
                 "date_day": [1, 2, 3],
                 "date_weekday": [2, 3, 4],
                 "date_hour": [0, 0, 0],
-                "num":[1,2,3]
+                "num": [1, 2, 3],
             }
         )
-        pipeline = Pipeline([("date_extractor", DateFeatureExtractor(["date"]))])
-        transformer = ColumnTransformer([("date_extractor_col", pipeline, ["date"])],remainder="passthrough")
+        pipeline = Pipeline(
+            [("date_extractor", DateFeatureExtractor(["date"]))]
+        )
+        transformer = ColumnTransformer(
+            [("date_extractor_col", pipeline, ["date"])],
+            remainder="passthrough",
+        )
         output = transformer.fit_transform(data)
         assert np.array_equal(output, corrected_data.values)

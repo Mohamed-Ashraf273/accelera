@@ -1,9 +1,11 @@
-import pytest
 import shutil
 import tempfile
+
 import numpy as np
+import pytest
 from PIL import Image
-from accelera.src.automl.core.classification_image_training_preprocessing import (
+
+from accelera.src.automl.core.classification_image_training_preprocessing import (  # noqa: E501
     ClassificationImageTrainingPreprocessing,
 )
 from accelera.src.automl.utils.preprocessing import check_path_exists
@@ -23,16 +25,19 @@ class TestClassificationImageTrainingPreprocessing:
         validation_folder = tmp_path / "validation_folder"
         validation_folder.mkdir()
         with pytest.raises(
-            ValueError, match="Training Folder dosen't have any folder inside it "
+            ValueError,
+            match="Training Folder dosen't have any folder inside it ",
         ):
             ClassificationImageTrainingPreprocessing(
-                training_folder_images=training_folder, folder_path=self.temp_dir
+                training_folder_images=training_folder,
+                folder_path=self.temp_dir,
             )
 
         (training_folder / "cats").mkdir()
         (training_folder / "dogs").mkdir()
         with pytest.raises(
-            ValueError, match="Validation Folder dosen't have any folder inside it "
+            ValueError,
+            match="Validation Folder dosen't have any folder inside it ",
         ):
             ClassificationImageTrainingPreprocessing(
                 training_folder_images=training_folder,
@@ -81,11 +86,12 @@ class TestClassificationImageTrainingPreprocessing:
         for i in range(5):
             (cats_folder / f"invalid_cat_{i}.png").touch()
             (dogs_folder / f"invalid_dog_{i}.png").touch()
-        with pytest.raises(ValueError,match="There is no valid path"):
+        with pytest.raises(ValueError, match="There is no valid path"):
             ClassificationImageTrainingPreprocessing(
-                training_folder_images=training_folder, folder_path=self.temp_dir
+                training_folder_images=training_folder,
+                folder_path=self.temp_dir,
             ).common_preprocessing()
-        
+
         for i in range(5):
             img = Image.fromarray(
                 np.random.randint(0, 256, (225, 225, 3), dtype=np.uint8)
@@ -99,7 +105,10 @@ class TestClassificationImageTrainingPreprocessing:
         preprocessor.get_classes_mapping()
         invalid_images, invalid_labels = [], []
         images, labels = preprocessor.data_preparing(
-            training_folder, invalid_images, invalid_labels, preprocessor.training_class
+            training_folder,
+            invalid_images,
+            invalid_labels,
+            preprocessor.training_class,
         )
         assert "cats" in preprocessor.training_class
         assert "dogs" in preprocessor.training_class
@@ -127,13 +136,19 @@ class TestClassificationImageTrainingPreprocessing:
         )
         preprocessor.common_preprocessing()
         assert "training_folder" in preprocessor.report_data["data_overview"]
-        assert not "validation_folder" in preprocessor.report_data["data_overview"]
         assert (
-            preprocessor.report_data["data_overview"]["training_folder"]["images_len"]
+            "validation_folder" not in preprocessor.report_data["data_overview"]
+        )
+        assert (
+            preprocessor.report_data["data_overview"]["training_folder"][
+                "images_len"
+            ]
             == 10
         )
         assert (
-            preprocessor.report_data["data_overview"]["training_folder"]["invalid_len"]
+            preprocessor.report_data["data_overview"]["training_folder"][
+                "invalid_len"
+            ]
             == 0
         )
 
@@ -191,8 +206,10 @@ class TestClassificationImageTrainingPreprocessing:
         assert preprocessor.training_loader is not None
         assert preprocessor.validation_loader is None
         preprocessor = ClassificationImageTrainingPreprocessing(
-            training_folder_images=training_folder, folder_path=self.temp_dir,split_training=True
+            training_folder_images=training_folder,
+            folder_path=self.temp_dir,
+            split_training=True,
         )
         preprocessor.common_preprocessing()
         assert preprocessor.training_loader is not None
-        assert preprocessor.validation_loader is not  None
+        assert preprocessor.validation_loader is not None

@@ -1,10 +1,10 @@
 import os
 
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 from accelera.src.automl.core.preprocessing_base import PreprocessingBase
 from accelera.src.automl.utils.preprocessing import check_path_exists
-from sklearn.model_selection import train_test_split
 
 
 class ImageTrainingPreprocessing(PreprocessingBase):
@@ -100,12 +100,12 @@ class ImageTrainingPreprocessing(PreprocessingBase):
                 "Image size is must be greater than or equal 32 and "
                 "less than or equal 1024"
             )
-        if not isinstance(self.batch_size,int):
+        if not isinstance(self.batch_size, int):
             raise ValueError("batch_size must be a integer")
-        
-        if self.batch_size<=0:
+
+        if self.batch_size <= 0:
             raise ValueError("batch_size must be a positive value")
-            
+
         if not isinstance(self.augment, bool):
             raise ValueError("augment must be a boolean")
 
@@ -168,9 +168,14 @@ class ImageTrainingPreprocessing(PreprocessingBase):
             .reset_index(drop=True)
         ).head(num_samples)
         return df
-    
-    
-    def splitting(self,training_folder_images_paths,validation_folder_images_paths,training_folder_images_labels,validation_folder_images_labels):
+
+    def splitting(
+        self,
+        training_folder_images_paths,
+        validation_folder_images_paths,
+        training_folder_images_labels,
+        validation_folder_images_labels,
+    ):
         if self.split_training:
             (
                 self.training_paths,

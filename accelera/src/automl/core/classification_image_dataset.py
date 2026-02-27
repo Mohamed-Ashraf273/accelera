@@ -3,6 +3,7 @@ import random
 import numpy as np
 import torch
 from PIL import Image
+
 from accelera.src.automl.core.image_dataset import ImageDataset
 
 
@@ -51,14 +52,21 @@ class ClassificationImageDataset(ImageDataset):
         return img_tensor
 
     def random_horizontal_flip(self, img):
-        if self.horizontal_flip and random.random() < self.augmentation_probability:
+        if (
+            self.horizontal_flip
+            and random.random() < self.augmentation_probability
+        ):
             return img.transpose(Image.FLIP_LEFT_RIGHT)
         return img
 
     def random_vertical_flip(self, img):
-        if self.vertical_flip and random.random() < self.augmentation_probability:
+        if (
+            self.vertical_flip
+            and random.random() < self.augmentation_probability
+        ):
             return img.transpose(Image.FLIP_TOP_BOTTOM)
         return img
+
     def random_rotation(self, img):
         if self.rotation and random.random() < self.augmentation_probability:
             random_angle = random.uniform(

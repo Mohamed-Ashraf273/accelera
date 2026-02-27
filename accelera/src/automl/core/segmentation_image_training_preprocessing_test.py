@@ -1,8 +1,10 @@
-import pytest
 import shutil
 import tempfile
+
 import numpy as np
+import pytest
 from PIL import Image
+
 from accelera.src.automl.core.segmentation_image_training_preprocessing import (
     SegmentationImageTrainingPreprocessing,
 )
@@ -26,7 +28,9 @@ class TestSegmentationImageTrainingPreprocessing:
         validation_folder_images.mkdir()
         validation_folder_masks = tmp_path / "validation_folder_masks"
         validation_folder_masks.mkdir()
-        with pytest.raises(ValueError, match="Training folder masks must be not null"):
+        with pytest.raises(
+            ValueError, match="Training folder masks must be not null"
+        ):
             SegmentationImageTrainingPreprocessing(
                 training_folder_images=training_folder_images,
                 training_folder_masks=None,
@@ -35,7 +39,8 @@ class TestSegmentationImageTrainingPreprocessing:
 
         with pytest.raises(
             ValueError,
-            match="training folder images and training folder masks must be different",
+            match="training folder images and training folder masks must be "
+            "different",
         ):
             SegmentationImageTrainingPreprocessing(
                 training_folder_images=training_folder_images,
@@ -50,7 +55,9 @@ class TestSegmentationImageTrainingPreprocessing:
                 folder_path=self.temp_dir,
             )
 
-        with pytest.raises(ValueError, match=r"you must add binary_mask_threshold.*"):
+        with pytest.raises(
+            ValueError, match=r"you must add binary_mask_threshold.*"
+        ):
             SegmentationImageTrainingPreprocessing(
                 training_folder_images=training_folder_images,
                 training_folder_masks=training_folder_masks,
@@ -58,7 +65,8 @@ class TestSegmentationImageTrainingPreprocessing:
                 binary_mask_threshold=None,
             )
         with pytest.raises(
-            ValueError, match=r"binary_mask_threshold must be integer between 0 and 255"
+            ValueError,
+            match=r"binary_mask_threshold must be integer between 0 and 255",
         ):
             SegmentationImageTrainingPreprocessing(
                 training_folder_images=training_folder_images,
@@ -67,7 +75,8 @@ class TestSegmentationImageTrainingPreprocessing:
                 binary_mask_threshold="invalid",
             )
         with pytest.raises(
-            ValueError, match=r"binary_mask_threshold must be integer between 0 and 255"
+            ValueError,
+            match=r"binary_mask_threshold must be integer between 0 and 255",
         ):
             SegmentationImageTrainingPreprocessing(
                 training_folder_images=training_folder_images,
@@ -96,7 +105,8 @@ class TestSegmentationImageTrainingPreprocessing:
                 )
             with pytest.raises(
                 ValueError,
-                match="training folder images and training folder masks must be different",
+                match="training folder images and training folder masks "
+                "must be different",
             ):
                 SegmentationImageTrainingPreprocessing(
                     training_folder_images=training_folder_images,
@@ -205,15 +215,21 @@ class TestSegmentationImageTrainingPreprocessing:
         assert "training_folder" in preprocessor.report_data["data_overview"]
         assert "validation_folder" in preprocessor.report_data["data_overview"]
         assert (
-            preprocessor.report_data["data_overview"]["training_folder"]["images_len"]
+            preprocessor.report_data["data_overview"]["training_folder"][
+                "images_len"
+            ]
             == 5
         )
         assert (
-            preprocessor.report_data["data_overview"]["training_folder"]["invalid_len"]
+            preprocessor.report_data["data_overview"]["training_folder"][
+                "invalid_len"
+            ]
             == 5
         )
         assert (
-            preprocessor.report_data["data_overview"]["validation_folder"]["images_len"]
+            preprocessor.report_data["data_overview"]["validation_folder"][
+                "images_len"
+            ]
             == 5
         )
         assert (

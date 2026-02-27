@@ -27,10 +27,10 @@ class ClassificationImageTestingPreprocessing(PreprocessingBase):
         self.invalid_images = []
         if self.image_paths is None:
             raise ValueError("Image paths must be list of paths not none")
-            
+
         if not isinstance(self.image_paths, list):
             raise ValueError("Image paths must be list of paths")
-        if len(self.image_paths)==0:
+        if len(self.image_paths) == 0:
             raise ValueError("Image paths is empty list")
         if self.image_class_names is not None and not isinstance(
             self.image_class_names, list
@@ -49,9 +49,9 @@ class ClassificationImageTestingPreprocessing(PreprocessingBase):
                     )
             else:
                 self.invalid_images.append(path)
-        if len(self.valid_images)==0:
+        if len(self.valid_images) == 0:
             raise ValueError("There is no valid image exists")
-        
+
         check_path_exists(self.folder_path, "data_info.pkl")
         self.image_size = load_pickle(self.folder_path, "data_info.pkl")[
             "image_size"
@@ -71,7 +71,7 @@ class ClassificationImageTestingPreprocessing(PreprocessingBase):
                         "this class name not in the training class"
                     )
                 labels.append(self.class2label_mapping[class_name])
-    
+
         dataset = ClassificationImageDataset(
             self.valid_images, labels, self.image_size, augment=False
         )

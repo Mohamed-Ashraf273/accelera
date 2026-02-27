@@ -1,8 +1,9 @@
-import pytest
-import numpy as np
-from PIL import Image
-import torch
 from unittest.mock import patch
+
+import numpy as np
+import pytest
+import torch
+from PIL import Image
 
 from accelera.src.automl.core.segmentation_image_dataset import (
     SegmentationImageDataset,
@@ -77,7 +78,9 @@ class TestSegmentationImageDataset:
             [], [], horizontal_flip=True, augmentation_probability=1
         )
         with patch("random.random", return_value=0.0):
-            returned_img, returned_mask = dataset.random_horizontal_flip(img, mask)
+            returned_img, returned_mask = dataset.random_horizontal_flip(
+                img, mask
+            )
             returned_img2, returned_mask2 = dataset.random_horizontal_flip(
                 returned_img, returned_mask
             )
@@ -111,7 +114,9 @@ class TestSegmentationImageDataset:
             [], [], vertical_flip=True, augmentation_probability=1
         )
         with patch("random.random", return_value=0.0):
-            returned_img, returned_mask = dataset.random_vertical_flip(img, mask)
+            returned_img, returned_mask = dataset.random_vertical_flip(
+                img, mask
+            )
             returned_img2, returned_mask2 = dataset.random_vertical_flip(
                 returned_img, returned_mask
             )

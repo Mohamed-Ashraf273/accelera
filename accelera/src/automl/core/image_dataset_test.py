@@ -1,10 +1,11 @@
-import pytest
-import numpy as np
-from PIL import Image
 from unittest.mock import patch
-from accelera.src.automl.core.image_dataset import (
-    ImageDataset,
-)
+
+import numpy as np
+import pytest
+from PIL import Image
+
+from accelera.src.automl.core.image_dataset import ImageDataset
+
 
 class TestImageDataset:
     @pytest.fixture(autouse=True)

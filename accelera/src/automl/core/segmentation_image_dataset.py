@@ -3,6 +3,7 @@ import random
 import numpy as np
 import torch
 from PIL import Image
+
 from accelera.src.automl.core.image_dataset import ImageDataset
 
 
@@ -39,13 +40,12 @@ class SegmentationImageDataset(ImageDataset):
             contrast,
             contrast_factors,
         )
-        self.binary_mask_threshold=binary_mask_threshold
-    
+        self.binary_mask_threshold = binary_mask_threshold
 
     def load_image_masks(self, index):
         path = self.image_paths[index]
         img = Image.open(path).convert("RGB")
-        img = img.resize(self.image_size,resample=Image.BILINEAR)
+        img = img.resize(self.image_size, resample=Image.BILINEAR)
         mask = None
         if self.labels is not None:
             mask_path = self.labels[index]
@@ -60,14 +60,21 @@ class SegmentationImageDataset(ImageDataset):
         mask_tensor = None
         if mask is not None:
             mask_array = np.array(mask, dtype=np.float32)
-            mask_array = (mask_array >= self.binary_mask_threshold).astype(np.float32)
-            mask_tensor = torch.tensor(mask_array, dtype=torch.float32).unsqueeze(0)
+            mask_array = (mask_array >= self.binary_mask_threshold).astype(
+                np.float32
+            )
+            mask_tensor = torch.tensor(
+                mask_array, dtype=torch.float32
+            ).unsqueeze(0)
         return img_tensor, mask_tensor
 
     def random_horizontal_flip(self, img, mask):
         transposed_img = img
         transposed_mask = mask
-        if self.horizontal_flip and random.random() < self.augmentation_probability:
+        if (
+            self.horizontal_flip
+            and random.random() < self.augmentation_probability
+        ):
             transposed_img = img.transpose(Image.FLIP_LEFT_RIGHT)
             if mask is not None:
                 transposed_mask = mask.transpose(Image.FLIP_LEFT_RIGHT)
@@ -76,7 +83,10 @@ class SegmentationImageDataset(ImageDataset):
     def random_vertical_flip(self, img, mask):
         transposed_img = img
         transposed_mask = mask
-        if self.vertical_flip and random.random() < self.augmentation_probability:
+        if (
+            self.vertical_flip
+            and random.random() < self.augmentation_probability
+        ):
             transposed_img = img.transpose(Image.FLIP_TOP_BOTTOM)
             if mask is not None:
                 transposed_mask = mask.transpose(Image.FLIP_TOP_BOTTOM)
@@ -86,7 +96,9 @@ class SegmentationImageDataset(ImageDataset):
         rotated_img = img
         rotated_mask = mask
         if self.rotation and random.random() < self.augmentation_probability:
-            random_angle = random.uniform(-1 * self.rotation_angle, self.rotation_angle)
+            random_angle = random.uniform(
+                -1 * self.rotation_angle, self.rotation_angle
+            )
             rotated_img = img.rotate(random_angle)
             if mask is not None:
                 rotated_mask = mask.rotate(random_angle, resample=Image.NEAREST)

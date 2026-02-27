@@ -91,7 +91,10 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         ):
             raise ValueError("cardinality_threshold must be positive integer")
 
-        if not isinstance(self.max_unique_ordinal, int) or self.max_unique_ordinal < 0:
+        if (
+            not isinstance(self.max_unique_ordinal, int)
+            or self.max_unique_ordinal < 0
+        ):
             raise ValueError("max_unique_ordinal must be positive integer")
         if not isinstance(self.missing_threshold, float) or not (
             0 <= self.missing_threshold <= 1
@@ -102,7 +105,9 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         ):
             raise ValueError("unique_threshold must be float between 0 and 1")
 
-        save_pickle(self.folder_path, self.df.columns.tolist(), "data_columns.pkl")
+        save_pickle(
+            self.folder_path, self.df.columns.tolist(), "data_columns.pkl"
+        )
 
     def is_drop_column(self, info, col):
         if info[col].get("is_constant", False):
@@ -133,7 +138,10 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         return (lower, upper)
 
     def check_binary(self, col, info):
-        if info[col].get("n_unique", 0) == 2 or info[col].get("dtype") == "bool":
+        if (
+            info[col].get("n_unique", 0) == 2
+            or info[col].get("dtype") == "bool"
+        ):
             return True
 
     def get_data_info(self, X_train, y_train):
@@ -312,7 +320,10 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 )
                 graph.build_graph()
                 self.report_data["graphs"]["images_name"].append(f"{col}")
-            if info[col]["col_type"] == "ordinal" and self.problem_type == "regression":
+            if (
+                info[col]["col_type"] == "ordinal"
+                and self.problem_type == "regression"
+            ):
                 graph = OrdinalRegression(
                     new_df,
                     col,
@@ -471,7 +482,9 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             label_encoder = LabelEncoder()
             y_train = label_encoder.fit_transform(y_train)
             y_val = label_encoder.transform(y_val)
-            save_pickle(self.folder_path, label_encoder, "target_preprocessor.pkl")
+            save_pickle(
+                self.folder_path, label_encoder, "target_preprocessor.pkl"
+            )
             target_dict["mode"] = info[self.target_col]["mode"]
             self.report_data["preprocessing"].append(
                 {
@@ -491,8 +504,12 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             y_train = stander_scaler.fit_transform(
                 y_train.values.reshape(-1, 1)
             ).ravel()
-            y_val = stander_scaler.transform(y_val.values.reshape(-1, 1)).ravel()
-            save_pickle(self.folder_path, stander_scaler, "target_preprocessor.pkl")
+            y_val = stander_scaler.transform(
+                y_val.values.reshape(-1, 1)
+            ).ravel()
+            save_pickle(
+                self.folder_path, stander_scaler, "target_preprocessor.pkl"
+            )
             self.report_data["preprocessing"].append(
                 {
                     "col_name": self.target_col,
@@ -503,12 +520,12 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                     ],
                 }
             )
-        self.report_data["after_preprocessing"]["y_train_processed"] = pd.DataFrame(
-            y_train, columns=[self.target_col]
-        ).head()
-        self.report_data["after_preprocessing"]["y_val_processed"] = pd.DataFrame(
-            y_val, columns=[self.target_col]
-        ).head()
+        self.report_data["after_preprocessing"]["y_train_processed"] = (
+            pd.DataFrame(y_train, columns=[self.target_col]).head()
+        )
+        self.report_data["after_preprocessing"]["y_val_processed"] = (
+            pd.DataFrame(y_val, columns=[self.target_col]).head()
+        )
         save_pickle(self.folder_path, target_dict, "target_info.pkl")
         return y_train, y_val
 

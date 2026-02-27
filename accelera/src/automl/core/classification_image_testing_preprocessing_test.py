@@ -1,10 +1,11 @@
-import pytest
 import numpy as np
+import pytest
 from PIL import Image
-from accelera.src.automl.utils.preprocessing import save_pickle
-from accelera.src.automl.core.classification_image_testing_preprocessing import (
+
+from accelera.src.automl.core.classification_image_testing_preprocessing import (  # noqa: E501
     ClassificationImageTestingPreprocessing,
 )
+from accelera.src.automl.utils.preprocessing import save_pickle
 
 
 class TestClassificationImageTestingPreprocessing:
@@ -20,7 +21,9 @@ class TestClassificationImageTestingPreprocessing:
                 image_paths=None, folder_path=tmp_path
             )
 
-        with pytest.raises(ValueError, match="Image paths must be list of paths"):
+        with pytest.raises(
+            ValueError, match="Image paths must be list of paths"
+        ):
             ClassificationImageTestingPreprocessing(
                 image_paths="path", folder_path=tmp_path
             )
@@ -29,7 +32,9 @@ class TestClassificationImageTestingPreprocessing:
                 image_paths=[], folder_path=tmp_path
             )
 
-        with pytest.raises(ValueError, match="Class names must be list of class names"):
+        with pytest.raises(
+            ValueError, match="Class names must be list of class names"
+        ):
             ClassificationImageTestingPreprocessing(
                 image_paths=["path"], image_class_names=0, folder_path=tmp_path
             )
@@ -87,11 +92,13 @@ class TestClassificationImageTestingPreprocessing:
         with pytest.raises(
             ValueError, match="this class name not in the training class"
         ):
-            testing_loader, invalid_paths = ClassificationImageTestingPreprocessing(
-                image_paths=paths,
-                image_class_names=labels,
-                folder_path=tmp_path,
-            ).common_preprocessing()
+            testing_loader, invalid_paths = (
+                ClassificationImageTestingPreprocessing(
+                    image_paths=paths,
+                    image_class_names=labels,
+                    folder_path=tmp_path,
+                ).common_preprocessing()
+            )
         labels = ["cats", "dogs", "cats", "dogs", "dogs"]
         testing_loader, invalid_paths = ClassificationImageTestingPreprocessing(
             image_paths=paths,

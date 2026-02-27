@@ -5,21 +5,23 @@ from torch.utils.data import DataLoader
 from accelera.src.automl.core.image_training_preprocessing import (
     ImageTrainingPreprocessing,
 )
-from accelera.src.automl.utils.preprocessing import is_valid_image
-from accelera.src.automl.utils.preprocessing import save_pickle, check_path_exists
-from accelera.src.automl.wrappers.segmentation_images_after_loader import (
-    SegmentationImagesAfterLoader,
+from accelera.src.automl.core.segmentation_image_dataset import (
+    SegmentationImageDataset,
 )
+from accelera.src.automl.utils.preprocessing import check_path_exists
+from accelera.src.automl.utils.preprocessing import is_valid_image
+from accelera.src.automl.utils.preprocessing import save_pickle
 from accelera.src.automl.wrappers.display_sample_images_segmentation import (
     DisplaySampleImagesSegmentation,
 )
-
 from accelera.src.automl.wrappers.image_preprocessing_report import (
     ImagePreprocessingReport,
 )
-from accelera.src.automl.core.segmentation_image_dataset import SegmentationImageDataset
 from accelera.src.automl.wrappers.segmentation_data_summary import (
     Segmentation_data_summary,
+)
+from accelera.src.automl.wrappers.segmentation_images_after_loader import (
+    SegmentationImagesAfterLoader,
 )
 
 
@@ -88,20 +90,22 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
         check_path_exists(self.training_folder_masks, "")
         if self.training_folder == self.training_folder_masks:
             raise ValueError(
-                "training folder images and training folder masks must be different"
+                "training folder images and training folder masks must be "
+                "different"
             )
 
         if self.binary_mask_threshold is None:
-                raise ValueError(
-                    "you must add binary_mask_threshold value if pixel value >= binary_mask_threshold it will be 1 and 0 else"
-                )
+            raise ValueError(
+                "you must add binary_mask_threshold value if pixel value >= "
+                "binary_mask_threshold it will be 1 and 0 else"
+            )
         if not (
-                isinstance(self.binary_mask_threshold, int)
-                and (0 <= self.binary_mask_threshold <= 255)
-            ):
-                raise ValueError(
-                    "binary_mask_threshold must be integer between 0 and 255"
-                )
+            isinstance(self.binary_mask_threshold, int)
+            and (0 <= self.binary_mask_threshold <= 255)
+        ):
+            raise ValueError(
+                "binary_mask_threshold must be integer between 0 and 255"
+            )
 
         if self.validation_folder is not None:
             if self.validation_folder_masks is None:
@@ -109,11 +113,12 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             check_path_exists(self.validation_folder_masks, "")
             if self.validation_folder == self.validation_folder_masks:
                 raise ValueError(
-                    "validation folder images and validation folder masks must be different"
+                    "validation folder images and validation folder masks "
+                    "must be different"
                 )
         data_info = {
             "image_size": self.image_size,
-            "binary_mask_threshold":self.binary_mask_threshold
+            "binary_mask_threshold": self.binary_mask_threshold,
         }
         save_pickle(self.folder_path, data_info, "data_info.pkl")
 
@@ -147,7 +152,7 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             else:
                 invalid_images_paths.append(image_path)
                 invalid_masks_paths.append(mask_path)
-        if len(images_paths)==0:
+        if len(images_paths) == 0:
             raise ValueError("There is no valid path")
         return images_paths, masks_paths
 
@@ -188,7 +193,9 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             title="Training Folder Summary",
             file_name="training_folder_summary",
         ).build_graph()
-        self.report_data["graphs"]["images_name"].append("training_folder_summary")
+        self.report_data["graphs"]["images_name"].append(
+            "training_folder_summary"
+        )
         if self.validation_folder is not None:
             Segmentation_data_summary(
                 self.validation_paths,
@@ -197,7 +204,9 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
                 title="Validation Folder Summary",
                 file_name="validation_folder_summary",
             ).build_graph()
-        self.report_data["graphs"]["images_name"].append("validation_folder_summary")
+        self.report_data["graphs"]["images_name"].append(
+            "validation_folder_summary"
+        )
 
     def make_garphs_sample(self):
         DisplaySampleImagesSegmentation(
@@ -262,7 +271,9 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             "training_after_data_loader_samples"
         )
         if self.validation_loader is not None:
-            validation_images, validation_labels = next(iter(self.validation_loader))
+            validation_images, validation_labels = next(
+                iter(self.validation_loader)
+            )
             n_samples = min(5, len(validation_images))
             validation_images, validation_labels = (
                 validation_images[:n_samples],

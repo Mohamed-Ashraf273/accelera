@@ -1,7 +1,9 @@
-import pytest
 import shutil
 import tempfile
+
 import pandas as pd
+import pytest
+
 from accelera.src.automl.core.image_training_preprocessing import (
     ImageTrainingPreprocessing,
 )
@@ -19,7 +21,9 @@ class TestImageTrainingPreprocessing:
         training_folder.mkdir()
         validation_folder = tmp_path / "validation"
         validation_folder.mkdir()
-        with pytest.raises(ValueError, match="Training folder must be not null"):
+        with pytest.raises(
+            ValueError, match="Training folder must be not null"
+        ):
             ImageTrainingPreprocessing(
                 training_folder=None,
                 validation_folder=None,
@@ -95,7 +99,8 @@ class TestImageTrainingPreprocessing:
                 folder_path=self.temp_dir,
             )
         with pytest.raises(
-            ValueError, match="Random state is invalid it must be integer or None"
+            ValueError,
+            match="Random state is invalid it must be integer or None",
         ):
             ImageTrainingPreprocessing(
                 training_folder=training_folder,
@@ -338,7 +343,8 @@ class TestImageTrainingPreprocessing:
             )
         with pytest.raises(
             ValueError,
-            match="brightness_factors must be tuple of two items float or integers",
+            match="brightness_factors must be tuple of two items float "
+            "or integers",
         ):
             ImageTrainingPreprocessing(
                 training_folder=training_folder,
@@ -354,7 +360,8 @@ class TestImageTrainingPreprocessing:
             )
         with pytest.raises(
             ValueError,
-            match="brightness_factors must be tuple of two items float or integers",
+            match="brightness_factors must be tuple of two items float "
+            "or integers",
         ):
             ImageTrainingPreprocessing(
                 training_folder=training_folder,
@@ -370,7 +377,8 @@ class TestImageTrainingPreprocessing:
             )
         with pytest.raises(
             ValueError,
-            match="brightness_factors must be tuple of two items float or integers",
+            match="brightness_factors must be tuple of two items float "
+            "or integers",
         ):
             ImageTrainingPreprocessing(
                 training_folder=training_folder,
@@ -386,7 +394,8 @@ class TestImageTrainingPreprocessing:
             )
         with pytest.raises(
             ValueError,
-            match="brightness_factors must be tuple of two items float or integers",
+            match="brightness_factors must be tuple of two items float "
+            "or integers",
         ):
             ImageTrainingPreprocessing(
                 training_folder=training_folder,
@@ -403,7 +412,8 @@ class TestImageTrainingPreprocessing:
 
         with pytest.raises(
             ValueError,
-            match="contrast_factors must be tuple of two items float or integers",
+            match="contrast_factors must be tuple of two items float "
+            "or integers",
         ):
             ImageTrainingPreprocessing(
                 training_folder=training_folder,
@@ -419,7 +429,8 @@ class TestImageTrainingPreprocessing:
             )
         with pytest.raises(
             ValueError,
-            match="contrast_factors must be tuple of two items float or integers",
+            match="contrast_factors must be tuple of two items float "
+            "or integers",
         ):
             ImageTrainingPreprocessing(
                 training_folder=training_folder,
@@ -435,7 +446,8 @@ class TestImageTrainingPreprocessing:
             )
         with pytest.raises(
             ValueError,
-            match="contrast_factors must be tuple of two items float or integers",
+            match="contrast_factors must be tuple of two items float "
+            "or integers",
         ):
             ImageTrainingPreprocessing(
                 training_folder=training_folder,
@@ -451,7 +463,8 @@ class TestImageTrainingPreprocessing:
             )
         with pytest.raises(
             ValueError,
-            match="contrast_factors must be tuple of two items float or integers",
+            match="contrast_factors must be tuple of two items float "
+            "or integers",
         ):
             ImageTrainingPreprocessing(
                 training_folder=training_folder,
@@ -521,14 +534,23 @@ class TestImageTrainingPreprocessing:
             validation_folder_images_labels,
         )
         assert len(training_preprocessor.training_paths) == 10
-        assert training_preprocessor.training_paths == training_folder_images_paths
+        assert (
+            training_preprocessor.training_paths == training_folder_images_paths
+        )
         assert len(training_preprocessor.training_labels) == 10
-        assert training_preprocessor.training_labels == training_folder_images_labels
+        assert (
+            training_preprocessor.training_labels
+            == training_folder_images_labels
+        )
         assert len(training_preprocessor.validation_paths) == 2
-        assert training_preprocessor.validation_paths == validation_folder_images_paths
+        assert (
+            training_preprocessor.validation_paths
+            == validation_folder_images_paths
+        )
         assert len(training_preprocessor.validation_labels) == 2
         assert (
-            training_preprocessor.validation_labels == validation_folder_images_labels
+            training_preprocessor.validation_labels
+            == validation_folder_images_labels
         )
         training_preprocessor = ImageTrainingPreprocessing(
             training_folder=training_folder,

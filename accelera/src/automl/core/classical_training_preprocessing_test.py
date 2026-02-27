@@ -699,7 +699,7 @@ class TestClassicalTrainingPreprocessing:
                 numerical_cols,
                 one_hot_cols,
                 frequency_cols,
-                ordinal_cols
+                ordinal_cols,
             )
         )
         imputer = SimpleImputer(strategy="most_frequent")

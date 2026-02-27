@@ -1,8 +1,9 @@
-import pytest
-import numpy as np
-from PIL import Image
-import torch
 from unittest.mock import patch
+
+import numpy as np
+import pytest
+import torch
+from PIL import Image
 
 from accelera.src.automl.core.classification_image_dataset import (
     ClassificationImageDataset,
