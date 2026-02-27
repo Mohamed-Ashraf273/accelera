@@ -20,7 +20,7 @@ class ImageDataset(Dataset):
         brightness_factors=(0.8, 1.2),
         contrast=True,
         contrast_factors=(0.8, 1.2),
-    ):
+    ):  
         self.image_paths = image_paths
         self.labels = labels
         self.image_size = image_size
@@ -34,6 +34,8 @@ class ImageDataset(Dataset):
         self.brightness_factors = brightness_factors
         self.contrast = contrast
         self.contrast_factors = contrast_factors
+ 
+        
 
     def __len__(self):
         return len(self.image_paths)

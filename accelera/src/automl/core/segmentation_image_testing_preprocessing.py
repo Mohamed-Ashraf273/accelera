@@ -25,8 +25,12 @@ class SegmentationImageTestingPreprocessing(PreprocessingBase):
         self.valid_images = []
         self.valid_masks = []
         self.invalid_images = []
+        if self.image_paths is None:
+            raise ValueError("Image paths must be list of paths not none")
         if not isinstance(self.image_paths, list):
             raise ValueError("Image paths must be list of paths")
+        if len(self.image_paths)==0:
+            raise ValueError("Image paths is empty list")
         if self.image_masks is not None and not isinstance(self.image_masks, list):
             raise ValueError("masks must be list of masks paths")
         if self.image_masks is not None and len(self.image_masks) != len(
@@ -45,6 +49,9 @@ class SegmentationImageTestingPreprocessing(PreprocessingBase):
                     self.valid_images.append(path)
             else:
                 self.invalid_images.append(path)
+        if len(self.valid_images)==0:
+            raise ValueError("There is no valid image exists")
+         
 
         check_path_exists(self.folder_path, "data_info.pkl")
         info = load_pickle(self.folder_path, "data_info.pkl")

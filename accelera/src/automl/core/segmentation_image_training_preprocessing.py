@@ -2,7 +2,6 @@ import os
 
 from torch.utils.data import DataLoader
 
-import numpy as np
 from accelera.src.automl.core.image_training_preprocessing import (
     ImageTrainingPreprocessing,
 )
@@ -98,7 +97,7 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
                 )
         if not (
                 isinstance(self.binary_mask_threshold, int)
-                or (0 <= self.binary_mask_threshold <= 255)
+                and (0 <= self.binary_mask_threshold <= 255)
             ):
                 raise ValueError(
                     "binary_mask_threshold must be integer between 0 and 255"
@@ -148,6 +147,8 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             else:
                 invalid_images_paths.append(image_path)
                 invalid_masks_paths.append(mask_path)
+        if len(images_paths)==0:
+            raise ValueError("There is no valid path")
         return images_paths, masks_paths
 
     def data_overview(self):
