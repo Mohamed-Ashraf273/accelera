@@ -20,7 +20,11 @@ examples/segmentation_dataset
 examples/SegmentationReport
 examples/tumerReport
 examples/tumer_data
-examples/student_report
+bin/
+lib/
+lib64/
+include/
+pyvenv.cfgexamples/student_report
 examples/Dataset_spine
 examples/diabetes_dataset
 examples/job_salary
