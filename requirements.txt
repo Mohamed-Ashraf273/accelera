@@ -6,7 +6,7 @@ build
 # ML/DL Libraries & Tools
 dm-tree
 scikit-learn
-pandas
+pandas==2.3.3
 numpy
 xgboost==2.0.3
 # Dev & Testing Tools
