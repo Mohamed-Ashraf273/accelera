@@ -8,7 +8,7 @@ dm-tree
 scikit-learn
 pandas==2.3.3
 numpy
-xgboost==2.0.3
+xgboost==2.1.4
 # Dev & Testing Tools
 tqdm
 pre-commit
