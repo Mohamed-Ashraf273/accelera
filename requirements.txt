@@ -1,23 +1,20 @@
-# Core Python Utilities
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# Core
 setuptools
 regex
 packaging
 build
-# ML/DL Libraries & Tools
+
+# ML
+torch
 dm-tree
-scikit-learn
-pandas==2.3.3
 numpy
-xgboost==2.0.3
-torch --index-url https://download.pytorch.org/whl/cpu
-# Dev & Testing Tools
-tqdm
-pre-commit
-astor
-ruff
+
+# Testing / Dev
 pytest
 pytest-cov
-namex
-matplotlib
-seaborn
-nltk
+ruff
+astor
+tqdm
+pre-commit
