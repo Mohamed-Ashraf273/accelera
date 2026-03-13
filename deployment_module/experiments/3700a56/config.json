@@ -1,0 +1,6 @@
+{
+    "models": {
+      "scaler_path": "models/scaler.pkl",
+      "model_path": "models/model.pkl"
+      }
+}
