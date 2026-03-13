@@ -13,4 +13,5 @@ pre-commit
 ruff
 pytest
 matplotlib
+seaborn
 nltk
