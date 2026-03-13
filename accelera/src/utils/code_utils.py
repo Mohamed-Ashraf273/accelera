@@ -189,7 +189,7 @@ def extract_features(code: str) -> dict:
     return features
 
 
-def feature_dict_to_vector(features: dict) -> np.ndarray:
+def vectorize_features(features: dict) -> np.ndarray:
     vec = np.zeros(40, dtype=np.float32)
     bool_keys = [
         "has_reduction_plus",

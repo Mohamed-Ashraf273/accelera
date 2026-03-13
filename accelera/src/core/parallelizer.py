@@ -7,9 +7,9 @@ import requests
 from accelera.src.utils.code_utils import add_collapse_pragma
 from accelera.src.utils.code_utils import extract_features
 from accelera.src.utils.code_utils import extract_loops
-from accelera.src.utils.code_utils import feature_dict_to_vector
 from accelera.src.utils.code_utils import fix_reduction_pragma
 from accelera.src.utils.code_utils import format_cpp_file
+from accelera.src.utils.code_utils import vectorize_features
 from accelera.src.utils.code_utils import write_loops_to_json
 
 
@@ -75,7 +75,7 @@ class Parallelizer:
             start_line = loop["start_line"]
             end_line = loop["end_line"]
             features = extract_features(loop_code)
-            embedding = feature_dict_to_vector(features)
+            embedding = vectorize_features(features)
             pred_class = self._classify(embedding)
 
             if pred_class != "none":
