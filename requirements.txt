@@ -10,6 +10,7 @@ build
 torch
 dm-tree
 numpy
+sklearn
 
 # Testing / Dev
 pytest
