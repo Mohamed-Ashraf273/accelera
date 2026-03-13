@@ -11,6 +11,7 @@ torch
 dm-tree
 numpy
 scikit-learn
+pandas
 
 # Testing / Dev
 pytest
