@@ -10,7 +10,7 @@ build
 torch
 dm-tree
 numpy
-sklearn
+scikit-learn
 
 # Testing / Dev
 pytest
