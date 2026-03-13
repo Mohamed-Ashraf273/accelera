@@ -3,43 +3,42 @@ import random
 import numpy as np
 import torch
 from PIL import Image
-from PIL import ImageEnhance
-from torch.utils.data import Dataset
+
+from accelera.src.automl.core.image_dataset import ImageDataset
 
 
-class ClassificationImageDataset(Dataset):
+class ClassificationImageDataset(ImageDataset):
     def __init__(
         self,
         image_paths,
         labels=None,
         image_size=(224, 224),
-        augment=True,
+        augment=False,
         augmentation_probability=0.5,
-        horizontal_flip=True,
-        vertical_flip=True,
-        rotation=True,
+        horizontal_flip=False,
+        vertical_flip=False,
+        rotation=False,
         rotation_angle=30,
-        brightness=True,
+        brightness=False,
         brightness_factors=(0.8, 1.2),
-        contrast=True,
+        contrast=False,
         contrast_factors=(0.8, 1.2),
     ):
-        self.image_paths = image_paths
-        self.labels = labels
-        self.image_size = image_size
-        self.augment = augment
-        self.horizontal_flip = horizontal_flip
-        self.vertical_flip = vertical_flip
-        self.augmentation_probability = augmentation_probability
-        self.rotation = rotation
-        self.rotation_angle = rotation_angle
-        self.brightness = brightness
-        self.brightness_factors = brightness_factors
-        self.contrast = contrast
-        self.contrast_factors = contrast_factors
-
-    def __len__(self):
-        return len(self.image_paths)
+        super().__init__(
+            image_paths,
+            labels,
+            image_size,
+            augment,
+            augmentation_probability,
+            horizontal_flip,
+            vertical_flip,
+            rotation,
+            rotation_angle,
+            brightness,
+            brightness_factors,
+            contrast,
+            contrast_factors,
+        )
 
     def load_image(self, index):
         path = self.image_paths[index]
@@ -76,18 +75,6 @@ class ClassificationImageDataset(Dataset):
             return img.rotate(random_angle)
         return img
 
-    def random_brightness(self, img):
-        if self.brightness and random.random() < self.augmentation_probability:
-            random_factor = random.uniform(*self.brightness_factors)
-            return ImageEnhance.Brightness(img).enhance(random_factor)
-        return img
-
-    def random_contrast(self, img):
-        if self.contrast and random.random() < self.augmentation_probability:
-            random_factor = random.uniform(*self.contrast_factors)
-            return ImageEnhance.Contrast(img).enhance(random_factor)
-        return img
-
     def augmentation(self, img):
         img = self.random_horizontal_flip(img)
         img = self.random_vertical_flip(img)
@@ -98,7 +85,6 @@ class ClassificationImageDataset(Dataset):
 
     def __getitem__(self, index):
         img_tensor = self.load_image(index)
-
         label_tensor = None
         if self.labels is not None:
             label_tensor = torch.tensor(self.labels[index], dtype=torch.long)

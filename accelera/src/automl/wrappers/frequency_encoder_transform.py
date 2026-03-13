@@ -9,6 +9,8 @@ class FrequencyEncoderTransform(CustomTransformer):
         self.cols_ = None
 
     def fit(self, X, y=None):
+        self.mapping_ = {}
+        self.cols_ = None
         if not isinstance(X, pd.DataFrame):
             X = pd.DataFrame(X)
 

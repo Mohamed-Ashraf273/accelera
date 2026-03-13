@@ -21,15 +21,47 @@ from accelera.src.automl.core import (
     classification_image_dataset as classification_image_dataset,
 )
 from accelera.src.automl.core import (
+    classification_image_dataset_test as classification_image_dataset_test,
+)
+from accelera.src.automl.core import (
     classification_image_testing_preprocessing as classification_image_testing_preprocessing,
+)
+from accelera.src.automl.core import (
+    classification_image_testing_preprocessing_test as classification_image_testing_preprocessing_test,
 )
 from accelera.src.automl.core import (
     classification_image_training_preprocessing as classification_image_training_preprocessing,
 )
 from accelera.src.automl.core import (
+    classification_image_training_preprocessing_test as classification_image_training_preprocessing_test,
+)
+from accelera.src.automl.core import image_dataset as image_dataset
+from accelera.src.automl.core import image_dataset_test as image_dataset_test
+from accelera.src.automl.core import (
     image_training_preprocessing as image_training_preprocessing,
 )
+from accelera.src.automl.core import (
+    image_training_preprocessing_test as image_training_preprocessing_test,
+)
 from accelera.src.automl.core import preprocessing_base as preprocessing_base
+from accelera.src.automl.core import (
+    segmentation_image_dataset as segmentation_image_dataset,
+)
+from accelera.src.automl.core import (
+    segmentation_image_dataset_test as segmentation_image_dataset_test,
+)
+from accelera.src.automl.core import (
+    segmentation_image_testing_preprocessing as segmentation_image_testing_preprocessing,
+)
+from accelera.src.automl.core import (
+    segmentation_image_testing_preprocessing_test as segmentation_image_testing_preprocessing_test,
+)
+from accelera.src.automl.core import (
+    segmentation_image_training_preprocessing as segmentation_image_training_preprocessing,
+)
+from accelera.src.automl.core import (
+    segmentation_image_training_preprocessing_test as segmentation_image_training_preprocessing_test,
+)
 from accelera.src.automl.core import (
     tabular_preprocessing_base as tabular_preprocessing_base,
 )

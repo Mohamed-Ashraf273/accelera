@@ -3,6 +3,9 @@ import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
+from accelera.src.automl.wrappers.date_feature_extractor import (
+    DateFeatureExtractor,
+)
 from accelera.src.automl.wrappers.flatten_1d_transform import Flatten1DTransform
 from accelera.src.automl.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
@@ -168,3 +171,63 @@ class TestCustomTransform:
         transformer = ColumnTransformer([("iqr_transform", pipeline, [0, 1])])
         output = transformer.fit_transform(data.values)
         assert np.array_equal(output, expected_output.values)
+
+    def test_date_faeture_extractor(self):
+        data = pd.DataFrame(
+            {
+                "date": pd.to_datetime(
+                    ["2025-01-01", "2025-01-02", "2025-01-03"]
+                ),
+                "num": [1, 2, 3],
+            }
+        )
+        date_extractor = DateFeatureExtractor(cols=["date"])
+        X = date_extractor.fit_transform(data)
+        feature_names = date_extractor.get_feature_names_out()
+        new_date = pd.DataFrame(X, columns=feature_names)
+        assert feature_names == [
+            "date_year",
+            "date_month",
+            "date_day",
+            "date_weekday",
+            "date_hour",
+        ]
+        corrected_data = pd.DataFrame(
+            {
+                "date_year": [2025, 2025, 2025],
+                "date_month": [1, 1, 1],
+                "date_day": [1, 2, 3],
+                "date_weekday": [2, 3, 4],
+                "date_hour": [0, 0, 0],
+            }
+        )
+        pd.testing.assert_frame_equal(corrected_data, new_date)
+
+    def test_date_faeture_extractor_pipeline_data_frame(self):
+        data = pd.DataFrame(
+            {
+                "date": pd.to_datetime(
+                    ["2025-01-01", "2025-01-02", "2025-01-03"]
+                ),
+                "num": [1, 2, 3],
+            }
+        )
+        corrected_data = pd.DataFrame(
+            {
+                "date_year": [2025, 2025, 2025],
+                "date_month": [1, 1, 1],
+                "date_day": [1, 2, 3],
+                "date_weekday": [2, 3, 4],
+                "date_hour": [0, 0, 0],
+                "num": [1, 2, 3],
+            }
+        )
+        pipeline = Pipeline(
+            [("date_extractor", DateFeatureExtractor(["date"]))]
+        )
+        transformer = ColumnTransformer(
+            [("date_extractor_col", pipeline, ["date"])],
+            remainder="passthrough",
+        )
+        output = transformer.fit_transform(data)
+        assert np.array_equal(output, corrected_data.values)

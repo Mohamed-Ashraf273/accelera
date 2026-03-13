@@ -71,3 +71,13 @@ def collect_function(batch):
         return images_stack
     labels = torch.tensor(labels, dtype=torch.long)
     return images_stack, labels
+
+
+def collect_function_segmentation(batch):
+    images = [item[0] for item in batch]
+    masks = [item[1] for item in batch]
+    images_stack = torch.stack(images, dim=0)
+    if masks[0] is None:
+        return images_stack
+    masks_stack = torch.stack([mask for mask in masks], dim=0)
+    return images_stack, masks_stack

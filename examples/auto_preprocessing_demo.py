@@ -152,6 +152,7 @@ print(confusion_matrix(y_val, model.predict(X_val)))
 print("Classification Report")
 print(classification_report(y_val, model.predict(X_val)))
 
+
 print("----------------------------Review dataset-----------------------")
 review_df = pd.read_csv("./TestReviews.csv")
 training_preprocessor = TextTrainingPreprocessing(

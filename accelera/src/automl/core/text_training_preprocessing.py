@@ -30,9 +30,17 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
         folder_path=None,
         val_size=0.2,
         random_state=42,
+        tfidf_max_features=5000,
+        tfidf_ngram=(1, 2),
+        tfidf_max_df=0.85,
+        tfidf_min_df=3,
     ):
         super().__init__(df, target_col, val_size, random_state, folder_path)
         self.text_col = text_col
+        self.tfidf_max_features = tfidf_max_features
+        self.tfidf_ngram = tfidf_ngram
+        self.tfidf_max_df = tfidf_max_df
+        self.tfidf_min_df = tfidf_min_df
         if target_col == text_col:
             raise ValueError(
                 "target column and text column must not be the same"
@@ -156,10 +164,10 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
             ),
         }
         training_preprocessor = TfidfVectorizer(
-            max_features=5000,
-            ngram_range=(1, 2),
-            max_df=0.8,
-            min_df=3,
+            max_features=self.tfidf_max_features,
+            ngram_range=self.tfidf_ngram,
+            max_df=self.tfidf_max_df,
+            min_df=self.tfidf_min_df,
             tokenizer=self.custom_text_tokenizer,
             token_pattern=None,
             lowercase=False,
