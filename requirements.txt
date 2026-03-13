@@ -1,12 +1,15 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 # Core Python Utilities
 regex
 build
+
 # ML/DL Libraries & Tools
 dm-tree
 scikit-learn
 pandas==2.3.3
 numpy
-torch --index-url https://download.pytorch.org/whl/cpu
+
 # Dev & Testing Tools
 tqdm
 pre-commit
