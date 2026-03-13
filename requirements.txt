@@ -1,22 +1,16 @@
---extra-index-url https://download.pytorch.org/whl/cpu
-
-# Core
-setuptools
+# Core Python Utilities
 regex
-packaging
 build
-
-# ML
-torch
+# ML/DL Libraries & Tools
 dm-tree
-numpy
 scikit-learn
-pandas
-
-# Testing / Dev
-pytest
-pytest-cov
-ruff
-astor
+pandas==2.3.3
+numpy
+torch --index-url https://download.pytorch.org/whl/cpu
+# Dev & Testing Tools
 tqdm
 pre-commit
+ruff
+pytest
+matplotlib
+nltk
