@@ -1,3 +1,6 @@
+scikit-learn
+pandas==2.3.3
+numpy
 --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Core Python Utilities
@@ -8,9 +11,7 @@ build
 torch==2.2.0+cpu
 torchvision==0.17.0+cpu
 dm-tree
-scikit-learn
-pandas==2.3.3
-numpy
+
 
 # Dev & Testing Tools
 tqdm
