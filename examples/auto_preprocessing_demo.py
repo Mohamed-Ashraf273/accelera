@@ -7,8 +7,9 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import mean_squared_error
-from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+
 from accelera.src.automl.core.classical_testing_preprocessing import (
     ClassicalTestingPreprocessing,
 )
@@ -99,7 +100,9 @@ model = RandomForestClassifier(random_state=42, class_weight="balanced")
 model.fit(X_train, y_train)
 print("Score: ", model.score(X_val, y_val))
 print("Logistic Regression")
-model = LogisticRegression(random_state=42, class_weight="balanced",max_iter=1000)
+model = LogisticRegression(
+    random_state=42, class_weight="balanced", max_iter=1000
+)
 model.fit(X_train, y_train)
 print("Score:", model.score(X_val, y_val))
 print("Confusion Matrix")
@@ -109,15 +112,19 @@ print(classification_report(y_val, model.predict(X_val)))
 print("--------------------------without auto preporcessing")
 heart_df = pd.read_csv("./heart.csv")
 heart_df.drop_duplicates(inplace=True)
-X=heart_df.drop(columns=["target"])
-y=heart_df["target"]
-X_train, X_val,y_train, y_val =train_test_split(X,y,test_size=0.2,random_state=42)
+X = heart_df.drop(columns=["target"])
+y = heart_df["target"]
+X_train, X_val, y_train, y_val = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
 print("Random Forest Classifier")
 model = RandomForestClassifier(random_state=42, class_weight="balanced")
 model.fit(X_train, y_train)
 print("Score: ", model.score(X_val, y_val))
 print("Logistic Regression")
-model = LogisticRegression(random_state=42, class_weight="balanced",max_iter=1000)
+model = LogisticRegression(
+    random_state=42, class_weight="balanced", max_iter=1000
+)
 model.fit(X_train, y_train)
 print("Score:", model.score(X_val, y_val))
 print("Confusion Matrix")
@@ -138,7 +145,9 @@ model = RandomForestClassifier(random_state=42, class_weight="balanced")
 model.fit(X_train, y_train)
 print("Score: ", model.score(X_val, y_val))
 print("Logistic Regression")
-model = LogisticRegression(random_state=42, class_weight="balanced",max_iter=10000)
+model = LogisticRegression(
+    random_state=42, class_weight="balanced", max_iter=10000
+)
 model.fit(X_train, y_train)
 print("Score:", model.score(X_val, y_val))
 print("Confusion Matrix")
@@ -148,15 +157,19 @@ print(classification_report(y_val, model.predict(X_val)))
 print("--------------------------without auto preporcessing")
 purchase_df = pd.read_csv("./customer_purchase_data.csv")
 purchase_df.drop_duplicates(inplace=True)
-X=purchase_df.drop(columns=["PurchaseStatus"])
-y=purchase_df["PurchaseStatus"]
-X_train, X_val,y_train, y_val =train_test_split(X,y,test_size=0.2,random_state=42)
+X = purchase_df.drop(columns=["PurchaseStatus"])
+y = purchase_df["PurchaseStatus"]
+X_train, X_val, y_train, y_val = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
 print("Random Forest Classifier")
 model = RandomForestClassifier(random_state=42, class_weight="balanced")
 model.fit(X_train, y_train)
 print("Score: ", model.score(X_val, y_val))
 print("Logistic Regression")
-model = LogisticRegression(random_state=42, class_weight="balanced",max_iter=10000)
+model = LogisticRegression(
+    random_state=42, class_weight="balanced", max_iter=10000
+)
 model.fit(X_train, y_train)
 print("Score:", model.score(X_val, y_val))
 print("Confusion Matrix")
