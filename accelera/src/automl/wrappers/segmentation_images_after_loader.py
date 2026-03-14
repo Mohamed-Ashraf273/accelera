@@ -28,7 +28,7 @@ class SegmentationImagesAfterLoader(GraphBase):
             ax = np.array([[ax[0]], [ax[1]]])
         fig.suptitle(self.title, fontsize=20)
         for i, (img, mask) in enumerate(zip(self.images, self.masks)):
-            img = img.numpy().transpose(1, 2, 0)
+            img = img.permute(1, 2, 0).numpy()
             img = np.clip(img, 0, 1)
             ax[0][i].imshow(img)
             ax[0][i].set_title("image")

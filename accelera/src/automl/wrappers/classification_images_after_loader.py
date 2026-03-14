@@ -30,7 +30,7 @@ class ClassificationImagesAfterLoader(GraphBase):
             ax = [ax]
         fig.suptitle(self.title, fontsize=20)
         for i, img in enumerate(self.images):
-            img = img.numpy().transpose(1, 2, 0)
+            img = img.permute(1, 2, 0).numpy()
             img = np.clip(img, 0, 1)
             label = self.labels[i].item()
             class_name = self.label2class_mapping[label]
