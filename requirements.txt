@@ -9,7 +9,7 @@ build
 
 # ML/DL Libraries & Tools
 torch==2.6.0+cpu
-torchvision==0.17.0+cpu 
+torchvision==0.19.2+cpu
 dm-tree
 
 
