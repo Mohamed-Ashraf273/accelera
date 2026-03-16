@@ -20,7 +20,6 @@ int main() {
 
   // While loop
   int counter = 0;
-#pragma omp parallel for
   while (counter < 10) {
     printf("Count: %d\n", counter);
     counter++;

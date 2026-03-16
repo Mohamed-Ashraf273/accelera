@@ -99,6 +99,11 @@ class Parallelizer:
             loop_code = loop["code"]
             start_line = loop["start_line"]
             end_line = loop["end_line"]
+            loop_type = loop["type"]
+
+            if loop_type != "for":
+                continue
+
             features = extract_features(loop_code)
             embedding = vectorize_features(features)
             pred_class = self._classify(embedding)
