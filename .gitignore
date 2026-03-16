@@ -20,6 +20,7 @@ examples/segmentation_dataset
 examples/SegmentationReport
 examples/tumerReport
 examples/tumer_data
+examples/student_report
 
 
 /models

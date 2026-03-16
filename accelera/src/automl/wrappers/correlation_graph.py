@@ -15,7 +15,14 @@ class CorrelationGraph(TabularGraphBase):
         if not numerical_df.empty:
             corr = numerical_df.dropna().corr()
             _, ax = plt.subplots(1, 1, figsize=(12, 8))
-            sns.heatmap(corr, annot=True, cmap="coolwarm", ax=ax)
+            sns.heatmap(
+                corr,
+                annot=True,
+                fmt=".2f",
+                linewidths=0.5,
+                cmap="coolwarm",
+                ax=ax,
+            )
             ax.set_title("Correlation Matrix")
             plt.tight_layout()
             plt.savefig(

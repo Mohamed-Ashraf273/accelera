@@ -31,23 +31,23 @@ class CategoricalRegression(TabularGraphBase):
             colors=["#021D25", "#ADD8E6"],
         )
         ax[0].set_title(f"{self.col_name} Null percentage")
-        sns.countplot(data=self.graph_df, x=self.col_name, ax=ax[1])
+        sns.countplot(data=self.graph_df, y=self.col_name, ax=ax[1])
         if self.is_top5_applied:
             ax[1].set_title(
-                f"{self.col_name} Distribution (Top 5 Categories + Other)"
+                f"{self.col_name} Distribution\n (Top 5 Categories + Other)"
             )
             title = (
-                f"{self.col_name} (Top 5 Categories + Other) "
-                f"vs {self.target_name} Distribution"
+                f"{self.col_name} vs {self.target_name}\n Distribution\n"
+                f"(Top 5 Categories + Other) "
             )
             ax[2].set_title(title)
         else:
             ax[1].set_title(f"{self.col_name} Distribution")
             ax[2].set_title(
-                f"{self.col_name} vs {self.target_name} Distribution"
+                f"{self.col_name} vs {self.target_name}\n Distribution"
             )
-        ax[1].set_xlabel(self.col_name)
-        ax[1].set_ylabel("Count")
+        ax[1].set_ylabel(self.col_name)
+        ax[1].set_xlabel("Count")
         self.graph_df = self.graph_df[
             [self.col_name, self.target_name]
         ].dropna()
