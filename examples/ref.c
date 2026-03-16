@@ -3,15 +3,15 @@
 
 int main() {
   // Simple for loop
-#pragma omp target teams distribute parallel for if (!RST_)
+#pragma omp parallel for
   for (int i = 0; i < 10; i++) {
     printf("%d\n", i);
   }
 
   // Nested for loops
-#pragma omp target teams distribute parallel for if (threads(Treadi))
+#pragma omp parallel for collapse(2)
   for (int i = 0; i < 5; i++) {
-#pragma omp parallel for num_threads(4)
+#pragma omp parallel for
     for (int j = 0; j < 5; j++) {
       printf("%d ", i * j);
     }

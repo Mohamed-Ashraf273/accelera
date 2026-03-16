@@ -249,36 +249,28 @@ def vectorize_features(features: dict) -> np.ndarray:
     return vec
 
 
-def add_collapse_pragma(code: str, original_loop: str) -> str:
-    feats = extract_features(original_loop)
-    if feats["has_consecutive_nested_loops"]:
-        depth = feats["max_consecutive_loop_depth"]
-        return re.sub(
-            r"#pragma omp parallel for\b",
-            f"#pragma omp parallel for collapse({depth})",
-            code,
-        )
-    return code
+def validate_pragma(pragma: str) -> str:
+    if not pragma.startswith("#pragma"):
+        pragma = f"#pragma {pragma}"
 
+    brackets = {"(": ")", "{": "}", "[": "]"}
+    stack = []
 
-def fix_reduction_pragma(code: str, original_loop: str) -> str:
-    if re.search(r"\b(\w+)\s*\+=", original_loop):
-        op = "+"
-    elif re.search(r"\b(\w+)\s*\*=", original_loop):
-        op = "*"
-    elif re.search(r"fmax\(|max\(", original_loop):
-        op = "max"
-    elif re.search(r"fmin\(|min\(", original_loop):
-        op = "min"
-    else:
-        op = "+"
+    for char in pragma:
+        if char in brackets:
+            stack.append(char)
+        elif char in brackets.values():
+            if not stack:
+                return pragma.rstrip(char)
 
-    var_match = re.search(r"\b(\w+)\s*[\+\-\*/]=", original_loop)
-    var = var_match.group(1) if var_match else "sum"
+            top = stack.pop()
+            if brackets[top] != char:
+                return pragma.rstrip(char)
 
-    return re.sub(
-        r"reduction\s*\(\s*(\w+)\s*\)", f"reduction({op}:{var})", code
-    )
+    while stack:
+        pragma += brackets[stack.pop()]
+
+    return pragma
 
 
 def format_cpp_file(filename: str) -> bool:
