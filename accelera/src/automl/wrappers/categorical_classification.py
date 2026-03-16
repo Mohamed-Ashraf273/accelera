@@ -32,32 +32,32 @@ class CategoricalClassification(TabularGraphBase):
         )
         ax[0].set_title(f"{self.col_name} Null percentage")
         # countplot
-        sns.countplot(data=self.graph_df, x=self.col_name, ax=ax[1])
+        sns.countplot(data=self.graph_df, y=self.col_name, ax=ax[1])
         if self.is_top5_applied:
             ax[1].set_title(
-                f"{self.col_name} Distribution (Top 5 Categories + Other)"
+                f"{self.col_name} Distribution\n (Top 5 Categories + Other)"
             )
             title = (
-                f"{self.col_name} (Top 5 Categories + Other) "
-                f"vs {self.target_name} Distribution"
+                f"{self.col_name} vs {self.target_name}\n Distribution\n"
+                f"(Top 5 Categories + Other) "
             )
             ax[2].set_title(title)
         else:
             ax[1].set_title(f"{self.col_name} Distribution")
             ax[2].set_title(
-                f"{self.col_name} vs {self.target_name} Distribution"
+                f"{self.col_name} vs {self.target_name}\n Distribution"
             )
-        ax[1].set_xlabel(self.col_name)
-        ax[1].set_ylabel("Count")
+        ax[1].set_ylabel(self.col_name)
+        ax[1].set_xlabel("Count")
         # remove target columns of nulls
         self.graph_df = self.graph_df[
             [self.col_name, self.target_name]
         ].dropna()
         sns.countplot(
-            data=self.graph_df, x=self.col_name, hue=self.target_name, ax=ax[2]
+            data=self.graph_df, y=self.col_name, hue=self.target_name, ax=ax[2]
         )
-        ax[2].set_xlabel(self.col_name)
-        ax[2].set_ylabel(self.target_name)
+        ax[2].set_ylabel(self.col_name)
+        ax[2].set_xlabel(self.target_name)
         plt.tight_layout()
         plt.savefig(os.path.join(self.folder_path, f"{self.col_name}.png"))
         plt.close()

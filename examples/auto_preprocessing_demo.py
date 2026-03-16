@@ -23,6 +23,38 @@ from accelera.src.automl.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )
 
+print("----------------------------student Dataset-----------------------")
+student = pd.read_csv("student_placement_synthetic.csv")
+student_copy = student[:5].copy()
+training_preprocessor = ClassicalTrainingPreprocessing(
+    student, "placement_status", "classification", "./student_report"
+)
+X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
+# print("Random Forest Classifier")
+# model = RandomForestClassifier(random_state=42, class_weight="balanced")
+# model.fit(X_train, y_train)
+# print(model.score(X_val, y_val))
+print("Logistic Regression")
+model = LogisticRegression(random_state=42, class_weight="balanced")
+model.fit(X_train, y_train)
+print("Score:", model.score(X_val, y_val))
+print("SVC")
+model = SVC()
+model.fit(X_train, y_train)
+print("Score : ", model.score(X_val, y_val))
+print("Testing")
+testing_preprocessor = ClassicalTestingPreprocessing(
+    student_copy, "./student_report"
+)
+X_test, y_test = testing_preprocessor.common_preprocessing()
+print("Predictions SVC:")
+print(model.predict(X_test))
+print("Actual\n", y_test)
+print("Confusion Matrix")
+print(confusion_matrix(y_val, model.predict(X_val)))
+print("Classification Report")
+print(classification_report(y_val, model.predict(X_val)))
+
 print("----------------------------Titanic Dataset-----------------------")
 titanic_df = pd.read_csv("Titanic-Dataset.csv")
 titanic_df_copy = titanic_df[:5].copy()

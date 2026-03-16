@@ -22,26 +22,26 @@ class OrdinalClassification(TabularGraphBase):
         ax[0].set_title(f"{self.col_name} Null percentage")
         sns.countplot(
             data=self.graph_df,
-            x=self.col_name,
+            y=self.col_name,
             ax=ax[1],
             order=sorted(self.graph_df[self.col_name].unique()),
         )
         ax[1].set_title(f"{self.col_name} Distribution")
-        ax[1].set_xlabel(self.col_name)
-        ax[1].set_ylabel("Count")
+        ax[1].set_ylabel(self.col_name)
+        ax[1].set_xlabel("Count")
         self.graph_df = self.graph_df[
             [self.col_name, self.target_name]
         ].dropna()
         sns.countplot(
             data=self.graph_df,
-            x=self.col_name,
+            y=self.col_name,
             hue=self.target_name,
             ax=ax[2],
             order=sorted(self.graph_df[self.col_name].unique()),
         )
-        ax[2].set_title(f"{self.col_name} Distribution by {self.target_name}")
-        ax[2].set_xlabel(self.col_name)
-        ax[2].set_ylabel(self.target_name)
+        ax[2].set_title(f"{self.col_name} Distribution by\n {self.target_name}")
+        ax[2].set_ylabel(self.col_name)
+        ax[2].set_xlabel(self.target_name)
         plt.tight_layout()
         plt.savefig(os.path.join(self.folder_path, f"{self.col_name}.png"))
         plt.close()
