@@ -112,11 +112,13 @@ class Parallelizer:
                 pragma_with_loop = self._generate_omp_pragma_with_loop(
                     loop_code, pred_class
                 )
-                new_lines = pragma_with_loop.split("\n")
-                code_lines[start_line - 1 + shift : end_line + shift] = (
-                    new_lines
-                )
-                shift += len(new_lines) - (end_line - start_line + 1)
+                target_start = start_line - 1 + shift
+                target_end = end_line + shift
+                new_segment = pragma_with_loop.split("\n")
+                code_lines[target_start:target_end] = new_segment
+                current_segment_len = target_end - target_start
+                new_segment_len = len(new_segment)
+                shift += new_segment_len - current_segment_len
 
         current_dir = Path(file_path).parent
         final_output_path = (

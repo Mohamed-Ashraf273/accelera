@@ -1,47 +1,29 @@
-// Test file with various loops for extraction
+#define _POSIX_C_SOURCE 199309L
 #include <stdio.h>
+#include <time.h>
+#include <sys/resource.h>
 
 int main() {
-  // Simple for loop
-  for (int i = 0; i < 10; i++) {
-    printf("%d\n", i);
-  }
+    struct timespec start, end;
+    long long sum = 0;
+    const int N = 1000000000; // 100 million
 
-  // Nested for loops
-  for (int i = 0; i < 5; i++) {
-    for (int j = 0; j < 5; j++) {
-      printf("%d ", i * j);
+    // Simple large loop for testing
+    for (int i = 0; i < N; i++) {
+        sum += i;
     }
-    printf("\n");
-  }
 
-  // While loop
-  int counter = 0;
-  while (counter < 10) {
-    printf("Count: %d\n", counter);
-    counter++;
-  }
-
-  // Array iteration with for loop
-  int numbers[] = {1, 2, 3, 4, 5};
-  int numbers_size = sizeof(numbers) / sizeof(numbers[0]);
-  for (int i = 0; i < numbers_size; i++) {
-    printf("%d\n", numbers[i]);
-  }
-
-  // For loop with complex condition
-  for (int i = 0; i < 100; i += 5) {
-    if (i % 2 == 0) {
-      printf("Even: %d\n", i);
+    for (int i = 0; i < N; i++) {
+        sum += i;
     }
-  }
 
-  // Do-while loop
-  int k = 0;
-  do {
-    printf("Do-while: %d\n", k);
-    k++;
-  } while (k < 5);
+    for (int i = 0; i < N; i++) {
+        sum += i;
+    }
 
-  return 0;
+    for (int i = 0; i < N; i++) {
+        sum += i;
+    }
+
+    return 0;
 }
