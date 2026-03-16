@@ -1,50 +1,33 @@
-// Test file with various loops for extraction
+#define _POSIX_C_SOURCE 199309L
 #include <stdio.h>
+#include <sys/resource.h>
+#include <time.h>
 
 int main() {
-  // Simple for loop
-#pragma omp target teams distribute parallel for if (!RST_)
-  for (int i = 0; i < 10; i++) {
-    printf("%d\n", i);
+  struct timespec start, end;
+  long long sum = 0;
+  const int N = 1000000000; // 100 million
+
+  // Simple large loop for testing
+#pragma omp parallel for private(inum_threads(t) reduction(+ : sum))
+  for (int i = 0; i < N; i++) {
+    sum += i;
   }
 
-  // Nested for loops
-#pragma omp target teams distribute parallel for if (threads(Treadi))
-  for (int i = 0; i < 5; i++) {
-#pragma omp parallel for num_threads(4)
-    for (int j = 0; j < 5; j++) {
-      printf("%d ", i * j);
-    }
-    printf("\n");
+#pragma omp parallel for private(inum_threads(t) reduction(+ : sum))
+  for (int i = 0; i < N; i++) {
+    sum += i;
   }
 
-  // While loop
-  int counter = 0;
-  while (counter < 10) {
-    printf("Count: %d\n", counter);
-    counter++;
+#pragma omp parallel for private(inum_threads(t) reduction(+ : sum))
+  for (int i = 0; i < N; i++) {
+    sum += i;
   }
 
-  // Array iteration with for loop
-  int numbers[] = {1, 2, 3, 4, 5};
-  int numbers_size = sizeof(numbers) / sizeof(numbers[0]);
-  for (int i = 0; i < numbers_size; i++) {
-    printf("%d\n", numbers[i]);
+#pragma omp parallel for private(inum_threads(t) reduction(+ : sum))
+  for (int i = 0; i < N; i++) {
+    sum += i;
   }
-
-  // For loop with complex condition
-  for (int i = 0; i < 100; i += 5) {
-    if (i % 2 == 0) {
-      printf("Even: %d\n", i);
-    }
-  }
-
-  // Do-while loop
-  int k = 0;
-  do {
-    printf("Do-while: %d\n", k);
-    k++;
-  } while (k < 5);
 
   return 0;
 }
