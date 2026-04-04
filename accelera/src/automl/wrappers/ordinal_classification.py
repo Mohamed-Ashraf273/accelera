@@ -22,19 +22,22 @@ class OrdinalClassification(TabularGraphBase):
         ax[0].set_title(f"{self.col_name} Null percentage")
         sns.countplot(
             data=self.graph_df,
-            y=self.col_name,
+            x=self.col_name,
             ax=ax[1],
             order=sorted(self.graph_df[self.col_name].unique()),
         )
         ax[1].set_title(f"{self.col_name} Distribution")
-        ax[1].set_ylabel(self.col_name)
-        ax[1].set_xlabel("Count")
+        ax[1].set_xlabel(self.col_name)
+        ax[1].set_ylabel("Count")
+        for label in ax[1].get_xticklabels():
+            label.set_rotation(45)
+            label.set_horizontalalignment('right')
         self.graph_df = self.graph_df[
             [self.col_name, self.target_name]
         ].dropna()
         sns.countplot(
             data=self.graph_df,
-            y=self.col_name,
+            x=self.col_name,
             hue=self.target_name,
             ax=ax[2],
             order=sorted(self.graph_df[self.col_name].unique()),
@@ -42,6 +45,12 @@ class OrdinalClassification(TabularGraphBase):
         ax[2].set_title(f"{self.col_name} Distribution by\n {self.target_name}")
         ax[2].set_ylabel(self.col_name)
         ax[2].set_xlabel(self.target_name)
+        for label in ax[1].get_xticklabels():
+            label.set_rotation(45)
+            label.set_horizontalalignment('right')
+        for label in ax[2].get_xticklabels():
+            label.set_rotation(45)
+            label.set_horizontalalignment('right')
         plt.tight_layout()
         plt.savefig(os.path.join(self.folder_path, f"{self.col_name}.png"))
         plt.close()
