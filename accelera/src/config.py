@@ -1,9 +1,3 @@
-"""Project-wide configuration.
-
-Keep constants and shared defaults here so they can be reused across the
-`accelera` package without duplicating values.
-"""
-
 from __future__ import annotations
 
 import os
@@ -62,7 +56,6 @@ class Config:
 
     @property
     def api_dir(self) -> Path:
-        # Where the generated public API package lives: accelera/api
         return self.REPO_ROOT / "accelera" / self.API_SUBDIR
 
     def ensure_bindings_on_syspath(self) -> None:
