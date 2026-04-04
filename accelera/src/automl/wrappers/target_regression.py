@@ -23,6 +23,9 @@ class TargetRegression(TabularGraphBase):
         ax[1].set_title(f"{self.col_name} Distribution")
         ax[1].set_xlabel(self.col_name)
         ax[1].set_ylabel("Count")
+        for label in ax[1].get_xticklabels():
+            label.set_rotation(45)
+            label.set_horizontalalignment("right")
         sns.boxplot(data=self.graph_df, y=self.col_name, ax=ax[2])
         ax[2].set_title(f"{self.col_name} boxplot")
         ax[2].set_ylabel(self.col_name)

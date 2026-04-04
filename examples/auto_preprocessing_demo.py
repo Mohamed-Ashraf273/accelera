@@ -10,9 +10,6 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 
-from accelera.src.automl.core.classical_testing_preprocessing import (
-    ClassicalTestingPreprocessing,
-)
 from accelera.src.automl.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
 )
@@ -23,17 +20,46 @@ from accelera.src.automl.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )
 
-print("----------------------------student Dataset-----------------------")
-student = pd.read_csv("student_placement_synthetic.csv")
-student_copy = student[:5].copy()
+print(
+    "----------------------------student_exam_performance_dataset-----------------------"
+)
+student_exam = pd.read_csv("student_exam_performance_dataset.csv")
 training_preprocessor = ClassicalTrainingPreprocessing(
-    student, "placement_status", "classification", "./student_report"
+    student_exam, "pass_fail", "Classification", "./student_exam"
 )
 X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
-# print("Random Forest Classifier")
-# model = RandomForestClassifier(random_state=42, class_weight="balanced")
-# model.fit(X_train, y_train)
-# print(model.score(X_val, y_val))
+print("Random Forest classifier")
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+print("Score: ", model.score(X_val, y_val))
+print("Logistic Regression")
+model = LogisticRegression(random_state=42, class_weight="balanced")
+model.fit(X_train, y_train)
+print("Score: ", model.score(X_val, y_val))
+print(classification_report(y_val, model.predict(X_val)))
+print("----------------------------job salary Dataset-----------------------")
+job = pd.read_csv("job_salary_prediction_dataset.csv")
+training_preprocessor = ClassicalTrainingPreprocessing(
+    job, "salary", "Regression", "./job_salary"
+)
+X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
+print("Random Forest Regressor")
+model = RandomForestRegressor(random_state=42)
+model.fit(X_train, y_train)
+print("Score: ", model.score(X_val, y_val))
+print("MSE: ", mean_squared_error(y_val, model.predict(X_val)))
+print("Linear Regression")
+model = LinearRegression()
+model.fit(X_train, y_train)
+print("Score: ", model.score(X_val, y_val))
+print("MSE: ", mean_squared_error(y_val, model.predict(X_val)))
+
+print("----------------------------spine Dataset-----------------------")
+spine = pd.read_csv("Dataset_spine.csv")
+training_preprocessor = ClassicalTrainingPreprocessing(
+    spine, "Class_att", "classification", "./Dataset_spine"
+)
+X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
 print("Logistic Regression")
 model = LogisticRegression(random_state=42, class_weight="balanced")
 model.fit(X_train, y_train)
@@ -42,14 +68,40 @@ print("SVC")
 model = SVC()
 model.fit(X_train, y_train)
 print("Score : ", model.score(X_val, y_val))
-print("Testing")
-testing_preprocessor = ClassicalTestingPreprocessing(
-    student_copy, "./student_report"
+print("Confusion Matrix")
+print(confusion_matrix(y_val, model.predict(X_val)))
+print("Classification Report")
+print(classification_report(y_val, model.predict(X_val)))
+print("----------------------------diabetes Dataset-----------------------")
+diab = pd.read_csv("diabetes_dataset.csv")
+training_preprocessor = ClassicalTrainingPreprocessing(
+    diab, "diagnosed_diabetes", "classification", "./diabetes_dataset"
 )
-X_test, y_test = testing_preprocessor.common_preprocessing()
-print("Predictions SVC:")
-print(model.predict(X_test))
-print("Actual\n", y_test)
+X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
+print("Logistic Regression")
+model = LogisticRegression(random_state=42, class_weight="balanced")
+model.fit(X_train, y_train)
+print("Score:", model.score(X_val, y_val))
+print("SVC")
+model = SVC()
+model.fit(X_train, y_train)
+print("Score : ", model.score(X_val, y_val))
+print("Confusion Matrix")
+print(confusion_matrix(y_val, model.predict(X_val)))
+print("Classification Report")
+print(classification_report(y_val, model.predict(X_val)))
+
+print("----------------------------student Dataset-----------------------")
+student = pd.read_csv("student_placement_synthetic.csv")
+training_preprocessor = ClassicalTrainingPreprocessing(
+    student, "placement_status", "classification", "./student_report"
+)
+X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
+
+print("Logistic Regression")
+model = LogisticRegression(random_state=42, class_weight="balanced")
+model.fit(X_train, y_train)
+print("Score:", model.score(X_val, y_val))
 print("Confusion Matrix")
 print(confusion_matrix(y_val, model.predict(X_val)))
 print("Classification Report")
@@ -57,7 +109,6 @@ print(classification_report(y_val, model.predict(X_val)))
 
 print("----------------------------Titanic Dataset-----------------------")
 titanic_df = pd.read_csv("Titanic-Dataset.csv")
-titanic_df_copy = titanic_df[:5].copy()
 training_preprocessor = ClassicalTrainingPreprocessing(
     titanic_df, "Survived", "classification", "./titanic_preprocessing"
 )
@@ -74,14 +125,7 @@ print("SVC")
 model = SVC()
 model.fit(X_train, y_train)
 print("Score : ", model.score(X_val, y_val))
-print("Testing")
-testing_preprocessor = ClassicalTestingPreprocessing(
-    titanic_df_copy, "./titanic_preprocessing"
-)
-X_test, y_test = testing_preprocessor.common_preprocessing()
 print("Predictions SVC:")
-print(model.predict(X_test))
-print("Actual\n", y_test)
 print("Confusion Matrix")
 print(confusion_matrix(y_val, model.predict(X_val)))
 print("Classification Report")
@@ -90,7 +134,6 @@ print(classification_report(y_val, model.predict(X_val)))
 ##############################################
 print("----------------------------House Prices Dataset-----------------------")
 price_df = pd.read_csv("Housing.csv")
-price_df_copy = price_df[:5].copy()
 training_preprocessor = ClassicalTrainingPreprocessing(
     price_df, "price", "regression", "./house_price_preprocessing"
 )
@@ -106,15 +149,6 @@ model = LinearRegression()
 model.fit(X_train, y_train)
 print("Score: ", model.score(X_val, y_val))
 print("MSE: ", mean_squared_error(y_val, model.predict(X_val)))
-print("Testing")
-testing_preprocessor = ClassicalTestingPreprocessing(
-    price_df_copy, "./house_price_preprocessing"
-)
-X_test, y_test = testing_preprocessor.common_preprocessing()
-print("Predictions:")
-print(model.predict(X_test))
-print("Actual")
-print(y_test)
 
 #####################################################3
 print(
@@ -265,10 +299,10 @@ test_data = pd.DataFrame(
 )
 print("Testing")
 testing_preprocessor = TextTestingPreprocessing(test_data, "./reviews")
-X_test, y_test = testing_preprocessor.common_preprocessing()
+X_val, y_val = testing_preprocessor.common_preprocessing()
 print("Predictions:")
-print(model.predict(X_test))
-print("correct prediction:", y_test)
+print(model.predict(X_val))
+print("correct prediction:", y_val)
 print(
     "------------------------Sentiment analysis dataset-----------------------"
 )

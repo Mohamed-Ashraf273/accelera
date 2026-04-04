@@ -21,6 +21,10 @@ examples/SegmentationReport
 examples/tumerReport
 examples/tumer_data
 examples/student_report
-
-
+examples/Dataset_spine
+examples/diabetes_dataset
+examples/job_salary
+examples/student_exam
+examples/*.csv
+.env
 /models
