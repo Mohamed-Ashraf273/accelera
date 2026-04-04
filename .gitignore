@@ -26,4 +26,5 @@ examples/diabetes_dataset
 examples/job_salary
 examples/student_exam
 examples/*.csv
+.env
 /models

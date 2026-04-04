@@ -50,7 +50,7 @@ class CategoricalRegression(TabularGraphBase):
         ax[1].set_ylabel("Count")
         for label in ax[1].get_xticklabels():
             label.set_rotation(45)
-            label.set_horizontalalignment('right')
+            label.set_horizontalalignment("right")
         self.graph_df = self.graph_df[
             [self.col_name, self.target_name]
         ].dropna()
@@ -62,7 +62,7 @@ class CategoricalRegression(TabularGraphBase):
         ax[2].set_ylabel(self.target_name)
         for label in ax[2].get_xticklabels():
             label.set_rotation(45)
-            label.set_horizontalalignment('right')
+            label.set_horizontalalignment("right")
 
         plt.tight_layout()
         plt.savefig(os.path.join(self.folder_path, f"{self.col_name}.png"))

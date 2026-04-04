@@ -10,7 +10,6 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 
-
 from accelera.src.automl.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
 )
@@ -20,10 +19,13 @@ from accelera.src.automl.core.text_testing_preprocesing import (
 from accelera.src.automl.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )
-print("----------------------------student_exam_performance_dataset-----------------------")
+
+print(
+    "----------------------------student_exam_performance_dataset-----------------------"
+)
 student_exam = pd.read_csv("student_exam_performance_dataset.csv")
 training_preprocessor = ClassicalTrainingPreprocessing(
-    student_exam,"pass_fail", "Classification", "./student_exam"
+    student_exam, "pass_fail", "Classification", "./student_exam"
 )
 X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
 print("Random Forest classifier")
