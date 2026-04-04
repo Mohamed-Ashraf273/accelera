@@ -25,4 +25,5 @@ examples/Dataset_spine
 examples/diabetes_dataset
 examples/job_salary
 examples/student_exam
+examples/*.csv
 /models
