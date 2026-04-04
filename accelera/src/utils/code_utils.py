@@ -13,10 +13,13 @@ import subprocess
 
 import numpy as np
 
+from accelera.src.config import config
 from accelera.src.utils.accelera_utils import print_msg
 
 
-def extract_loops(file_path: str, clang_args: list = ["-std=c++17"]) -> list:
+def extract_loops(file_path: str, clang_args: list | None = None) -> list:
+    if clang_args is None:
+        clang_args = list(config.DEFAULT_CLANG_ARGS)
     return _extract_loops(file_path, clang_args)
 
 
@@ -274,12 +277,21 @@ def validate_pragma(pragma: str) -> str:
 
 
 def format_cpp_file(filename: str) -> bool:
+    if not config.ENABLE_CPP_FORMATTING:
+        print_msg(
+            "C++ formatting disabled (ACCELERA_ENABLE_CPP_FORMATTING=0). "
+            f"Skipping clang-format for {filename}"
+        )
+        return False
+
     try:
         subprocess.run(
-            ["clang-format", "--version"], capture_output=True, check=True
+            [config.CLANG_FORMAT_BIN, "--version"],
+            capture_output=True,
+            check=True,
         )
 
-        subprocess.run(["clang-format", "-i", filename], check=True)
+        subprocess.run([config.CLANG_FORMAT_BIN, "-i", filename], check=True)
 
         print_msg(f"Successfully formatted {filename} with clang-format")
         return True
@@ -289,7 +301,7 @@ def format_cpp_file(filename: str) -> bool:
         return False
     except FileNotFoundError:
         print_msg(
-            "clang-format not found. "
+            f"{config.CLANG_FORMAT_BIN} not found. "
             "Please install clang-format to auto-format C++ code."
         )
         print_msg("Install with: sudo apt install clang-format (Ubuntu/Debian)")

@@ -4,6 +4,7 @@ from pathlib import Path
 
 import requests
 
+from accelera.src.config import config
 from accelera.src.utils.code_utils import extract_features
 from accelera.src.utils.code_utils import extract_loops
 from accelera.src.utils.code_utils import format_cpp_file
@@ -14,14 +15,10 @@ from accelera.src.utils.code_utils import write_loops_to_json
 
 class Parallelizer:
     def __init__(self):
-        self.root_path = Path(__file__).resolve().parent.parent.parent.parent
-        self.cache_dir = self.root_path / ".accelera_cache"
-        self.classifier_endpoint = (
-            "https://accelera-ai-open-mp-classifier.hf.space/predict"
-        )
-        self.generator_endpoint = (
-            "https://accelera-ai-open-mp-generator.hf.space/generate"
-        )
+        self.root_path = config.REPO_ROOT
+        self.cache_dir = config.cache_dir
+        self.classifier_endpoint = config.CLASSIFIER_ENDPOINT
+        self.generator_endpoint = config.GENERATOR_ENDPOINT
 
     def _classify(self, embedding):
         try:
@@ -51,12 +48,14 @@ class Parallelizer:
         payload = {
             "code_snippet": loop_code,
             "cls": loop_class,
-            "max_len": 1500,
+            "max_len": config.GENERATOR_MAX_LEN,
         }
 
         try:
             response = requests.post(
-                self.generator_endpoint, json=payload, timeout=10
+                self.generator_endpoint,
+                json=payload,
+                timeout=config.REQUEST_TIMEOUT_S,
             )
             if response.status_code != 200:
                 raise RuntimeError(
