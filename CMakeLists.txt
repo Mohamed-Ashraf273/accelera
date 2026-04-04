@@ -147,6 +147,22 @@ file(GLOB_RECURSE BINDINGS_SOURCES
     "${CMAKE_SOURCE_DIR}/accelera/bindings/**/*.cpp"
 )
 
+# If we're not on Linux (or LLVM/Clang isn't available), don't build anything related
+# to the code parallelizer bindings.
+if(NOT LLVM_AVAILABLE)
+    foreach(_binding_to_remove ${BINDINGS_SOURCES})
+        get_filename_component(_binding_name ${_binding_to_remove} NAME_WE)
+        if(_binding_name STREQUAL "code_parallelizer_utils")
+            list(REMOVE_ITEM BINDINGS_SOURCES ${_binding_to_remove})
+            message(STATUS "Skipping code parallelizer binding on this platform: ${_binding_to_remove}")
+        endif()
+    endforeach()
+endif()
+
+if(NOT BINDINGS_SOURCES)
+    message(STATUS "No Python bindings sources found to build")
+endif()
+
 foreach(binding_file ${BINDINGS_SOURCES})
     get_filename_component(module_name ${binding_file} NAME_WE)
     
@@ -191,7 +207,9 @@ install(TARGETS accelera_core
     RUNTIME DESTINATION bin
 )
 
-install(DIRECTORY "${CMAKE_BINARY_DIR}/bindings/"
-    DESTINATION lib/python/site-packages
-    FILES_MATCHING PATTERN "*.so" PATTERN "*.pyd"
-)
+if(BINDINGS_SOURCES)
+    install(DIRECTORY "${CMAKE_BINARY_DIR}/bindings/"
+        DESTINATION lib/python/site-packages
+        FILES_MATCHING PATTERN "*.so" PATTERN "*.pyd"
+    )
+endif()
