@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import sys
 from dataclasses import dataclass
+from dataclasses import field
 from pathlib import Path
 
 
@@ -17,6 +18,50 @@ class Config:
     BUILD_DIR_NAME: str = "build"
     BINDINGS_SUBDIR: str = "bindings"
     API_SUBDIR: str = "api"
+    DATASETS: dict[str, dict] = field(
+        default_factory=lambda: {
+            "customer_purchase_data": {
+                "id": "1OCe4X8mVFEwWz0cfQyAJKNiZMbiUGbB2",
+                "metadata": {},
+            },
+            "TestReviews": {
+                "id": "1pBNGL9NuScgUb16Yh8W6gFzhXanCWa9q",
+                "metadata": {},
+            },
+            "Dataset_spine": {
+                "id": "1RmaNadcroXrqodMq1APBQBhIKBIZLbvJ",
+                "metadata": {},
+            },
+            "DailyDialog": {
+                "id": "1oWgWAZpvVAgnxK3P-0sqElWDWMozdK4P",
+                "metadata": {},
+            },
+            "job_salary_prediction_dataset": {
+                "id": "1r5HEDyelbzfZbXPSx-0G7vEvrgXGqb9r",
+                "metadata": {},
+            },
+            "Housing": {
+                "id": "1VMtLcWDcigwkimpf-eWVMZ7zJMUf7wxs",
+                "metadata": {},
+            },
+            "student_placement_synthetic": {
+                "id": "1l3YRaiPNA4EowBFuj6cm0v4yS2DQOY1M",
+                "metadata": {},
+            },
+            "Titanic-Dataset": {
+                "id": "1VWRzvPDcFOo7YByJtKKupH3H0czFAHCx",
+                "metadata": {},
+            },
+            "heart": {
+                "id": "1HG9BPIS-PFHzzXBnKrohMCrmr7W9oxJY",
+                "metadata": {},
+            },
+            "student_exam_performance_dataset": {
+                "id": "19mH4wgsK2-zcttdTFl6jk_BR83lrKIS7",
+                "metadata": {},
+            },
+        }
+    )
 
     DEFAULT_CLANG_ARGS: tuple[str, ...] = ("-std=c++17",)
     CLANG_FORMAT_BIN: str = os.getenv(
@@ -34,7 +79,10 @@ class Config:
         "ACCELERA_GENERATOR_ENDPOINT",
         "https://accelera-ai-open-mp-generator.hf.space/generate",
     )
-
+    DATASET_DRIVE_FOLDER_ENDPOINT: str = os.getenv(
+        "ACCELERA_DATASET_DRIVE_FOLDER_ENDPOINT",
+        "https://drive.google.com/drive/folders/1ijBkIdvLnVGbINjDklTsC3-z3jc-_GIE",
+    )
     GENERATOR_MAX_LEN: int = int(
         os.getenv("ACCELERA_GENERATOR_MAX_LEN", "1500")
     )
