@@ -5,7 +5,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "core/constants.hpp"
+#include "core/config.hpp"
 #include "core/graph.hpp"
 #include "nodes/input.hpp"
 #include "nodes/preprocess.hpp"
@@ -58,7 +58,7 @@ std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
         joblib.attr("hash")(py::make_tuple(transformer_instance, X));
     std::string hash_value = hash_obj.cast<std::string>();
     fs::path currentPath = fs::current_path();
-    fs::path cacheDir = currentPath / CACHE_DIR;
+    fs::path cacheDir = currentPath / config::kCacheDirName;
     fs::create_directory(cacheDir);
 
     fs::path model_path = cacheDir / (hash_value + "model" + ".pkl");

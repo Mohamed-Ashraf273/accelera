@@ -1,25 +1,29 @@
+"""Accelera package root.
+
+This package ships with optional, generated public API modules under `accelera/api`.
+Those can pull heavy optional deps (e.g., torch). So we keep API import optional
+to avoid breaking basic imports like `from accelera.src.core.parallelizer import Parallelizer`.
+"""
+
+from __future__ import annotations
+
 import os
-import sys
 
-# Add build path BEFORE importing anything else
-current_dir = os.path.dirname(__file__)
-repo_root = current_dir
+from accelera.src.config import config
 
-while not os.path.exists(os.path.join(repo_root, "accelera")):
-    parent = os.path.dirname(repo_root)
-    if parent == repo_root:
-        raise RuntimeError("Cannot find repo root containing 'accelera/'")
-    repo_root = parent
+# Make pybind11-built modules importable if they're present.
+config.ensure_bindings_on_syspath()
 
-build_path = os.path.join(repo_root, "build", "bindings")
-
-if build_path not in sys.path:
-    sys.path.insert(0, build_path)
-
-# Now import after the path is set
 # Add everything in /api/ to the module search path.
-__path__.append(os.path.join(os.path.dirname(__file__), "api"))  # noqa: F405
+__path__.append(str(config.api_dir))  # noqa: F405
 
-from accelera.api import *  # noqa: F403, E402
 
-del current_dir, repo_root, parent, build_path
+try:
+    from accelera.api import *  # type: ignore  # noqa: F403, E402
+except ModuleNotFoundError:
+    # Optional dependencies missing (e.g., torch). Keep base package usable.
+    if config.STRICT_API_IMPORT:
+        raise
+
+
+del os

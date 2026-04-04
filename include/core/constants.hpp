@@ -1,11 +1,14 @@
 #ifndef CONSTANTS_HPP
 #define CONSTANTS_HPP
 
-#include <string>
+// Backward-compatible wrapper.
+// Prefer including `core/config.hpp` and using `accelera::config::*`.
+
+#include "core/config.hpp"
 
 namespace accelera {
-const std::string CACHE_DIR = ".accelera_cache";
-const std::string CONFIG_FILE = ".accelera_config";
+inline constexpr auto CACHE_DIR = config::kCacheDirName;
+inline constexpr auto CONFIG_FILE = config::kConfigFileName;
 } // namespace accelera
 
 #endif // CONSTANTS_HPP
