@@ -188,31 +188,7 @@ print(confusion_matrix(y_val, model.predict(X_val)))
 print("Classification Report")
 print(classification_report(y_val, model.predict(X_val)))
 retriever.close()
-print("--------------------------without auto preporcessing")
-retriever.connect()
-heart_df = retriever.retrieve_dataset("heart", df=True)
 
-heart_df.drop_duplicates(inplace=True)
-X = heart_df.drop(columns=["target"])
-y = heart_df["target"]
-X_train, X_val, y_train, y_val = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
-print("Random Forest Classifier")
-model = RandomForestClassifier(random_state=42, class_weight="balanced")
-model.fit(X_train, y_train)
-print("Score: ", model.score(X_val, y_val))
-print("Logistic Regression")
-model = LogisticRegression(
-    random_state=42, class_weight="balanced", max_iter=1000
-)
-model.fit(X_train, y_train)
-print("Score:", model.score(X_val, y_val))
-print("Confusion Matrix")
-print(confusion_matrix(y_val, model.predict(X_val)))
-print("Classification Report")
-print(classification_report(y_val, model.predict(X_val)))
-retriever.close()
 #######################################
 print("----------------------------Purchase Dataset-----------------------")
 
@@ -222,30 +198,6 @@ training_preprocessor = ClassicalTrainingPreprocessing(
     purchase_df, "PurchaseStatus", "classification", "./PurchaseStatus"
 )
 X_train, y_train, X_val, y_val = training_preprocessor.common_preprocessing()
-print("Random Forest Classifier")
-model = RandomForestClassifier(random_state=42, class_weight="balanced")
-model.fit(X_train, y_train)
-print("Score: ", model.score(X_val, y_val))
-print("Logistic Regression")
-model = LogisticRegression(
-    random_state=42, class_weight="balanced", max_iter=10000
-)
-model.fit(X_train, y_train)
-print("Score:", model.score(X_val, y_val))
-print("Confusion Matrix")
-print(confusion_matrix(y_val, model.predict(X_val)))
-print("Classification Report")
-print(classification_report(y_val, model.predict(X_val)))
-retriever.close()
-print("--------------------------without auto preporcessing")
-retriever.connect()
-purchase_df = retriever.retrieve_dataset("customer_purchase_data", df=True)
-purchase_df.drop_duplicates(inplace=True)
-X = purchase_df.drop(columns=["PurchaseStatus"])
-y = purchase_df["PurchaseStatus"]
-X_train, X_val, y_train, y_val = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
 print("Random Forest Classifier")
 model = RandomForestClassifier(random_state=42, class_weight="balanced")
 model.fit(X_train, y_train)

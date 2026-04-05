@@ -7,6 +7,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import RobustScaler
 
 from accelera.src.automl.core.training_tabular_preprocessing_base import (
     TrainingTabularPreprocessingBase,
@@ -213,7 +214,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                     info[col]["col_type"] = "ordinal"
                     info[col]["preprossing_steps"] = [
                         "Fill missing with most frequent",
-                        "Ordinal encoding",
+                        "Robust scaling",
                     ]
                     ordinal_cols.append(col)
                 else:
@@ -435,12 +436,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         ordinal_pipeline = Pipeline(
             [
                 ("imputer", SimpleImputer(strategy="most_frequent")),
-                (
-                    "ordinal",
-                    OrdinalEncoder(
-                        handle_unknown="use_encoded_value", unknown_value=-1
-                    ),
-                ),
+               ("scaler", RobustScaler()),
             ]
         )
         preprocessor = ColumnTransformer(
