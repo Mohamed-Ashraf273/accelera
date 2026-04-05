@@ -60,6 +60,10 @@ class Config:
                 "id": "19mH4wgsK2-zcttdTFl6jk_BR83lrKIS7",
                 "metadata": {},
             },
+            "diabetes_dataset": {
+                "id": "1n0lDQbi662-Kabrq5KJrjs2_uFQ1hBpS",
+                "metadata": {},
+            }
         }
     )
 

@@ -9,6 +9,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
+from accelera.src.utils.dataset_retriever import retriever
 
 from accelera.src.automl.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
@@ -23,7 +24,9 @@ from accelera.src.automl.core.text_training_preprocessing import (
 print(
     "----------------------------student_exam_performance_dataset-----------------------"
 )
-student_exam = pd.read_csv("student_exam_performance_dataset.csv")
+
+retriever.connect()
+student_exam = retriever.retrieve_dataset("student_exam_performance_dataset", df=True)
 training_preprocessor = ClassicalTrainingPreprocessing(
     student_exam, "pass_fail", "Classification", "./student_exam"
 )
@@ -37,8 +40,11 @@ model = LogisticRegression(random_state=42, class_weight="balanced")
 model.fit(X_train, y_train)
 print("Score: ", model.score(X_val, y_val))
 print(classification_report(y_val, model.predict(X_val)))
+retriever.close()
+
 print("----------------------------job salary Dataset-----------------------")
-job = pd.read_csv("job_salary_prediction_dataset.csv")
+retriever.connect()
+job = retriever.retrieve_dataset("job_salary_prediction_dataset", df=True)
 training_preprocessor = ClassicalTrainingPreprocessing(
     job, "salary", "Regression", "./job_salary"
 )
@@ -53,9 +59,10 @@ model = LinearRegression()
 model.fit(X_train, y_train)
 print("Score: ", model.score(X_val, y_val))
 print("MSE: ", mean_squared_error(y_val, model.predict(X_val)))
-
+retriever.close()
 print("----------------------------spine Dataset-----------------------")
-spine = pd.read_csv("Dataset_spine.csv")
+retriever.connect()
+spine = retriever.retrieve_dataset("Dataset_spine", df=True)
 training_preprocessor = ClassicalTrainingPreprocessing(
     spine, "Class_att", "classification", "./Dataset_spine"
 )
@@ -72,8 +79,10 @@ print("Confusion Matrix")
 print(confusion_matrix(y_val, model.predict(X_val)))
 print("Classification Report")
 print(classification_report(y_val, model.predict(X_val)))
+retriever.close()
 print("----------------------------diabetes Dataset-----------------------")
-diab = pd.read_csv("diabetes_dataset.csv")
+retriever.connect()
+diab = retriever.retrieve_dataset("diabetes_dataset", df=True)
 training_preprocessor = ClassicalTrainingPreprocessing(
     diab, "diagnosed_diabetes", "classification", "./diabetes_dataset"
 )
@@ -90,9 +99,10 @@ print("Confusion Matrix")
 print(confusion_matrix(y_val, model.predict(X_val)))
 print("Classification Report")
 print(classification_report(y_val, model.predict(X_val)))
-
+retriever.close()
 print("----------------------------student Dataset-----------------------")
-student = pd.read_csv("student_placement_synthetic.csv")
+retriever.connect()
+student = retriever.retrieve_dataset("student_placement_synthetic", df=True)
 training_preprocessor = ClassicalTrainingPreprocessing(
     student, "placement_status", "classification", "./student_report"
 )
@@ -106,9 +116,10 @@ print("Confusion Matrix")
 print(confusion_matrix(y_val, model.predict(X_val)))
 print("Classification Report")
 print(classification_report(y_val, model.predict(X_val)))
-
+retriever.close()
 print("----------------------------Titanic Dataset-----------------------")
-titanic_df = pd.read_csv("Titanic-Dataset.csv")
+retriever.connect()
+titanic_df = retriever.retrieve_dataset("Titanic-Dataset", df=True)
 training_preprocessor = ClassicalTrainingPreprocessing(
     titanic_df, "Survived", "classification", "./titanic_preprocessing"
 )
@@ -130,10 +141,11 @@ print("Confusion Matrix")
 print(confusion_matrix(y_val, model.predict(X_val)))
 print("Classification Report")
 print(classification_report(y_val, model.predict(X_val)))
-
+retriever.close()
 ##############################################
 print("----------------------------House Prices Dataset-----------------------")
-price_df = pd.read_csv("Housing.csv")
+retriever.connect()
+price_df = retriever.retrieve_dataset("Housing", df=True)
 training_preprocessor = ClassicalTrainingPreprocessing(
     price_df, "price", "regression", "./house_price_preprocessing"
 )
@@ -149,13 +161,13 @@ model = LinearRegression()
 model.fit(X_train, y_train)
 print("Score: ", model.score(X_val, y_val))
 print("MSE: ", mean_squared_error(y_val, model.predict(X_val)))
-
-#####################################################3
+retriever.close()
+# #####################################################3
 print(
     "----------------------------Heart Disease Dataset-----------------------"
 )
-
-heart_df = pd.read_csv("./heart.csv")
+retriever.connect()
+heart_df = retriever.retrieve_dataset("heart", df=True)
 
 training_preprocessor = ClassicalTrainingPreprocessing(
     heart_df, "target", "classification", "./heart"
@@ -175,8 +187,11 @@ print("Confusion Matrix")
 print(confusion_matrix(y_val, model.predict(X_val)))
 print("Classification Report")
 print(classification_report(y_val, model.predict(X_val)))
+retriever.close()
 print("--------------------------without auto preporcessing")
-heart_df = pd.read_csv("./heart.csv")
+retriever.connect()
+heart_df = retriever.retrieve_dataset("heart", df=True)
+
 heart_df.drop_duplicates(inplace=True)
 X = heart_df.drop(columns=["target"])
 y = heart_df["target"]
@@ -197,11 +212,12 @@ print("Confusion Matrix")
 print(confusion_matrix(y_val, model.predict(X_val)))
 print("Classification Report")
 print(classification_report(y_val, model.predict(X_val)))
+retriever.close()
 #######################################
 print("----------------------------Purchase Dataset-----------------------")
 
-purchase_df = pd.read_csv("./customer_purchase_data.csv")
-
+retriever.connect()
+purchase_df = retriever.retrieve_dataset("customer_purchase_data", df=True)
 training_preprocessor = ClassicalTrainingPreprocessing(
     purchase_df, "PurchaseStatus", "classification", "./PurchaseStatus"
 )
@@ -220,8 +236,10 @@ print("Confusion Matrix")
 print(confusion_matrix(y_val, model.predict(X_val)))
 print("Classification Report")
 print(classification_report(y_val, model.predict(X_val)))
+retriever.close()
 print("--------------------------without auto preporcessing")
-purchase_df = pd.read_csv("./customer_purchase_data.csv")
+retriever.connect()
+purchase_df = retriever.retrieve_dataset("customer_purchase_data", df=True)
 purchase_df.drop_duplicates(inplace=True)
 X = purchase_df.drop(columns=["PurchaseStatus"])
 y = purchase_df["PurchaseStatus"]
@@ -242,6 +260,7 @@ print("Confusion Matrix")
 print(confusion_matrix(y_val, model.predict(X_val)))
 print("Classification Report")
 print(classification_report(y_val, model.predict(X_val)))
+retriever.close()
 
 ####################################
 print("----------------------------Iris Dataset-----------------------")
@@ -268,7 +287,8 @@ print(classification_report(y_val, model.predict(X_val)))
 
 
 print("----------------------------Review dataset-----------------------")
-review_df = pd.read_csv("./TestReviews.csv")
+retriever.connect()
+review_df = retriever.retrieve_dataset("TestReviews", df=True)
 training_preprocessor = TextTrainingPreprocessing(
     review_df, "class", text_col="review", folder_path="./reviews"
 )
@@ -303,11 +323,13 @@ X_val, y_val = testing_preprocessor.common_preprocessing()
 print("Predictions:")
 print(model.predict(X_val))
 print("correct prediction:", y_val)
+retriever.close()
 print(
     "------------------------Sentiment analysis dataset-----------------------"
 )
+retriever.connect()
+sentiment_df = retriever.retrieve_dataset("DailyDialog", df=True)
 
-sentiment_df = pd.read_csv("./DailyDialog.csv")
 training_preprocessor = TextTrainingPreprocessing(
     sentiment_df,
     "sentiment",
@@ -328,3 +350,4 @@ print("Confusion Matrix")
 print(confusion_matrix(y_val, model.predict(X_val)))
 print("Classification Report")
 print(classification_report(y_val, model.predict(X_val)))
+retriever.close()
