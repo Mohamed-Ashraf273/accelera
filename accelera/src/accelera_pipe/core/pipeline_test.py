@@ -17,7 +17,7 @@ from sklearn.metrics import v_measure_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-from accelera.src.core.pipeline import Pipeline
+from accelera.src.accelera_pipe.core.pipeline import Pipeline
 
 
 class TestPipelineCorrectness:

@@ -8,7 +8,7 @@ from PIL import Image
 from accelera.src.automl.core.segmentation_image_training_preprocessing import (
     SegmentationImageTrainingPreprocessing,
 )
-from accelera.src.automl.utils.preprocessing import check_path_exists
+from accelera.src.utils.preprocessing import check_path_exists
 
 
 class TestSegmentationImageTrainingPreprocessing:

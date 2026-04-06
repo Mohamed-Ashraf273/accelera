@@ -1,4 +1,4 @@
-from accelera.src.core.metric_display import MetricDisplay
+from accelera.src.accelera_pipe.core.metric_display import MetricDisplay
 
 
 class DisplayString(MetricDisplay):

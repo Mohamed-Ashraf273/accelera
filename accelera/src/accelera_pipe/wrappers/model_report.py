@@ -3,7 +3,9 @@ import textwrap
 
 import matplotlib.pyplot as plt
 
-from accelera.src.wrappers.graph_pipeline_report import GraphPipelineReport
+from accelera.src.accelera_pipe.wrappers.graph_pipeline_report import (
+    GraphPipelineReport,
+)
 
 
 class ModelReport(GraphPipelineReport):

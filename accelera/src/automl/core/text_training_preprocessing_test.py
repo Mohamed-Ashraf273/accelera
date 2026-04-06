@@ -12,7 +12,7 @@ from sklearn.preprocessing import LabelEncoder
 from accelera.src.automl.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )
-from accelera.src.automl.utils.preprocessing import check_path_exists
+from accelera.src.utils.preprocessing import check_path_exists
 
 
 class TestTextTrainingPreprocessing:

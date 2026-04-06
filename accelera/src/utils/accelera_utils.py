@@ -6,8 +6,12 @@ import sys
 
 import sklearn.metrics as metrics
 
-from accelera.src.wrappers.supervised_metric import SupervisedMetric
-from accelera.src.wrappers.unsupervised_metric import UnSupervisedMetric
+from accelera.src.accelera_pipe.wrappers.supervised_metric import (
+    SupervisedMetric,
+)
+from accelera.src.accelera_pipe.wrappers.unsupervised_metric import (
+    UnSupervisedMetric,
+)
 
 try:
     from graph import serialize_graph

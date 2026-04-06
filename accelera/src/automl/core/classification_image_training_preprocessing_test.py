@@ -8,7 +8,7 @@ from PIL import Image
 from accelera.src.automl.core.classification_image_training_preprocessing import (  # noqa: E501
     ClassificationImageTrainingPreprocessing,
 )
-from accelera.src.automl.utils.preprocessing import check_path_exists
+from accelera.src.utils.preprocessing import check_path_exists
 
 
 class TestClassificationImageTrainingPreprocessing:
