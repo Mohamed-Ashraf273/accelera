@@ -18,7 +18,6 @@ from accelera.src.utils.accelera_utils import print_msg
 
 class DatasetRetriever:
     def __init__(self):
-        self.custom_dataset_url = False
         self.is_connected = False
         self.cache_dir = None
 
@@ -48,11 +47,6 @@ class DatasetRetriever:
     def available_datasets(
         self, url: str = config.DATASET_DRIVE_FOLDER_ENDPOINT
     ) -> List[str]:
-        if self.custom_dataset_url:
-            print_msg(
-                "You can't call `available_datasets` with a custom dataset url",
-                level="warningthe listed datasets are accelera's datasets",
-            )
         result = self._fetch_url_content(url)
 
         if "error" in result:
