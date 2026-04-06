@@ -1,4 +1,4 @@
-from accelera.src.core.metric import BaseMetric
+from accelera.src.accelera_pipe.core.metric import BaseMetric
 from accelera.src.utils.array_utils import convert_to_array
 from accelera.src.utils.array_utils import validate_array_shape
 

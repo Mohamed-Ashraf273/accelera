@@ -1,10 +1,10 @@
 from accelera.src.automl.core.testing_tabular_preprocessing_base import (
     TestingTabularPreprocessingBase,
 )
-from accelera.src.automl.utils.preprocessing import check_path_exists
-from accelera.src.automl.utils.preprocessing import drop_columns
-from accelera.src.automl.utils.preprocessing import load_pickle
-from accelera.src.automl.utils.preprocessing import lower_data
+from accelera.src.utils.preprocessing import check_path_exists
+from accelera.src.utils.preprocessing import drop_columns
+from accelera.src.utils.preprocessing import load_pickle
+from accelera.src.utils.preprocessing import lower_data
 
 
 class ClassicalTestingPreprocessing(TestingTabularPreprocessingBase):

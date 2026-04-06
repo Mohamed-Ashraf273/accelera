@@ -1,6 +1,6 @@
 import pandas as pd
 
-from accelera.src.core.report_base import ReportBase
+from accelera.src.accelera_pipe.core.report_base import ReportBase
 
 
 class ImagePreprocessingReport(ReportBase):

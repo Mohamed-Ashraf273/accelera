@@ -12,8 +12,6 @@ from sklearn.preprocessing import RobustScaler
 from accelera.src.automl.core.training_tabular_preprocessing_base import (
     TrainingTabularPreprocessingBase,
 )
-from accelera.src.automl.utils.preprocessing import drop_columns
-from accelera.src.automl.utils.preprocessing import save_pickle
 from accelera.src.automl.wrappers.categorical_classification import (
     CategoricalClassification,
 )
@@ -42,6 +40,8 @@ from accelera.src.automl.wrappers.target_classification import (
     TargetClassification,
 )
 from accelera.src.automl.wrappers.target_regression import TargetRegression
+from accelera.src.utils.preprocessing import drop_columns
+from accelera.src.utils.preprocessing import save_pickle
 
 
 class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):

@@ -8,9 +8,6 @@ from accelera.src.automl.core.image_training_preprocessing import (
 from accelera.src.automl.core.segmentation_image_dataset import (
     SegmentationImageDataset,
 )
-from accelera.src.automl.utils.preprocessing import check_path_exists
-from accelera.src.automl.utils.preprocessing import is_valid_image
-from accelera.src.automl.utils.preprocessing import save_pickle
 from accelera.src.automl.wrappers.display_sample_images_segmentation import (
     DisplaySampleImagesSegmentation,
 )
@@ -23,6 +20,9 @@ from accelera.src.automl.wrappers.segmentation_data_summary import (
 from accelera.src.automl.wrappers.segmentation_images_after_loader import (
     SegmentationImagesAfterLoader,
 )
+from accelera.src.utils.preprocessing import check_path_exists
+from accelera.src.utils.preprocessing import is_valid_image
+from accelera.src.utils.preprocessing import save_pickle
 
 
 class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):

@@ -9,7 +9,7 @@ from sklearn.preprocessing import LabelEncoder
 from accelera.src.automl.core.text_testing_preprocesing import (
     TextTestingPreprocessing,
 )
-from accelera.src.automl.utils.preprocessing import save_pickle
+from accelera.src.utils.preprocessing import save_pickle
 
 
 class TestTextTestingPreprocessing:

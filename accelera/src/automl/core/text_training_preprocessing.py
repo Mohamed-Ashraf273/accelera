@@ -11,7 +11,6 @@ from sklearn.preprocessing import LabelEncoder
 from accelera.src.automl.core.training_tabular_preprocessing_base import (
     TrainingTabularPreprocessingBase,
 )
-from accelera.src.automl.utils.preprocessing import save_pickle
 from accelera.src.automl.wrappers.tabular_preprocessing_report import (
     TabularPreprocessingReport,
 )
@@ -19,6 +18,7 @@ from accelera.src.automl.wrappers.target_classification import (
     TargetClassification,
 )
 from accelera.src.automl.wrappers.text_graph import TextGraph
+from accelera.src.utils.preprocessing import save_pickle
 
 
 class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):

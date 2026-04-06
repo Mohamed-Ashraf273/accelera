@@ -5,7 +5,7 @@ from PIL import Image
 from accelera.src.automl.core.segmentation_image_testing_preprocessing import (
     SegmentationImageTestingPreprocessing,
 )
-from accelera.src.automl.utils.preprocessing import save_pickle
+from accelera.src.utils.preprocessing import save_pickle
 
 
 class TestSegmentationImageTestingPreprocessing:

@@ -9,7 +9,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-from accelera.src.core.pipeline import Pipeline as accpipeline
+from accelera.src.accelera_pipe.core.pipeline import Pipeline as accpipeline
 
 
 def get_memory_info():

@@ -8,8 +8,8 @@ from sklearn.preprocessing import LabelEncoder
 from accelera.src.automl.core.classical_testing_preprocessing import (
     ClassicalTestingPreprocessing,
 )
-from accelera.src.automl.utils.preprocessing import drop_columns
-from accelera.src.automl.utils.preprocessing import save_pickle
+from accelera.src.utils.preprocessing import drop_columns
+from accelera.src.utils.preprocessing import save_pickle
 
 
 class TestClassicalTestingPreprocessing:
