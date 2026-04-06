@@ -4,12 +4,10 @@ from accelera.src.automl.core.preprocessing_base import PreprocessingBase
 from accelera.src.automl.core.segmentation_image_dataset import (
     SegmentationImageDataset,
 )
-from accelera.src.automl.utils.preprocessing import check_path_exists
-from accelera.src.automl.utils.preprocessing import (
-    collect_function_segmentation,
-)
-from accelera.src.automl.utils.preprocessing import is_valid_image
-from accelera.src.automl.utils.preprocessing import load_pickle
+from accelera.src.utils.preprocessing import check_path_exists
+from accelera.src.utils.preprocessing import collect_function_segmentation
+from accelera.src.utils.preprocessing import is_valid_image
+from accelera.src.utils.preprocessing import load_pickle
 
 
 class SegmentationImageTestingPreprocessing(PreprocessingBase):

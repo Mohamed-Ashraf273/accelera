@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from accelera.src.automl.core.preprocessing_base import PreprocessingBase
-from accelera.src.automl.utils.preprocessing import check_path_exists
+from accelera.src.utils.preprocessing import check_path_exists
 
 
 class ImageTrainingPreprocessing(PreprocessingBase):

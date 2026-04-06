@@ -13,10 +13,10 @@ from sklearn.metrics import ConfusionMatrixDisplay
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-from accelera.src.core.pipeline import Pipeline
+from accelera.src.accelera_pipe.core.pipeline import Pipeline
+from accelera.src.accelera_pipe.wrappers.graph_report import GraphReport
 from accelera.src.custom.classifier import CustomClassifier
 from accelera.src.utils.accelera_utils import serialize
-from accelera.src.wrappers.graph_report import GraphReport
 
 
 class TorchDenseModel(CustomClassifier):

@@ -8,9 +8,6 @@ from accelera.src.automl.core.classification_image_dataset import (
 from accelera.src.automl.core.image_training_preprocessing import (
     ImageTrainingPreprocessing,
 )
-from accelera.src.automl.utils.preprocessing import get_sub_folders_names
-from accelera.src.automl.utils.preprocessing import is_valid_image
-from accelera.src.automl.utils.preprocessing import save_pickle
 from accelera.src.automl.wrappers.classification_images_after_loader import (
     ClassificationImagesAfterLoader,
 )
@@ -23,6 +20,9 @@ from accelera.src.automl.wrappers.image_label_classification import (
 from accelera.src.automl.wrappers.image_preprocessing_report import (
     ImagePreprocessingReport,
 )
+from accelera.src.utils.preprocessing import get_sub_folders_names
+from accelera.src.utils.preprocessing import is_valid_image
+from accelera.src.utils.preprocessing import save_pickle
 
 
 class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):

@@ -2,7 +2,7 @@ import os
 
 import matplotlib.pyplot as plt
 
-from accelera.src.core.metric_display import MetricDisplay
+from accelera.src.accelera_pipe.core.metric_display import MetricDisplay
 from accelera.src.utils.accelera_utils import create_folder
 
 plt.style.use("dark_background")

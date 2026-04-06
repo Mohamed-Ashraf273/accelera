@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from sklearn.ensemble import RandomForestClassifier
 
-from accelera.src.core.pipeline import Pipeline
+from accelera.src.accelera_pipe.core.pipeline import Pipeline
 from accelera.src.custom.classifier import CustomClassifier
 
 skip_torch = False

@@ -1,14 +1,22 @@
 import numpy as np
 
-from accelera.src.core.report_base import ReportBase
+from accelera.src.accelera_pipe.core.report_base import ReportBase
+from accelera.src.accelera_pipe.wrappers.display_array_multi import (
+    DisplayMultiArray,
+)
+from accelera.src.accelera_pipe.wrappers.display_array_single import (
+    DisplayArraySingle,
+)
+from accelera.src.accelera_pipe.wrappers.display_dict import DisplayDict
+from accelera.src.accelera_pipe.wrappers.display_figure import DisplayFigure
+from accelera.src.accelera_pipe.wrappers.display_single_number import (
+    DisplaySingleNumber,
+)
+from accelera.src.accelera_pipe.wrappers.display_string import DisplayString
+from accelera.src.accelera_pipe.wrappers.display_tuple_not_curve import (
+    DisplayTupleNotCurve,
+)
 from accelera.src.utils.accelera_utils import create_folder
-from accelera.src.wrappers.display_array_multi import DisplayMultiArray
-from accelera.src.wrappers.display_array_single import DisplayArraySingle
-from accelera.src.wrappers.display_dict import DisplayDict
-from accelera.src.wrappers.display_figure import DisplayFigure
-from accelera.src.wrappers.display_single_number import DisplaySingleNumber
-from accelera.src.wrappers.display_string import DisplayString
-from accelera.src.wrappers.display_tuple_not_curve import DisplayTupleNotCurve
 
 
 class GraphPipelineReport(ReportBase):

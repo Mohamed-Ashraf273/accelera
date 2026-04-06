@@ -5,7 +5,7 @@ from PIL import Image
 from accelera.src.automl.core.classification_image_testing_preprocessing import (  # noqa: E501
     ClassificationImageTestingPreprocessing,
 )
-from accelera.src.automl.utils.preprocessing import save_pickle
+from accelera.src.utils.preprocessing import save_pickle
 
 
 class TestClassificationImageTestingPreprocessing:

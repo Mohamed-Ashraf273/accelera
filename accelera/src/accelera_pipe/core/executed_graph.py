@@ -1,6 +1,6 @@
 import os
 
-from accelera.src.core.pipeline_base import PipelineBase
+from accelera.src.accelera_pipe.core.pipeline_base import PipelineBase
 from accelera.src.utils.accelera_utils import serialize
 
 

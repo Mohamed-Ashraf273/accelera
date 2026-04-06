@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from accelera.src.automl.core.tabular_preprocessing_base import (
     TabularPreprocessingBase,
 )
-from accelera.src.automl.utils.preprocessing import lower_data
+from accelera.src.utils.preprocessing import lower_data
 
 
 class TrainingTabularPreprocessingBase(TabularPreprocessingBase):

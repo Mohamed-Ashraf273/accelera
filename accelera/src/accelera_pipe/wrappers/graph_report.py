@@ -6,7 +6,9 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 from graphviz import Digraph
 
-from accelera.src.wrappers.graph_pipeline_report import GraphPipelineReport
+from accelera.src.accelera_pipe.wrappers.graph_pipeline_report import (
+    GraphPipelineReport,
+)
 
 
 class GraphReport(GraphPipelineReport):
