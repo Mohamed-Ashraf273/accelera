@@ -11,3 +11,4 @@ from accelera.src.utils import array_utils_test as array_utils_test
 from accelera.src.utils import code_utils as code_utils
 from accelera.src.utils import code_utils_test as code_utils_test
 from accelera.src.utils import dataset_retriever as dataset_retriever
+from accelera.src.utils import dataset_retriever_test as dataset_retriever_test
