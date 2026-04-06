@@ -38,10 +38,9 @@ Home = "https://github.com/Mohamed-Ashraf273/accelera.git"
 [tool.setuptools.dynamic]
 version = {attr = "accelera.src.version.__version__"}
 
-[tool.setuptools.package-dir]
-"" = "."
-"accelera" = "accelera/src"
-"accelera.src" = "accelera/src"
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["accelera*"]
 
 [tool.ruff]
 line-length = 80
