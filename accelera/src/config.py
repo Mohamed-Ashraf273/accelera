@@ -79,10 +79,7 @@ class Config:
         "ACCELERA_GENERATOR_ENDPOINT",
         "https://accelera-ai-open-mp-generator.hf.space/generate",
     )
-    DATASET_DRIVE_FOLDER_ENDPOINT: str = os.getenv(
-        "ACCELERA_DATASET_DRIVE_FOLDER_ENDPOINT",
-        "https://drive.google.com/drive/folders/1ijBkIdvLnVGbINjDklTsC3-z3jc-_GIE",
-    )
+    DATASET_DRIVE_FOLDER_ENDPOINT: str = "https://drive.google.com/drive/folders/1ijBkIdvLnVGbINjDklTsC3-z3jc-_GIE"
     GENERATOR_MAX_LEN: int = int(
         os.getenv("ACCELERA_GENERATOR_MAX_LEN", "1500")
     )

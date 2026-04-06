@@ -18,6 +18,7 @@ from accelera.src.utils.accelera_utils import print_msg
 
 class DatasetRetriever:
     def __init__(self):
+        self.custom_dataset_url = False
         self.is_connected = False
         self.cache_dir = None
 
@@ -47,6 +48,11 @@ class DatasetRetriever:
     def available_datasets(
         self, url: str = config.DATASET_DRIVE_FOLDER_ENDPOINT
     ) -> List[str]:
+        if self.custom_dataset_url:
+            print_msg(
+                "You can't call `available_datasets` with a custom dataset url",
+                level="warningthe listed datasets are accelera's datasets",
+            )
         result = self._fetch_url_content(url)
 
         if "error" in result:
@@ -68,7 +74,11 @@ class DatasetRetriever:
         os.makedirs(self.cache_dir, exist_ok=True)
 
     def retrieve_dataset(
-        self, dataset_name: str, encoding: str = "utf-8", df: bool = False
+        self,
+        dataset_name: str,
+        encoding: str = "utf-8",
+        df: bool = False,
+        url=None,
     ) -> pd.DataFrame:
         def get_df(dataset_path: str):
             return pd.read_csv(
@@ -84,18 +94,6 @@ class DatasetRetriever:
                 "Dataset retriever is not connected. Call `connect()` first."
             )
 
-        if dataset_name not in config.DATASETS:
-            raise KeyError(
-                f"Unknown dataset '{dataset_name}'. "
-                f"Available: {self.available_datasets()}"
-            )
-
-        dataset_path = os.path.join(self.cache_dir, f"{dataset_name}.csv")
-        if os.path.exists(dataset_path):
-            if df:
-                return get_df(dataset_path)
-            return str(dataset_path)
-
         try:
             import gdown
         except ModuleNotFoundError as exc:
@@ -103,11 +101,33 @@ class DatasetRetriever:
                 "Missing optional dependency 'gdown'. Run pip install gdown."
             ) from exc
 
-        gdown.download(
-            id=config.DATASETS[dataset_name]["id"],
-            output=dataset_path,
-            quiet=False,
-        )
+        dataset_path = os.path.join(self.cache_dir, f"{dataset_name}.csv")
+        if os.path.exists(dataset_path):
+            if df:
+                return get_df(dataset_path)
+            return str(dataset_path)
+
+        if url is None:
+            if dataset_name not in config.DATASETS:
+                raise KeyError(
+                    f"Unknown dataset '{dataset_name}'. "
+                    f"Available: {self.available_datasets()}"
+                )
+
+            gdown.download(
+                id=config.DATASETS[dataset_name]["id"],
+                output=dataset_path,
+                quiet=False,
+            )
+        else:
+            gdown.download(
+                url=url,
+                output=dataset_path,
+                quiet=False,
+            )
+
+        print_msg(f"Downloaded dataset '{dataset_name}'", level="info")
+
         if df:
             return get_df(dataset_path)
         return str(dataset_path)
