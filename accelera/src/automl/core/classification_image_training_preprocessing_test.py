@@ -136,9 +136,7 @@ class TestClassificationImageTrainingPreprocessing:
         )
         preprocessor.common_preprocessing()
         assert "training_folder" in preprocessor.report_data["data_overview"]
-        assert (
-            "validation_folder" not in preprocessor.report_data["data_overview"]
-        )
+        assert "validation_folder" not in preprocessor.report_data["data_overview"]
         assert (
             preprocessor.report_data["data_overview"]["training_folder"][
                 "images_len"

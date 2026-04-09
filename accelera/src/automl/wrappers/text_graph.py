@@ -22,9 +22,7 @@ class TextGraph(TabularGraphBase):
             autopct="%1.1f%%",
             colors=["#021D25", "#ADD8E6"],
         )
-        self.graph_df = self.graph_df[
-            [self.col_name, self.target_name]
-        ].dropna()
+        self.graph_df = self.graph_df[[self.col_name, self.target_name]].dropna()
         sns.barplot(x=list(self.word), y=list(self.count), ax=ax[1])
         ax[1].set_title(f"Top 7 words in {self.col_name}")
         ax[1].set_xlabel("Words")

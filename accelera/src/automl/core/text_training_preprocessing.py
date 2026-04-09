@@ -14,9 +14,7 @@ from accelera.src.automl.core.training_tabular_preprocessing_base import (
 from accelera.src.automl.wrappers.tabular_preprocessing_report import (
     TabularPreprocessingReport,
 )
-from accelera.src.automl.wrappers.target_classification import (
-    TargetClassification,
-)
+from accelera.src.automl.wrappers.target_classification import TargetClassification
 from accelera.src.automl.wrappers.text_graph import TextGraph
 from accelera.src.utils.preprocessing import save_pickle
 
@@ -42,9 +40,7 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
         self.tfidf_max_df = tfidf_max_df
         self.tfidf_min_df = tfidf_min_df
         if target_col == text_col:
-            raise ValueError(
-                "target column and text column must not be the same"
-            )
+            raise ValueError("target column and text column must not be the same")
         if text_col not in df.columns:
             raise ValueError(
                 f"Text column {text_col} not found in dataframe columns"
@@ -159,9 +155,7 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
             "X_train_processed": pd.concat(
                 [X_train_head, X_train_head_cleaned], axis=1
             ),
-            "X_val_processed": pd.concat(
-                [X_val_head, X_val_head_cleaned], axis=1
-            ),
+            "X_val_processed": pd.concat([X_val_head, X_val_head_cleaned], axis=1),
         }
         training_preprocessor = TfidfVectorizer(
             max_features=self.tfidf_max_features,
@@ -176,9 +170,7 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
         X_train_preprocessed = training_preprocessor.fit_transform(
             X_train[self.text_col]
         )
-        X_val_preprocessed = training_preprocessor.transform(
-            X_val[self.text_col]
-        )
+        X_val_preprocessed = training_preprocessor.transform(X_val[self.text_col])
 
         save_pickle(
             self.folder_path, training_preprocessor, "training_preprocessor.pkl"
@@ -203,12 +195,12 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
         label_encoder = LabelEncoder()
         y_train_preprocessed = label_encoder.fit_transform(y_train)
         y_val_preprocessed = label_encoder.transform(y_val)
-        self.report_data["after_preprocessing"]["y_train_processed"] = (
-            pd.DataFrame(y_train_preprocessed, columns=[self.target_col]).head()
-        )
-        self.report_data["after_preprocessing"]["y_val_processed"] = (
-            pd.DataFrame(y_val_preprocessed, columns=[self.target_col]).head()
-        )
+        self.report_data["after_preprocessing"]["y_train_processed"] = pd.DataFrame(
+            y_train_preprocessed, columns=[self.target_col]
+        ).head()
+        self.report_data["after_preprocessing"]["y_val_processed"] = pd.DataFrame(
+            y_val_preprocessed, columns=[self.target_col]
+        ).head()
         save_pickle(self.folder_path, label_encoder, "target_preprocessor.pkl")
         save_pickle(self.folder_path, self.info, "data_info.pkl")
         return y_train_preprocessed, y_val_preprocessed

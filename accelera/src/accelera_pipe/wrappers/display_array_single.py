@@ -10,9 +10,7 @@ class DisplayArraySingle(MetricDisplay):
     def execute(self):
         content = f"<div>\n<h3>Metric name: {self.metric_name}</h3>\n"
         ids = [value["metric id"] for value in self.values]
-        labels_name = self.handle_name(
-            "labels_name", len(self.values[0]["result"])
-        )
+        labels_name = self.handle_name("labels_name", len(self.values[0]["result"]))
         data = {"Metric ID": ids}
         for value in self.values:
             for i in range(len(value["result"])):
@@ -21,8 +19,6 @@ class DisplayArraySingle(MetricDisplay):
                 else:
                     data[labels_name[i]].append(value["result"][i])
 
-        table = pd.DataFrame(data).to_html(
-            index=False, border=1, justify="center"
-        )
+        table = pd.DataFrame(data).to_html(index=False, border=1, justify="center")
         content = content + table + "</div>\n"
         return content

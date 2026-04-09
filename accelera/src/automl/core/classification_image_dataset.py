@@ -52,18 +52,12 @@ class ClassificationImageDataset(ImageDataset):
         return img_tensor
 
     def random_horizontal_flip(self, img):
-        if (
-            self.horizontal_flip
-            and random.random() < self.augmentation_probability
-        ):
+        if self.horizontal_flip and random.random() < self.augmentation_probability:
             return img.transpose(Image.FLIP_LEFT_RIGHT)
         return img
 
     def random_vertical_flip(self, img):
-        if (
-            self.vertical_flip
-            and random.random() < self.augmentation_probability
-        ):
+        if self.vertical_flip and random.random() < self.augmentation_probability:
             return img.transpose(Image.FLIP_TOP_BOTTOM)
         return img
 

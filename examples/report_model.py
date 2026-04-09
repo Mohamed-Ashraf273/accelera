@@ -15,9 +15,7 @@ from tensorflow.keras import layers
 from accelera.src.accelera_pipe.wrappers.model_report import ModelReport
 
 data = pd.read_csv("Titanic-Dataset.csv")
-data.drop(
-    axis=1, columns=["PassengerId", "Name", "Ticket", "Cabin"], inplace=True
-)
+data.drop(axis=1, columns=["PassengerId", "Name", "Ticket", "Cabin"], inplace=True)
 print(data.head())
 print(data.isnull().sum())
 data["Age"].fillna(data["Age"].mean(), inplace=True)

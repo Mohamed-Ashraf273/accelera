@@ -273,9 +273,7 @@ class TestTextTrainingPreprocessing:
         y_val_fill = y_val.fillna(mode)
         y_train_manual = encoder.fit_transform(y_train_fill)
         y_val_manual = encoder.transform(y_val_fill)
-        y_train_processed, y_val_processed = tp.target_preprocessing(
-            y_train, y_val
-        )
+        y_train_processed, y_val_processed = tp.target_preprocessing(y_train, y_val)
         assert tp.info["target_mode"] == mode
         assert np.allclose(y_val_manual, y_val_processed)
         assert np.allclose(y_train_manual, y_train_processed)

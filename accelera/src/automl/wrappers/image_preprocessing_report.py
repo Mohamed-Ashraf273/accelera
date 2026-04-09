@@ -50,9 +50,7 @@ class ImagePreprocessingReport(ReportBase):
             df = pd.DataFrame(
                 over_view["mapping"].items(), columns=["Class", "Label"]
             )
-            self.show_table_section_from_df(
-                df, "<h4>Classes 2 Labels Mapping </h4>"
-            )
+            self.show_table_section_from_df(df, "<h4>Classes 2 Labels Mapping </h4>")
         self.show_paragraph_section(
             f"Count : {over_view['images_len']}", "<h4>Total Images </h4>"
         )

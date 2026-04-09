@@ -31,9 +31,7 @@ class SegmentationImageTestingPreprocessing(PreprocessingBase):
             raise ValueError("Image paths must be list of paths")
         if len(self.image_paths) == 0:
             raise ValueError("Image paths is empty list")
-        if self.image_masks is not None and not isinstance(
-            self.image_masks, list
-        ):
+        if self.image_masks is not None and not isinstance(self.image_masks, list):
             raise ValueError("masks must be list of masks paths")
         if self.image_masks is not None and len(self.image_masks) != len(
             self.image_paths
@@ -60,9 +58,7 @@ class SegmentationImageTestingPreprocessing(PreprocessingBase):
         self.binary_mask_threshold = info["binary_mask_threshold"]
 
     def common_preprocessing(self):
-        self.valid_masks = (
-            None if len(self.valid_masks) == 0 else self.valid_masks
-        )
+        self.valid_masks = None if len(self.valid_masks) == 0 else self.valid_masks
         dataset = SegmentationImageDataset(
             self.valid_images,
             self.valid_masks,

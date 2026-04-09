@@ -73,15 +73,11 @@ class TestTextTestingPreprocessing:
         with pytest.raises(ValueError):
             TextTestingPreprocessing(df=self.test, folder_path=self.temp_dir)
         with pytest.raises(ValueError):
-            tp = TextTestingPreprocessing(
-                df=self.test, folder_path=self.temp_dir
-            )
+            tp = TextTestingPreprocessing(df=self.test, folder_path=self.temp_dir)
             tp.feature_preprocessing()
         save_pickle(self.temp_dir, {}, "target_preprocessor.pkl")
         with pytest.raises(ValueError):
-            tp = TextTestingPreprocessing(
-                df=self.test, folder_path=self.temp_dir
-            )
+            tp = TextTestingPreprocessing(df=self.test, folder_path=self.temp_dir)
             tp.target_preprocessing()
 
     def test_text_target_preprocessing_test(self):

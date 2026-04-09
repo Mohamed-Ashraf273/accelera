@@ -43,7 +43,7 @@ where = ["."]
 include = ["accelera*"]
 
 [tool.ruff]
-line-length = 80
+line-length = 85
 
 [tool.ruff.lint]
 select = [

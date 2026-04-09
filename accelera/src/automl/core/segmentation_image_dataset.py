@@ -63,18 +63,13 @@ class SegmentationImageDataset(ImageDataset):
             mask_array = (mask_array >= self.binary_mask_threshold).astype(
                 np.float32
             )
-            mask_tensor = torch.tensor(
-                mask_array, dtype=torch.float32
-            ).unsqueeze(0)
+            mask_tensor = torch.tensor(mask_array, dtype=torch.float32).unsqueeze(0)
         return img_tensor, mask_tensor
 
     def random_horizontal_flip(self, img, mask):
         transposed_img = img
         transposed_mask = mask
-        if (
-            self.horizontal_flip
-            and random.random() < self.augmentation_probability
-        ):
+        if self.horizontal_flip and random.random() < self.augmentation_probability:
             transposed_img = img.transpose(Image.FLIP_LEFT_RIGHT)
             if mask is not None:
                 transposed_mask = mask.transpose(Image.FLIP_LEFT_RIGHT)
@@ -83,10 +78,7 @@ class SegmentationImageDataset(ImageDataset):
     def random_vertical_flip(self, img, mask):
         transposed_img = img
         transposed_mask = mask
-        if (
-            self.vertical_flip
-            and random.random() < self.augmentation_probability
-        ):
+        if self.vertical_flip and random.random() < self.augmentation_probability:
             transposed_img = img.transpose(Image.FLIP_TOP_BOTTOM)
             if mask is not None:
                 transposed_mask = mask.transpose(Image.FLIP_TOP_BOTTOM)

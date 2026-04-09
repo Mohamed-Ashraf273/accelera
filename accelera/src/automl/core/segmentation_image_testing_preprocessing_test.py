@@ -20,9 +20,7 @@ class TestSegmentationImageTestingPreprocessing:
                 image_paths=None, folder_path=tmp_path
             )
 
-        with pytest.raises(
-            ValueError, match="Image paths must be list of paths"
-        ):
+        with pytest.raises(ValueError, match="Image paths must be list of paths"):
             SegmentationImageTestingPreprocessing(
                 image_paths="path", folder_path=tmp_path
             )
@@ -31,9 +29,7 @@ class TestSegmentationImageTestingPreprocessing:
                 image_paths=[], folder_path=tmp_path
             )
 
-        with pytest.raises(
-            ValueError, match="masks must be list of masks paths"
-        ):
+        with pytest.raises(ValueError, match="masks must be list of masks paths"):
             SegmentationImageTestingPreprocessing(
                 image_paths=["path"], image_masks=0, folder_path=tmp_path
             )

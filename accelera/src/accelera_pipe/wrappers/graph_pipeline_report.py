@@ -1,9 +1,7 @@
 import numpy as np
 
 from accelera.src.accelera_pipe.core.report_base import ReportBase
-from accelera.src.accelera_pipe.wrappers.display_array_multi import (
-    DisplayMultiArray,
-)
+from accelera.src.accelera_pipe.wrappers.display_array_multi import DisplayMultiArray
 from accelera.src.accelera_pipe.wrappers.display_array_single import (
     DisplayArraySingle,
 )
@@ -90,9 +88,7 @@ class GraphPipelineReport(ReportBase):
                 content = obj.execute()
             elif isinstance(values[0]["result"], (tuple)):
                 if values[0]["plot_func"] is None:
-                    obj = DisplayTupleNotCurve(
-                        metric_name, values, self.folderpath
-                    )
+                    obj = DisplayTupleNotCurve(metric_name, values, self.folderpath)
                     content = obj.execute()
                 else:
                     obj = DisplayFigure(metric_name, values, self.folderpath)

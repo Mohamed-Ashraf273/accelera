@@ -58,9 +58,7 @@ class DatasetRetriever:
         if not names:
             raise ValueError("No datasets found")
 
-        return list(
-            set(name.replace("x22", "").split(".csv")[0] for name in names)
-        )
+        return list(set(name.replace("x22", "").split(".csv")[0] for name in names))
 
     def connect(self):
         self.is_connected = True

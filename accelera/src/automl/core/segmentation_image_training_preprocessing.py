@@ -90,8 +90,7 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
         check_path_exists(self.training_folder_masks, "")
         if self.training_folder == self.training_folder_masks:
             raise ValueError(
-                "training folder images and training folder masks must be "
-                "different"
+                "training folder images and training folder masks must be different"
             )
 
         if self.binary_mask_threshold is None:
@@ -193,9 +192,7 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             title="Training Folder Summary",
             file_name="training_folder_summary",
         ).build_graph()
-        self.report_data["graphs"]["images_name"].append(
-            "training_folder_summary"
-        )
+        self.report_data["graphs"]["images_name"].append("training_folder_summary")
         if self.validation_folder is not None:
             Segmentation_data_summary(
                 self.validation_paths,
@@ -204,9 +201,7 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
                 title="Validation Folder Summary",
                 file_name="validation_folder_summary",
             ).build_graph()
-        self.report_data["graphs"]["images_name"].append(
-            "validation_folder_summary"
-        )
+        self.report_data["graphs"]["images_name"].append("validation_folder_summary")
 
     def make_garphs_sample(self):
         DisplaySampleImagesSegmentation(
@@ -271,9 +266,7 @@ class SegmentationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             "training_after_data_loader_samples"
         )
         if self.validation_loader is not None:
-            validation_images, validation_labels = next(
-                iter(self.validation_loader)
-            )
+            validation_images, validation_labels = next(iter(self.validation_loader))
             n_samples = min(5, len(validation_images))
             validation_images, validation_labels = (
                 validation_images[:n_samples],
