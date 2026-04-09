@@ -39,9 +39,7 @@ class TestParallelizer:
 
         assert result == loop_code
 
-    def test_generate_omp_pragma_with_loop_adds_validated_pragma(
-        self, monkeypatch
-    ):
+    def test_generate_omp_pragma_with_loop_adds_validated_pragma(self, monkeypatch):
         parallelizer = Parallelizer()
 
         class DummyResponse:
@@ -66,9 +64,7 @@ class TestParallelizer:
         assert result.startswith("#pragma omp parallel for\n")
         assert "for (int i = 0; i < n; ++i) {}" in result
 
-    def test_parallelize_writes_parallelized_output(
-        self, monkeypatch, tmp_path
-    ):
+    def test_parallelize_writes_parallelized_output(self, monkeypatch, tmp_path):
         source_file = tmp_path / "sample.c"
         source_file.write_text(
             "int main() {\n"
@@ -133,8 +129,8 @@ class TestParallelizer:
 
 class TestExtractLoops:
     @pytest.fixture
-    def simple_cpp_file(self):
-        content = """
+    def simple_cpp_code(self):
+        return """
         int main() {
             for (int i = 0; i < 10; i++) {
                 // Simple loop
@@ -142,20 +138,10 @@ class TestExtractLoops:
             return 0;
         }
         """
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".cpp", delete=False
-        ) as f:
-            f.write(content)
-            temp_path = f.name
-
-        yield temp_path
-
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
 
     @pytest.fixture
-    def multiple_loops_cpp_file(self):
-        content = """
+    def multiple_loops_cpp_code(self):
+        return """
         int main() {
             for (int i = 0; i < 10; i++) {}
             
@@ -167,19 +153,9 @@ class TestExtractLoops:
             return 0;
         }
         """
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".cpp", delete=False
-        ) as f:
-            f.write(content)
-            temp_path = f.name
 
-        yield temp_path
-
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-
-    def test_extract_loops_simple_file(self, simple_cpp_file):
-        loops = extract_loops(simple_cpp_file)
+    def test_extract_loops_simple_file(self, simple_cpp_code):
+        loops = extract_loops(simple_cpp_code)
 
         assert isinstance(loops, list)
         assert len(loops) >= 1
@@ -188,26 +164,16 @@ class TestExtractLoops:
         assert hasattr(loops[0], "end_line")
         assert hasattr(loops[0], "code")
 
-    def test_extract_loops_multiple_loops(self, multiple_loops_cpp_file):
-        loops = extract_loops(multiple_loops_cpp_file)
+    def test_extract_loops_multiple_loops(self, multiple_loops_cpp_code):
+        loops = extract_loops(multiple_loops_cpp_code)
 
         assert isinstance(loops, list)
         assert len(loops) >= 2
 
     def test_extract_loops_empty_file(self):
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".cpp", delete=False
-        ) as f:
-            f.write("")
-            temp_path = f.name
-
-        try:
-            loops = extract_loops(temp_path)
-            assert isinstance(loops, list)
-            assert len(loops) == 0
-        finally:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
+        loops = extract_loops("")
+        assert isinstance(loops, list)
+        assert len(loops) == 0
 
 
 class TestWriteLoopsToJson:
@@ -225,18 +191,7 @@ class TestWriteLoopsToJson:
             return 0;
         }
         """
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".cpp", delete=False
-        ) as f:
-            f.write(content)
-            temp_path = f.name
-
-        try:
-            loops = extract_loops(temp_path)
-            yield loops
-        finally:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
+        return extract_loops(content)
 
     def test_write_loops_to_json_success(self, real_loops):
         with tempfile.NamedTemporaryFile(

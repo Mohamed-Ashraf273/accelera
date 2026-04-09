@@ -100,9 +100,7 @@ class TabularPreprocessingReport(ReportBase):
                 self.content += f"<tr><td>{col}</td><td>{reason}</td></tr>\n"
             self.content += "</table>\n"
             self.show_data_heads(self.drop_columns, "X_trian_head", "X train")
-            self.show_data_heads(
-                self.drop_columns, "X_val_head", "X validation"
-            )
+            self.show_data_heads(self.drop_columns, "X_val_head", "X validation")
 
         else:
             self.content += "<p>No columns were dropped</p>\n"

@@ -21,9 +21,7 @@ class TestClassificationImageTestingPreprocessing:
                 image_paths=None, folder_path=tmp_path
             )
 
-        with pytest.raises(
-            ValueError, match="Image paths must be list of paths"
-        ):
+        with pytest.raises(ValueError, match="Image paths must be list of paths"):
             ClassificationImageTestingPreprocessing(
                 image_paths="path", folder_path=tmp_path
             )
@@ -92,13 +90,11 @@ class TestClassificationImageTestingPreprocessing:
         with pytest.raises(
             ValueError, match="this class name not in the training class"
         ):
-            testing_loader, invalid_paths = (
-                ClassificationImageTestingPreprocessing(
-                    image_paths=paths,
-                    image_class_names=labels,
-                    folder_path=tmp_path,
-                ).common_preprocessing()
-            )
+            testing_loader, invalid_paths = ClassificationImageTestingPreprocessing(
+                image_paths=paths,
+                image_class_names=labels,
+                folder_path=tmp_path,
+            ).common_preprocessing()
         labels = ["cats", "dogs", "cats", "dogs", "dogs"]
         testing_loader, invalid_paths = ClassificationImageTestingPreprocessing(
             image_paths=paths,

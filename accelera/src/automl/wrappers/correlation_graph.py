@@ -25,7 +25,5 @@ class CorrelationGraph(TabularGraphBase):
             )
             ax.set_title("Correlation Matrix")
             plt.tight_layout()
-            plt.savefig(
-                os.path.join(self.folder_path, "correlation_matrix.png")
-            )
+            plt.savefig(os.path.join(self.folder_path, "correlation_matrix.png"))
             plt.close()

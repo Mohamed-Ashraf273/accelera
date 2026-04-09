@@ -159,9 +159,7 @@ class TestCustomModelIntegration:
             return x / 10.0
 
         m1 = TorchDenseModel(input_dim=5, output_dim=4)
-        m2 = RandomForestClassifier(
-            n_estimators=50, random_state=42, max_depth=10
-        )
+        m2 = RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10)
         x = p1(self.X)
         m1.fit(x, self.y)
         m2.fit(x, self.y)

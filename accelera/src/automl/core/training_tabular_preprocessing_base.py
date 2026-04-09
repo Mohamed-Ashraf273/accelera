@@ -10,9 +10,7 @@ from accelera.src.utils.preprocessing import lower_data
 
 
 class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
-    def __init__(
-        self, df, target_col, val_size, random_state, folder_path=None
-    ):
+    def __init__(self, df, target_col, val_size, random_state, folder_path=None):
         super().__init__(df, folder_path)
         self.target_col = target_col
         self.val_size = val_size
@@ -32,9 +30,7 @@ class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
         if self.random_state is not None and not (
             isinstance(self.random_state, int)
         ):
-            raise ValueError(
-                "random state is invalid it must be integer or None"
-            )
+            raise ValueError("random state is invalid it must be integer or None")
 
         self.target_type = self.df[self.target_col].dtype
         os.makedirs(self.folder_path, exist_ok=True)

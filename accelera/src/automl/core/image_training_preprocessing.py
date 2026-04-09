@@ -60,8 +60,7 @@ class ImageTrainingPreprocessing(PreprocessingBase):
                 )
             if self.training_folder == self.validation_folder:
                 raise ValueError(
-                    "The validation folder and training folder must be "
-                    "different"
+                    "The validation folder and training folder must be different"
                 )
 
         if (not (isinstance(self.val_size, (float)))) or (
@@ -71,9 +70,7 @@ class ImageTrainingPreprocessing(PreprocessingBase):
         if (self.random_state is not None) and not (
             isinstance(self.random_state, int)
         ):
-            raise ValueError(
-                "Random state is invalid it must be integer or None"
-            )
+            raise ValueError("Random state is invalid it must be integer or None")
         if not isinstance(self.image_size, tuple):
             raise ValueError("Image size must be tuple")
         if not isinstance(self.image_size[0], int) or not isinstance(
@@ -136,20 +133,15 @@ class ImageTrainingPreprocessing(PreprocessingBase):
         if (
             not isinstance(self.brightness_factors, tuple)
             or len(self.brightness_factors) != 2
-            or not all(
-                isinstance(x, (int, float)) for x in self.brightness_factors
-            )
+            or not all(isinstance(x, (int, float)) for x in self.brightness_factors)
         ):
             raise ValueError(
-                "brightness_factors must be tuple of two items float "
-                "or integers"
+                "brightness_factors must be tuple of two items float or integers"
             )
         if (
             not isinstance(self.contrast_factors, tuple)
             or len(self.contrast_factors) != 2
-            or not all(
-                isinstance(x, (int, float)) for x in self.contrast_factors
-            )
+            or not all(isinstance(x, (int, float)) for x in self.contrast_factors)
         ):
             raise ValueError(
                 "contrast_factors must be tuple of two items float or integers"

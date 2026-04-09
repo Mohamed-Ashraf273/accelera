@@ -20,9 +20,7 @@ class ImageLabelClassification(GraphBase):
         super().__init__(folder_path)
         label2class_mapping = label2class_mapping
         self.valid_df = pd.DataFrame({"labels": labels})
-        self.valid_df["labels"] = self.valid_df["labels"].map(
-            label2class_mapping
-        )
+        self.valid_df["labels"] = self.valid_df["labels"].map(label2class_mapping)
         self.total_df = None
         self.invalid_df = None
         self.title = title

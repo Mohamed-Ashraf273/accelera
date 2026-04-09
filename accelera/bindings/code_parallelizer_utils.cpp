@@ -20,11 +20,11 @@ PYBIND11_MODULE(code_parallelizer_utils, m) {
       });
 
   m.def(
-      "extract_loops", &accelera::extract_loops, py::arg("filename"),
+      "extract_loops", &accelera::extract_loops, py::arg("code"),
       py::arg("clang_args") = std::vector<std::string>(),
       "Extract loops from a C++ source file.\n\n"
       "Args:\n"
-      "    filename (str): Path to the C++ source file\n"
+      "    code (str): C++ source code as a string\n"
       "    clang_args (list): Optional list of Clang compilation arguments\n\n"
       "Returns:\n"
       "    list[LoopInfo]: List of extracted loops");

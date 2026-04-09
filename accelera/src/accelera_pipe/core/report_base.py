@@ -75,9 +75,7 @@ class ReportBase:
             for image_name in graphs["images_name"]:
                 image_file = os.path.join(folder_path, f"{image_name}.png")
                 if os.path.exists(image_file):
-                    image_file = os.path.join(
-                        ".", "graphs", f"{image_name}.png"
-                    )
+                    image_file = os.path.join(".", "graphs", f"{image_name}.png")
                     self.content += f"<img src='{image_file}' "
                     self.content += "style='max-width:100%; margin:10px 0;'/>\n"
         self.content += "</div>\n"

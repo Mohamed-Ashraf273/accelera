@@ -7,21 +7,20 @@ import numpy as np
 import requests
 
 from accelera.src.config import config
+from accelera.src.utils.py2cpp_converter import py2cpp_converter
 
 try:
     from code_parallelizer_utils import extract_loops as _extract_loops
-    from code_parallelizer_utils import (
-        write_loops_to_json as _write_loops_to_json,
-    )
+    from code_parallelizer_utils import write_loops_to_json as _write_loops_to_json
 except ImportError:
     _extract_loops = None
     _write_loops_to_json = None
 
 
-def extract_loops(file_path: str, clang_args: list | None = None) -> list:
+def extract_loops(code: str, clang_args: list | None = None) -> list:
     if clang_args is None:
         clang_args = list(config.DEFAULT_CLANG_ARGS)
-    return _extract_loops(file_path, clang_args)
+    return _extract_loops(code, clang_args)
 
 
 def write_loops_to_json(loops: list, output_json: str) -> bool:
@@ -150,9 +149,7 @@ def extract_features(code: str) -> dict:
         if any(int(m) < 100 for m in matches):
             features["loop_bound_constant"] = True
             features["trip_count_computable"] = True
-        features["estimated_iterations"] = max(
-            [int(m) for m in matches], default=0
-        )
+        features["estimated_iterations"] = max([int(m) for m in matches], default=0)
 
     features["branch_count"] = len(
         re.findall(r"\bif\b|\belse\b|\bswitch\b", code_clean)
@@ -162,9 +159,9 @@ def extract_features(code: str) -> dict:
     if re.search(r"\bbreak\b|\bcontinue\b|\breturn\b", code_clean):
         features["has_early_exit"] = True
 
-    features["function_call_count"] = len(
-        re.findall(r"\w+\s*\(", code_clean)
-    ) - len(re.findall(r"\bfor\b|\bif\b|\bwhile\b", code_clean))
+    features["function_call_count"] = len(re.findall(r"\w+\s*\(", code_clean)) - len(
+        re.findall(r"\bfor\b|\bif\b|\bwhile\b", code_clean)
+    )
 
     features["arithmetic_op_count"] = len(
         re.findall(r"[+\-](?!=)", code_clean)
@@ -303,9 +300,7 @@ class Parallelizer:
                 f"Error while parallelizing, in classifier with error: {e}"
             )
 
-    def _generate_omp_pragma_with_loop(
-        self, loop_code: str, loop_class: str
-    ) -> str:
+    def _generate_omp_pragma_with_loop(self, loop_code: str, loop_class: str) -> str:
         if loop_class == "none":
             return loop_code
 
@@ -338,12 +333,13 @@ class Parallelizer:
         with open(file_path, "r") as file:
             code = file.read()
 
-        loops = extract_loops(file_path)
+        if file_path.endswith(".py"):
+            code = py2cpp_converter(code)
+
+        loops = extract_loops(code)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-        json_path = (
-            self.cache_dir / f"extracted_loops_{Path(file_path).stem}.json"
-        )
+        json_path = self.cache_dir / f"extracted_loops_{Path(file_path).stem}.json"
 
         if not os.path.exists(json_path):
             self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -370,6 +366,7 @@ class Parallelizer:
             features = extract_features(loop_code)
             embedding = vectorize_features(features)
             pred_class = self._classify(embedding)
+            print(pred_class)
 
             if pred_class != "none":
                 pragma_with_loop = self._generate_omp_pragma_with_loop(
@@ -384,9 +381,7 @@ class Parallelizer:
                 shift += new_segment_len - current_segment_len
 
         current_dir = Path(file_path).parent
-        final_output_path = (
-            current_dir / f"parallelized_{Path(file_path).stem}.c"
-        )
+        final_output_path = current_dir / f"parallelized_{Path(file_path).stem}.c"
 
         with open(final_output_path, "w") as file:
             file.write("\n".join(code_lines))

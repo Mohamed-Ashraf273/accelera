@@ -35,18 +35,8 @@ public:
 };
 
 std::vector<LoopInfo>
-extract_loops(const std::string &filename,
+extract_loops(const std::string &code,
               const std::vector<std::string> &clang_args) {
-
-  std::ifstream file(filename);
-  if (!file.is_open()) {
-    throw std::runtime_error("Error: Could not open file: " + filename);
-  }
-
-  std::stringstream buffer;
-  buffer << file.rdbuf();
-  std::string code = buffer.str();
-  file.close();
 
   auto result_ptr = std::make_shared<std::vector<LoopInfo>>();
 

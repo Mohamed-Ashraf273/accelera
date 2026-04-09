@@ -151,9 +151,7 @@ print("Score: ", model.score(X_val, y_val))
 print("MSE: ", mean_squared_error(y_val, model.predict(X_val)))
 
 #####################################################3
-print(
-    "----------------------------Heart Disease Dataset-----------------------"
-)
+print("----------------------------Heart Disease Dataset-----------------------")
 
 heart_df = pd.read_csv("./heart.csv")
 
@@ -166,9 +164,7 @@ model = RandomForestClassifier(random_state=42, class_weight="balanced")
 model.fit(X_train, y_train)
 print("Score: ", model.score(X_val, y_val))
 print("Logistic Regression")
-model = LogisticRegression(
-    random_state=42, class_weight="balanced", max_iter=1000
-)
+model = LogisticRegression(random_state=42, class_weight="balanced", max_iter=1000)
 model.fit(X_train, y_train)
 print("Score:", model.score(X_val, y_val))
 print("Confusion Matrix")
@@ -188,9 +184,7 @@ model = RandomForestClassifier(random_state=42, class_weight="balanced")
 model.fit(X_train, y_train)
 print("Score: ", model.score(X_val, y_val))
 print("Logistic Regression")
-model = LogisticRegression(
-    random_state=42, class_weight="balanced", max_iter=1000
-)
+model = LogisticRegression(random_state=42, class_weight="balanced", max_iter=1000)
 model.fit(X_train, y_train)
 print("Score:", model.score(X_val, y_val))
 print("Confusion Matrix")
@@ -211,9 +205,7 @@ model = RandomForestClassifier(random_state=42, class_weight="balanced")
 model.fit(X_train, y_train)
 print("Score: ", model.score(X_val, y_val))
 print("Logistic Regression")
-model = LogisticRegression(
-    random_state=42, class_weight="balanced", max_iter=10000
-)
+model = LogisticRegression(random_state=42, class_weight="balanced", max_iter=10000)
 model.fit(X_train, y_train)
 print("Score:", model.score(X_val, y_val))
 print("Confusion Matrix")
@@ -233,9 +225,7 @@ model = RandomForestClassifier(random_state=42, class_weight="balanced")
 model.fit(X_train, y_train)
 print("Score: ", model.score(X_val, y_val))
 print("Logistic Regression")
-model = LogisticRegression(
-    random_state=42, class_weight="balanced", max_iter=10000
-)
+model = LogisticRegression(random_state=42, class_weight="balanced", max_iter=10000)
 model.fit(X_train, y_train)
 print("Score:", model.score(X_val, y_val))
 print("Confusion Matrix")
@@ -303,9 +293,7 @@ X_val, y_val = testing_preprocessor.common_preprocessing()
 print("Predictions:")
 print(model.predict(X_val))
 print("correct prediction:", y_val)
-print(
-    "------------------------Sentiment analysis dataset-----------------------"
-)
+print("------------------------Sentiment analysis dataset-----------------------")
 
 sentiment_df = pd.read_csv("./DailyDialog.csv")
 training_preprocessor = TextTrainingPreprocessing(

@@ -27,9 +27,7 @@ class NumericalRegression(TabularGraphBase):
         for label in ax[1].get_xticklabels():
             label.set_rotation(45)
             label.set_horizontalalignment("right")
-        self.graph_df = self.graph_df[
-            [self.col_name, self.target_name]
-        ].dropna()
+        self.graph_df = self.graph_df[[self.col_name, self.target_name]].dropna()
         sns.scatterplot(
             data=self.graph_df, x=self.col_name, y=self.target_name, ax=ax[2]
         )
