@@ -366,7 +366,6 @@ class Parallelizer:
             features = extract_features(loop_code)
             embedding = vectorize_features(features)
             pred_class = self._classify(embedding)
-            print(pred_class)
 
             if pred_class != "none":
                 pragma_with_loop = self._generate_omp_pragma_with_loop(
