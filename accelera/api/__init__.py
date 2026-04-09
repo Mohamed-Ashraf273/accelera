@@ -9,5 +9,6 @@ from accelera.src.version import __version__ as __version__
 from accelera.src import accelera_pipe as accelera_pipe
 from accelera.src import automl as automl
 from accelera.src import benchmark as benchmark
+from accelera.src import core as core
 from accelera.src import custom as custom
 from accelera.src import utils as utils
