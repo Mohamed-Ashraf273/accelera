@@ -6,6 +6,7 @@ const {
   isUrlValidation,
   isValidProblemType,
   isGoogleDriveFileLink,
+  isValidTargetLink,
 } = require("../validations/benchmark");
 router.get("/", async (req, res) => {
   try {
@@ -124,6 +125,16 @@ router.post("/", async (req, res) => {
         message: `This link ${testSetWithoutPredictionsLink}  is not a valid google drive file link`,
       });
     }
+    const targetResults = await isValidTargetLink(
+      predictedColumnLink,
+      targetColumn,
+      createdBy,
+    );
+    if (!targetResults.isvalid == false) {
+      return res.status(400).json({
+        message: targetResults.message,
+      });
+    }
     const newBenchmark = await Benchmark.create({
       title,
       description,
@@ -140,7 +151,7 @@ router.post("/", async (req, res) => {
     console.error("Error while creating Benchmarks:", err);
     res
       .status(500)
-      .json({ message: "There is an error while creating Benchmarks" });
+      .json({ message: `There is an error while creating Benchmarks ` });
   }
 });
 
