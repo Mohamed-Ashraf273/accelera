@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const {
   isUrlValidation,
 } = require("../validations/benchmark");
-const benchmarkSchema = new mongoose.schema({
+const benchmarkSchema = new mongoose.Schema({
   title: {
     required: true,
     type: String,

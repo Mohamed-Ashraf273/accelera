@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { isUrlValidation } = require("../validations/benchmark");
-const submissionSchema = new mongoose.schema({
+const submissionSchema = new mongoose.Schema({
   benchmark: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Benchmark",
