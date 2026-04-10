@@ -3,9 +3,7 @@ import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
-from accelera.src.automl.wrappers.date_feature_extractor import (
-    DateFeatureExtractor,
-)
+from accelera.src.automl.wrappers.date_feature_extractor import DateFeatureExtractor
 from accelera.src.automl.wrappers.flatten_1d_transform import Flatten1DTransform
 from accelera.src.automl.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
@@ -175,9 +173,7 @@ class TestCustomTransform:
     def test_date_faeture_extractor(self):
         data = pd.DataFrame(
             {
-                "date": pd.to_datetime(
-                    ["2025-01-01", "2025-01-02", "2025-01-03"]
-                ),
+                "date": pd.to_datetime(["2025-01-01", "2025-01-02", "2025-01-03"]),
                 "num": [1, 2, 3],
             }
         )
@@ -206,9 +202,7 @@ class TestCustomTransform:
     def test_date_faeture_extractor_pipeline_data_frame(self):
         data = pd.DataFrame(
             {
-                "date": pd.to_datetime(
-                    ["2025-01-01", "2025-01-02", "2025-01-03"]
-                ),
+                "date": pd.to_datetime(["2025-01-01", "2025-01-02", "2025-01-03"]),
                 "num": [1, 2, 3],
             }
         )
@@ -222,9 +216,7 @@ class TestCustomTransform:
                 "num": [1, 2, 3],
             }
         )
-        pipeline = Pipeline(
-            [("date_extractor", DateFeatureExtractor(["date"]))]
-        )
+        pipeline = Pipeline([("date_extractor", DateFeatureExtractor(["date"]))])
         transformer = ColumnTransformer(
             [("date_extractor_col", pipeline, ["date"])],
             remainder="passthrough",

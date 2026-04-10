@@ -17,9 +17,7 @@ class DisplayTupleNotCurve(MetricDisplay):
 
         for value in self.values:
             data = {}
-            labels_name = self.handle_name(
-                "labels_name", len(value["result"][0])
-            )
+            labels_name = self.handle_name("labels_name", len(value["result"][0]))
             headers_name = self.handle_name(
                 "headers_name", len(self.values[0]["result"])
             )

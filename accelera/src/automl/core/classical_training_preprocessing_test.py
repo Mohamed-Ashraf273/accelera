@@ -302,9 +302,7 @@ class TestClassicalTrainingPreprocessing:
         )
         assert self.df_classification.duplicated().sum() == 0
         assert (
-            training_preprocessing.report_data["drop_duplicates"][
-                "duplicates_sum"
-            ]
+            training_preprocessing.report_data["drop_duplicates"]["duplicates_sum"]
             == 0
         )
         assert (
@@ -339,16 +337,14 @@ class TestClassicalTrainingPreprocessing:
             == X_train.shape
         )
         assert (
-            training_preprocessing.report_data["split"]["X_val_shape"]
-            == X_val.shape
+            training_preprocessing.report_data["split"]["X_val_shape"] == X_val.shape
         )
         assert (
             training_preprocessing.report_data["split"]["y_train_shape"]
             == y_train.shape
         )
         assert (
-            training_preprocessing.report_data["split"]["y_val_shape"]
-            == y_val.shape
+            training_preprocessing.report_data["split"]["y_val_shape"] == y_val.shape
         )
         assert X_train.equals(X_train_1)
         assert X_val.equals(X_val_1)
@@ -374,8 +370,7 @@ class TestClassicalTrainingPreprocessing:
         assert col_drop["ID"] == "It is above unique_threshold 0.9"
         assert col_drop["const_feature"] == "The column is constant"
         assert (
-            col_drop["most_nulls_feature"]
-            == "Missing above missing_threshold 0.5"
+            col_drop["most_nulls_feature"] == "Missing above missing_threshold 0.5"
         )
         assert col_drop["Name_feature"] == "It is above unique_threshold 0.9"
         assert col_drop["text_feature"] == "It is above unique_threshold 0.9"
@@ -661,13 +656,8 @@ class TestClassicalTrainingPreprocessing:
         assert X_val_processed.shape == X_val_onehot.shape
         assert np.allclose(X_train_processed, X_train_onehot, atol=1e-6)
         assert np.allclose(X_val_processed, X_val_onehot, atol=1e-6)
-        assert (
-            X_train_processed.shape[1]
-            == X_train["one_hot_feature"].nunique() - 1
-        )
-        assert (
-            X_val_processed.shape[1] == X_train["one_hot_feature"].nunique() - 1
-        )
+        assert X_train_processed.shape[1] == X_train["one_hot_feature"].nunique() - 1
+        assert X_val_processed.shape[1] == X_train["one_hot_feature"].nunique() - 1
 
     def test_classical_frequency_preprocessing_pipeline(self):
         training_preprocessing = ClassicalTrainingPreprocessing(
@@ -708,9 +698,7 @@ class TestClassicalTrainingPreprocessing:
         X_val_manual = X_val[["frequency_feature"]].values
         X_train_imputed = imputer.fit_transform(X_train_manual)
         X_val_imputed = imputer.transform(X_val_manual)
-        X_train_processed_manual = frequency_encoder.fit_transform(
-            X_train_imputed
-        )
+        X_train_processed_manual = frequency_encoder.fit_transform(X_train_imputed)
         X_val_processed_manual = frequency_encoder.transform(X_val_imputed)
         assert np.allclose(
             X_train_processed[:, 0], X_train_processed_manual.ravel(), atol=1e-6
@@ -817,9 +805,7 @@ class TestClassicalTrainingPreprocessing:
         y_train_scaled = stander.fit_transform(
             y_train_filled.values.reshape(-1, 1)
         ).ravel()
-        y_val_scaled = stander.transform(
-            y_val_filled.values.reshape(-1, 1)
-        ).ravel()
+        y_val_scaled = stander.transform(y_val_filled.values.reshape(-1, 1)).ravel()
         assert y_train_processed.shape == y_train_scaled.shape
         assert y_val_processed.shape == y_val_scaled.shape
         assert np.allclose(y_train_processed, y_train_scaled, atol=1e-6)

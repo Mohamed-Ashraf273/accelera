@@ -34,9 +34,7 @@ training_preprocessor = ClassificationImageTrainingPreprocessing(
     brightness=True,
     contrast=True,
 )
-training_loader, validation_loader = (
-    training_preprocessor.common_preprocessing()
-)
+training_loader, validation_loader = training_preprocessor.common_preprocessing()
 testing_loader, invalid_path = ClassificationImageTestingPreprocessing(
     ["./PetImages/Cat/3.jpg", "./PetImages/Dog/3.jpg"],
     image_class_names=["Cat", "Dog"],

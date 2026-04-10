@@ -178,9 +178,7 @@ model = RandomForestClassifier(random_state=42, class_weight="balanced")
 model.fit(X_train, y_train)
 print("Score: ", model.score(X_val, y_val))
 print("Logistic Regression")
-model = LogisticRegression(
-    random_state=42, class_weight="balanced", max_iter=1000
-)
+model = LogisticRegression(random_state=42, class_weight="balanced", max_iter=1000)
 model.fit(X_train, y_train)
 print("Score:", model.score(X_val, y_val))
 print("Confusion Matrix")
@@ -203,9 +201,7 @@ model = RandomForestClassifier(random_state=42, class_weight="balanced")
 model.fit(X_train, y_train)
 print("Score: ", model.score(X_val, y_val))
 print("Logistic Regression")
-model = LogisticRegression(
-    random_state=42, class_weight="balanced", max_iter=10000
-)
+model = LogisticRegression(random_state=42, class_weight="balanced", max_iter=10000)
 model.fit(X_train, y_train)
 print("Score:", model.score(X_val, y_val))
 print("Confusion Matrix")

@@ -79,15 +79,9 @@ class TestPipelineCorrectness:
         manual_result2 = p_common(p2(self.X))
         manual_result3 = p_common(p3(self.X))
 
-        assert np.allclose(
-            pipeline_result[0], manual_result1, rtol=1e-5, atol=1e-8
-        )
-        assert np.allclose(
-            pipeline_result[1], manual_result2, rtol=1e-5, atol=1e-8
-        )
-        assert np.allclose(
-            pipeline_result[2], manual_result3, rtol=1e-5, atol=1e-8
-        )
+        assert np.allclose(pipeline_result[0], manual_result1, rtol=1e-5, atol=1e-8)
+        assert np.allclose(pipeline_result[1], manual_result2, rtol=1e-5, atol=1e-8)
+        assert np.allclose(pipeline_result[2], manual_result3, rtol=1e-5, atol=1e-8)
 
     def test_multiple_preprocessing_steps(self):
         p = Pipeline()
@@ -202,9 +196,7 @@ class TestPipelineCorrectness:
         models = [
             LogisticRegression(random_state=42, max_iter=1000),
             SVC(random_state=42, probability=True),
-            RandomForestClassifier(
-                n_estimators=50, random_state=42, max_depth=10
-            ),
+            RandomForestClassifier(n_estimators=50, random_state=42, max_depth=10),
         ]
 
         preprocessors = [p1, p2, p3]
@@ -255,9 +247,7 @@ class TestPipelineCorrectness:
         p = Pipeline()
         p.preprocess("select_k_best", SelectKBest(k=15)).branch(
             "models",
-            p.model(
-                "kmeans", KMeans(n_clusters=4, random_state=42), branch=True
-            ),
+            p.model("kmeans", KMeans(n_clusters=4, random_state=42), branch=True),
             p.model(
                 "lr",
                 LogisticRegression(random_state=42, max_iter=1000),
@@ -311,9 +301,7 @@ class TestPipelineCorrectness:
         p.preprocess("scale", lambda x: x * 2.0)
         p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
         p.predict("pred", self.test_data, output_func="predict")
-        with pytest.raises(
-            ValueError, match="Metric 'accuracy' is not recognized."
-        ):
+        with pytest.raises(ValueError, match="Metric 'accuracy' is not recognized."):
             p.metric(
                 "accuracy",
                 "accuracy",
@@ -584,9 +572,7 @@ class TestPipelineCorrectness:
         p.predict("predict", self.x_unsupervised, output_func="fit_predict")
         p.branch(
             "metric",
-            p.metric(
-                "silhouette", "silhouette_score", y_true=None, branch=True
-            ),
+            p.metric("silhouette", "silhouette_score", y_true=None, branch=True),
             p.metric(
                 "calinski_harabasz_score",
                 "calinski_harabasz_score",
@@ -622,9 +608,7 @@ class TestPipelineCorrectness:
         manual_v_measure = v_measure_score(self.y_unsupervised, labels)
         manual_adjusted_rand = adjusted_rand_score(self.y_unsupervised, labels)
         assert np.allclose(pipeline_result[0]["result"], manual_silhouette)
-        assert np.allclose(
-            pipeline_result[1]["result"], manual_calinski_harabasz
-        )
+        assert np.allclose(pipeline_result[1]["result"], manual_calinski_harabasz)
         assert np.allclose(pipeline_result[2]["result"], manual_devies_bouldin)
         assert np.allclose(pipeline_result[3]["result"], manual_adjusted_rand)
         assert np.allclose(pipeline_result[4]["result"], manual_v_measure)
@@ -634,12 +618,8 @@ class TestPipelineCorrectness:
         p.preprocess("standard_scaler", StandardScaler())
         p.branch(
             "clustering",
-            p.model(
-                "kmeans_3", KMeans(n_clusters=3, random_state=42), branch=True
-            ),
-            p.model(
-                "kmeans_4", KMeans(n_clusters=4, random_state=42), branch=True
-            ),
+            p.model("kmeans_3", KMeans(n_clusters=3, random_state=42), branch=True),
+            p.model("kmeans_4", KMeans(n_clusters=4, random_state=42), branch=True),
         )
         p.predict("predict", self.x_unsupervised, output_func="fit_predict")
 
@@ -726,9 +706,7 @@ class TestPipelinePathSelection:
     def test_path_selection_all_strategy(self):
         p = self.create_branched_pipeline()
 
-        pipeline_result, executed_graph = p(
-            self.X, self.y, select_strategy="all"
-        )
+        pipeline_result, executed_graph = p(self.X, self.y, select_strategy="all")
 
         predictions = executed_graph(self.test_data, y_true=self.y_test)
 
@@ -740,9 +718,7 @@ class TestPipelinePathSelection:
     def test_path_selection_max_strategy(self):
         p = self.create_branched_pipeline()
 
-        pipeline_result, executed_graph = p(
-            self.X, self.y, select_strategy="max"
-        )
+        pipeline_result, executed_graph = p(self.X, self.y, select_strategy="max")
 
         predictions = executed_graph(self.test_data, y_true=self.y_test)
 
@@ -762,9 +738,7 @@ class TestPipelinePathSelection:
     def test_path_selection_min_strategy(self):
         p = self.create_branched_pipeline()
 
-        pipeline_result, executed_graph = p(
-            self.X, self.y, select_strategy="min"
-        )
+        pipeline_result, executed_graph = p(self.X, self.y, select_strategy="min")
 
         predictions = executed_graph(self.test_data, y_true=self.y_test)
         assert len(predictions) == 1

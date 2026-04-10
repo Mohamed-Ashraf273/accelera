@@ -68,9 +68,7 @@ class Config:
     )
 
     DEFAULT_CLANG_ARGS: tuple[str, ...] = ("-std=c++17",)
-    CLANG_FORMAT_BIN: str = os.getenv(
-        "ACCELERA_CLANG_FORMAT_BIN", "clang-format"
-    )
+    CLANG_FORMAT_BIN: str = os.getenv("ACCELERA_CLANG_FORMAT_BIN", "clang-format")
     ENABLE_CPP_FORMATTING: bool = (
         os.getenv("ACCELERA_ENABLE_CPP_FORMATTING", "1") == "1"
     )
@@ -83,17 +81,15 @@ class Config:
         "ACCELERA_GENERATOR_ENDPOINT",
         "https://accelera-ai-open-mp-generator.hf.space/generate",
     )
-    DATASET_DRIVE_FOLDER_ENDPOINT: str = "https://drive.google.com/drive/folders/1ijBkIdvLnVGbINjDklTsC3-z3jc-_GIE"
-    GENERATOR_MAX_LEN: int = int(
-        os.getenv("ACCELERA_GENERATOR_MAX_LEN", "1500")
+    DATASET_DRIVE_FOLDER_ENDPOINT: str = (
+        "https://drive.google.com/drive/folders/1ijBkIdvLnVGbINjDklTsC3-z3jc-_GIE"
     )
+    GENERATOR_MAX_LEN: int = int(os.getenv("ACCELERA_GENERATOR_MAX_LEN", "1500"))
     REQUEST_TIMEOUT_S: int = int(os.getenv("ACCELERA_REQUEST_TIMEOUT_S", "10"))
 
     # If 1, `accelera/__init__.py` will
     # raise if optional `accelera.api` import fails.
-    STRICT_API_IMPORT: bool = (
-        os.getenv("ACCELERA_STRICT_API_IMPORT", "0") == "1"
-    )
+    STRICT_API_IMPORT: bool = os.getenv("ACCELERA_STRICT_API_IMPORT", "0") == "1"
 
     @property
     def cache_dir(self) -> Path:

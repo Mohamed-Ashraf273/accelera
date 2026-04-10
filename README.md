@@ -90,7 +90,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 
-from accelera.src.core.pipeline import Pipeline
+from accelera.src.accelera_pipe.core.pipeline import Pipeline
 
 X, y = make_classification(
     n_samples=5000,
@@ -207,7 +207,7 @@ training_loader, validation_loader = image_preprocessor.common_preprocessing()
 
 ```python
 from accelera.src.utils.accelera_utils import serialize
-from accelera.src.wrappers.graph_report import GraphReport
+from accelera.src.accelera_pipe.wrappers.graph_report import GraphReport
 
 predictions, executed_graph = pipe(X, y, select_strategy="max")
 serialize(pipe, "pipeline.xml")
@@ -221,7 +221,7 @@ report.execute()
 ```python
 from sklearn.metrics import accuracy_score
 
-from accelera.src.wrappers.model_report import ModelReport
+from accelera.src.accelera_pipe.wrappers.model_report import ModelReport
 
 accuracy = accuracy_score(y_test, model.predict(X_test))
 results = [
@@ -241,7 +241,7 @@ report.execute()
 ### C/C++ Loop Parallelization
 
 ```python
-from accelera.src.core.parallelizer import parallelizer
+from accelera.src.utils.parallelizer import parallelizer
 
 parallelizer.parallelize("examples/test_loops.c")
 # Writes examples/parallelized_test_loops.c
@@ -255,11 +255,11 @@ accelera/
 │   ├── api/                 # generated public API modules
 │   ├── bindings/            # pybind11 bindings
 │   └── src/
-│       ├── core/            # DAG pipeline, execution graph, parallelizer
+│       ├── accelera_pipe/   # DAG pipeline, execution graph
 │       ├── automl/          # preprocessing, reports, AutoML agent scaffold
 │       ├── benchmark/       # Node.js backend prototype
 │       ├── custom/          # estimator base classes
-│       ├── utils/           # dataset retriever and code utilities
+│       ├── utils/           # dataset retriever, parallelizer and code utilities
 │       └── wrappers/        # HTML/report helpers
 ├── src/                     # C++ core, nodes, AST, and utility sources
 ├── include/                 # C++ headers

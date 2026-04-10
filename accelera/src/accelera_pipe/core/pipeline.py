@@ -41,9 +41,7 @@ class Pipeline(PipelineBase):
         if branch:
             return Node("model", name, model_params)
 
-        self._PipelineBase__graph.add_node(
-            self.types["model"], name, model_params
-        )
+        self._PipelineBase__graph.add_node(self.types["model"], name, model_params)
         return self
 
     def predict(

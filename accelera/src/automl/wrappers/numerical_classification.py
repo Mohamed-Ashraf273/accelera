@@ -27,9 +27,7 @@ class NumericalClassification(TabularGraphBase):
         for label in ax[1].get_xticklabels():
             label.set_rotation(45)
             label.set_horizontalalignment("right")
-        self.graph_df = self.graph_df[
-            [self.col_name, self.target_name]
-        ].dropna()
+        self.graph_df = self.graph_df[[self.col_name, self.target_name]].dropna()
         sns.boxplot(
             data=self.graph_df, x=self.target_name, y=self.col_name, ax=ax[2]
         )

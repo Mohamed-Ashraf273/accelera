@@ -74,13 +74,9 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
         self.validation_folder_invalid_images = []
         self.validation_folder_invalid_images_labels = []
         if len(self.training_class) == 0:
-            raise ValueError(
-                "Training Folder dosen't have any folder inside it "
-            )
+            raise ValueError("Training Folder dosen't have any folder inside it ")
         if self.validation_folder is not None:
-            self.validation_class = get_sub_folders_names(
-                self.validation_folder
-            )
+            self.validation_class = get_sub_folders_names(self.validation_folder)
             if len(self.validation_class) == 0:
                 raise ValueError(
                     "Validation Folder dosen't have any folder inside it "
@@ -284,9 +280,7 @@ class ClassificationImageTrainingPreprocessing(ImageTrainingPreprocessing):
             "training_after_data_loader_samples"
         )
         if self.validation_loader is not None:
-            validation_images, validation_labels = next(
-                iter(self.validation_loader)
-            )
+            validation_images, validation_labels = next(iter(self.validation_loader))
             n_samples = min(5, len(validation_images))
             validation_images, validation_labels = (
                 validation_images[:n_samples],

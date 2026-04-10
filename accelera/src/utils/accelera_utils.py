@@ -6,9 +6,7 @@ import sys
 
 import sklearn.metrics as metrics
 
-from accelera.src.accelera_pipe.wrappers.supervised_metric import (
-    SupervisedMetric,
-)
+from accelera.src.accelera_pipe.wrappers.supervised_metric import SupervisedMetric
 from accelera.src.accelera_pipe.wrappers.unsupervised_metric import (
     UnSupervisedMetric,
 )
@@ -63,9 +61,7 @@ def get_correct_metric_class(
 ):
     signature = inspect.signature(metric)
     parameters = list(signature.parameters.keys())
-    has_true_labels = any(
-        param in parameters for param in ["y_true", "labels_true"]
-    )
+    has_true_labels = any(param in parameters for param in ["y_true", "labels_true"])
     has_predictions = any(
         param in parameters
         for param in ["y_pred", "y_score", "y_proba", "labels_pred"]
@@ -138,12 +134,7 @@ def get_instance_type(instance) -> str:
             unsupervised_score += 2
 
         # Check for preprocessing patterns
-        if (
-            has_transform
-            and has_fit
-            and not has_predict
-            and not has_fit_predict
-        ):
+        if has_transform and has_fit and not has_predict and not has_fit_predict:
             # This is likely a preprocessor/transformer
             # Check if it needs labels (supervised preprocessing)
             if hasattr(instance, "score_func") or hasattr(instance, "scores_"):

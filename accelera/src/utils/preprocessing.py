@@ -37,9 +37,7 @@ def load_pickle(folder_path, filename):
 def lower_data(df):
     for col in df.columns:
         if df[col].dtype == "object":
-            df[col] = df[col].apply(
-                lambda x: x.lower() if isinstance(x, str) else x
-            )
+            df[col] = df[col].apply(lambda x: x.lower() if isinstance(x, str) else x)
 
 
 def drop_columns(X, col_drop):

@@ -78,9 +78,7 @@ class TestSegmentationImageDataset:
             [], [], horizontal_flip=True, augmentation_probability=1
         )
         with patch("random.random", return_value=0.0):
-            returned_img, returned_mask = dataset.random_horizontal_flip(
-                img, mask
-            )
+            returned_img, returned_mask = dataset.random_horizontal_flip(img, mask)
             returned_img2, returned_mask2 = dataset.random_horizontal_flip(
                 returned_img, returned_mask
             )
@@ -114,9 +112,7 @@ class TestSegmentationImageDataset:
             [], [], vertical_flip=True, augmentation_probability=1
         )
         with patch("random.random", return_value=0.0):
-            returned_img, returned_mask = dataset.random_vertical_flip(
-                img, mask
-            )
+            returned_img, returned_mask = dataset.random_vertical_flip(img, mask)
             returned_img2, returned_mask2 = dataset.random_vertical_flip(
                 returned_img, returned_mask
             )

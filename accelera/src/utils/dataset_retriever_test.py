@@ -107,9 +107,7 @@ class TestDatasetRetriever:
 
         result = connected_retriever.retrieve_dataset("toy_dataset")
 
-        assert result == str(
-            Path(connected_retriever.cache_dir) / "toy_dataset.csv"
-        )
+        assert result == str(Path(connected_retriever.cache_dir) / "toy_dataset.csv")
         assert fake_gdown == [
             {
                 "id": "file-123",

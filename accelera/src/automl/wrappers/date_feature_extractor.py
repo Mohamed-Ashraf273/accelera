@@ -38,9 +38,7 @@ class DateFeatureExtractor(CustomTransformer):
             X_output[f"{col}_year"] = col_date.dt.year.fillna(0).astype(int)
             X_output[f"{col}_month"] = col_date.dt.month.fillna(0).astype(int)
             X_output[f"{col}_day"] = col_date.dt.day.fillna(0).astype(int)
-            X_output[f"{col}_weekday"] = col_date.dt.weekday.fillna(0).astype(
-                int
-            )
+            X_output[f"{col}_weekday"] = col_date.dt.weekday.fillna(0).astype(int)
             X_output[f"{col}_hour"] = col_date.dt.hour.fillna(0).astype(int)
         return X_output.values
 
