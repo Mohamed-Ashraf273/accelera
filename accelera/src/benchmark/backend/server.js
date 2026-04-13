@@ -3,6 +3,7 @@ const connectMongo = require("./config/create_db");
 const metricsRoutes = require("./routes/metrics");
 const bechmarkRoutes = require("./routes/benchmark");
 const UserRoutes = require("./routes/user");
+const SubmissionRoutes=require("./routes/submissions")
 const dotenv = require("dotenv");
 const cors = require("cors");
 dotenv.config();
@@ -13,6 +14,7 @@ connectMongo();
 app.use("/metrics", metricsRoutes);
 app.use("/benchmark", bechmarkRoutes);
 app.use("/user", UserRoutes);
+app.use("/submission", SubmissionRoutes);
 app.listen(process.env.PORT, () => {
   console.log(`The server is running on port ${process.env.PORT}`);
 });

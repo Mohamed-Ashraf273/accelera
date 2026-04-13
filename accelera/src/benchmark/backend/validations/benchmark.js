@@ -14,50 +14,53 @@ const isValidProblemType = (problemType) => {
 const isGoogleDriveFileLink = (link) => {
   return /drive\.google\.com\/file\/d\/.+/.test(link);
 };
-const isValidTargetLink = (link, targetColumn, userId) => {
+const ignoreWrongPrints = (printed) => {
+  if (
+    printed.includes("%|") ||
+    printed.includes("Downloading") ||
+    printed.includes("Cache") ||
+    printed.includes("Downloaded")
+  ) {
+    return true;
+  }
+  return false;
+};
+
+const isValidUserLink = (
+  test_link,
+  target_link,
+  targetColumn,
+  userId
+) => {
   return new Promise((resolve, reject) => {
     const pythonProcess = spawn("python", [
-      "scripts/validate_target.py",
-      link,
+      "scripts/validate_user_links.py",
+      test_link,
+      target_link,
       targetColumn,
       userId,
     ]);
-
+  
     let printedDataCorrectly = "";
     let printedError = "";
     let alreadyOccured = false;
 
     pythonProcess.stdout.on("data", (data) => {
       const printed = data.toString();
-      if (
-        printed.includes("%|") ||
-        printed.includes("Downloading") ||
-        printed.includes("Cache") ||
-        printed.includes("Downloaded")
-      ) {
-        return;
-      }
+      if (ignoreWrongPrints(printed)) return;
       printedDataCorrectly += printed;
     });
 
     pythonProcess.stderr.on("data", (data) => {
       const printed = data.toString();
-      if (
-        printed.includes("%|") ||
-        printed.includes("Downloading") ||
-        printed.includes("Cache") ||
-        printed.includes("Downloaded")
-      ) {
-        return;
-      }
-
+      if (ignoreWrongPrints(printed)) return;
       printedError += printed;
     });
 
     pythonProcess.on("error", (err) => {
       if (!alreadyOccured) {
         alreadyOccured = true;
-        reject(`error when run python ${err.message}`);
+        reject(`error when try to run python file ${err.message}`);
       }
     });
 
@@ -67,7 +70,6 @@ const isValidTargetLink = (link, targetColumn, userId) => {
 
       try {
         const result = JSON.parse(printedDataCorrectly);
-
         if (code !== 0) {
           return reject({
             message: result.message || printedError || "failed when run python",
@@ -75,20 +77,14 @@ const isValidTargetLink = (link, targetColumn, userId) => {
           });
         }
 
-        if (!result.isValid) {
-          return resolve({
-            message: result.message,
-            isValid: result.isValid,
-          });
-        }
-
         return resolve({
           message: result.message,
           isValid: result.isValid,
         });
+       
       } catch (err) {
         return reject({
-          message: "Invalid python json",
+          message: "Invalid json",
           error: err.message,
         });
       }
@@ -99,5 +95,5 @@ module.exports = {
   isUrlValidation,
   isValidProblemType,
   isGoogleDriveFileLink,
-  isValidTargetLink,
+  isValidUserLink,
 };

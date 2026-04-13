@@ -6,7 +6,7 @@ const {
   isUrlValidation,
   isValidProblemType,
   isGoogleDriveFileLink,
-  isValidTargetLink,
+  isValidUserLink,
 } = require("../validations/benchmark");
 router.get("/", async (req, res) => {
   try {
@@ -17,7 +17,7 @@ router.get("/", async (req, res) => {
     return res.status(200).json(benchmarks);
   } catch (err) {
     console.error("Error while fetching Benchmarks:", err);
-    res
+    return res
       .status(500)
       .json({ message: "There is an error while fetching Benchmarks" });
   }
@@ -28,10 +28,10 @@ router.get("/user/:id", async (req, res) => {
     const benchmarks = await Benchmark.find({ createdBy: userId })
       .select("title problemType creationDate evaluationMetric")
       .populate("evaluationMetric", "name");
-    res.status(200).json(benchmarks);
+    return res.status(200).json(benchmarks);
   } catch (err) {
     console.error("Error while fetching Benchmarks:", err);
-    res
+    return res
       .status(500)
       .json({ message: "There is an error while fetching Benchmarks" });
   }
@@ -51,10 +51,10 @@ router.get("/problem-type/:problemType", async (req, res) => {
       .select("title creationDate evaluationMetric createdBy")
       .populate("createdBy", "name email")
       .populate("evaluationMetric", "name");
-    res.status(200).json(benchmarks);
+    return res.status(200).json(benchmarks);
   } catch (err) {
     console.error("Error while fetching Benchmarks:", err);
-    res
+    return res
       .status(500)
       .json({ message: "There is an error while fetching Benchmarks" });
   }
@@ -70,10 +70,10 @@ router.get("/:id", async (req, res) => {
         message: `There is no benchmark with this id: ${benchmarkId}`,
       });
     }
-    res.status(200).json(benchmark);
+    return res.status(200).json(benchmark);
   } catch (err) {
     console.error("Error while fetching Benchmarks:", err);
-    res
+    return res
       .status(500)
       .json({ message: "There is an error while fetching Benchmarks" });
   }
@@ -125,12 +125,21 @@ router.post("/", async (req, res) => {
         message: `This link ${testSetWithoutPredictionsLink}  is not a valid google drive file link`,
       });
     }
-    const targetResults = await isValidTargetLink(
+    if (
+      !isUrlValidation(predictedColumnLink) ||
+      !isGoogleDriveFileLink(predictedColumnLink)
+    ) {
+      return res.status(400).json({
+        message: `This link ${predictedColumnLink}  is not a valid google drive file link`,
+      });
+    }
+    const targetResults = await isValidUserLink(
+      testSetWithoutPredictionsLink,
       predictedColumnLink,
       targetColumn,
       createdBy,
     );
-    if (!targetResults.isvalid == false) {
+    if (targetResults.isValid === false) {
       return res.status(400).json({
         message: targetResults.message,
       });
@@ -146,10 +155,10 @@ router.post("/", async (req, res) => {
       evaluationMetric,
       createdBy,
     });
-    res.status(201).json(newBenchmark);
+    return res.status(201).json(newBenchmark);
   } catch (err) {
     console.error("Error while creating Benchmarks:", err);
-    res
+    return res
       .status(500)
       .json({ message: `There is an error while creating Benchmarks ` });
   }
@@ -175,10 +184,10 @@ router.delete("/:id", async (req, res) => {
         .status(404)
         .json({ message: `There is no benchmark for this id: ${benchmarkId}` });
     }
-    res.status(200).json({ message: "benchmark successfully deleted" });
+    return res.status(200).json({ message: "benchmark successfully deleted" });
   } catch (error) {
     console.error("Error while deleting benchmark:", error);
-    res
+    return res
       .status(500)
       .json({ message: "There is an error while deleting benchmark" });
   }
