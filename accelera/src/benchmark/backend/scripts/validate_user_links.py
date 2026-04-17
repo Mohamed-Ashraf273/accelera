@@ -1,15 +1,8 @@
 from accelera.src.utils.dataset_retriever import retriever
 import json
 import sys
-import re
-
-
-def get_file_url(url):
-    matchedID = re.search(r"/d/([^/]+)", url)
-    if matchedID:
-        file_id = matchedID.group(1)
-        return f"https://drive.google.com/uc?id={file_id}"
-    return url
+from utils import get_file_url
+import numpy as np
 
 
 drive_file_link_test = sys.argv[1]
@@ -41,9 +34,15 @@ try:
             print(
                 json.dumps(
                     {
-                        "message": f"target Dataset dosent have this target column {target_column_name}",
+                        "message": f"target Dataset dosent have this target column {target_column_name} the columns exists are {target_df.columns}",
                         "isValid": False,
                     }
+                )
+            )
+        elif  not np.issubdtype(target_df[target_column_name].dtype, np.integer):
+            print(
+                json.dumps(
+                    {"message": "Column must be number not object", "isValid": False}
                 )
             )
         else:

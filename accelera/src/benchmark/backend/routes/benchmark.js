@@ -6,12 +6,14 @@ const {
   isUrlValidation,
   isValidProblemType,
   isGoogleDriveFileLink,
-  isValidUserLink,
+  run_python,
 } = require("../validations/benchmark");
 router.get("/", async (req, res) => {
   try {
     const benchmarks = await Benchmark.find()
-      .select("title problemType creationDate evaluationMetric createdBy")
+      .select(
+        "title problemType creationDate metricPramaters evaluationMetric createdBy",
+      )
       .populate("createdBy", "name email")
       .populate("evaluationMetric", "name");
     return res.status(200).json(benchmarks);
@@ -26,7 +28,7 @@ router.get("/user/:id", async (req, res) => {
   try {
     const userId = req.params.id;
     const benchmarks = await Benchmark.find({ createdBy: userId })
-      .select("title problemType creationDate evaluationMetric")
+      .select("title problemType creationDate metricPramaters evaluationMetric")
       .populate("evaluationMetric", "name");
     return res.status(200).json(benchmarks);
   } catch (err) {
@@ -48,7 +50,7 @@ router.get("/problem-type/:problemType", async (req, res) => {
     const benchmarks = await Benchmark.find({
       problemType: problemType,
     })
-      .select("title creationDate evaluationMetric createdBy")
+      .select("title creationDate evaluationMetric metricPramaters createdBy")
       .populate("createdBy", "name email")
       .populate("evaluationMetric", "name");
     return res.status(200).json(benchmarks);
@@ -90,6 +92,7 @@ router.post("/", async (req, res) => {
       predictedColumnLink,
       problemType,
       evaluationMetric,
+      metricPramaters,
       createdBy,
     } = req.body;
     problemType = problemType.toLowerCase();
@@ -133,11 +136,14 @@ router.post("/", async (req, res) => {
         message: `This link ${predictedColumnLink}  is not a valid google drive file link`,
       });
     }
-    const targetResults = await isValidUserLink(
+    const targetResults = await run_python(
       testSetWithoutPredictionsLink,
       predictedColumnLink,
       targetColumn,
       createdBy,
+      "validate_user_links",
+      undefined,
+      undefined,
     );
     if (targetResults.isValid === false) {
       return res.status(400).json({
@@ -153,6 +159,7 @@ router.post("/", async (req, res) => {
       predictedColumnLink,
       problemType,
       evaluationMetric,
+      metricPramaters,
       createdBy,
     });
     return res.status(201).json(newBenchmark);
@@ -168,7 +175,7 @@ router.delete("/:id", async (req, res) => {
   try {
     const benchmarkId = req.params.id;
     const submissionsCount = await Submission.countDocuments({
-      benchmark: benchmarkId,
+      benchmarkId: benchmarkId,
     });
 
     if (submissionsCount > 0) {

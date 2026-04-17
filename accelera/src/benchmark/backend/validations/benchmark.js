@@ -26,25 +26,29 @@ const ignoreWrongPrints = (printed) => {
   return false;
 };
 
-const isValidUserLink = (
-  test_link,
-  target_link,
+const run_python = (
+  file_1,
+  file_2,
   targetColumn,
-  userId
+  userId,
+  which_python,
+  sklearn_name,
+  metric_paramters,
 ) => {
   return new Promise((resolve, reject) => {
     const pythonProcess = spawn("python", [
-      "scripts/validate_user_links.py",
-      test_link,
-      target_link,
+      `scripts/${which_python}.py`,
+      file_1,
+      file_2,
       targetColumn,
       userId,
+      sklearn_name,
+      metric_paramters,
     ]);
-  
+
     let printedDataCorrectly = "";
     let printedError = "";
     let alreadyOccured = false;
-
     pythonProcess.stdout.on("data", (data) => {
       const printed = data.toString();
       if (ignoreWrongPrints(printed)) return;
@@ -76,12 +80,7 @@ const isValidUserLink = (
             isValid: false,
           });
         }
-
-        return resolve({
-          message: result.message,
-          isValid: result.isValid,
-        });
-       
+        return resolve(result);
       } catch (err) {
         return reject({
           message: "Invalid json",
@@ -95,5 +94,5 @@ module.exports = {
   isUrlValidation,
   isValidProblemType,
   isGoogleDriveFileLink,
-  isValidUserLink,
+  run_python,
 };

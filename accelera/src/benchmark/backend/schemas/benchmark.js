@@ -1,7 +1,5 @@
 const mongoose = require("mongoose");
-const {
-  isUrlValidation,
-} = require("../validations/benchmark");
+const { isUrlValidation } = require("../validations/benchmark");
 const benchmarkSchema = new mongoose.Schema({
   title: {
     required: true,
@@ -56,6 +54,11 @@ const benchmarkSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Metric",
   },
+  metricPramaters: {
+    type: Map,
+    of: String,
+    default: {},
+  },
   creationDate: {
     type: Date,
     default: Date.now,
@@ -68,4 +71,3 @@ const benchmarkSchema = new mongoose.Schema({
 });
 const Benchmark = mongoose.model("Benchmark", benchmarkSchema);
 module.exports = Benchmark;
-
