@@ -1,9 +1,6 @@
 const mongoose = require("mongoose");
-const {
-  evaluationMetrics,
-  isUrlValidation,
-} = require("../validations/benchmark");
-const benchmarkSchema = new mongoose.schema({
+const { isUrlValidation } = require("../validations/benchmark");
+const benchmarkSchema = new mongoose.Schema({
   title: {
     required: true,
     type: String,
@@ -54,24 +51,13 @@ const benchmarkSchema = new mongoose.schema({
   },
   evaluationMetric: {
     required: true,
-    type: String,
-    enum: [
-      "accuracy",
-      "precision",
-      "recall",
-      "f1-score",
-      "mean_squared_error",
-      "mean_absolute_error",
-      "r2_score",
-      "area_under_curve",
-    ],
-    validate: {
-      validator: function (value) {
-        return evaluationMetrics(value, this.problemType);
-      },
-      message: (object) =>
-        `${object.value} it is not compatible with the problem type ${object.instance.problemType}`,
-    },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Metric",
+  },
+  metricPramaters: {
+    type: Map,
+    of: String,
+    default: {},
   },
   creationDate: {
     type: Date,

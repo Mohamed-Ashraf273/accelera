@@ -1,16 +1,98 @@
-const isUrl = require('is-url');
-const evaluationMatrixValidation = (value, problemType) => {
-    if (problemType === 'classification') {
-        const allowedMetrics = ['accuracy', 'precision', 'recall', 'f1-score', 'area_under_curve'];
-        return allowedMetrics.includes(value);
-    }
-    if (problemType === 'regression') {
-        const allowedMetrics = ['mean_squared_error', 'mean_absolute_error', 'r2_score'];
-        return allowedMetrics.includes(value);
-    }
-    return false;
-}
+const isUrl = require("is-url");
+const { spawn } = require("child_process");
 const isUrlValidation = (value) => {
-    return isUrl(value);
-}
-module.exports = { evaluationMatrixValidation, isUrlValidation }
+  return isUrl(value);
+};
+const isValidProblemType = (problemType) => {
+  const allowed_problems = ["classification", "regression"];
+  if (!allowed_problems.includes(problemType)) {
+    return false;
+  }
+  return true;
+};
+
+const isGoogleDriveFileLink = (link) => {
+  return /drive\.google\.com\/file\/d\/.+/.test(link);
+};
+const ignoreWrongPrints = (printed) => {
+  if (
+    printed.includes("%|") ||
+    printed.includes("Downloading") ||
+    printed.includes("Cache") ||
+    printed.includes("Downloaded")
+  ) {
+    return true;
+  }
+  return false;
+};
+
+const run_python = (
+  file_1,
+  file_2,
+  targetColumn,
+  userId,
+  which_python,
+  sklearn_name,
+  metric_paramters,
+) => {
+  return new Promise((resolve, reject) => {
+    const pythonProcess = spawn("python", [
+      `scripts/${which_python}.py`,
+      file_1,
+      file_2,
+      targetColumn,
+      userId,
+      sklearn_name,
+      metric_paramters,
+    ]);
+
+    let printedDataCorrectly = "";
+    let printedError = "";
+    let alreadyOccured = false;
+    pythonProcess.stdout.on("data", (data) => {
+      const printed = data.toString();
+      if (ignoreWrongPrints(printed)) return;
+      printedDataCorrectly += printed;
+    });
+
+    pythonProcess.stderr.on("data", (data) => {
+      const printed = data.toString();
+      if (ignoreWrongPrints(printed)) return;
+      printedError += printed;
+    });
+
+    pythonProcess.on("error", (err) => {
+      if (!alreadyOccured) {
+        alreadyOccured = true;
+        reject(`error when try to run python file ${err.message}`);
+      }
+    });
+
+    pythonProcess.on("close", (code) => {
+      if (alreadyOccured) return;
+      alreadyOccured = true;
+
+      try {
+        const result = JSON.parse(printedDataCorrectly);
+        if (code !== 0) {
+          return reject({
+            message: result.message || printedError || "failed when run python",
+            isValid: false,
+          });
+        }
+        return resolve(result);
+      } catch (err) {
+        return reject({
+          message: "Invalid json",
+          error: err.message,
+        });
+      }
+    });
+  });
+};
+module.exports = {
+  isUrlValidation,
+  isValidProblemType,
+  isGoogleDriveFileLink,
+  run_python,
+};

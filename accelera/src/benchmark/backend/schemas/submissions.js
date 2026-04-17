@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { isUrlValidation } = require("../validations/benchmark");
-const submissionSchema = new mongoose.schema({
-  benchmark: {
+const submissionSchema = new mongoose.Schema({
+  benchmarkId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Benchmark",
     required: true,
@@ -40,5 +40,7 @@ const submissionSchema = new mongoose.schema({
     required: true,
   },
 });
+submissionSchema.index({ benchmarkId: 1, score: -1 });
+
 const Submission = mongoose.model("Submission", submissionSchema);
 module.exports = Submission;

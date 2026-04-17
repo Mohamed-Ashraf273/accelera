@@ -71,12 +71,13 @@ class DatasetRetriever:
         encoding: str = "utf-8",
         df: bool = False,
         url=None,
+        sep=","
     ) -> pd.DataFrame:
         def get_df(dataset_path: str):
             return pd.read_csv(
                 dataset_path,
                 encoding=encoding,
-                sep=None,
+                sep=sep,
                 engine="python",
                 on_bad_lines="warn",
             )

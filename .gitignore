@@ -5,6 +5,7 @@ __pycache__/
 .accelera_cache/
 cache/
 report/
+accelera/src/benchmark/backend/node_modules
 test.xml
 examples/PetImages
 examples/PetImagesReport
