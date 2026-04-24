@@ -9,6 +9,7 @@ import pytest
 
 from accelera.src.utils.parallelizer import Parallelizer
 from accelera.src.utils.parallelizer import extract_loops
+from accelera.src.utils.parallelizer import validate_pragma
 from accelera.src.utils.parallelizer import write_loops_to_json
 
 
@@ -54,7 +55,7 @@ class TestParallelizer:
         )
         monkeypatch.setattr(
             "accelera.src.utils.parallelizer.validate_pragma",
-            lambda pragma: f"#pragma {pragma}",
+            lambda pragma, loop_code="", code_context="": f"#pragma {pragma}",
         )
 
         result = parallelizer._generate_omp_pragma_with_loop(
@@ -63,6 +64,33 @@ class TestParallelizer:
 
         assert result.startswith("#pragma omp parallel for\n")
         assert "for (int i = 0; i < n; ++i) {}" in result
+
+    def test_validate_pragma_removes_undefined_num_threads_variable(self):
+        code = (
+            "int main() {\n"
+            "int sum = 1;\n"
+            "for (int i = 0; i < 5; i++) {\n"
+            "sum += i;\n"
+            "}\n"
+            "}"
+        )
+        loop = "for (int i = 0; i < 5; i++) {\nsum += i;\n}"
+
+        result = validate_pragma(
+            "omp parallel for num_threads(t) reduction(+ : sum)",
+            loop,
+            code,
+        )
+
+        assert result == "#pragma omp parallel for reduction(+ : sum)"
+
+    def test_validate_pragma_keeps_defined_num_threads_variable(self):
+        code = "int main() {\nint threads = 4;\nfor (int i = 0; i < n; ++i) {}\n}"
+        loop = "for (int i = 0; i < n; ++i) {}"
+
+        result = validate_pragma("omp parallel for num_threads(threads)", loop, code)
+
+        assert result == "#pragma omp parallel for num_threads(threads)"
 
     def test_parallelize_writes_parallelized_output(self, monkeypatch, tmp_path):
         source_file = tmp_path / "sample.c"
@@ -116,7 +144,7 @@ class TestParallelizer:
         monkeypatch.setattr(
             parallelizer,
             "_generate_omp_pragma_with_loop",
-            lambda code, cls: f"#pragma omp parallel for\n{code}",
+            lambda code, cls, code_context="": f"#pragma omp parallel for\n{code}",
         )
 
         result = parallelizer.parallelize(str(source_file))
