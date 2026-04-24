@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/accelera.png" alt="Accelera logo" width="180">
+</p>
+
 # Accelera
 
 Accelera is a hybrid Python/C++ machine learning framework for building

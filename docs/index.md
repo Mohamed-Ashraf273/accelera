@@ -1,5 +1,9 @@
 # Accelera Documentation
 
+<p align="center">
+  <img src="accelera.png" alt="Accelera logo" width="180">
+</p>
+
 Welcome to **Accelera** - A High-Performance Machine Learning Pipeline Framework that combines the flexibility of Python with the performance of C++.
 
 ## Overview

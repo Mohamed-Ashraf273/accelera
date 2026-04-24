@@ -170,6 +170,9 @@ class _PythonToCpp(ast.NodeVisitor):
         if not isinstance(node.target, ast.Name):
             raise _CppEmitError("only simple name aug-assign is supported")
         name = node.target.id
+        if isinstance(node.op, ast.Add) and self._is_constant_one(node.value):
+            self.emit(f"{name}++;")
+            return
         op = self._binop(node.op)
         self.emit(f"{name} {op}= {self.expr(node.value)};")
 
@@ -202,9 +205,8 @@ class _PythonToCpp(ast.NodeVisitor):
             self._declared.add(var)
         cmp = "<" if step is None or not step.strip().startswith("-") else ">"
         step_expr = step if step is not None else "1"
-        self.emit(
-            f"for (int {var} = {start}; {var} {cmp} {stop}; {var} += {step_expr}) {{"
-        )
+        increment = f"{var}++" if step_expr == "1" else f"{var} += {step_expr}"
+        self.emit(f"for (int {var} = {start}; {var} {cmp} {stop}; {increment}) {{")
         self._indent += 1
         for s in node.body:
             self.visit(s)
@@ -245,6 +247,13 @@ class _PythonToCpp(ast.NodeVisitor):
                 self._includes.add("#include <string>")
                 return "std::string"
         return "auto"
+
+    def _is_constant_one(self, node: ast.AST) -> bool:
+        return (
+            isinstance(node, ast.Constant)
+            and type(node.value) is int
+            and node.value == 1
+        )
 
     def _parse_range_iter(self, node: ast.AST) -> tuple[str, str, str | None]:
         if not (

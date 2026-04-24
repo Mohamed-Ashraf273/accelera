@@ -1,6 +1,9 @@
+import hashlib
 import json
 import os
 import re
+import shutil
+import subprocess
 from pathlib import Path
 
 import numpy as np
@@ -250,9 +253,74 @@ def vectorize_features(features: dict) -> np.ndarray:
     return vec
 
 
-def validate_pragma(pragma: str) -> str:
+def _extract_identifiers(code: str) -> set[str]:
+    code = re.sub(r"//.*?$|/\*.*?\*/", "", code, flags=re.MULTILINE | re.DOTALL)
+    code = re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'', "", code)
+    return set(re.findall(r"\b[A-Za-z_]\w*\b", code))
+
+
+def _find_matching_paren(text: str, open_index: int) -> int | None:
+    depth = 0
+    for i in range(open_index, len(text)):
+        if text[i] == "(":
+            depth += 1
+        elif text[i] == ")":
+            depth -= 1
+            if depth == 0:
+                return i
+    return None
+
+
+def _remove_undefined_pragma_clauses(
+    pragma: str, loop_code: str = "", code_context: str = ""
+) -> str:
+    known_identifiers = _extract_identifiers(f"{code_context}\n{loop_code}")
+    variable_clauses = (
+        "reduction",
+        "private",
+        "shared",
+        "firstprivate",
+        "lastprivate",
+        "linear",
+    )
+    result = []
+    cursor = 0
+
+    clause_pattern = r"\b(?:num_threads|" + "|".join(variable_clauses) + r")\s*\("
+    for match in re.finditer(clause_pattern, pragma):
+        clause_name = match.group(0).split("(", 1)[0].strip()
+        open_index = pragma.find("(", match.start())
+        close_index = _find_matching_paren(pragma, open_index)
+        if close_index is None:
+            continue
+
+        clause_content = pragma[open_index + 1 : close_index]
+        if clause_name == "num_threads":
+            variables = _extract_identifiers(clause_content)
+        elif clause_name == "reduction":
+            variables = _extract_identifiers(clause_content.split(":", 1)[-1])
+        else:
+            variables = _extract_identifiers(clause_content)
+
+        identifiers = {var for var in variables if var not in {"min", "max"}}
+        if identifiers and not identifiers.issubset(known_identifiers):
+            result.append(pragma[cursor : match.start()].rstrip())
+            cursor = close_index + 1
+
+    if cursor == 0:
+        return pragma
+
+    result.append(pragma[cursor:])
+    return re.sub(r"\s{2,}", " ", "".join(result)).strip()
+
+
+def validate_pragma(pragma: str, loop_code: str = "", code_context: str = "") -> str:
     if not pragma.startswith("#pragma"):
         pragma = f"#pragma {pragma}"
+
+    pragma = _remove_undefined_pragma_clauses(
+        pragma, loop_code=loop_code, code_context=code_context
+    )
 
     brackets = {"(": ")", "{": "}", "[": "]"}
     stack = []
@@ -284,7 +352,9 @@ class Parallelizer:
     def _classify(self, embedding):
         try:
             response = requests.post(
-                self.classifier_endpoint, json={"embedding": embedding.tolist()}
+                self.classifier_endpoint,
+                json={"embedding": embedding.tolist()},
+                timeout=config.REQUEST_TIMEOUT_S,
             )
             result = response.json()
             if response.status_code != 200:
@@ -300,7 +370,9 @@ class Parallelizer:
                 f"Error while parallelizing, in classifier with error: {e}"
             )
 
-    def _generate_omp_pragma_with_loop(self, loop_code: str, loop_class: str) -> str:
+    def _generate_omp_pragma_with_loop(
+        self, loop_code: str, loop_class: str, code_context: str = ""
+    ) -> str:
         if loop_class == "none":
             return loop_code
 
@@ -322,7 +394,7 @@ class Parallelizer:
                     f"in generator with error: {response.text}"
                 )
             pragma = response.json().get("pragma", "").strip()
-            pragma = validate_pragma(pragma)
+            pragma = validate_pragma(pragma, loop_code, code_context)
             return f"{pragma}\n{loop_code}"
         except Exception as e:
             raise RuntimeError(
@@ -337,9 +409,10 @@ class Parallelizer:
             code = py2cpp_converter(code)
 
         loops = extract_loops(code)
+        code_lines = code.split("\n")
+        file_name = hashlib.md5(code.encode()).hexdigest()
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-
-        json_path = self.cache_dir / f"extracted_loops_{Path(file_path).stem}.json"
+        json_path = self.cache_dir / f"extracted_loops_{file_name}.json"
 
         if not os.path.exists(json_path):
             self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -350,8 +423,6 @@ class Parallelizer:
 
         with open(json_path, "r") as f:
             loops_data = json.load(f)
-
-        code_lines = code.split("\n")
 
         shift = 0
         for loop in loops_data:
@@ -369,7 +440,7 @@ class Parallelizer:
 
             if pred_class != "none":
                 pragma_with_loop = self._generate_omp_pragma_with_loop(
-                    loop_code, pred_class
+                    loop_code, pred_class, code
                 )
                 target_start = start_line - 1 + shift
                 target_end = end_line + shift
@@ -384,6 +455,9 @@ class Parallelizer:
 
         with open(final_output_path, "w") as file:
             file.write("\n".join(code_lines))
+
+        if clang_format := shutil.which("clang-format"):
+            subprocess.run([clang_format, "-i", str(final_output_path)], check=True)
 
 
 parallelizer = Parallelizer()
