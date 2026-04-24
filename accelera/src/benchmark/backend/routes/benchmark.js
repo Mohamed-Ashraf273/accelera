@@ -28,8 +28,11 @@ router.get("/user/:id", async (req, res) => {
   try {
     const userId = req.params.id;
     const benchmarks = await Benchmark.find({ createdBy: userId })
-      .select("title problemType creationDate metricPramaters evaluationMetric")
-      .populate("evaluationMetric", "name");
+      .select(
+        "title problemType creationDate metricPramaters evaluationMetric createdBy",
+      )
+      .populate("evaluationMetric", "name")
+      .populate("createdBy", "name email");
     return res.status(200).json(benchmarks);
   } catch (err) {
     console.error("Error while fetching Benchmarks:", err);
@@ -95,6 +98,7 @@ router.post("/", async (req, res) => {
       metricPramaters,
       createdBy,
     } = req.body;
+
     problemType = problemType.toLowerCase();
     if (!isValidProblemType(problemType)) {
       return res.status(400).json({

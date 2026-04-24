@@ -45,7 +45,6 @@ const run_python = (
       sklearn_name,
       metric_paramters,
     ]);
-
     let printedDataCorrectly = "";
     let printedError = "";
     let alreadyOccured = false;
@@ -80,6 +79,7 @@ const run_python = (
             isValid: false,
           });
         }
+
         return resolve(result);
       } catch (err) {
         return reject({
