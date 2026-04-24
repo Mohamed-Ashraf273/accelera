@@ -2,6 +2,8 @@ import hashlib
 import json
 import os
 import re
+import shutil
+import subprocess
 from pathlib import Path
 
 import numpy as np
@@ -434,6 +436,9 @@ class Parallelizer:
 
         with open(final_output_path, "w") as file:
             file.write("\n".join(code_lines))
+
+        if clang_format := shutil.which("clang-format"):
+            subprocess.run([clang_format, "-i", str(final_output_path)], check=True)
 
 
 parallelizer = Parallelizer()
