@@ -25,7 +25,7 @@ class TestParallelizer:
 
         monkeypatch.setattr(
             "accelera.src.utils.parallelizer.requests.post",
-            lambda url, json: DummyResponse(),
+            lambda url, json, timeout: DummyResponse(),
         )
 
         result = parallelizer._classify(np.array([1.0, 2.0], dtype=np.float32))
@@ -91,6 +91,41 @@ class TestParallelizer:
         result = validate_pragma("omp parallel for num_threads(threads)", loop, code)
 
         assert result == "#pragma omp parallel for num_threads(threads)"
+
+    def test_validate_pragma_removes_undefined_reduction_variable(self):
+        code = (
+            "int main() {\n"
+            "int sum = 0;\n"
+            "for (int i = 0; i < n; ++i) { sum += i; }\n"
+            "}"
+        )
+        loop = "for (int i = 0; i < n; ++i) { sum += i; }"
+
+        result = validate_pragma(
+            "omp parallel for reduction(+ : sume)",
+            loop,
+            code,
+        )
+
+        assert result == "#pragma omp parallel for"
+
+    def test_validate_pragma_keeps_defined_reduction_and_private_variables(self):
+        code = (
+            "int main() {\n"
+            "int sum = 0;\n"
+            "int tmp = 0;\n"
+            "for (int i = 0; i < n; ++i) { tmp = i; sum += tmp; }\n"
+            "}"
+        )
+        loop = "for (int i = 0; i < n; ++i) { tmp = i; sum += tmp; }"
+
+        result = validate_pragma(
+            "omp parallel for private(tmp) reduction(+ : sum)",
+            loop,
+            code,
+        )
+
+        assert result == "#pragma omp parallel for private(tmp) reduction(+ : sum)"
 
     def test_parallelize_writes_parallelized_output(self, monkeypatch, tmp_path):
         source_file = tmp_path / "sample.c"

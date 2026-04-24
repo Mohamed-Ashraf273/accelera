@@ -271,21 +271,38 @@ def _find_matching_paren(text: str, open_index: int) -> int | None:
     return None
 
 
-def _remove_undefined_num_threads_clauses(
+def _remove_undefined_pragma_clauses(
     pragma: str, loop_code: str = "", code_context: str = ""
 ) -> str:
     known_identifiers = _extract_identifiers(f"{code_context}\n{loop_code}")
+    variable_clauses = (
+        "reduction",
+        "private",
+        "shared",
+        "firstprivate",
+        "lastprivate",
+        "linear",
+    )
     result = []
     cursor = 0
 
-    for match in re.finditer(r"\bnum_threads\s*\(", pragma):
+    clause_pattern = r"\b(?:num_threads|" + "|".join(variable_clauses) + r")\s*\("
+    for match in re.finditer(clause_pattern, pragma):
+        clause_name = match.group(0).split("(", 1)[0].strip()
         open_index = pragma.find("(", match.start())
         close_index = _find_matching_paren(pragma, open_index)
         if close_index is None:
             continue
 
-        expression = pragma[open_index + 1 : close_index]
-        identifiers = _extract_identifiers(expression)
+        clause_content = pragma[open_index + 1 : close_index]
+        if clause_name == "num_threads":
+            variables = _extract_identifiers(clause_content)
+        elif clause_name == "reduction":
+            variables = _extract_identifiers(clause_content.split(":", 1)[-1])
+        else:
+            variables = _extract_identifiers(clause_content)
+
+        identifiers = {var for var in variables if var not in {"min", "max"}}
         if identifiers and not identifiers.issubset(known_identifiers):
             result.append(pragma[cursor : match.start()].rstrip())
             cursor = close_index + 1
@@ -301,7 +318,7 @@ def validate_pragma(pragma: str, loop_code: str = "", code_context: str = "") ->
     if not pragma.startswith("#pragma"):
         pragma = f"#pragma {pragma}"
 
-    pragma = _remove_undefined_num_threads_clauses(
+    pragma = _remove_undefined_pragma_clauses(
         pragma, loop_code=loop_code, code_context=code_context
     )
 
@@ -335,7 +352,9 @@ class Parallelizer:
     def _classify(self, embedding):
         try:
             response = requests.post(
-                self.classifier_endpoint, json={"embedding": embedding.tolist()}
+                self.classifier_endpoint,
+                json={"embedding": embedding.tolist()},
+                timeout=config.REQUEST_TIMEOUT_S,
             )
             result = response.json()
             if response.status_code != 200:
