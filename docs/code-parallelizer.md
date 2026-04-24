@@ -22,6 +22,16 @@ The Code Parallelizer uses Clang's AST infrastructure to:
 
 The Code Parallelizer is fully functional and available for use. Core features are implemented and tested. Comprehensive documentation with detailed API references, tutorials, and advanced examples is being prepared.
 
+## Generator Evaluation Report
+
+The current OpenMP generator report is available here:
+
+[OpenMP Generator Evaluation Report](current-generator-report.md)
+
+It explains how the generator works, how Python inputs are converted to C++,
+how generated pragmas are validated, and how the latest classifier, pragma
+accuracy, compile/run, and latency metrics are measured.
+
 ## Expected Timeline
 
 - **Q1 2026**: Complete API reference documentation
