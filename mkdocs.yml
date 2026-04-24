@@ -41,6 +41,7 @@ nav:
   - User Guide:
       - Core Pipeline: core-pipeline.md
       - Code Parallelizer: code-parallelizer.md
+      - OpenMP Generator Report: current-generator-report.md
       - AutoML (Coming Soon): automl.md
       - Deployment (Coming Soon): deployment.md
       - Benchmark Platform (Coming Soon): benchmark.md
