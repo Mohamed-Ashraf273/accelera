@@ -15,6 +15,10 @@
         <link rel="canonical" href="https://mohamed-ashraf273.github.io/accelera/current-generator-report/">
       
       
+        <link rel="prev" href="../code-parallelizer/">
+      
+      
+        <link rel="next" href="../automl/">
       
       
         
@@ -25,7 +29,7 @@
     
     
       
-        <title>Current Code Parallelizer Generator Report - Accelera Documentation</title>
+        <title>OpenMP Generator Report - Accelera Documentation</title>
       
     
     
@@ -111,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Current Code Parallelizer Generator Report
+              OpenMP Generator Report
             
           </span>
         </div>
@@ -260,10 +264,12 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../core-pipeline/" class="md-tabs__link">
           
   
@@ -417,28 +423,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
             
   
   
@@ -456,7 +465,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -518,6 +527,319 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenMP Generator Report
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenMP Generator Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-input-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python Input Path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-generator-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Generator Behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gold-evaluation-corpus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gold Evaluation Corpus
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluation-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evaluation Script
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#latest-evaluation-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Latest Evaluation Results
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Latest Evaluation Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#latest-result-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Latest Result Interpretation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hard-workload-evaluation-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hard Workload Evaluation Results
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hard Workload Evaluation Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hard-workload-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hard Workload Interpretation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metrics-measured" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metrics Measured
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Metrics Measured">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#classifier-correctness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classifier Correctness
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pragma-accuracy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pragma Accuracy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#functional-correctness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functional Correctness
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#end-to-end-stability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        End-to-End Stability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#latency-before-and-after-parallelization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Latency Before and After Parallelization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parallelizer-latency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parallelizer Latency
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interpretation-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interpretation Guide
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommended-next-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recommended Next Metrics
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
