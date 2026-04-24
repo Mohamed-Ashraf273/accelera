@@ -8,6 +8,8 @@ repo_url: https://github.com/Mohamed-Ashraf273/accelera
 
 theme:
   name: material
+  logo: accelera.png
+  favicon: accelera.png
   palette:
     # Light mode
     - scheme: default

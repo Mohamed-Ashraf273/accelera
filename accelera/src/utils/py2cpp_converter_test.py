@@ -11,15 +11,16 @@ class TestPy2CppConverter:
         assert "std::endl" in cpp
 
     def test_converts_assignment_and_augassign(self):
-        cpp = py2cpp_converter("x = 1\nx += 2")
+        cpp = py2cpp_converter("x = 1\nx += 1\ny = 1\ny += 2")
         assert "int main() {" in cpp
         assert "int x = 1;" in cpp
-        assert "x += 2;" in cpp
+        assert "x++;" in cpp
+        assert "y += 2;" in cpp
 
     def test_converts_for_range(self):
         cpp = py2cpp_converter("for i in range(0, 3):\n    print(i)")
         assert "int main() {" in cpp
-        assert "for (int i = 0; i < 3; i += 1)" in cpp
+        assert "for (int i = 0; i < 3; i++)" in cpp
         assert "std::cout" in cpp
 
     def test_converts_function_def(self):

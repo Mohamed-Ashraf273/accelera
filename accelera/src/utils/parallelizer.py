@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import re
@@ -337,9 +338,10 @@ class Parallelizer:
             code = py2cpp_converter(code)
 
         loops = extract_loops(code)
+        code_lines = code.split("\n")
+        file_name = hashlib.md5(code.encode()).hexdigest()
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-
-        json_path = self.cache_dir / f"extracted_loops_{Path(file_path).stem}.json"
+        json_path = self.cache_dir / f"extracted_loops_{file_name}.json"
 
         if not os.path.exists(json_path):
             self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -350,8 +352,6 @@ class Parallelizer:
 
         with open(json_path, "r") as f:
             loops_data = json.load(f)
-
-        code_lines = code.split("\n")
 
         shift = 0
         for loop in loops_data:

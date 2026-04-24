@@ -1,10 +1,10 @@
 #include <iostream>
 
 int main() {
-    int x = 1;
-    for (int i = 0; i < 3; i += 1) {
-        x += 1;
+    int sum = 1;
+#pragma omp parallel for num_threads(t) reduction(+ : sum)
+for (int i = 0; i < 5; i++) {
+        sum += i;
     }
-    (std::cout << x << std::endl);
     return 0;
 }
