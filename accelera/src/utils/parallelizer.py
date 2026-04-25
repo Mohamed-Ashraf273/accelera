@@ -253,12 +253,6 @@ def vectorize_features(features: dict) -> np.ndarray:
     return vec
 
 
-def _extract_identifiers(code: str) -> set[str]:
-    code = re.sub(r"//.*?$|/\*.*?\*/", "", code, flags=re.MULTILINE | re.DOTALL)
-    code = re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'', "", code)
-    return set(re.findall(r"\b[A-Za-z_]\w*\b", code))
-
-
 def _find_matching_paren(text: str, open_index: int) -> int | None:
     depth = 0
     for i in range(open_index, len(text)):
@@ -271,75 +265,41 @@ def _find_matching_paren(text: str, open_index: int) -> int | None:
     return None
 
 
-def _remove_undefined_pragma_clauses(
-    pragma: str, loop_code: str = "", code_context: str = ""
-) -> str:
-    known_identifiers = _extract_identifiers(f"{code_context}\n{loop_code}")
-    variable_clauses = (
-        "reduction",
-        "private",
-        "shared",
-        "firstprivate",
-        "lastprivate",
-        "linear",
-    )
-    result = []
-    cursor = 0
+def _consecutive_for_depth(code: str) -> int:
+    code = re.sub(r"//.*?$|/\*.*?\*/", "", code, flags=re.MULTILINE | re.DOTALL)
+    depth = 0
+    pos = 0
 
-    clause_pattern = r"\b(?:num_threads|" + "|".join(variable_clauses) + r")\s*\("
-    for match in re.finditer(clause_pattern, pragma):
-        clause_name = match.group(0).split("(", 1)[0].strip()
-        open_index = pragma.find("(", match.start())
-        close_index = _find_matching_paren(pragma, open_index)
+    while True:
+        match = re.search(r"\bfor\s*\(", code[pos:])
+        if not match:
+            return depth
+
+        start = pos + match.start()
+        if code[pos:start].strip(" \t\r\n{"):
+            return depth
+
+        open_index = code.find("(", start)
+        close_index = _find_matching_paren(code, open_index)
         if close_index is None:
-            continue
+            return depth
 
-        clause_content = pragma[open_index + 1 : close_index]
-        if clause_name == "num_threads":
-            variables = _extract_identifiers(clause_content)
-        elif clause_name == "reduction":
-            variables = _extract_identifiers(clause_content.split(":", 1)[-1])
-        else:
-            variables = _extract_identifiers(clause_content)
-
-        identifiers = {var for var in variables if var not in {"min", "max"}}
-        if identifiers and not identifiers.issubset(known_identifiers):
-            result.append(pragma[cursor : match.start()].rstrip())
-            cursor = close_index + 1
-
-    if cursor == 0:
-        return pragma
-
-    result.append(pragma[cursor:])
-    return re.sub(r"\s{2,}", " ", "".join(result)).strip()
+        depth += 1
+        pos = close_index + 1
+        while pos < len(code) and code[pos].isspace():
+            pos += 1
+        if pos < len(code) and code[pos] == "{":
+            pos += 1
 
 
-def validate_pragma(pragma: str, loop_code: str = "", code_context: str = "") -> str:
-    if not pragma.startswith("#pragma"):
-        pragma = f"#pragma {pragma}"
-
-    pragma = _remove_undefined_pragma_clauses(
-        pragma, loop_code=loop_code, code_context=code_context
+def _should_parallelize_loop(
+    loop_code: str, pred_class: str, features: dict
+) -> bool:
+    if pred_class != "none":
+        return True
+    return bool(features.get("reduction_var")) or (
+        _consecutive_for_depth(loop_code) > 1
     )
-
-    brackets = {"(": ")", "{": "}", "[": "]"}
-    stack = []
-
-    for char in pragma:
-        if char in brackets:
-            stack.append(char)
-        elif char in brackets.values():
-            if not stack:
-                return pragma.rstrip(char)
-
-            top = stack.pop()
-            if brackets[top] != char:
-                return pragma.rstrip(char)
-
-    while stack:
-        pragma += brackets[stack.pop()]
-
-    return pragma
 
 
 class Parallelizer:
@@ -347,7 +307,6 @@ class Parallelizer:
         self.root_path = config.REPO_ROOT
         self.cache_dir = config.cache_dir
         self.classifier_endpoint = config.CLASSIFIER_ENDPOINT
-        self.generator_endpoint = config.GENERATOR_ENDPOINT
 
     def _classify(self, embedding):
         try:
@@ -376,30 +335,25 @@ class Parallelizer:
         if loop_class == "none":
             return loop_code
 
-        payload = {
-            "code_snippet": loop_code,
-            "cls": loop_class,
-            "max_len": config.GENERATOR_MAX_LEN,
-        }
+        features = extract_features(loop_code)
+        clauses = []
 
-        try:
-            response = requests.post(
-                self.generator_endpoint,
-                json=payload,
-                timeout=config.REQUEST_TIMEOUT_S,
-            )
-            if response.status_code != 200:
-                raise RuntimeError(
-                    f"Error while parallelizing, "
-                    f"in generator with error: {response.text}"
-                )
-            pragma = response.json().get("pragma", "").strip()
-            pragma = validate_pragma(pragma, loop_code, code_context)
-            return f"{pragma}\n{loop_code}"
-        except Exception as e:
-            raise RuntimeError(
-                f"Error while parallelizing, in generator with error: {e}"
-            )
+        depth = _consecutive_for_depth(loop_code)
+        if depth > 1:
+            clauses.append(f"collapse({depth})")
+
+        reduction_var = features.get("reduction_var")
+        if features.get("has_reduction_plus") and reduction_var:
+            clauses.append(f"reduction(+ : {reduction_var})")
+        elif features.get("has_reduction_mul"):
+            if match := re.search(r"\b([A-Za-z_]\w*)\s*\*=", loop_code):
+                clauses.append(f"reduction(* : {match.group(1)})")
+
+        pragma = "#pragma omp parallel for"
+        if clauses:
+            pragma = f"{pragma} {' '.join(clauses)}"
+
+        return f"{pragma}\n{loop_code}"
 
     def parallelize(self, file_path: str) -> str:
         with open(file_path, "r") as file:
@@ -424,31 +378,44 @@ class Parallelizer:
         with open(json_path, "r") as f:
             loops_data = json.load(f)
 
-        shift = 0
+        selected_loops = []
         for loop in loops_data:
             loop_code = loop["code"]
-            start_line = loop["start_line"]
-            end_line = loop["end_line"]
-            loop_type = loop["type"]
-
-            if loop_type != "for":
+            if loop["type"] != "for":
                 continue
 
             features = extract_features(loop_code)
             embedding = vectorize_features(features)
             pred_class = self._classify(embedding)
 
-            if pred_class != "none":
-                pragma_with_loop = self._generate_omp_pragma_with_loop(
-                    loop_code, pred_class, code
-                )
-                target_start = start_line - 1 + shift
-                target_end = end_line + shift
-                new_segment = pragma_with_loop.split("\n")
-                code_lines[target_start:target_end] = new_segment
-                current_segment_len = target_end - target_start
-                new_segment_len = len(new_segment)
-                shift += new_segment_len - current_segment_len
+            if _should_parallelize_loop(loop_code, pred_class, features):
+                selected_loops.append((loop, pred_class))
+
+        selected_ranges = [
+            (loop["start_line"], loop["end_line"]) for loop, _ in selected_loops
+        ]
+        shift = 0
+        for loop, pred_class in selected_loops:
+            loop_code = loop["code"]
+            start_line = loop["start_line"]
+            end_line = loop["end_line"]
+
+            if any(
+                outer_start < start_line and end_line <= outer_end
+                for outer_start, outer_end in selected_ranges
+            ):
+                continue
+
+            pragma_with_loop = self._generate_omp_pragma_with_loop(
+                loop_code, pred_class, code
+            )
+            target_start = start_line - 1 + shift
+            target_end = end_line + shift
+            new_segment = pragma_with_loop.split("\n")
+            code_lines[target_start:target_end] = new_segment
+            current_segment_len = target_end - target_start
+            new_segment_len = len(new_segment)
+            shift += new_segment_len - current_segment_len
 
         current_dir = Path(file_path).parent
         final_output_path = current_dir / f"parallelized_{Path(file_path).stem}.c"

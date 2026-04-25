@@ -101,7 +101,7 @@ def compile_cpp(
 
 
 def run_binary(
-    binary_path: Path, repeats: int, run_timeout: int, verbose: bool = True
+    binary_path: Path, repeats: int, run_timeout: int | None, verbose: bool = True
 ) -> tuple[bool, str, float]:
     durations = []
     output = None
@@ -339,14 +339,28 @@ def main() -> None:
     parser.add_argument("--output", default="data/parallelizer_eval_results.json")
     parser.add_argument("--repeats", type=int, default=5)
     parser.add_argument("--limit", type=int, default=0)
-    parser.add_argument("--request-timeout", type=int, default=None)
-    parser.add_argument("--run-timeout", type=int, default=10)
+    parser.add_argument(
+        "--request-timeout",
+        type=int,
+        default=None,
+        help="Model request timeout in seconds. Use 0 to disable.",
+    )
+    parser.add_argument(
+        "--run-timeout",
+        type=int,
+        default=10,
+        help="Compiled binary timeout in seconds. Use 0 to disable.",
+    )
     parser.add_argument("--quiet", action="store_true")
     args = parser.parse_args()
     verbose = not args.quiet
     if args.request_timeout is not None:
-        object.__setattr__(config, "REQUEST_TIMEOUT_S", args.request_timeout)
-        log(f"Using request timeout: {config.REQUEST_TIMEOUT_S}s", verbose)
+        request_timeout = args.request_timeout or None
+        object.__setattr__(config, "REQUEST_TIMEOUT_S", request_timeout)
+        log(f"Using request timeout: {request_timeout or 'disabled'}", verbose)
+
+    run_timeout = args.run_timeout or None
+    log(f"Using run timeout: {run_timeout or 'disabled'}", verbose)
 
     test_dir = Path(args.test_dir)
     gold_dir = Path(args.gold_dir)
@@ -375,7 +389,7 @@ def main() -> None:
                     parallelizer,
                     work_dir,
                     args.repeats,
-                    args.run_timeout,
+                    run_timeout,
                     index,
                     len(sources),
                     verbose,

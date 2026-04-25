@@ -196,33 +196,32 @@ should be treated as a smoke/evaluation slice, not the final full-corpus result.
 | Files evaluated | 20 | Count of file entries in `data/parallelizer_eval_results.json`. |
 | Baseline files compiled | 20 / 20 | The evaluator converts Python files to C++ when needed, compiles the serial baseline with `g++` or `clang++`, and counts successful compiler exits. |
 | Baseline files ran | 20 / 20 | Count of baseline binaries that executed successfully for the configured repeat count. |
-| Files parallelized without endpoint/script error | 19 / 20 | Count of files where `parallelizer.parallelize(...)` completed without raising an exception. |
-| Files where generated output compiled and ran | 2 / 20 | Count of files where both the baseline and generated parallelized binary compiled and executed successfully. |
-| Files with matching serial/parallel output | 2 / 20 | Count of files where baseline output equals generated parallel output after both programs run. |
+| Files parallelized without endpoint/script error | 20 / 20 | Count of files where `parallelizer.parallelize(...)` completed without raising an exception. |
+| Files where generated output compiled and ran | 20 / 20 | Count of files where both the baseline and generated parallelized binary compiled and executed successfully. |
+| Files with matching serial/parallel output | 20 / 20 | Count of files where baseline output equals generated parallel output after both programs run. |
 | Classifier loop accuracy | 40 / 50 = 80.0% | Every loop in this corpus is expected to be parallelizable. A classifier prediction is counted correct when it is not `none`. |
 | Gold pragmas | 50 | Number of expected `#pragma omp ...` lines extracted from the gold files. |
-| Generated pragmas | 38 | Number of `#pragma omp ...` lines extracted from the generated files. |
-| Exact pragma accuracy | 29 / 50 = 58.0% | Generated and gold pragmas are normalized for whitespace and compared in order. Exact semantic alternatives still count as mismatches if the strings differ. |
-| Average pragma similarity | 85.36% | For each generated/gold pragma pair, the evaluator computes `difflib.SequenceMatcher(...).ratio()` and averages the per-file scores. |
-| Average parallelizer latency | 3973.95 ms/file | Wall-clock time spent inside `parallelizer.parallelize(...)`, including local feature extraction and remote classifier/generator requests. Compile and binary runtime are excluded. |
-| Average baseline runtime | 1.51 ms | Runtime of the serial baseline, averaged only over files where both baseline and generated binaries ran successfully. |
-| Average parallel runtime | 2.41 ms | Runtime of the generated parallel binary, averaged over the same comparable files. |
-| Average speedup | 0.63x | Computed as `baseline_latency_ms / parallel_latency_ms` for files where both binaries run. Values below 1.0 mean the parallel version is slower. |
+| Generated pragmas | 40 | Number of `#pragma omp ...` lines extracted from the generated files. |
+| Exact pragma accuracy | 20 / 50 = 40.0% | Generated and gold pragmas are normalized for whitespace and compared in order. Exact semantic alternatives still count as mismatches if the strings differ. |
+| Average pragma similarity | 89.02% | For each generated/gold pragma pair, the evaluator computes `difflib.SequenceMatcher(...).ratio()` and averages the per-file scores. |
+| Average parallelizer latency | 238.74 ms/file | Wall-clock time spent inside `parallelizer.parallelize(...)`, including local feature extraction and classifier requests. Compile and binary runtime are excluded. |
+| Average baseline runtime | 1.25 ms | Runtime of the serial baseline, averaged only over files where both baseline and generated binaries ran successfully. |
+| Average parallel runtime | 2.01 ms | Runtime of the generated parallel binary, averaged over the same comparable files. |
+| Average speedup | 0.64x | Computed as `baseline_latency_ms / parallel_latency_ms` for files where both binaries run. Values below 1.0 mean the parallel version is slower. |
 | Faster after parallelization | 0 | Count of comparable files with speedup greater than `1.03`. |
-| Slower after parallelization | 2 | Count of comparable files with speedup less than `0.97`. |
+| Slower after parallelization | 20 | Count of comparable files with speedup less than `0.97`. |
 
 ### Latest Result Interpretation
 
 The classifier predicted a parallelizable class for 40 of 50 loops, which is a
-reasonable positive-class signal for this smoke slice. After adding validation
-for invalid pragma variables, generated files no longer fail from examples such
-as `reduction(+ : sume)` or `reduction(+ : global)` in this run.
+reasonable positive-class signal for this smoke slice. After switching pragma
+construction to deterministic rules and adding conservative safety checks, all
+20 generated files now compile, run, and match the serial baseline.
 
-The small-file corpus now has 2 files that compile, run, and match the serial
-baseline. Both are slower after parallelization:
-
-- `eval_003.py`: 1.48 ms baseline, 2.52 ms parallel, 0.59x speedup
-- `eval_019.py`: 1.55 ms baseline, 2.30 ms parallel, 0.67x speedup
+However, all 20 comparable files are slower after parallelization. Average
+runtime changed from 1.25 ms serial to 2.01 ms parallel, giving an average
+speedup of only 0.64x. In other words, the generated code is correct on this
+slice, but OpenMP is not beneficial for these workloads.
 
 This does not mean OpenMP is ineffective in general. These loops are intentionally
 small and not computationally intense. For loops that finish in around 1-2 ms,
@@ -258,40 +257,43 @@ The latest hard-workload run produced:
 | --- | ---: | --- |
 | Files evaluated | 3 | Count of files in the hard-workload run. |
 | Files parallelized without endpoint/script error | 3 / 3 | Count of files where `parallelizer.parallelize(...)` completed without raising an exception. |
-| Files where generated output compiled and ran | 1 / 3 | Count of files where both the serial baseline and generated parallelized binary compiled and executed successfully. |
-| Files with matching serial/parallel output | 1 / 3 | Count of files where generated parallel output matched the serial baseline output. |
+| Files where generated output compiled and ran | 2 / 3 | Count of files where both the serial baseline and generated parallelized binary compiled and executed successfully. |
+| Files with matching serial/parallel output | 2 / 3 | Count of files where generated parallel output matched the serial baseline output. |
 | Classifier loop accuracy | 5 / 11 = 45.45% | Every hard-workload loop is expected to be parallelizable. A prediction is counted correct when it is not `none`. |
 | Gold pragmas | 8 | Number of expected `#pragma omp ...` lines in the hard gold files. |
-| Generated pragmas | 5 | Number of generated `#pragma omp ...` lines extracted from generated outputs. |
-| Exact pragma accuracy | 2 / 8 = 25.0% | Generated and gold pragmas are normalized for whitespace and compared in order. |
-| Average pragma similarity | 81.71% | Average `difflib.SequenceMatcher(...).ratio()` between generated and gold pragma pairs. |
-| Average parallelizer latency | 5178.99 ms/file | Wall-clock time inside `parallelizer.parallelize(...)`, including model endpoint calls. |
-| Average baseline runtime | 71.67 ms | Runtime of the serial baseline, averaged only over files where both baseline and generated binaries ran successfully. |
-| Average parallel runtime | 32.00 ms | Runtime of the generated parallel binary, averaged over the same comparable files. |
-| Average speedup | 2.24x | Computed as `baseline_latency_ms / parallel_latency_ms` for comparable files. |
-| Faster after parallelization | 1 | Count of comparable files with speedup greater than `1.03`. |
+| Generated pragmas | 4 | Number of generated `#pragma omp ...` lines extracted from generated outputs. |
+| Exact pragma accuracy | 3 / 8 = 37.5% | Generated and gold pragmas are normalized for whitespace and compared in order. |
+| Average pragma similarity | 90.91% | Average `difflib.SequenceMatcher(...).ratio()` between generated and gold pragma pairs. |
+| Average parallelizer latency | 210.66 ms/file | Wall-clock time inside `parallelizer.parallelize(...)`, including local feature extraction and classifier requests. |
+| Average baseline runtime | 55.24 ms | Runtime of the serial baseline, averaged only over files where both baseline and generated binaries ran successfully. |
+| Average parallel runtime | 22.54 ms | Runtime of the generated parallel binary, averaged over the same comparable files. |
+| Average speedup | 3.33x | Computed as `baseline_latency_ms / parallel_latency_ms` for comparable files. |
+| Faster after parallelization | 2 | Count of comparable files with speedup greater than `1.03`. |
 | Slower after parallelization | 0 | Count of comparable files with speedup less than `0.97`. |
 
 ### Hard Workload Interpretation
 
-The hard workload confirms that useful speedup is possible when the generated
-parallelized file is valid. The one file that compiled, ran, and matched output
-improved from about 71.67 ms to 32.00 ms, or roughly 2.24x faster.
+The hard workload confirms that useful speedup is possible when loops are large
+enough to amortize OpenMP overhead. Two of the three hard files compiled, ran,
+matched the serial baseline, and improved runtime:
 
-However, this result should not be generalized yet because only 1 of 3 hard
-files reached the valid runtime comparison stage. The hard run shows performance
-potential, but the main reliability bottlenecks remain:
+- `hard_eval_001.cpp`: 65.66 ms baseline, 35.81 ms parallel, 1.83x speedup
+- `hard_eval_002.py`: 44.82 ms baseline, 9.27 ms parallel, 4.84x speedup
 
-- classifier recall: only 5 of 11 parallelizable loops were classified as
-  parallelizable
-- pragma coverage: only 5 of 8 expected pragmas were generated
-- exact pragma correctness: only 2 of 8 expected pragmas matched exactly
+The remaining file, `hard_eval_000.cpp`, compiled but did not complete the full
+run-and-match comparison. The hard run therefore shows clear performance
+potential, but also shows that loop selection still needs work:
+
+- classifier recall remains low: only 5 of 11 parallelizable loops were
+  classified as parallelizable
+- pragma coverage is partial: only 4 of 8 expected pragmas were generated
+- exact pragma correctness is 3 of 8 expected pragmas
 
 The important conclusion is:
 
 ```text
-Small-loop evaluation shows overhead and compile-safety issues.
-Hard-loop evaluation shows real speedup is possible once generation is valid.
+Small-loop evaluation now shows correctness, but OpenMP overhead dominates.
+Hard-loop evaluation shows real speedup when selected loops are suitable.
 ```
 
 ## Metrics Measured
