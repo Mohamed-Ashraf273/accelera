@@ -1,0 +1,102 @@
+{
+  "summary": {
+    "files_total": 3,
+    "files_parallelized_without_error": 3,
+    "files_compiled_and_ran": 2,
+    "files_output_matches": 2,
+    "classifier_total_loops": 11,
+    "classifier_correct_loops": 5,
+    "classifier_accuracy": 0.45454545454545453,
+    "gold_pragmas": 8,
+    "generated_pragmas": 4,
+    "pragma_exact_matches": 3,
+    "pragma_exact_accuracy": 0.375,
+    "pragma_similarity_avg": 0.9090909090909092,
+    "avg_parallelize_latency_ms": 210.65831466664045,
+    "avg_baseline_latency_ms": 55.239450666552635,
+    "avg_parallel_latency_ms": 22.537400999984435,
+    "avg_speedup": 3.334960136670553,
+    "files_faster_after_parallelization": 2,
+    "files_slower_after_parallelization": 0
+  },
+  "files": [
+    {
+      "file": "data/hard_test_files/hard_eval_000.cpp",
+      "gold_file": "data/hard_parallelized_files/parallelized_hard_eval_000.cpp",
+      "classification": {
+        "total": 4,
+        "correct": 1,
+        "errors": []
+      },
+      "parallelize_ok": true,
+      "parallelize_error": "",
+      "parallelize_latency_ms": 227.53815800024313,
+      "generated_pragmas": 1,
+      "gold_pragmas": 3,
+      "pragma_exact": 1,
+      "pragma_similarity_avg": 1.0,
+      "baseline_compile_ok": true,
+      "baseline_compile_error": "",
+      "baseline_run_ok": true,
+      "parallel_compile_ok": true,
+      "parallel_compile_error": "",
+      "parallel_run_ok": false,
+      "output_matches": false,
+      "baseline_latency_ms": 1781.516850666473,
+      "parallel_latency_ms": 0.0,
+      "speedup": 0.0
+    },
+    {
+      "file": "data/hard_test_files/hard_eval_001.cpp",
+      "gold_file": "data/hard_parallelized_files/parallelized_hard_eval_001.cpp",
+      "classification": {
+        "total": 5,
+        "correct": 2,
+        "errors": []
+      },
+      "parallelize_ok": true,
+      "parallelize_error": "",
+      "parallelize_latency_ms": 198.17778499964334,
+      "generated_pragmas": 1,
+      "gold_pragmas": 3,
+      "pragma_exact": 0,
+      "pragma_similarity_avg": 0.7272727272727273,
+      "baseline_compile_ok": true,
+      "baseline_compile_error": "",
+      "baseline_run_ok": true,
+      "parallel_compile_ok": true,
+      "parallel_compile_error": "",
+      "parallel_run_ok": true,
+      "output_matches": true,
+      "baseline_latency_ms": 65.66181266650044,
+      "parallel_latency_ms": 35.80777766668083,
+      "speedup": 1.8337304615136398
+    },
+    {
+      "file": "data/hard_test_files/hard_eval_002.py",
+      "gold_file": "data/hard_parallelized_files/parallelized_hard_eval_002.c",
+      "classification": {
+        "total": 2,
+        "correct": 2,
+        "errors": []
+      },
+      "parallelize_ok": true,
+      "parallelize_error": "",
+      "parallelize_latency_ms": 206.2590010000349,
+      "generated_pragmas": 2,
+      "gold_pragmas": 2,
+      "pragma_exact": 2,
+      "pragma_similarity_avg": 1.0,
+      "baseline_compile_ok": true,
+      "baseline_compile_error": "",
+      "baseline_run_ok": true,
+      "parallel_compile_ok": true,
+      "parallel_compile_error": "",
+      "parallel_run_ok": true,
+      "output_matches": true,
+      "baseline_latency_ms": 44.81708866660483,
+      "parallel_latency_ms": 9.26702433328804,
+      "speedup": 4.836189811827466
+    }
+  ]
+}

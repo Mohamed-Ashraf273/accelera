@@ -9,7 +9,6 @@ import pytest
 
 from accelera.src.utils.parallelizer import Parallelizer
 from accelera.src.utils.parallelizer import extract_loops
-from accelera.src.utils.parallelizer import validate_pragma
 from accelera.src.utils.parallelizer import write_loops_to_json
 
 
@@ -53,79 +52,12 @@ class TestParallelizer:
             "accelera.src.utils.parallelizer.requests.post",
             lambda url, json, timeout: DummyResponse(),
         )
-        monkeypatch.setattr(
-            "accelera.src.utils.parallelizer.validate_pragma",
-            lambda pragma, loop_code="", code_context="": f"#pragma {pragma}",
-        )
-
         result = parallelizer._generate_omp_pragma_with_loop(
             "for (int i = 0; i < n; ++i) {}", "parallel_for"
         )
 
         assert result.startswith("#pragma omp parallel for\n")
         assert "for (int i = 0; i < n; ++i) {}" in result
-
-    def test_validate_pragma_removes_undefined_num_threads_variable(self):
-        code = (
-            "int main() {\n"
-            "int sum = 1;\n"
-            "for (int i = 0; i < 5; i++) {\n"
-            "sum += i;\n"
-            "}\n"
-            "}"
-        )
-        loop = "for (int i = 0; i < 5; i++) {\nsum += i;\n}"
-
-        result = validate_pragma(
-            "omp parallel for num_threads(t) reduction(+ : sum)",
-            loop,
-            code,
-        )
-
-        assert result == "#pragma omp parallel for reduction(+ : sum)"
-
-    def test_validate_pragma_keeps_defined_num_threads_variable(self):
-        code = "int main() {\nint threads = 4;\nfor (int i = 0; i < n; ++i) {}\n}"
-        loop = "for (int i = 0; i < n; ++i) {}"
-
-        result = validate_pragma("omp parallel for num_threads(threads)", loop, code)
-
-        assert result == "#pragma omp parallel for num_threads(threads)"
-
-    def test_validate_pragma_removes_undefined_reduction_variable(self):
-        code = (
-            "int main() {\n"
-            "int sum = 0;\n"
-            "for (int i = 0; i < n; ++i) { sum += i; }\n"
-            "}"
-        )
-        loop = "for (int i = 0; i < n; ++i) { sum += i; }"
-
-        result = validate_pragma(
-            "omp parallel for reduction(+ : sume)",
-            loop,
-            code,
-        )
-
-        assert result == "#pragma omp parallel for"
-
-    def test_validate_pragma_keeps_defined_reduction_and_private_variables(self):
-        code = (
-            "int main() {\n"
-            "int sum = 0;\n"
-            "int tmp = 0;\n"
-            "for (int i = 0; i < n; ++i) { tmp = i; sum += tmp; }\n"
-            "}"
-        )
-        loop = "for (int i = 0; i < n; ++i) { tmp = i; sum += tmp; }"
-
-        result = validate_pragma(
-            "omp parallel for private(tmp) reduction(+ : sum)",
-            loop,
-            code,
-        )
-
-        assert result == "#pragma omp parallel for private(tmp) reduction(+ : sum)"
 
     def test_parallelize_writes_parallelized_output(self, monkeypatch, tmp_path):
         source_file = tmp_path / "sample.c"
@@ -188,6 +120,81 @@ class TestParallelizer:
         assert result is None
         assert output_file.exists()
         assert "#pragma omp parallel for" in output_file.read_text()
+
+    def test_parallelize_skips_inner_loop_when_outer_selected(
+        self, monkeypatch, tmp_path
+    ):
+        source_file = tmp_path / "nested.c"
+        source_file.write_text(
+            "int main() {\n"
+            "for (int r = 0; r < rows; r++) {\n"
+            "    for (int c = 0; c < cols; c++) {\n"
+            "        out[r][c] = in[r][c];\n"
+            "    }\n"
+            "}\n"
+            "return 0;\n"
+            "}\n"
+        )
+        outer_loop = (
+            "for (int r = 0; r < rows; r++) {\n"
+            "    for (int c = 0; c < cols; c++) {\n"
+            "        out[r][c] = in[r][c];\n"
+            "    }\n"
+            "}"
+        )
+        inner_loop = (
+            "for (int c = 0; c < cols; c++) {\n        out[r][c] = in[r][c];\n    }"
+        )
+
+        parallelizer = Parallelizer()
+        parallelizer.cache_dir = tmp_path / "cache"
+        monkeypatch.setattr(
+            "accelera.src.utils.parallelizer.extract_loops",
+            lambda code: [SimpleNamespace()],
+        )
+
+        def fake_write_loops_to_json(loops, output_json):
+            Path(output_json).write_text(
+                json.dumps(
+                    [
+                        {
+                            "code": outer_loop,
+                            "start_line": 2,
+                            "end_line": 6,
+                            "type": "for",
+                        },
+                        {
+                            "code": inner_loop,
+                            "start_line": 3,
+                            "end_line": 5,
+                            "type": "for",
+                        },
+                    ]
+                )
+            )
+            return True
+
+        monkeypatch.setattr(
+            "accelera.src.utils.parallelizer.write_loops_to_json",
+            fake_write_loops_to_json,
+        )
+        monkeypatch.setattr(
+            "accelera.src.utils.parallelizer.extract_features",
+            lambda code: {"dummy": True},
+        )
+        monkeypatch.setattr(
+            "accelera.src.utils.parallelizer.vectorize_features",
+            lambda features: np.array([1.0], dtype=np.float32),
+        )
+        monkeypatch.setattr(
+            parallelizer, "_classify", lambda embedding: "parallel_for"
+        )
+
+        parallelizer.parallelize(str(source_file))
+
+        output = (tmp_path / "parallelized_nested.c").read_text()
+        assert output.count("#pragma omp parallel for") == 1
+        assert "collapse(2)" in output
 
 
 class TestExtractLoops:
