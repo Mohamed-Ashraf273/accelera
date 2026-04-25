@@ -1510,17 +1510,17 @@ should be treated as a smoke/evaluation slice, not the final full-corpus result.
 </tr>
 <tr>
 <td>Files parallelized without endpoint/script error</td>
-<td style="text-align: right;">19 / 20</td>
+<td style="text-align: right;">20 / 20</td>
 <td>Count of files where <code>parallelizer.parallelize(...)</code> completed without raising an exception.</td>
 </tr>
 <tr>
 <td>Files where generated output compiled and ran</td>
-<td style="text-align: right;">2 / 20</td>
+<td style="text-align: right;">20 / 20</td>
 <td>Count of files where both the baseline and generated parallelized binary compiled and executed successfully.</td>
 </tr>
 <tr>
 <td>Files with matching serial/parallel output</td>
-<td style="text-align: right;">2 / 20</td>
+<td style="text-align: right;">20 / 20</td>
 <td>Count of files where baseline output equals generated parallel output after both programs run.</td>
 </tr>
 <tr>
@@ -1535,37 +1535,37 @@ should be treated as a smoke/evaluation slice, not the final full-corpus result.
 </tr>
 <tr>
 <td>Generated pragmas</td>
-<td style="text-align: right;">38</td>
+<td style="text-align: right;">40</td>
 <td>Number of <code>#pragma omp ...</code> lines extracted from the generated files.</td>
 </tr>
 <tr>
 <td>Exact pragma accuracy</td>
-<td style="text-align: right;">29 / 50 = 58.0%</td>
+<td style="text-align: right;">20 / 50 = 40.0%</td>
 <td>Generated and gold pragmas are normalized for whitespace and compared in order. Exact semantic alternatives still count as mismatches if the strings differ.</td>
 </tr>
 <tr>
 <td>Average pragma similarity</td>
-<td style="text-align: right;">85.36%</td>
+<td style="text-align: right;">89.02%</td>
 <td>For each generated/gold pragma pair, the evaluator computes <code>difflib.SequenceMatcher(...).ratio()</code> and averages the per-file scores.</td>
 </tr>
 <tr>
 <td>Average parallelizer latency</td>
-<td style="text-align: right;">3973.95 ms/file</td>
-<td>Wall-clock time spent inside <code>parallelizer.parallelize(...)</code>, including local feature extraction and remote classifier/generator requests. Compile and binary runtime are excluded.</td>
+<td style="text-align: right;">238.74 ms/file</td>
+<td>Wall-clock time spent inside <code>parallelizer.parallelize(...)</code>, including local feature extraction and classifier requests. Compile and binary runtime are excluded.</td>
 </tr>
 <tr>
 <td>Average baseline runtime</td>
-<td style="text-align: right;">1.51 ms</td>
+<td style="text-align: right;">1.25 ms</td>
 <td>Runtime of the serial baseline, averaged only over files where both baseline and generated binaries ran successfully.</td>
 </tr>
 <tr>
 <td>Average parallel runtime</td>
-<td style="text-align: right;">2.41 ms</td>
+<td style="text-align: right;">2.01 ms</td>
 <td>Runtime of the generated parallel binary, averaged over the same comparable files.</td>
 </tr>
 <tr>
 <td>Average speedup</td>
-<td style="text-align: right;">0.63x</td>
+<td style="text-align: right;">0.64x</td>
 <td>Computed as <code>baseline_latency_ms / parallel_latency_ms</code> for files where both binaries run. Values below 1.0 mean the parallel version is slower.</td>
 </tr>
 <tr>
@@ -1575,22 +1575,20 @@ should be treated as a smoke/evaluation slice, not the final full-corpus result.
 </tr>
 <tr>
 <td>Slower after parallelization</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: right;">20</td>
 <td>Count of comparable files with speedup less than <code>0.97</code>.</td>
 </tr>
 </tbody>
 </table>
 <h3 id="latest-result-interpretation">Latest Result Interpretation<a class="headerlink" href="#latest-result-interpretation" title="Permanent link">&para;</a></h3>
 <p>The classifier predicted a parallelizable class for 40 of 50 loops, which is a
-reasonable positive-class signal for this smoke slice. After adding validation
-for invalid pragma variables, generated files no longer fail from examples such
-as <code>reduction(+ : sume)</code> or <code>reduction(+ : global)</code> in this run.</p>
-<p>The small-file corpus now has 2 files that compile, run, and match the serial
-baseline. Both are slower after parallelization:</p>
-<ul>
-<li><code>eval_003.py</code>: 1.48 ms baseline, 2.52 ms parallel, 0.59x speedup</li>
-<li><code>eval_019.py</code>: 1.55 ms baseline, 2.30 ms parallel, 0.67x speedup</li>
-</ul>
+reasonable positive-class signal for this smoke slice. After switching pragma
+construction to deterministic rules and adding conservative safety checks, all
+20 generated files now compile, run, and match the serial baseline.</p>
+<p>However, all 20 comparable files are slower after parallelization. Average
+runtime changed from 1.25 ms serial to 2.01 ms parallel, giving an average
+speedup of only 0.64x. In other words, the generated code is correct on this
+slice, but OpenMP is not beneficial for these workloads.</p>
 <p>This does not mean OpenMP is ineffective in general. These loops are intentionally
 small and not computationally intense. For loops that finish in around 1-2 ms,
 OpenMP overhead can dominate the actual work:</p>
@@ -1636,12 +1634,12 @@ corpus was added:</p>
 </tr>
 <tr>
 <td>Files where generated output compiled and ran</td>
-<td style="text-align: right;">1 / 3</td>
+<td style="text-align: right;">2 / 3</td>
 <td>Count of files where both the serial baseline and generated parallelized binary compiled and executed successfully.</td>
 </tr>
 <tr>
 <td>Files with matching serial/parallel output</td>
-<td style="text-align: right;">1 / 3</td>
+<td style="text-align: right;">2 / 3</td>
 <td>Count of files where generated parallel output matched the serial baseline output.</td>
 </tr>
 <tr>
@@ -1656,42 +1654,42 @@ corpus was added:</p>
 </tr>
 <tr>
 <td>Generated pragmas</td>
-<td style="text-align: right;">5</td>
+<td style="text-align: right;">4</td>
 <td>Number of generated <code>#pragma omp ...</code> lines extracted from generated outputs.</td>
 </tr>
 <tr>
 <td>Exact pragma accuracy</td>
-<td style="text-align: right;">2 / 8 = 25.0%</td>
+<td style="text-align: right;">3 / 8 = 37.5%</td>
 <td>Generated and gold pragmas are normalized for whitespace and compared in order.</td>
 </tr>
 <tr>
 <td>Average pragma similarity</td>
-<td style="text-align: right;">81.71%</td>
+<td style="text-align: right;">90.91%</td>
 <td>Average <code>difflib.SequenceMatcher(...).ratio()</code> between generated and gold pragma pairs.</td>
 </tr>
 <tr>
 <td>Average parallelizer latency</td>
-<td style="text-align: right;">5178.99 ms/file</td>
-<td>Wall-clock time inside <code>parallelizer.parallelize(...)</code>, including model endpoint calls.</td>
+<td style="text-align: right;">210.66 ms/file</td>
+<td>Wall-clock time inside <code>parallelizer.parallelize(...)</code>, including local feature extraction and classifier requests.</td>
 </tr>
 <tr>
 <td>Average baseline runtime</td>
-<td style="text-align: right;">71.67 ms</td>
+<td style="text-align: right;">55.24 ms</td>
 <td>Runtime of the serial baseline, averaged only over files where both baseline and generated binaries ran successfully.</td>
 </tr>
 <tr>
 <td>Average parallel runtime</td>
-<td style="text-align: right;">32.00 ms</td>
+<td style="text-align: right;">22.54 ms</td>
 <td>Runtime of the generated parallel binary, averaged over the same comparable files.</td>
 </tr>
 <tr>
 <td>Average speedup</td>
-<td style="text-align: right;">2.24x</td>
+<td style="text-align: right;">3.33x</td>
 <td>Computed as <code>baseline_latency_ms / parallel_latency_ms</code> for comparable files.</td>
 </tr>
 <tr>
 <td>Faster after parallelization</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
 <td>Count of comparable files with speedup greater than <code>1.03</code>.</td>
 </tr>
 <tr>
@@ -1702,21 +1700,25 @@ corpus was added:</p>
 </tbody>
 </table>
 <h3 id="hard-workload-interpretation">Hard Workload Interpretation<a class="headerlink" href="#hard-workload-interpretation" title="Permanent link">&para;</a></h3>
-<p>The hard workload confirms that useful speedup is possible when the generated
-parallelized file is valid. The one file that compiled, ran, and matched output
-improved from about 71.67 ms to 32.00 ms, or roughly 2.24x faster.</p>
-<p>However, this result should not be generalized yet because only 1 of 3 hard
-files reached the valid runtime comparison stage. The hard run shows performance
-potential, but the main reliability bottlenecks remain:</p>
+<p>The hard workload confirms that useful speedup is possible when loops are large
+enough to amortize OpenMP overhead. Two of the three hard files compiled, ran,
+matched the serial baseline, and improved runtime:</p>
 <ul>
-<li>classifier recall: only 5 of 11 parallelizable loops were classified as
-  parallelizable</li>
-<li>pragma coverage: only 5 of 8 expected pragmas were generated</li>
-<li>exact pragma correctness: only 2 of 8 expected pragmas matched exactly</li>
+<li><code>hard_eval_001.cpp</code>: 65.66 ms baseline, 35.81 ms parallel, 1.83x speedup</li>
+<li><code>hard_eval_002.py</code>: 44.82 ms baseline, 9.27 ms parallel, 4.84x speedup</li>
+</ul>
+<p>The remaining file, <code>hard_eval_000.cpp</code>, compiled but did not complete the full
+run-and-match comparison. The hard run therefore shows clear performance
+potential, but also shows that loop selection still needs work:</p>
+<ul>
+<li>classifier recall remains low: only 5 of 11 parallelizable loops were
+  classified as parallelizable</li>
+<li>pragma coverage is partial: only 4 of 8 expected pragmas were generated</li>
+<li>exact pragma correctness is 3 of 8 expected pragmas</li>
 </ul>
 <p>The important conclusion is:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Small-loop evaluation shows overhead and compile-safety issues.
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>Hard-loop evaluation shows real speedup is possible once generation is valid.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Small-loop evaluation now shows correctness, but OpenMP overhead dominates.
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>Hard-loop evaluation shows real speedup when selected loops are suitable.
 </code></pre></div>
 <h2 id="metrics-measured">Metrics Measured<a class="headerlink" href="#metrics-measured" title="Permanent link">&para;</a></h2>
 <p>The evaluator writes a JSON report with both a <code>summary</code> section and per-file
