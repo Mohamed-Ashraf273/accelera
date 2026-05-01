@@ -10,4 +10,5 @@ from accelera.src import accelera_pipe as accelera_pipe
 from accelera.src import automl as automl
 from accelera.src import benchmark as benchmark
 from accelera.src import custom as custom
+from accelera.src import deployment_module as deployment_module
 from accelera.src import utils as utils
