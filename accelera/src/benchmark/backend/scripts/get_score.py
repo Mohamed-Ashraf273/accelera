@@ -1,8 +1,10 @@
-from utils import get_file_url
-import sys
-import sklearn.metrics as metrics
-from accelera.src.utils.dataset_retriever import retriever
 import json
+import sys
+
+import sklearn.metrics as metrics
+
+from accelera.src.utils.dataset_retriever import retriever
+from utils import get_file_url
 
 true_labeled_file = sys.argv[1]
 predicted_labeled_file = sys.argv[2]
@@ -15,7 +17,9 @@ try:
     true_url = get_file_url(true_labeled_file)
     predicted_url = get_file_url(predicted_labeled_file)
     retriever.connect()
-    true_df = retriever.retrieve_dataset(f"{user_id}_true_label", url=true_url, df=True)
+    true_df = retriever.retrieve_dataset(
+        f"{user_id}_true_label", url=true_url, df=True
+    )
     retriever.connect()
     predicted_df = retriever.retrieve_dataset(
         f"{user_id}_predicted", url=predicted_url, df=True
@@ -24,13 +28,15 @@ try:
         print(
             json.dumps(
                 {
-                    "message": f"Dataset dosent have this target column {target_col} the columns exists are {predicted_df.columns}",
+                    "message": (
+                        f"Dataset dosent have this target column {target_col} "
+                        f"the columns exists are {predicted_df.columns}"
+                    ),
                     "isValid": False,
                 }
             )
         )
     else:
-
         metric_func = getattr(metrics, sklearn_name)
 
         res = metric_func(
@@ -54,5 +60,5 @@ except Exception as e:
 finally:
     try:
         retriever.close()
-    except:
+    except Exception:
         pass

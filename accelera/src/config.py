@@ -63,7 +63,7 @@ class Config:
             "diabetes_dataset": {
                 "id": "1n0lDQbi662-Kabrq5KJrjs2_uFQ1hBpS",
                 "metadata": {},
-            }
+            },
         }
     )
 

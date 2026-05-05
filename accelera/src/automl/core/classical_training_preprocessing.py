@@ -6,8 +6,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OrdinalEncoder
-from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import StandardScaler
 
 from accelera.src.automl.core.training_tabular_preprocessing_base import (
     TrainingTabularPreprocessingBase,
@@ -423,7 +423,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         ordinal_pipeline = Pipeline(
             [
                 ("imputer", SimpleImputer(strategy="most_frequent")),
-               ("scaler", RobustScaler()),
+                ("scaler", RobustScaler()),
             ]
         )
         preprocessor = ColumnTransformer(

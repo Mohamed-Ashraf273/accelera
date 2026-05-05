@@ -7,9 +7,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
-from accelera.src.utils.dataset_retriever import retriever
 
 from accelera.src.automl.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
@@ -20,14 +18,16 @@ from accelera.src.automl.core.text_testing_preprocesing import (
 from accelera.src.automl.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )
-
+from accelera.src.utils.dataset_retriever import retriever
 
 print(
     "----------------------------student_exam_performance_dataset-----------------------"
 )
 
 retriever.connect()
-student_exam = retriever.retrieve_dataset("student_exam_performance_dataset", df=True)
+student_exam = retriever.retrieve_dataset(
+    "student_exam_performance_dataset", df=True
+)
 training_preprocessor = ClassicalTrainingPreprocessing(
     student_exam, "pass_fail", "Classification", "./student_exam"
 )
@@ -164,9 +164,7 @@ print("Score: ", model.score(X_val, y_val))
 print("MSE: ", mean_squared_error(y_val, model.predict(X_val)))
 retriever.close()
 # #####################################################3
-print(
-    "----------------------------Heart Disease Dataset-----------------------"
-)
+print("----------------------------Heart Disease Dataset-----------------------")
 retriever.connect()
 heart_df = retriever.retrieve_dataset("heart", df=True)
 
@@ -273,9 +271,7 @@ print("Predictions:")
 print(model.predict(X_val))
 print("correct prediction:", y_val)
 retriever.close()
-print(
-    "------------------------Sentiment analysis dataset-----------------------"
-)
+print("------------------------Sentiment analysis dataset-----------------------")
 retriever.connect()
 sentiment_df = retriever.retrieve_dataset("DailyDialog", df=True)
 

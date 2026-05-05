@@ -71,7 +71,7 @@ class DatasetRetriever:
         encoding: str = "utf-8",
         df: bool = False,
         url=None,
-        sep=","
+        sep=",",
     ) -> pd.DataFrame:
         def get_df(dataset_path: str):
             return pd.read_csv(

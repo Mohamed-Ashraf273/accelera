@@ -1,9 +1,10 @@
-from accelera.src.utils.dataset_retriever import retriever
 import json
 import sys
-from utils import get_file_url
+
 import numpy as np
 
+from accelera.src.utils.dataset_retriever import retriever
+from utils import get_file_url
 
 drive_file_link_test = sys.argv[1]
 drive_file_link_target = sys.argv[2]
@@ -19,7 +20,10 @@ try:
         print(
             json.dumps(
                 {
-                    "message": f"Test Dataset has this target column {target_column_name} which it is not allowed",
+                    "message": (
+                        "Test Dataset has this target column "
+                        f"{target_column_name} which it is not allowed"
+                    ),
                     "isValid": False,
                 }
             )
@@ -34,12 +38,16 @@ try:
             print(
                 json.dumps(
                     {
-                        "message": f"target Dataset dosent have this target column {target_column_name} the columns exists are {target_df.columns}",
+                        "message": (
+                            "target Dataset dosent have this target column "
+                            f"{target_column_name} the columns exists are "
+                            f"{target_df.columns}"
+                        ),
                         "isValid": False,
                     }
                 )
             )
-        elif  not np.issubdtype(target_df[target_column_name].dtype, np.integer):
+        elif not np.issubdtype(target_df[target_column_name].dtype, np.integer):
             print(
                 json.dumps(
                     {"message": "Column must be number not object", "isValid": False}
@@ -48,7 +56,10 @@ try:
         else:
             print(
                 json.dumps(
-                    {"message": "Every Dataset validation correctly", "isValid": True}
+                    {
+                        "message": "Every Dataset validation correctly",
+                        "isValid": True,
+                    }
                 )
             )
 
@@ -60,5 +71,5 @@ except Exception as e:
 finally:
     try:
         retriever.close()
-    except:
+    except Exception:
         pass
