@@ -1,3 +1,4 @@
+import keyword
 import os
 import shutil
 
@@ -15,14 +16,25 @@ def get_structure(root):
     """Returns a set of relative directory paths under root"""
     dirs_set = set()
     for dirpath, dirnames, _ in os.walk(root):
+        dirnames[:] = [dirname for dirname in dirnames if dirname not in SKIP_NAMES]
         rel = os.path.relpath(dirpath, root)
         if rel != ".":
             dirs_set.add(rel)
     return dirs_set
 
 
+def is_valid_identifier(name):
+    return name.isidentifier() and not keyword.iskeyword(name)
+
+
+def is_importable_path(path):
+    return all(is_valid_identifier(part) for part in path.split(os.sep))
+
+
 def generate_init_for_dir(src_dir, api_dir, src_package_prefix, is_root=False):
     lines = [TEMPLATE_HEADER]
+    src_rel = os.path.relpath(src_dir, "accelera/src")
+    can_import_from_dir = src_rel == "." or is_importable_path(src_rel)
 
     for entry in sorted(os.listdir(src_dir)):
         if entry in SKIP_NAMES:
@@ -32,7 +44,13 @@ def generate_init_for_dir(src_dir, api_dir, src_package_prefix, is_root=False):
         name, ext = os.path.splitext(entry)
 
         # Skip non-Python files, hidden files, and __init__.py
-        if ext != ".py" or name.startswith("_") or name == "__init__":
+        if (
+            ext != ".py"
+            or name.startswith("_")
+            or name == "__init__"
+            or not can_import_from_dir
+            or not is_valid_identifier(name)
+        ):
             continue
 
         # Only import version.py at root
@@ -48,7 +66,12 @@ def generate_init_for_dir(src_dir, api_dir, src_package_prefix, is_root=False):
         if entry in SKIP_NAMES:
             continue
         src_path = os.path.join(src_dir, entry)
-        if os.path.isdir(src_path) and not entry.startswith("_"):
+        if (
+            os.path.isdir(src_path)
+            and not entry.startswith("_")
+            and can_import_from_dir
+            and is_valid_identifier(entry)
+        ):
             lines.append(f"from {src_package_prefix} import {entry} as {entry}\n")
 
     os.makedirs(api_dir, exist_ok=True)

@@ -122,9 +122,11 @@ def perform_hyperparameter_tuning(X_train, y_train, quick_search=True):
         return_train_score=True,
     )
 
-    print(
-        f"\nSearching {len(param_grid)} parameters with {CONFIG['cv_folds']}-fold CV..."
+    search_message = (
+        f"\nSearching {len(param_grid)} parameters with "
+        f"{CONFIG['cv_folds']}-fold CV..."
     )
+    print(search_message)
     grid_search.fit(X_train, y_train)
 
     print(f"\nBest parameters: {grid_search.best_params_}")
@@ -160,7 +162,6 @@ def evaluate_model(model, X_test, y_test, target_names):
     print("=" * 50)
 
     y_pred = model.predict(X_test)
-    y_proba = model.predict_proba(X_test)
 
     # Calculate metrics
     accuracy = accuracy_score(y_test, y_pred)
@@ -260,7 +261,7 @@ def train_model():
     )
 
     # Step 4: Cross-validation
-    cv_scores = cross_validate_model(best_model, X_train_scaled, y_train)
+    cross_validate_model(best_model, X_train_scaled, y_train)
 
     # Step 5: Evaluate on test set
     metrics = evaluate_model(best_model, X_test_scaled, y_test, target_names)

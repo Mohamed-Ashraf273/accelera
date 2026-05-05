@@ -302,25 +302,40 @@ fi
     if not args.install_docker:
         docker_check = """
 if ! command -v docker >/dev/null 2>&1; then
-  echo "Docker is not installed on the EC2 host. Use --install-docker to install it automatically." >&2
+  echo "Docker is not installed on the EC2 host." >&2
+  echo "Use --install-docker to install it automatically." >&2
   exit 1
 fi
 """
+
+    health_probe = (
+        "import urllib.request; "
+        f"urllib.request.urlopen('http://127.0.0.1:{port}/health', "
+        "timeout=3).read()"
+    )
+    ps_format = (
+        "container={{{{.Names}}}} image={{{{.Image}}}} "
+        "status={{{{.Status}}}} ports={{{{.Ports}}}}"
+    )
+    container_arg = shlex.quote(container_name)
+    health_arg = shlex.quote(health_probe)
+    ps_format_arg = shlex.quote(ps_format)
 
     return f"""
 set -e
 cd {_quote_remote_path(remote_root)}
 {install_docker}{docker_check}
 {docker_build}
-sudo docker rm -f {shlex.quote(container_name)} >/dev/null 2>&1 || true
+sudo docker rm -f {container_arg} >/dev/null 2>&1 || true
 sudo docker run -d --restart unless-stopped \
-  --name {shlex.quote(container_name)} \
+  --name {container_arg} \
   -p {port}:{port} \
   -e PORT={port} \
   {shlex.quote(image_name)}
 echo "Waiting for container health endpoint..."
 for attempt in 1 2 3 4 5; do
-  if sudo docker exec {shlex.quote(container_name)} python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:{port}/health', timeout=3).read()" >/dev/null 2>&1; then
+  if sudo docker exec {container_arg} \
+      python -c {health_arg} >/dev/null 2>&1; then
     echo "Local container health check: OK"
     break
   fi
@@ -330,7 +345,8 @@ for attempt in 1 2 3 4 5; do
   fi
   sleep 2
 done
-sudo docker ps --filter name={shlex.quote(container_name)} --format 'container={{{{.Names}}}} image={{{{.Image}}}} status={{{{.Status}}}} ports={{{{.Ports}}}}'
+sudo docker ps --filter name={container_arg} \
+  --format {ps_format_arg}
 echo "Application URL: http://{args.host}:{port}"
 """.strip()
 
@@ -343,7 +359,8 @@ examples:
   python accelera_deployment/deployment.py local
   python accelera_deployment/deployment.py heroku-deploy --app accelera1 --create
   python accelera_deployment/deployment.py heroku-push --app accelera1
-  python accelera_deployment/deployment.py ec2-deploy --host 1.2.3.4 --user ec2-user --key ~/.ssh/key.pem
+  python accelera_deployment/deployment.py ec2-deploy --host 1.2.3.4 \\
+      --user ec2-user --key ~/.ssh/key.pem
 """,
     )
 
@@ -401,7 +418,10 @@ examples:
 
     ec2_parser = subparsers.add_parser(
         "ec2-deploy",
-        help="sync the deployment module to EC2, build the image, and run the container",
+        help=(
+            "sync the deployment module to EC2, build the image, and run the "
+            "container"
+        ),
     )
     ec2_parser.add_argument("--host", required=True, help="EC2 public IP or DNS")
     ec2_parser.add_argument("--user", default="ec2-user", help="SSH user name")
