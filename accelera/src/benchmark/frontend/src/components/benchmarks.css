@@ -1,0 +1,106 @@
+.benchmarks {
+  padding: 20px;
+  font-family: Arial, Helvetica, sans-serif;
+  background: white;
+  min-height: 100vh;
+  color: #0f172a;
+}
+
+.benchmarks-title {
+  margin-bottom: 20px;
+}
+.filter-create {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.benchmark-create-btn {
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #0f172a;
+  color: white;
+  transition: 0.2s;
+  margin-bottom: 10px;
+}
+.benchmarks-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.benchmarks-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #0f172a;
+  color: white;
+  transition: 0.2s;
+}
+
+.benchmarks-btn:hover,
+.benchmark-create-btn:hover {
+  background: white;
+  color: #0f172a;
+}
+
+.benchmarks-select {
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  background: #0f172a;
+  color: white;
+}
+
+.loading {
+  color: #0f172a;
+}
+
+.benchmark-card {
+  border: 1px solid #0f172a;
+  padding: 15px;
+  color: white;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: #1e293b;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  display: block;
+}
+
+.benchmark-card h3 {
+  margin-bottom: 5px;
+}
+.benchmark-info {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  gap: 10px;
+  margin-top: 20px;
+}
+.benchmark-info p {
+  font-size: 12px;
+}
+.benchmark-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.benchmark-delete-btn,
+.benchmark-show-btn {
+  background-color: white;
+  color: #0f172a;
+  width: fit-content;
+  padding: 8px;
+  border-radius: 12px;
+}
+.benchmark-show-btn:hover,
+.benchmark-delete-btn:hover {
+  background-color: #0f172a;
+  color: white;
+}

@@ -5,5 +5,7 @@ since your modifications would be overwritten.
 """
 
 from accelera.src.benchmark.backend import config as config
+from accelera.src.benchmark.backend import routes as routes
 from accelera.src.benchmark.backend import schemas as schemas
+from accelera.src.benchmark.backend import scripts as scripts
 from accelera.src.benchmark.backend import validations as validations
