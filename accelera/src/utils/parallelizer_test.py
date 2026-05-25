@@ -4,10 +4,10 @@ import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 
-import numpy as np
 import pytest
 
 from accelera.src.utils.parallelizer import Parallelizer
+from accelera.src.utils.parallelizer import _resolve_loop_class
 from accelera.src.utils.parallelizer import extract_loops
 from accelera.src.utils.parallelizer import write_loops_to_json
 
@@ -22,14 +22,23 @@ class TestParallelizer:
             def json(self):
                 return {"result": "parallel_for"}
 
+        request_payload = {}
+
+        def fake_post(url, json, timeout):
+            request_payload.update(json)
+            return DummyResponse()
+
         monkeypatch.setattr(
             "accelera.src.utils.parallelizer.requests.post",
-            lambda url, json, timeout: DummyResponse(),
+            fake_post,
         )
 
-        result = parallelizer._classify(np.array([1.0, 2.0], dtype=np.float32))
+        loop_code = "for (int i = 0; i < n; ++i) { out[i] = in[i]; }"
+        result = parallelizer._classify(loop_code)
 
         assert result == "parallel_for"
+        assert "embedding" in request_payload
+        assert len(request_payload["embedding"]) == 40
 
     def test_generate_omp_pragma_with_loop_none_returns_loop(self):
         parallelizer = Parallelizer()
@@ -38,6 +47,13 @@ class TestParallelizer:
         result = parallelizer._generate_omp_pragma_with_loop(loop_code, "none")
 
         assert result == loop_code
+
+    def test_resolve_loop_class_upgrades_obvious_reduction(self):
+        loop_code = "for (int i = 0; i < 5; i++) {\n    sum += i;\n}"
+
+        result = _resolve_loop_class(loop_code, "none")
+
+        assert result == "reduction"
 
     def test_generate_omp_pragma_with_loop_adds_validated_pragma(self, monkeypatch):
         parallelizer = Parallelizer()
@@ -103,11 +119,7 @@ class TestParallelizer:
             "accelera.src.utils.parallelizer.extract_features",
             lambda code: {"dummy": True},
         )
-        monkeypatch.setattr(
-            "accelera.src.utils.parallelizer.vectorize_features",
-            lambda features: np.array([1.0], dtype=np.float32),
-        )
-        monkeypatch.setattr(parallelizer, "_classify", lambda embedding: "omp")
+        monkeypatch.setattr(parallelizer, "_classify", lambda code: "omp")
         monkeypatch.setattr(
             parallelizer,
             "_generate_omp_pragma_with_loop",
@@ -182,13 +194,7 @@ class TestParallelizer:
             "accelera.src.utils.parallelizer.extract_features",
             lambda code: {"dummy": True},
         )
-        monkeypatch.setattr(
-            "accelera.src.utils.parallelizer.vectorize_features",
-            lambda features: np.array([1.0], dtype=np.float32),
-        )
-        monkeypatch.setattr(
-            parallelizer, "_classify", lambda embedding: "parallel_for"
-        )
+        monkeypatch.setattr(parallelizer, "_classify", lambda code: "parallel_for")
 
         parallelizer.parallelize(str(source_file))
 

@@ -31,11 +31,122 @@ def write_loops_to_json(loops: list, output_json: str) -> bool:
 
 
 def pragma_to_class(label: str, pragma: str) -> str:
+    label = str(label)
+    pragma = str(pragma or "")
+
     if label == "False":
         return "none"
-    if re.search(r"reduction\s*\(", pragma):
+
+    if re.search(r"\breduction\s*\(", pragma):
         return "reduction"
+
     return "parallel_for"
+
+
+def _strip_comments(code: str) -> str:
+    return re.sub(r"//.*?$|/\*.*?\*/", "", code, flags=re.MULTILINE | re.DOTALL)
+
+
+def _extract_loop_structure_features(code_clean: str) -> dict:
+    features = {
+        "has_consecutive_nested_loops": False,
+        "max_consecutive_loop_depth": 1,
+        "has_nested_braces": False,
+    }
+
+    if re.search(r"\bfor\b\s*\(.*?\)\s*[{]?\s*\bfor\b", code_clean, re.DOTALL):
+        features["has_consecutive_nested_loops"] = True
+
+    for_positions = [m.start() for m in re.finditer(r"\bfor\b", code_clean)]
+    max_consecutive = 1
+    current = 1
+    for i in range(1, len(for_positions)):
+        if for_positions[i] - for_positions[i - 1] < 200:
+            current += 1
+            max_consecutive = max(max_consecutive, current)
+        else:
+            current = 1
+    features["max_consecutive_loop_depth"] = max_consecutive
+
+    brace_depth = 0
+    max_brace_depth = 0
+    for char in code_clean:
+        if char == "{":
+            brace_depth += 1
+            max_brace_depth = max(max_brace_depth, brace_depth)
+        elif char == "}":
+            brace_depth -= 1
+    features["has_nested_braces"] = max_brace_depth >= 3
+
+    return features
+
+
+def _extract_reduction_features(code_clean: str) -> dict:
+    features = {
+        "has_reduction_plus": False,
+        "has_reduction_mul": False,
+        "has_reduction_general": False,
+        "reduction_var": None,
+        "is_reduction_max": False,
+        "is_reduction_min": False,
+        "reduction_var_count": 0,
+    }
+
+    reduction_vars = set()
+    lines = [
+        line.strip()
+        for line in code_clean.split("\n")
+        if "=" in line and line.strip()
+    ]
+
+    for line in lines:
+        if match := re.search(r"\b([A-Za-z_]\w*)\s*\+=\s*", line):
+            var = match.group(1)
+            if not re.search(rf"\b{var}\s*\[", code_clean):
+                features["has_reduction_plus"] = True
+                features["has_reduction_general"] = True
+                features["reduction_var"] = var
+                reduction_vars.add(var)
+        elif match := re.search(r"\b([A-Za-z_]\w*)\s*=\s*\1\s*\+", line):
+            var = match.group(1)
+            if not re.search(rf"\b{var}\s*\[", code_clean):
+                features["has_reduction_plus"] = True
+                features["has_reduction_general"] = True
+                features["reduction_var"] = var
+                reduction_vars.add(var)
+        elif match := re.search(r"\b([A-Za-z_]\w*)\s*\*=\s*", line):
+            var = match.group(1)
+            if not re.search(rf"\b{var}\s*\[", code_clean):
+                features["has_reduction_mul"] = True
+                features["has_reduction_general"] = True
+                features["reduction_var"] = var
+                reduction_vars.add(var)
+        elif match := re.search(r"\b([A-Za-z_]\w*)\s*=\s*\1\s*\*", line):
+            var = match.group(1)
+            if not re.search(rf"\b{var}\s*\[", code_clean):
+                features["has_reduction_mul"] = True
+                features["has_reduction_general"] = True
+                features["reduction_var"] = var
+                reduction_vars.add(var)
+
+    if re.search(r"\bmax\b|\bfmax\b", code_clean):
+        features["is_reduction_max"] = True
+        features["has_reduction_general"] = True
+    if re.search(r"\bmin\b|\bfmin\b", code_clean):
+        features["is_reduction_min"] = True
+        features["has_reduction_general"] = True
+
+    features["reduction_var_count"] = len(reduction_vars)
+    return features
+
+
+def _has_scalar_reduction_update(code: str) -> bool:
+    reduction_features = _extract_reduction_features(_strip_comments(code))
+    return bool(
+        reduction_features["reduction_var"]
+        or reduction_features["is_reduction_max"]
+        or reduction_features["is_reduction_min"]
+    )
 
 
 def extract_features(code: str) -> dict:
@@ -74,63 +185,9 @@ def extract_features(code: str) -> dict:
         "write_var_count": 0,
     }
 
-    code_clean = re.sub(
-        r"//.*?$|/\*.*?\*/", "", code, flags=re.MULTILINE | re.DOTALL
-    )
-
-    if re.search(r"\bfor\b\s*\(.*?\)\s*[{]?\s*\bfor\b", code_clean, re.DOTALL):
-        features["has_consecutive_nested_loops"] = True
-
-    for_positions = [m.start() for m in re.finditer(r"\bfor\b", code_clean)]
-    max_consecutive = 1
-    current = 1
-    for i in range(1, len(for_positions)):
-        if for_positions[i] - for_positions[i - 1] < 200:
-            current += 1
-            max_consecutive = max(max_consecutive, current)
-        else:
-            current = 1
-    features["max_consecutive_loop_depth"] = max_consecutive
-
-    brace_depth = 0
-    max_brace_depth = 0
-    for char in code_clean:
-        if char == "{":
-            brace_depth += 1
-            max_brace_depth = max(max_brace_depth, brace_depth)
-        elif char == "}":
-            brace_depth -= 1
-    features["has_nested_braces"] = max_brace_depth >= 3
-
-    lines = [
-        line.strip()
-        for line in code_clean.split("\n")
-        if "=" in line and line.strip()
-    ]
-    reduction_vars = set()
-    for line in lines:
-        if match := re.search(r"(\w+)\s*\+=\s*", line):
-            var = match.group(1)
-            if not re.search(rf"\b{var}\s*\[", code_clean):
-                features["has_reduction_plus"] = True
-                features["has_reduction_general"] = True
-                features["reduction_var"] = var
-                reduction_vars.add(var)
-        elif match := re.search(r"(\w+)\s*=\s*\1\s*\+", line):
-            var = match.group(1)
-            if not re.search(rf"\b{var}\s*\[", code_clean):
-                features["has_reduction_plus"] = True
-                features["has_reduction_general"] = True
-                features["reduction_var"] = var
-                reduction_vars.add(var)
-        elif match := re.search(r"(\w+)\s*\*=\s*", line):
-            var = match.group(1)
-            if not re.search(rf"\b{var}\s*\[", code_clean):
-                features["has_reduction_mul"] = True
-                features["has_reduction_general"] = True
-                reduction_vars.add(var)
-
-    features["reduction_var_count"] = len(reduction_vars)
+    code_clean = _strip_comments(code)
+    features.update(_extract_loop_structure_features(code_clean))
+    features.update(_extract_reduction_features(code_clean))
 
     if re.search(r"\w+\[\s*\w+\s*-\s*1\s*\]", code_clean):
         features["has_loop_carried_dep"] = True
@@ -171,13 +228,6 @@ def extract_features(code: str) -> dict:
     ) + len(re.findall(r"[*/%](?!=)", code_clean))
 
     features["memory_op_count"] = len(re.findall(r"\w+\s*\[", code_clean))
-
-    if re.search(r"\bmax\b|\bfmax\b", code_clean):
-        features["is_reduction_max"] = True
-        features["has_reduction_general"] = True
-    if re.search(r"\bmin\b|\bfmin\b", code_clean):
-        features["is_reduction_min"] = True
-        features["has_reduction_general"] = True
 
     common_vars = set(reads) & set(writes)
     if common_vars:
@@ -266,7 +316,7 @@ def _find_matching_paren(text: str, open_index: int) -> int | None:
 
 
 def _consecutive_for_depth(code: str) -> int:
-    code = re.sub(r"//.*?$|/\*.*?\*/", "", code, flags=re.MULTILINE | re.DOTALL)
+    code = _strip_comments(code)
     depth = 0
     pos = 0
 
@@ -292,14 +342,14 @@ def _consecutive_for_depth(code: str) -> int:
             pos += 1
 
 
-def _should_parallelize_loop(
-    loop_code: str, pred_class: str, features: dict
-) -> bool:
+def _resolve_loop_class(loop_code: str, pred_class: str) -> str:
     if pred_class != "none":
-        return True
-    return bool(features.get("reduction_var")) or (
-        _consecutive_for_depth(loop_code) > 1
-    )
+        return pred_class
+    if _has_scalar_reduction_update(loop_code):
+        return "reduction"
+    if _consecutive_for_depth(loop_code) > 1:
+        return "parallel_for"
+    return "none"
 
 
 class Parallelizer:
@@ -308,11 +358,12 @@ class Parallelizer:
         self.cache_dir = config.cache_dir
         self.classifier_endpoint = config.CLASSIFIER_ENDPOINT
 
-    def _classify(self, embedding):
+    def _classify(self, loop_code: str):
+        features = vectorize_features(extract_features(loop_code))
         try:
             response = requests.post(
                 self.classifier_endpoint,
-                json={"embedding": embedding.tolist()},
+                json={"embedding": features.tolist()},
                 timeout=config.REQUEST_TIMEOUT_S,
             )
             result = response.json()
@@ -384,12 +435,11 @@ class Parallelizer:
             if loop["type"] != "for":
                 continue
 
-            features = extract_features(loop_code)
-            embedding = vectorize_features(features)
-            pred_class = self._classify(embedding)
+            pred_class = self._classify(loop_code)
+            loop_class = _resolve_loop_class(loop_code, pred_class)
 
-            if _should_parallelize_loop(loop_code, pred_class, features):
-                selected_loops.append((loop, pred_class))
+            if loop_class != "none":
+                selected_loops.append((loop, loop_class))
 
         selected_ranges = [
             (loop["start_line"], loop["end_line"]) for loop, _ in selected_loops
