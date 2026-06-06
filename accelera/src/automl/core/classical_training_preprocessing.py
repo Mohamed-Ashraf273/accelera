@@ -49,6 +49,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         max_unique_ordinal=10,
         missing_threshold=0.5,
         unique_threshold=0.9,
+        is_report=True,
     ):
         super().__init__(df, target_col, val_size, random_state, folder_path)
         self.problem_type = problem_type
@@ -56,6 +57,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         self.max_unique_ordinal = max_unique_ordinal
         self.missing_threshold = missing_threshold
         self.unique_threshold = unique_threshold
+        self.is_report = is_report
         if self.problem_type is None:
             raise ValueError("problem_type cannot be None")
         self.problem_type = problem_type.lower()
@@ -262,6 +264,9 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         )
 
     def make_graphs(self, X_train, y_train, info):
+        if not self.is_report:
+            return
+
         new_df = X_train.copy()
         new_df[self.target_col] = y_train
         self.report_data["graphs"] = {
@@ -532,6 +537,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             ordinal_cols,
         )
         y_train, y_val = self.target_preprocessing(y_train, y_val, info)
-        report = TabularPreprocessingReport(self.folder_path, self.report_data)
-        report.execute()
+        if self.is_report:
+            report = TabularPreprocessingReport(self.folder_path, self.report_data)
+            report.execute()      
         return X_train, y_train, X_val, y_val

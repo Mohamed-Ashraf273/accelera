@@ -22,6 +22,13 @@ examples/SegmentationReport
 examples/tumerReport
 examples/tumer_data
 examples/student_report
+examples/Housing
+examples/AutogluonModels
+examples/customer_purchase_data
+examples/job_salary_prediction_dataset
+examples/student_exam_performance_dataset
+examples/student_placement_synthetic
+examples/Titanic-Dataset
 bin/
 lib/
 lib64/
@@ -34,3 +41,4 @@ examples/student_exam
 examples/*.csv
 .env
 /models
+examples/*.png

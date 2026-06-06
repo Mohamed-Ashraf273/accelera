@@ -1,0 +1,69 @@
+{
+  "tabular_dataset": {
+    "regression": {
+      "job_salary_prediction_dataset": {
+        "target_column": "salary",
+        "report_path": "./job_salary_prediction_dataset",
+        "eval_metric": "r2"
+      },
+      "Housing": {
+        "target_column": "price",
+        "report_path": "./Housing",
+        "eval_metric": "r2"
+      }
+    },
+    "classification": {
+      "student_exam_performance_dataset": {
+        "target_column": "pass_fail",
+        "report_path": "./student_exam_performance_dataset",
+        "eval_metric": "f1_weighted"
+      },
+      "heart": {
+        "target_column": "target",
+        "report_path": "./heart",
+        "eval_metric": "f1_weighted"
+      },
+      "Dataset_spine": {
+        "target_column": "Class_att",
+        "report_path": "./Dataset_spine",
+        "eval_metric": "f1_weighted"
+      },
+      "diabetes_dataset": {
+        "target_column": "diagnosed_diabetes",
+        "report_path": "./diabetes_dataset",
+        "eval_metric": "f1_weighted"
+      },
+      "student_placement_synthetic": {
+        "target_column": "placement_status",
+        "report_path": "./student_placement_synthetic",
+        "eval_metric": "f1_weighted"
+      },
+      "Titanic-Dataset": {
+        "target_column": "Survived",
+        "report_path": "./Titanic-Dataset",
+        "eval_metric": "f1_weighted"
+      },
+      "customer_purchase_data": {
+        "target_column": "PurchaseStatus",
+        "report_path": "./customer_purchase_data",
+        "eval_metric": "f1_weighted"
+      }
+    }
+  },
+  "text_dataset": {
+    "classification": {
+      "TestReviews": {
+        "target_column": "class",
+        "report_path": "./TestReviews",
+        "eval_metric": "f1_weighted",
+        "text_column": "review"
+      },
+      "DailyDialog": {
+        "target_column": "sentiment",
+        "report_path": "./DailyDialog",
+        "eval_metric": "f1_weighted",
+        "text_column": "text"
+      }
+    }
+  }
+}
