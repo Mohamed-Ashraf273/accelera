@@ -41,4 +41,3 @@ examples/student_exam
 examples/*.csv
 .env
 /models
-examples/*.png
