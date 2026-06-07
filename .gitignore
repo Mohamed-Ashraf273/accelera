@@ -16,7 +16,8 @@ examples/titanic_preprocessing
 examples/heart
 examples/house_price_preprocessing
 examples/PurchaseStatus
-examples/date
+examples/date 
+examples/PetImages-1
 examples/segmentation_dataset
 examples/SegmentationReport
 examples/tumerReport
@@ -38,6 +39,11 @@ examples/Dataset_spine
 examples/diabetes_dataset
 examples/job_salary
 examples/student_exam
+examples/Teen_Mental_Health_Dataset
 examples/*.csv
+examples/ai_student_impact_dataset
+examples/gaming_addiction
+examples/DailyDialog
+examples/TestReviews
 .env
 /models
