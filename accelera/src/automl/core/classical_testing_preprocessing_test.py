@@ -34,6 +34,7 @@ class TestClassicalTestingPreprocessing:
         save_pickle(self.temp_dir, data_columns, "data_columns.pkl")
         save_pickle(self.temp_dir, col_drop, "col_drop.pkl")
         save_pickle(self.temp_dir, target_info, "target_info.pkl")
+        save_pickle(self.temp_dir, target_info, "bool_type_col.pkl")
         yield self.temp_dir
         shutil.rmtree(self.temp_dir)
 
