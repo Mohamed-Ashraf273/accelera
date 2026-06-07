@@ -4,23 +4,19 @@ import json
 from autogluon.tabular import TabularPredictor
 import pandas as pd
 import numpy as np
-from sklearn.metrics import r2_score, mean_squared_error, accuracy_score, f1_score
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
 import matplotlib.pyplot as plt
 from accelera.src.automl.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
 )
-
+from accelera.src.automl.core.text_training_preprocessing import TextTrainingPreprocessing
 from accelera.src.utils.dataset_retriever import retriever
 
 
 def get_data_set_info():
     with open("auto_preproceesing_ds.json", "r") as f:
         ds = json.loads(f.read())
-        tabular_ds = ds["tabular_dataset"]
-    return tabular_ds
-
+    return ds
 
 def autogluon_preprocessing(
     df, label, eval_metric="f1_weighted"
@@ -36,24 +32,38 @@ def autogluon_preprocessing(
     total_time = end_time - start_time
     return evaluation, total_time
 
-
+def handle_data_preprocessing_type(df, target_column,problem_type="classification", text_column=None,dataset_type="tabular_dataset",report_path=None):
+    if dataset_type=="tabular_dataset":
+        X_train, y_train, X_test, y_test= ClassicalTrainingPreprocessing(
+            df, target_column, problem_type, folder_path=report_path,is_report=False
+        ).common_preprocessing()
+        columns = [f"feature_{i}" for i in range(X_train.shape[1])]
+        X_train_df = pd.DataFrame(X_train, columns=columns)
+        X_test_df = pd.DataFrame(X_test, columns=columns)
+    elif dataset_type=="text_dataset":
+        X_train, y_train, X_test, y_test= TextTrainingPreprocessing(
+            df, target_column, text_column, folder_path=report_path,is_report=False
+        ).common_preprocessing()
+        columns = [f"feature_{i}" for i in range(X_train.shape[1])]
+        X_train_df = pd.DataFrame.sparse.from_spmatrix(X_train, columns=columns)
+        X_test_df = pd.DataFrame.sparse.from_spmatrix(X_test, columns=columns)
+        
+    X_train_df[target_column] = y_train
+    X_test_df[target_column] = y_test
+    return X_train_df, X_test_df
+    
 def without_autogluon_preprocessing(
     df,
     target_column,
     report_path,
     problem_type="classification",
     eval_metric="f1_weighted",
+    ds_type="tabular_dataset",
+    text_column=None
 ):
     start_time = time.time()
-    training_preprocessor = ClassicalTrainingPreprocessing(
-        df, target_column, problem_type, report_path,is_report=False
-    )
-    X_train, y_train, X_test, y_test = training_preprocessor.common_preprocessing()
-    columns = [f"feature_{i}" for i in range(X_train.shape[1])]
-    X_train_df = pd.DataFrame(X_train, columns=columns)
-    X_test_df = pd.DataFrame(X_test, columns=columns)
-    X_train_df[target_column] = y_train
-    X_test_df[target_column] = y_test
+    X_train_df, X_test_df = handle_data_preprocessing_type(df, target_column, problem_type, text_column, dataset_type=ds_type, report_path=report_path)
+
     predictor = TabularPredictor(
         label=target_column, eval_metric=eval_metric
     ).fit(
@@ -67,7 +77,7 @@ def without_autogluon_preprocessing(
     return evaluation, total_time
 
 
-def plot_comparison(results_df, problem_type, target_graph):
+def plot_comparison(results_df, problem_type, target_graph,ds_type="tabular_dataset"):
     plt.figure(figsize=(10, 6))
     x_range = np.arange(len(results_df["dataset"]))
 
@@ -91,43 +101,58 @@ def plot_comparison(results_df, problem_type, target_graph):
     plt.legend()
     plt.xticks(x_range, results_df["dataset"], rotation=45)
     plt.tight_layout()
-    plt.savefig(f"comparison_{problem_type}_{target_graph}.png")
-
+    plt.savefig(f"{ds_type}_comparison_{problem_type}_{target_graph}.png")
 
 def main():
-    tabular_ds = get_data_set_info()
-    for problem_type, datasets in tabular_ds.items():
-        results = []
-        for dataset, info in datasets.items():
-            retriever.connect()
-            df = retriever.retrieve_dataset(dataset, df=True)
-            label = info["target_column"]
-            report_path = info["report_path"]
-            eval_metric = info["eval_metric"]
-            autogloun_score, autogloun_time = autogluon_preprocessing(
-                df, label, eval_metric=eval_metric
-            )
-            accelera_score, accelera_time = without_autogluon_preprocessing(
-                df,
-                label,
-                report_path,
-                problem_type=problem_type,
-                eval_metric=eval_metric,
-            )
-            results.append(
-                {
-                    "dataset": dataset,
-                    "dataset_shape": df.shape,
-                    "autogluon_score": autogloun_score,
-                    "autogluon_time": autogloun_time,
-                    "accelera_score": accelera_score,
-                    "accelera_time": accelera_time,
-                }
-            )
-            retriever.close()
-        results_df = pd.DataFrame(results)
-        plot_comparison(results_df, problem_type,"score")
-        plot_comparison(results_df, problem_type, "time")
+    ds = get_data_set_info()
+    total_results = []
+    for dataset_type,datasets_typed in ds.items():
+        if dataset_type=="image_dataset":
+            continue
+        for problem_type, datasets in datasets_typed.items():
+            results = []
+            for dataset, info in datasets.items():
+                retriever.connect()
+                link=info["link"]
+                df = retriever.retrieve_dataset(dataset,url=link,df=True)
+                label = info["target_column"]
+                report_path = info["report_path"]
+                eval_metric = info["eval_metric"]
+                text_column = info.get("text_column", None)
+                autogloun_score, autogloun_time = autogluon_preprocessing(
+                   df, label, eval_metric=eval_metric
+                )
+                accelera_score, accelera_time = without_autogluon_preprocessing(
+                    df,
+                    label,
+                    report_path,
+                    problem_type=problem_type,
+                    eval_metric=eval_metric,
+                    text_column=text_column,
+                    ds_type=dataset_type
+                )
+                results.append(
+                    {
+                        "dataset": dataset,
+                        "dataset_shape": df.shape,
+                        "autogluon_score": autogloun_score,
+                        "autogluon_time": autogloun_time,
+                        "accelera_score": accelera_score,
+                        "accelera_time": accelera_time,
+                        "dataset_type": dataset_type,
+                        "problem_type": problem_type
+                    }
+                )
+                retriever.close()
+            results_df = pd.DataFrame(results)
+            total_results.extend(results)
+        
+            plot_comparison(results_df, problem_type,"score",dataset_type)
+            plot_comparison(results_df, problem_type, "time",dataset_type)
+    total_results_df = pd.DataFrame(total_results)
+    total_results_df.to_csv("preprocessing_comparison_results.csv", index=False)
+
+
 
 
 if __name__ == "__main__":
