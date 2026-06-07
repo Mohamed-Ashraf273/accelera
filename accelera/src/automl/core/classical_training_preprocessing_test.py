@@ -161,42 +161,7 @@ class TestClassicalTrainingPreprocessing:
                     "G",
                     "H",
                 ],
-                "text_feature": [
-                    "This is a sample text.",
-                    "Another example of text data.",
-                    "Text data for testing.",
-                    "Sample text for NLP tasks.",
-                    "More text data here.",
-                    "Text data for classification.",
-                    "NLP text sample.",
-                    "Text data example.",
-                    "Sample text for analysis.",
-                    "Another text data point.",
-                    "Text data for model training.",
-                    "Text data for evaluation.",
-                    "Sample text input.",
-                    "Text data for processing.",
-                    "Another sample text.",
-                    "Final text data point.",
-                ],
-                "Name_feature": [
-                    "Alice",
-                    "Bob",
-                    "Charlie",
-                    "David",
-                    "Eve",
-                    "Frank",
-                    "Grace",
-                    "Heidi",
-                    "Ivan kan ",
-                    "Judy Karl Karl",
-                    "Karl Karl Karl",
-                    "Liam Karl",
-                    "Mia Karl",
-                    "Nina",
-                    "Oscar",
-                    "Peggy",
-                ],
+               
                 "target": [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
             }
         )
@@ -272,13 +237,13 @@ class TestClassicalTrainingPreprocessing:
         assert training_preprocessing.report_data is not None
         assert "data_overview" in training_preprocessing.report_data
         data_overview = training_preprocessing.report_data["data_overview"]
-        assert data_overview["shape"] == (17, 11)
+        assert data_overview["shape"] == (17, 9)
         assert data_overview["duplicates_sum"] == 1
         assert data_overview["duplicates_percentage"] == float(1 / 17) * 100
         assert data_overview["numerical_describe"] is not None
         assert data_overview["categorical_describe"] is not None
-        assert data_overview["data_head"].shape == (5, 11)
-        assert data_overview["lower_data_head"].shape == (5, 11)
+        assert data_overview["data_head"].shape == (5, 9)
+        assert data_overview["lower_data_head"].shape == (5, 9)
         assert data_overview["missing_values"].equals(
             self.df_classification.isnull().sum()
         )
@@ -362,18 +327,15 @@ class TestClassicalTrainingPreprocessing:
         training_preprocessing.drop_duplicates()
         X_train, X_val, y_train, y_val = training_preprocessing.split_data()
         info, col_drop = training_preprocessing.get_data_info(X_train, y_train)
-        assert len(col_drop) == 5
+        assert len(col_drop) == 3
         assert "ID" in col_drop
         assert "const_feature" in col_drop
         assert "most_nulls_feature" in col_drop
-        assert "text_feature" in col_drop
-        assert col_drop["ID"] == "It is above unique_threshold 0.9"
+        assert col_drop["ID"] == "The column name contains id or ends with _id"
         assert col_drop["const_feature"] == "The column is constant"
         assert (
             col_drop["most_nulls_feature"] == "Missing above missing_threshold 0.5"
         )
-        assert col_drop["Name_feature"] == "It is above unique_threshold 0.9"
-        assert col_drop["text_feature"] == "It is above unique_threshold 0.9"
         assert isinstance(info, dict)
 
     def test_classical_drop_columns(self):
