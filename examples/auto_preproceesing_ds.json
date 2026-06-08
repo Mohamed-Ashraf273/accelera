@@ -5,13 +5,15 @@
         "link":"https://drive.google.com/uc?id=1RLeMoVvEUe_PsnEZfGH7PI5q_F0jOzBY",
         "target_column": "Burnout_Risk_Level",
         "report_path": "./ai_student_impact_dataset",
-        "eval_metric": "f1_weighted"
+        "eval_metric": "f1_weighted",
+        "columns_need_to_drop":["Student_ID"]
       },
       "gaming_addiction": {
-        "link":"https://drive.google.com/uc?id=1Cr0UzQszWJ_B8zlepWjLngOuBwMHRAXY",
+        "link": "https://drive.google.com/uc?id=1Cr0UzQszWJ_B8zlepWjLngOuBwMHRAXY",
         "target_column": "addiction_binary",
         "report_path": "./gaming_addiction",
-        "eval_metric": "f1_weighted"
+        "eval_metric": "f1_weighted",
+        "columns_need_to_drop": ["user_id"]
       },
       "Teen_Mental_Health_Dataset": {
         "link":"https://drive.google.com/uc?id=10X0yimXSfqzA5XiJ4mASkSTDk-FI83Zw",
@@ -20,10 +22,11 @@
         "eval_metric": "f1_weighted"
       },
       "student_exam_performance_dataset": {
-        "link":"https://drive.google.com/uc?id=19mH4wgsK2-zcttdTFl6jk_BR83lrKIS7",
+        "link": "https://drive.google.com/uc?id=19mH4wgsK2-zcttdTFl6jk_BR83lrKIS7",
         "target_column": "pass_fail",
         "report_path": "./student_exam_performance_dataset",
-        "eval_metric": "f1_weighted"
+        "eval_metric": "f1_weighted",
+        "columns_need_to_drop": ["student_id"]
       },
       "heart": {
         "link":"https://drive.google.com/uc?id=1HG9BPIS-PFHzzXBnKrohMCrmr7W9oxJY",
@@ -50,10 +53,11 @@
         "eval_metric": "f1_weighted"
       },
       "Titanic-Dataset": {
-        "link":"https://drive.google.com/uc?id=1VWRzvPDcFOo7YByJtKKupH3H0czFAHCx",
+        "link": "https://drive.google.com/uc?id=1VWRzvPDcFOo7YByJtKKupH3H0czFAHCx",
         "target_column": "Survived",
         "report_path": "./Titanic-Dataset",
-        "eval_metric": "f1_weighted"
+        "eval_metric": "f1_weighted",
+        "columns_need_to_drop": ["PassengerId"]
       },
       "customer_purchase_data": {
         "link":"https://drive.google.com/uc?id=1OCe4X8mVFEwWz0cfQyAJKNiZMbiUGbB2",

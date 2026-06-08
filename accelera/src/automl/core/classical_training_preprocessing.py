@@ -48,6 +48,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         cardinality_threshold=8,
         max_unique_ordinal=10,
         missing_threshold=0.5,
+        columns_need_to_drop=[],
         is_report=True,
     ):
         super().__init__(df, target_col, val_size, random_state, folder_path)
@@ -56,6 +57,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         self.max_unique_ordinal = max_unique_ordinal
         self.missing_threshold = missing_threshold
         self.is_report = is_report
+        self.columns_need_to_drop = columns_need_to_drop
         if self.problem_type is None:
             raise ValueError("problem_type cannot be None")
         self.problem_type = problem_type.lower()
@@ -71,6 +73,9 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             raise ValueError(
                 "Target must be integer or object fro classification problem"
             )
+        if not isinstance(self.columns_need_to_drop, list):
+            raise ValueError("columns_need_to_drop must be a list")
+
         if self.problem_type == "regression" and (
             not np.issubdtype(self.target_type, np.number)
             or self.target_type == "bool"
@@ -84,10 +89,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         ):
             raise ValueError("cardinality_threshold must be positive integer")
 
-        if (
-            not isinstance(self.max_unique_ordinal, int)
-            or self.max_unique_ordinal < 0
-        ):
+        if not isinstance(self.max_unique_ordinal, int) or self.max_unique_ordinal < 0:
             raise ValueError("max_unique_ordinal must be positive integer")
         if not isinstance(self.missing_threshold, float) or not (
             0 <= self.missing_threshold <= 1
@@ -97,12 +99,13 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         save_pickle(self.folder_path, self.df.columns.tolist(), "data_columns.pkl")
 
     def is_drop_column(self, info, col):
+        if col in self.columns_need_to_drop:
+            print(col)
+            return True, "Column Inside user given list to drop"
         if info[col].get("is_constant", False):
             return True, "The column is constant"
-        elif col.lower() == "id" or col.lower().endswith("_id"):
-            return True, "The column name contains id or ends with _id"
 
-        elif info[col].get("p_missing", 0) > self.missing_threshold:
+        if info[col].get("p_missing", 0) > self.missing_threshold:
             return (
                 True,
                 f"Missing above missing_threshold {self.missing_threshold}",
@@ -302,10 +305,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 )
                 graph.build_graph()
                 self.report_data["graphs"]["images_name"].append(f"{col}")
-            if (
-                info[col]["col_type"] == "ordinal"
-                and self.problem_type == "regression"
-            ):
+            if info[col]["col_type"] == "ordinal" and self.problem_type == "regression":
                 graph = OrdinalRegression(
                     new_df,
                     col,
@@ -507,6 +507,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             return
         X_train[bool_type_col] = X_train[bool_type_col].astype(int)
         X_val[bool_type_col] = X_val[bool_type_col].astype(int)
+
 
     def common_preprocessing(self):
         self.data_overview()

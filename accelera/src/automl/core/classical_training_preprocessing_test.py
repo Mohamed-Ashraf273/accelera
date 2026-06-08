@@ -321,6 +321,7 @@ class TestClassicalTrainingPreprocessing:
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
+            columns_need_to_drop=["ID"]
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
@@ -330,7 +331,7 @@ class TestClassicalTrainingPreprocessing:
         assert "ID" in col_drop
         assert "const_feature" in col_drop
         assert "most_nulls_feature" in col_drop
-        assert col_drop["ID"] == "The column name contains id or ends with _id"
+        assert col_drop["ID"] == "Column Inside user given list to drop"
         assert col_drop["const_feature"] == "The column is constant"
         assert (
             col_drop["most_nulls_feature"] == "Missing above missing_threshold 0.5"

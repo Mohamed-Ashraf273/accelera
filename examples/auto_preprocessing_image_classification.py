@@ -8,24 +8,21 @@ import torchvision.models as models
 from accelera.src.automl.core.classification_image_training_preprocessing import (  # noqa: E501
     ClassificationImageTrainingPreprocessing,
 )
+from accelera.src.automl.core.classification_image_testing_preprocessing import (  # noqa: E501
+    ClassificationImageTestingPreprocessing,
+)
 
 
 class ClassificationTraining:
-    def test(self, model, loader):
+    def inference(self, model, images, folder_path):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model.to(device)
         model.eval()
-        accurcy = len = 0.0
-        with torch.no_grad():
-            for images, labels in loader:
-                images = images.to(device)
-                labels = labels.to(device)
-                outputs = model(images)
-                _, y_pred = torch.max(outputs.data, 1)
-                accurcy += (y_pred == labels).sum().item()
-                len += labels.size(0)
-        accurcy = accurcy / len
-        return accurcy
+        testing_loader, invalid_path = ClassificationImageTestingPreprocessing(
+            images,
+            folder_path=folder_path,
+        ).common_preprocessing()
+        
 
     def train(self, model, train_loader, val_loader, epochs, logs):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -45,7 +42,7 @@ class ClassificationTraining:
                 loss = criterion(outputs, labels)
                 loss.backward()
                 optimizer.step()
-                train_loss += loss.item()
+                train_loss += loss.item() * images.size(0)
                 train_len += labels.size(0)
                 _, y_pred = torch.max(outputs.data, 1)
                 train_accurcy += (y_pred == labels).sum().item()
@@ -58,7 +55,7 @@ class ClassificationTraining:
                     labels = labels.to(device)
                     outputs = model(images)
                     loss = criterion(outputs, labels)
-                    val_loss += loss.item()
+                    val_loss += loss.item() * images.size(0)
                     val_len += labels.size(0)
                     _, y_pred = torch.max(outputs.data, 1)
                     val_accurcy += (y_pred == labels).sum().item()
@@ -83,7 +80,7 @@ class ClassificationTraining:
         return model
 
     def pretrained_model(self, num_classes):
-        model = models.resnet18(pretrained=True)
+        model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
         model.fc = nn.Linear(model.fc.in_features, num_classes)
         return model
 
@@ -106,6 +103,18 @@ def get_data_set_info():
     return ds
 
 
+def load_model(num_classes, path="classification.pth"):
+    model = models.resnet18(weights=None)
+    model.fc = nn.Linear(model.fc.in_features, num_classes)
+
+    model.load_state_dict(torch.load(path, map_location="cpu"))
+    return model
+
+
+def save_model(model, path="model.pth"):
+    torch.save(model.state_dict(), path)
+
+
 def main():
     logs = []
     ds = get_data_set_info()
@@ -116,6 +125,7 @@ def main():
         folder_path = info["report_path"]
         augment = info["augment"] == "True"
         is_train = info["train"] == "True"
+        inferernce = info.get("inferernce", [])
         obj = ClassificationTraining()
         train_loader, val_loader, num_classes = obj.handle_data(
             train_folder, val_folder, folder_path, augment
@@ -123,6 +133,9 @@ def main():
         if is_train:
             model = obj.pretrained_model(num_classes)
             obj.train(model, train_loader, val_loader, epochs=5, logs=logs)
+            save_model(model, f"{folder_path}/classification.pth")
+        if len(inferernce) > 0:
+            pass
     print(logs)
 
 

@@ -27,7 +27,11 @@ def autogluon_preprocessing(df, label, eval_metric="f1_weighted"):
     df = df.drop_duplicates()
     training_df, testing_df = train_test_split(df, test_size=0.2, random_state=42)
     predictor = TabularPredictor(label=label, eval_metric=eval_metric).fit(
-        training_df, time_limit=1000
+        training_df, time_limit=1000,
+        hyperparameters={"XGB": {}},
+    num_bag_folds=0,
+    num_stack_levels=0,
+    verbosity=2
     )
     evaluation = predictor.evaluate(testing_df)[eval_metric]
     end_time = time.time()
@@ -86,6 +90,10 @@ def without_autogluon_preprocessing(
         train_data=X_train_df,
         feature_generator=None,
         time_limit=1000,
+        hyperparameters={"XGB": {}},
+    num_bag_folds=0,
+    num_stack_levels=0,
+    verbosity=2
     )
     evaluation = predictor.evaluate(X_test_df)[eval_metric]
     end_time = time.time()
