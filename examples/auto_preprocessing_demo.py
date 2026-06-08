@@ -1,11 +1,8 @@
-import pandas as pd
 import json
-
 
 from accelera.src.automl.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
 )
-
 from accelera.src.automl.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )
@@ -44,11 +41,10 @@ def main():
         if dataset_type == "image_dataset":
             continue
         for problem_type, datasets in datasets_typed.items():
-            results = []
             for dataset, info in datasets.items():
                 retriever.connect()
-                link=info["link"]
-                df = retriever.retrieve_dataset(dataset,url=link, df=True)
+                link = info["link"]
+                df = retriever.retrieve_dataset(dataset, url=link, df=True)
                 label = info["target_column"]
                 report_path = info["report_path"]
                 text_column = info.get("text_column", None)

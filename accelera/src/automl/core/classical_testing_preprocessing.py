@@ -78,14 +78,16 @@ class ClassicalTestingPreprocessing(TestingTabularPreprocessingBase):
                 ).ravel()
         except Exception as e:
             raise ValueError(f"Error in target preprocessing: {e}")
+
     def handel_bool_type(self):
-        if len(self.bool_type_col)==0:
+        if len(self.bool_type_col) == 0:
             return
-        self.X_test[self.bool_type_col]=self.X_test[self.bool_type_col].astype(int)
+        self.X_test[self.bool_type_col] = self.X_test[self.bool_type_col].astype(int)
+
     def common_preprocessing(self):
         try:
             drop_columns(self.X_test, self.col_drop)
-            handel_bool_type()
+            self.handel_bool_type()
             self.X_test = self.training_preprocessor.transform(self.X_test)
             if not self.features_only:
                 self.target_preprocessing()

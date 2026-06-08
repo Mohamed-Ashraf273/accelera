@@ -93,15 +93,15 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             0 <= self.missing_threshold <= 1
         ):
             raise ValueError("missing_threshold must be float between 0 and 1")
-        
+
         save_pickle(self.folder_path, self.df.columns.tolist(), "data_columns.pkl")
 
     def is_drop_column(self, info, col):
         if info[col].get("is_constant", False):
             return True, "The column is constant"
-        elif col.lower()=="id" or col.lower().endswith("_id"):
+        elif col.lower() == "id" or col.lower().endswith("_id"):
             return True, "The column name contains id or ends with _id"
-        
+
         elif info[col].get("p_missing", 0) > self.missing_threshold:
             return (
                 True,
@@ -499,10 +499,11 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         ).head()
         save_pickle(self.folder_path, target_dict, "target_info.pkl")
         return y_train, y_val
-    def handel_bool_types(self,X_train,X_val):
-        bool_type_col=X_train.select_dtypes(include=["bool"]).columns
+
+    def handel_bool_types(self, X_train, X_val):
+        bool_type_col = X_train.select_dtypes(include=["bool"]).columns
         save_pickle(self.folder_path, bool_type_col, "bool_type_col.pkl")
-        if len(bool_type_col)==0:
+        if len(bool_type_col) == 0:
             return
         X_train[bool_type_col] = X_train[bool_type_col].astype(int)
         X_val[bool_type_col] = X_val[bool_type_col].astype(int)
@@ -522,7 +523,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             _,
         ) = self.detect_column_types(X_train, info)
         self.make_graphs(X_train, y_train, info)
-        self.handel_bool_types(X_train,X_val)
+        self.handel_bool_types(X_train, X_val)
         X_train, X_val = self.features_preprocessing(
             X_train,
             X_val,
@@ -536,5 +537,5 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         y_train, y_val = self.target_preprocessing(y_train, y_val, info)
         if self.is_report:
             report = TabularPreprocessingReport(self.folder_path, self.report_data)
-            report.execute()      
+            report.execute()
         return X_train, y_train, X_val, y_val

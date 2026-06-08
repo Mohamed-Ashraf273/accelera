@@ -1,13 +1,10 @@
-import pandas as pd
 import json
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision.models as models
 
-from accelera.src.automl.core.classification_image_testing_preprocessing import (  # noqa: E501
-    ClassificationImageTestingPreprocessing,
-)
 from accelera.src.automl.core.classification_image_training_preprocessing import (  # noqa: E501
     ClassificationImageTrainingPreprocessing,
 )
@@ -68,7 +65,11 @@ class ClassificationTraining:
             val_accurcy = val_accurcy / val_len
             val_loss = val_loss / val_len
             print(
-                f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss:.4f}, Train Accuracy: {train_accurcy:.4f}, Val Loss: {val_loss:.4f}, Val Accuracy: {val_accurcy:.4f}"
+                f"Epoch {epoch + 1}/{epochs}, "
+                f"Train Loss: {train_loss:.4f}, "
+                f"Train Accuracy: {train_accurcy:.4f}, "
+                f"Val Loss: {val_loss:.4f}, "
+                f"Val Accuracy: {val_accurcy:.4f}"
             )
             logs.append(
                 {
@@ -115,14 +116,15 @@ def main():
         folder_path = info["report_path"]
         augment = info["augment"] == "True"
         is_train = info["train"] == "True"
-        inference=info.get("inference", None)
         obj = ClassificationTraining()
         train_loader, val_loader, num_classes = obj.handle_data(
             train_folder, val_folder, folder_path, augment
         )
         if is_train:
             model = obj.pretrained_model(num_classes)
-            trained_model = obj.train(model, train_loader, val_loader, epochs=5, logs=logs)
+            obj.train(model, train_loader, val_loader, epochs=5, logs=logs)
     print(logs)
+
+
 if __name__ == "__main__":
     main()

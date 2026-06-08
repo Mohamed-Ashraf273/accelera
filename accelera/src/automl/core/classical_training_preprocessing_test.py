@@ -161,7 +161,6 @@ class TestClassicalTrainingPreprocessing:
                     "G",
                     "H",
                 ],
-               
                 "target": [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
             }
         )
