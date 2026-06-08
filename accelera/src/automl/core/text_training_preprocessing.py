@@ -28,10 +28,11 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
         folder_path=None,
         val_size=0.2,
         random_state=42,
-        tfidf_max_features=5000,
+        tfidf_max_features=500,
         tfidf_ngram=(1, 2),
         tfidf_max_df=0.85,
         tfidf_min_df=3,
+        is_report=True,
     ):
         super().__init__(df, target_col, val_size, random_state, folder_path)
         self.text_col = text_col
@@ -39,6 +40,7 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
         self.tfidf_ngram = tfidf_ngram
         self.tfidf_max_df = tfidf_max_df
         self.tfidf_min_df = tfidf_min_df
+        self.is_report = is_report
         if target_col == text_col:
             raise ValueError("target column and text column must not be the same")
         if text_col not in df.columns:
@@ -66,6 +68,8 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
         nltk.download("stopwords")
 
     def make_graphs(self, X_train, y_train):
+        if not self.is_report:
+            return
         new_df = X_train.copy()
         new_df[self.target_col] = y_train
         self.report_data["graphs"] = {
@@ -214,8 +218,9 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
         self.report_data["preprocessing"] = []
         X_train, X_val = self.features_preprocessing(X_train, X_val)
         y_train, y_val = self.target_preprocessing(y_train, y_val)
-        report = TabularPreprocessingReport(
-            self.folder_path, self.report_data, text_based=True
-        )
-        report.execute()
+        if self.is_report:
+            report = TabularPreprocessingReport(
+                self.folder_path, self.report_data, text_based=True
+            )
+            report.execute()
         return X_train, y_train, X_val, y_val

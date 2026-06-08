@@ -13,9 +13,11 @@ class ClassicalTestingPreprocessing(TestingTabularPreprocessingBase):
         check_path_exists(self.folder_path, "data_columns.pkl")
         check_path_exists(self.folder_path, "col_drop.pkl")
         check_path_exists(self.folder_path, "target_info.pkl")
+        check_path_exists(self.folder_path, "bool_type_col.pkl")
         self.data_columns = load_pickle(self.folder_path, "data_columns.pkl")
         self.col_drop = load_pickle(self.folder_path, "col_drop.pkl")
         self.target_info = load_pickle(self.folder_path, "target_info.pkl")
+        self.bool_type_col = load_pickle(self.folder_path, "bool_type_col.pkl")
 
         if self.target_info is None:
             raise ValueError(
@@ -77,9 +79,15 @@ class ClassicalTestingPreprocessing(TestingTabularPreprocessingBase):
         except Exception as e:
             raise ValueError(f"Error in target preprocessing: {e}")
 
+    def handel_bool_type(self):
+        if len(self.bool_type_col) == 0:
+            return
+        self.X_test[self.bool_type_col] = self.X_test[self.bool_type_col].astype(int)
+
     def common_preprocessing(self):
         try:
             drop_columns(self.X_test, self.col_drop)
+            self.handel_bool_type()
             self.X_test = self.training_preprocessor.transform(self.X_test)
             if not self.features_only:
                 self.target_preprocessing()

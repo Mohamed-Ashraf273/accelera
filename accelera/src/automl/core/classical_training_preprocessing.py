@@ -48,14 +48,14 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         cardinality_threshold=8,
         max_unique_ordinal=10,
         missing_threshold=0.5,
-        unique_threshold=0.9,
+        is_report=True,
     ):
         super().__init__(df, target_col, val_size, random_state, folder_path)
         self.problem_type = problem_type
         self.cardinality_threshold = cardinality_threshold
         self.max_unique_ordinal = max_unique_ordinal
         self.missing_threshold = missing_threshold
-        self.unique_threshold = unique_threshold
+        self.is_report = is_report
         if self.problem_type is None:
             raise ValueError("problem_type cannot be None")
         self.problem_type = problem_type.lower()
@@ -93,24 +93,15 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             0 <= self.missing_threshold <= 1
         ):
             raise ValueError("missing_threshold must be float between 0 and 1")
-        if not isinstance(self.unique_threshold, float) or not (
-            0 <= self.unique_threshold <= 1
-        ):
-            raise ValueError("unique_threshold must be float between 0 and 1")
 
         save_pickle(self.folder_path, self.df.columns.tolist(), "data_columns.pkl")
 
     def is_drop_column(self, info, col):
         if info[col].get("is_constant", False):
             return True, "The column is constant"
-        elif info[col].get("p_unique", 0) > self.unique_threshold and (
-            info[col].get("dtype") == "object"
-            or np.issubdtype(info[col].get("dtype"), np.integer)
-        ):
-            return (
-                True,
-                f"It is above unique_threshold {self.unique_threshold}",
-            )
+        elif col.lower() == "id" or col.lower().endswith("_id"):
+            return True, "The column name contains id or ends with _id"
+
         elif info[col].get("p_missing", 0) > self.missing_threshold:
             return (
                 True,
@@ -262,6 +253,9 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         )
 
     def make_graphs(self, X_train, y_train, info):
+        if not self.is_report:
+            return
+
         new_df = X_train.copy()
         new_df[self.target_col] = y_train
         self.report_data["graphs"] = {
@@ -506,6 +500,14 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         save_pickle(self.folder_path, target_dict, "target_info.pkl")
         return y_train, y_val
 
+    def handel_bool_types(self, X_train, X_val):
+        bool_type_col = X_train.select_dtypes(include=["bool"]).columns
+        save_pickle(self.folder_path, bool_type_col, "bool_type_col.pkl")
+        if len(bool_type_col) == 0:
+            return
+        X_train[bool_type_col] = X_train[bool_type_col].astype(int)
+        X_val[bool_type_col] = X_val[bool_type_col].astype(int)
+
     def common_preprocessing(self):
         self.data_overview()
         self.drop_duplicates()
@@ -521,6 +523,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             _,
         ) = self.detect_column_types(X_train, info)
         self.make_graphs(X_train, y_train, info)
+        self.handel_bool_types(X_train, X_val)
         X_train, X_val = self.features_preprocessing(
             X_train,
             X_val,
@@ -532,6 +535,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             ordinal_cols,
         )
         y_train, y_val = self.target_preprocessing(y_train, y_val, info)
-        report = TabularPreprocessingReport(self.folder_path, self.report_data)
-        report.execute()
+        if self.is_report:
+            report = TabularPreprocessingReport(self.folder_path, self.report_data)
+            report.execute()
         return X_train, y_train, X_val, y_val
