@@ -160,7 +160,7 @@
         "train_folder_masks": "examples/brain/masks",
         "augment": "True",
         "train": "True",
-        "folder_path": "brain_tumer-1",
+        "report_path": "brain_tumer-1",
         "inferernce": {
           "images": [
             "examples/brain/images/1.png",
@@ -178,7 +178,7 @@
       "train_folder_masks": "examples/brain/masks",
       "augment": "False",
       "train": "True",
-      "folder_path": "brain_tumer-2",
+      "report_path": "brain_tumer-2",
       "inferernce": {
         "images": [
           "examples/brain/images/1.png",
