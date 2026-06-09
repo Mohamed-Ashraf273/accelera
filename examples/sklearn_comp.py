@@ -2,9 +2,11 @@ import time
 
 import numpy as np
 import psutil
+from sklearn.base import clone
 from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline as skpipeline
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
@@ -33,7 +35,7 @@ def sample_data():
 
     # Create a large, realistic dataset
     X, y = make_classification(
-        n_samples=10_000,  # Large dataset
+        n_samples=100_000,  # Large dataset
         n_features=25,  # High-dimensional features
         n_classes=4,  # Multi-class problem
         n_informative=20,  # Most features are informative
@@ -42,36 +44,31 @@ def sample_data():
         random_state=42,
     )
 
-    # Create test data (subset of training data)
-    test_data = X[:500]  # Use first 50 samples for testing
-    y_test = y[:500]
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_train, y_train, test_size=0.25, random_state=42, stratify=y_train
+    )
+
     print(
-        f"Dataset created: {X.shape} "
-        f"training samples, {test_data.shape} test samples"
+        f"Dataset created: train={X_train.shape}, "
+        f"val={X_val.shape}, test={X_test.shape}"
     )
     print(f"Feature range: {X.min():.3f} to {X.max():.3f}")
     print(f"Classes: {np.unique(y)}")
 
-    return X, y, test_data, y_test
+    return X_train, y_train, X_val, y_val, X_test, y_test
 
 
-X, y, test_data, y_test = sample_data()
+X_train, y_train, X_val, y_val, X_test, y_test = sample_data()
 
 
-skpipe = skpipeline(
-    [("scaler", StandardScaler()), ("model", LogisticRegression(max_iter=1000))]
-)
-
-
-param_grid = [
-    {
-        "scaler": [StandardScaler(), MinMaxScaler()],
-        "model": [LogisticRegression(max_iter=1000)],
-    },
-    {
-        "scaler": [StandardScaler(), MinMaxScaler()],
-        "model": [SVC(C=10)],
-    },
+candidates = [
+    (StandardScaler(), LogisticRegression(max_iter=1000)),
+    (MinMaxScaler(), LogisticRegression(max_iter=1000)),
+    (StandardScaler(), SVC(C=10)),
+    (MinMaxScaler(), SVC(C=10)),
 ]
 
 # Total pipelines that will run:
@@ -90,33 +87,94 @@ acc_pipe.branch(
     "models",
     acc_pipe.model("model_lr", LogisticRegression(max_iter=1000), branch=True),
     acc_pipe.model("model_svc", SVC(C=10), branch=True),
-).predict("predict", test_data=test_data).metric(
+).predict("predict", test_data=X_val).metric(
     "metric",
     "accuracy_score",
-    y_true=y_test,
+    y_true=y_val,
 )
 
-start_mem = get_memory_info()
-start_time = time.time()
-# search = GridSearchCV(
-#     skpipe,
-#     param_grid,
-#     n_jobs=-1,
-#     cv=2,
-#     scoring='accuracy'  # Specify metric here
-# )
-# search.fit(X, y)
-# print("\n=== Best Results ===")
-# print(f"Best parameters: {search.best_params_}")
-# print(f"Best cross-validation score: {search.best_score_:.4f}")
-# print(f"Best estimator: {search.best_estimator_}")
-predictions, best_path = acc_pipe(X, y, select_strategy="max")
-predictions_f = best_path(test_data, y_test)
-print(predictions_f)
-end_time = time.time()
-end_mem = get_memory_info()
-print("Memory usage")
-print(f"RSS memory used: {end_mem['rss_mb'] - start_mem['rss_mb']:.2f} MB")
-print(f"VMS memory used: {end_mem['vms_mb'] - start_mem['vms_mb']:.2f} MB")
-print(f"Swap memory used: {end_mem['swap_mb'] - start_mem['swap_mb']:.2f} MB")
-print(f"Time taken: {end_time - start_time:.2f} seconds")
+
+def extract_metric(metric_result):
+    if isinstance(metric_result, dict) and "result" in metric_result:
+        return float(metric_result["result"])
+    return float(metric_result)
+
+
+sk_start_mem = get_memory_info()
+sk_start_time = time.time()
+sk_results = []
+
+for scaler, model in candidates:
+    scaler_inst = clone(scaler)
+    model_inst = clone(model)
+
+    X_train_scaled = scaler_inst.fit_transform(X_train)
+    X_val_scaled = scaler_inst.transform(X_val)
+    X_test_scaled = scaler_inst.transform(X_test)
+
+    model_inst.fit(X_train_scaled, y_train)
+    y_val_pred = model_inst.predict(X_val_scaled)
+    y_test_pred = model_inst.predict(X_test_scaled)
+
+    sk_results.append(
+        {
+            "scaler": scaler_inst.__class__.__name__,
+            "model": model_inst.__class__.__name__,
+            "val_acc": accuracy_score(y_val, y_val_pred),
+            "test_acc": accuracy_score(y_test, y_test_pred),
+        }
+    )
+
+best_sk = max(sk_results, key=lambda r: r["val_acc"])
+sk_end_time = time.time()
+sk_end_mem = get_memory_info()
+
+acc_start_mem = get_memory_info()
+acc_start_time = time.time()
+_, best_path = acc_pipe(X_train, y_train, select_strategy="max")
+acc_val_results = best_path(X_val, y_true=y_val)
+acc_test_results = best_path(X_test, y_true=y_test)
+acc_end_time = time.time()
+acc_end_mem = get_memory_info()
+
+acc_val_acc = extract_metric(acc_val_results[0])
+acc_test_acc = extract_metric(acc_test_results[0])
+
+print("\n=== Fair Comparison Report ===")
+print(
+    "Protocol: same train/val/test split, "
+    "same 4 candidate pipelines, selection on val "
+    "accuracy, report on test accuracy"
+)
+print("\n[sklearn]")
+print(
+    f"Best candidate: {best_sk['scaler']} -> {best_sk['model']} | "
+    f"val_acc={best_sk['val_acc']:.4f} | test_acc={best_sk['test_acc']:.4f}"
+)
+print(f"Time: {sk_end_time - sk_start_time:.2f} s")
+print(
+    f"Memory delta (RSS/VMS/Swap MB): "
+    f"{sk_end_mem['rss_mb'] - sk_start_mem['rss_mb']:.2f} / "
+    f"{sk_end_mem['vms_mb'] - sk_start_mem['vms_mb']:.2f} / "
+    f"{sk_end_mem['swap_mb'] - sk_start_mem['swap_mb']:.2f}"
+)
+
+print("\n[accelera]")
+print(f"Selected path val_acc={acc_val_acc:.4f} | test_acc={acc_test_acc:.4f}")
+print(f"Time: {acc_end_time - acc_start_time:.2f} s")
+print(
+    f"Memory delta (RSS/VMS/Swap MB): "
+    f"{acc_end_mem['rss_mb'] - acc_start_mem['rss_mb']:.2f} / "
+    f"{acc_end_mem['vms_mb'] - acc_start_mem['vms_mb']:.2f} / "
+    f"{acc_end_mem['swap_mb'] - acc_start_mem['swap_mb']:.2f}"
+)
+
+print("\n[summary]")
+print(
+    f"Test accuracy delta (accelera - sklearn): "
+    f"{acc_test_acc - best_sk['test_acc']:+.4f}"
+)
+print(
+    f"Time delta (accelera - sklearn): "
+    f"{(acc_end_time - acc_start_time) - (sk_end_time - sk_start_time):+.2f} s"
+)

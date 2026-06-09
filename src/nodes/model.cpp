@@ -58,8 +58,19 @@ py::object ModelNode::fitModel(py::object X, py::object y) {
   py::object model_instance =
       py::module::import("copy").attr("deepcopy")(py_func["model"]);
 
-  py::object execute_fit =
-      py::module::import("copy").attr("deepcopy")(py_func["execute_fit"]);
+  py::object execute_fit = py_func["execute_fit"];
+  py::dict params = py_func.cast<py::dict>();
+  bool use_cache =
+      params.contains("cache") ? py::cast<bool>(params["cache"]) : false;
+
+  if (!use_cache) {
+    try {
+      return execute_fit(model_instance, X, y);
+    } catch (const py::error_already_set &e) {
+      throw std::runtime_error("Python error in model fitting: " +
+                               std::string(e.what()));
+    }
+  }
 
   py::module_ joblib = py::module_::import("joblib");
   py::object hash_obj =

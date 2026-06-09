@@ -32,7 +32,10 @@ Node::Ptr Node::clone() const {
     return new_node;
   }
 
-  new_node->setData(this->getData());
+  if (this->type == NodeType::MODEL) {
+    new_node->setData(this->getData());
+  }
+
   return new_node;
 }
 
