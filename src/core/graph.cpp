@@ -22,6 +22,56 @@
 
 namespace accelera {
 
+namespace {
+
+bool shouldReleaseData(const Node::Ptr &node) {
+  if (!node) {
+    return false;
+  }
+  return node->type != NodeType::INPUT && node->type != NodeType::MODEL &&
+         node->type != NodeType::METRIC;
+}
+
+std::unordered_map<Node::Ptr, size_t>
+buildRemainingConsumerCounts(const std::vector<Node::Ptr> &nodes) {
+  std::unordered_map<Node::Ptr, size_t> consumer_counts;
+  for (const auto &node : nodes) {
+    consumer_counts[node] = 0;
+  }
+
+  for (const auto &node : nodes) {
+    for (const auto &source : node->getSourceNodes()) {
+      if (source) {
+        consumer_counts[source]++;
+      }
+    }
+  }
+
+  return consumer_counts;
+}
+
+void releaseConsumedSources(
+    const Node::Ptr &node,
+    std::unordered_map<Node::Ptr, size_t> &remaining_consumers) {
+  for (const auto &source : node->getSourceNodes()) {
+    if (!source) {
+      continue;
+    }
+
+    auto count_it = remaining_consumers.find(source);
+    if (count_it == remaining_consumers.end() || count_it->second == 0) {
+      continue;
+    }
+
+    count_it->second--;
+    if (count_it->second == 0 && shouldReleaseData(source)) {
+      source->setData(std::make_shared<py::object>(py::none()));
+    }
+  }
+}
+
+} // namespace
+
 Graph::Graph() : m_compiled(false), m_parallel_enabled(false) {
   m_input_node =
       std::make_shared<InputNode>("Input_" + std::to_string(m_nodes.size()));
@@ -523,6 +573,7 @@ void Graph::setGPUUsage() {
 
 void Graph::runParallel() {
   py::gil_scoped_release release;
+  auto remaining_consumers = buildRemainingConsumerCounts(m_execution_order);
   std::map<Node::Ptr, bool> finished_executing;
   std::map<Node::Ptr, bool> started_executing;
   unsigned int num_cores = std::thread::hardware_concurrency();
@@ -573,7 +624,7 @@ void Graph::runParallel() {
             std::launch::async,
             [node, this, &finished_executing, &available_nodes, &data_mutex,
              &available_cpu_threads, &available_gpu_thread, &exceptions, i,
-             &rem_nodes, &gpu_mutex]() {
+             &rem_nodes, &gpu_mutex, &remaining_consumers]() {
               py::gil_scoped_acquire acquire;
               try {
                 if (node->getUsesGPU()) {
@@ -587,6 +638,7 @@ void Graph::runParallel() {
               }
               {
                 std::lock_guard<std::mutex> lock(data_mutex);
+                releaseConsumedSources(node, remaining_consumers);
                 finished_executing[node] = true;
                 rem_nodes--;
               }
@@ -632,9 +684,11 @@ void Graph::runParallel() {
 void Graph::run() {
   if (!m_compiled)
     compile();
+  auto remaining_consumers = buildRemainingConsumerCounts(m_execution_order);
   for (auto &node : m_execution_order) {
     try {
       node->execute();
+      releaseConsumedSources(node, remaining_consumers);
     } catch (const std::exception &e) {
       throw std::runtime_error("Error executing node '" + node->name +
                                "': " + std::string(e.what()));
