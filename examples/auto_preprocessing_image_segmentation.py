@@ -1,5 +1,5 @@
 import json
-
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -315,14 +315,14 @@ def main():
     ds = get_data_set_info()
     for dataset, info in ds.items():
         train_folder_images = info["train_folder_images"]
-        
+
         train_folder_masks = info["train_folder_masks"]
         val_folder_images = info.get("val_folder_images", None)
         val_folder_masks = info.get("val_folder_masks", None)
         folder_path = info["report_path"]
         augment = info["augment"] == "True"
         is_train = info["train"] == "True"
-        inferernce=info.get("inferernce",None)
+        inferernce = info.get("inferernce", None)
         obj = SegmentationTraining(dataset, folder_path)
         train_loader, val_loader = obj.handle_data(
             train_folder_images,
@@ -335,8 +335,11 @@ def main():
             obj.train(train_loader, val_loader, epochs=20)
             obj.inference(val_loader)
         if inferernce is not None:
-            pass
-            
+            testing_loader, invalid_images = SegmentationImageTestingPreprocessing(
+                inferernce["images"], inferernce["masks", folder_path]
+            ).common_preprocessing()
+            obj.inference(testing_loader)
+        pd.DataFrame(obj.logs).to_csv(f"{folder_path}/logs.csv", index=False)
 
 
 if __name__ == "__main__":
