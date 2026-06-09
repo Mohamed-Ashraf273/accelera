@@ -23,8 +23,12 @@ class Pipeline(PipelineBase):
         predictions = results[1:]
         return predictions, executed_graph
 
-    def preprocess(self, name, func, branch=False):
-        func_params = {"func": func, "execute_fit": execute_fit}
+    def preprocess(self, name, func, branch=False, cache=False):
+        func_params = {
+            "func": func,
+            "execute_fit": execute_fit,
+            "cache": cache,
+        }
         if branch:
             return Node("preprocess", name, func_params)
 
@@ -33,10 +37,11 @@ class Pipeline(PipelineBase):
         )
         return self
 
-    def model(self, name, model, branch=False):
+    def model(self, name, model, branch=False, cache=False):
         model_params = {
             "model": model,
             "execute_fit": execute_fit,
+            "cache": cache,
         }
         if branch:
             return Node("model", name, model_params)

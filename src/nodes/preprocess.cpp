@@ -50,8 +50,25 @@ std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
     py::object transformer_instance =
         py::module::import("copy").attr("deepcopy")(py_func["func"]);
 
-    py::object execute_fit =
-        py::module::import("copy").attr("deepcopy")(py_func["execute_fit"]);
+    py::object execute_fit = py_func["execute_fit"];
+    py::dict params = py_func.cast<py::dict>();
+    bool use_cache =
+        params.contains("cache") ? py::cast<bool>(params["cache"]) : false;
+
+    if (!use_cache) {
+      try {
+        if (!getGraph()->getIsExecuted()) {
+          transformer_instance = execute_fit(transformer_instance, X, y);
+        }
+        X = py::cast<py::array_t<double>>(
+            transformer_instance.attr("transform")(X));
+        py_func["func"] = transformer_instance;
+      } catch (const py::error_already_set &e) {
+        throw std::runtime_error("Python error in model fitting: " +
+                                 std::string(e.what()));
+      }
+      return {X, y};
+    }
 
     py::module_ joblib = py::module_::import("joblib");
     py::object hash_obj =
@@ -60,7 +77,6 @@ std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
     fs::path currentPath = fs::current_path();
     fs::path cacheDir = currentPath / config::kCacheDirName;
     fs::create_directory(cacheDir);
-
     fs::path model_path = cacheDir / (hash_value + "model" + ".pkl");
     fs::path data_path = cacheDir / (hash_value + "data" + ".pkl");
 
