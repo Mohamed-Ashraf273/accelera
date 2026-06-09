@@ -40,10 +40,10 @@ examples/diabetes_dataset
 examples/job_salary
 examples/student_exam
 examples/Teen_Mental_Health_Dataset
-examples/*.csv
 examples/ai_student_impact_dataset
 examples/gaming_addiction
 examples/DailyDialog
+examples/brain
 examples/TestReviews
 .env
 /models
