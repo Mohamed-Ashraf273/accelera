@@ -175,6 +175,8 @@ class TestClassicalTrainingPreprocessing:
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
+                        columns_need_to_drop=["ID"]
+
         )
         assert training_preprocessing.df is not None
         assert training_preprocessing.target_col == "target"
@@ -253,6 +255,8 @@ class TestClassicalTrainingPreprocessing:
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
+                        columns_need_to_drop=["ID"]
+
         )
         shape_before_drop = training_preprocessing.df.shape
         training_preprocessing.data_overview()
@@ -282,6 +286,8 @@ class TestClassicalTrainingPreprocessing:
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
+                        columns_need_to_drop=["ID"]
+
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
@@ -344,6 +350,8 @@ class TestClassicalTrainingPreprocessing:
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
+                        columns_need_to_drop=["ID"]
+
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
@@ -367,6 +375,8 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+                        columns_need_to_drop=["ID"]
+
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
@@ -397,6 +407,8 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+                        columns_need_to_drop=["ID"]
+
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
@@ -440,6 +452,8 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+                        columns_need_to_drop=["ID"]
+
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
@@ -479,6 +493,8 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+                        columns_need_to_drop=["ID"]
+
         )
         training_preprocessing.data_overview()
         X_train, X_val, y_train, y_val = training_preprocessing.split_data()
@@ -529,6 +545,8 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+                        columns_need_to_drop=["ID"]
+
         )
         training_preprocessing.data_overview()
         X_train, X_val, y_train, y_val = training_preprocessing.split_data()
@@ -577,6 +595,8 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+                        columns_need_to_drop=["ID"]
+
         )
         training_preprocessing.data_overview()
         X_train, X_val, y_train, y_val = training_preprocessing.split_data()
@@ -629,6 +649,8 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+                        columns_need_to_drop=["ID"]
+
         )
         training_preprocessing.data_overview()
         X_train, X_val, y_train, y_val = training_preprocessing.split_data()
@@ -677,6 +699,8 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+                        columns_need_to_drop=["ID"]
+
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
@@ -731,6 +755,8 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+                        columns_need_to_drop=["ID"]
+
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
