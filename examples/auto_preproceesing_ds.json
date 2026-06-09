@@ -1,6 +1,21 @@
 {
   "tabular_dataset": {
     "classification": {
+      "startup_founder_burnout_2026":{
+        "link": "https://drive.google.com/uc?id=1d_3vf6NdEY9-H-jzfMq4BYP3WycNSBgQ",
+        "target_column": "Startup_Failure_Flag",
+        "report_path": "./startup_founder_burnout_2026",
+        "eval_metric": "f1_weighted",
+        "autoGlounModel": "CAT"
+      },
+      "healthy_diet_calorie_intake":{
+        "link": "https://drive.google.com/uc?id=1JkPaIuBmc7MIjF1k7_sBtYPe69K2s_5X",
+        "target_column": "Health_Status",
+        "report_path": "./healthy_diet_calorie_intake",
+        "eval_metric": "f1_weighted",
+        "autoGlounModel": "CAT",
+        "columns_need_to_drop": ["Person_ID"]
+      },
       "ai_student": {
         "link": "https://drive.google.com/uc?id=1RLeMoVvEUe_PsnEZfGH7PI5q_F0jOzBY",
         "target_column": "Burnout_Risk_Level",
@@ -79,6 +94,21 @@
       }
     },
     "regression": {
+      "CarPrice_Assignment": {
+        "link": "https://drive.google.com/uc?id=1fHodFSYNZyX-XmkFb0Yn8crb9CqpVG4v",
+        "target_column": "price",
+        "report_path": "./CarPrice_Assignment",
+        "eval_metric": "r2",
+        "autoGlounModel": "CAT",
+        "columns_need_to_drop": ["car_ID"]
+      },
+      "Concrete_Data_Yeh": {
+        "link": "https://drive.google.com/uc?id=11AYSyIHdlnby4DkgvmwHBYI6uNPo7NND",
+        "target_column": "csMPa",
+        "report_path": "./Concrete_Data_Yeh",
+        "eval_metric": "r2",
+        "autoGlounModel": "CAT"
+      },
       "job_salary_prediction_dataset": {
         "link": "https://drive.google.com/uc?id=1r5HEDyelbzfZbXPSx-0G7vEvrgXGqb9r",
         "target_column": "salary",
