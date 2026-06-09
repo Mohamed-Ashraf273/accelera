@@ -144,8 +144,8 @@
         "train": "True",
         "inferernce": {
           "images": [
-            "examples/PetImages/Cat/8.jpg",
-            "examples/PetImages/Dog/8.jpg"
+            "./PetImages/Cat/8.jpg",
+            "./PetImages/Dog/8.jpg"
           ],
           "image_class_names": [
             "Cat",
@@ -156,37 +156,37 @@
     },
     "segmentation": {
       "brain_tumer-1": {
-        "train_folder_images": "examples/brain/images",
-        "train_folder_masks": "examples/brain/masks",
+        "train_folder_images": "./brain/images",
+        "train_folder_masks": "./brain/masks",
         "augment": "True",
         "train": "True",
         "report_path": "brain_tumer-1",
         "inferernce": {
           "images": [
-            "examples/brain/images/1.png",
-            "examples/brain/images/10.png"
+            "./brain/images/1.png",
+            "./brain/images/10.png"
           ],
           "image_class_names": [
-            "examples/brain/masks/1.png",
-            "examples/brain/masks/10.png"
+            "./brain/masks/1.png",
+            "./brain/masks/10.png"
           ]
         }
       }
     },
     "brain_tumer-2": {
-      "train_folder_images": "examples/brain/images",
-      "train_folder_masks": "examples/brain/masks",
+      "train_folder_images": "./brain/images",
+      "train_folder_masks": "./brain/masks",
       "augment": "False",
       "train": "True",
       "report_path": "brain_tumer-2",
       "inferernce": {
         "images": [
-          "examples/brain/images/1.png",
-          "examples/brain/images/10.png"
+          "./brain/images/1.png",
+          "./brain/images/10.png"
         ],
         "image_class_names": [
-          "examples/brain/masks/1.png",
-          "examples/brain/masks/10.png"
+          "./brain/masks/1.png",
+          "./brain/masks/10.png"
         ]
       }
     }

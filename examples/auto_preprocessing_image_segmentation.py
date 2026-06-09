@@ -291,7 +291,7 @@ class SegmentationTraining:
             folder_path=self.folder_path,
             binary_mask_threshold=128,
             validation_folder_images=val_folder_images,
-            validation_folder_mask=val_folder_masks,
+            validation_folder_masks=val_folder_masks,
             split_training=True,
             augment=augment,
             val_size=0.2,
@@ -315,6 +315,7 @@ def main():
     ds = get_data_set_info()
     for dataset, info in ds.items():
         train_folder_images = info["train_folder_images"]
+        
         train_folder_masks = info["train_folder_masks"]
         val_folder_images = info.get("val_folder_images", None)
         val_folder_masks = info.get("val_folder_masks", None)
