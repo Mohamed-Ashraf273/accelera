@@ -11,7 +11,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import StandardScaler
-
+from category_encoders import BinaryEncoder
 from accelera.src.automl.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
 )
@@ -623,11 +623,7 @@ class TestClassicalTrainingPreprocessing:
             )
         )
         imputer = SimpleImputer(strategy="most_frequent")
-        one_hot_encoder = OneHotEncoder(
-            handle_unknown="ignore",
-            sparse_output=False,
-            drop="first",
-        )
+        one_hot_encoder = BinaryEncoder()
         X_train_manual = X_train[["one_hot_feature"]].values
         X_val_manual = X_val[["one_hot_feature"]].values
         X_train_imputed = imputer.fit_transform(X_train_manual)

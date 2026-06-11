@@ -8,6 +8,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import StandardScaler
+from category_encoders import BinaryEncoder
 
 from accelera.src.automl.core.training_tabular_preprocessing_base import (
     TrainingTabularPreprocessingBase,
@@ -221,7 +222,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                     info[col]["col_type"] = "low level cardinality"
                     info[col]["preprossing_steps"] = [
                         "Fill missing with most frequent",
-                        "One hot encoding",
+                        "Binary encoding",
                     ]
                     one_hot_cols.append(col)
                 else:
@@ -384,16 +385,11 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 ("scaler", StandardScaler()),
             ]
         )
-        one_hot_pipeline = Pipeline(
+        binary_encoder_pipeline = Pipeline(
             [
                 ("imputer", SimpleImputer(strategy="most_frequent")),
                 (
-                    "one_hot_encoder",
-                    OneHotEncoder(
-                        handle_unknown="ignore",
-                        sparse_output=False,
-                        drop="first",
-                    ),
+                    "binary_encoder",BinaryEncoder()
                 ),
             ]
         )
@@ -422,7 +418,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         )
         preprocessor = ColumnTransformer(
             transformers=[
-                ("onehot", one_hot_pipeline, one_hot_cols),
+                ("onehot", binary_encoder_pipeline, one_hot_cols),
                 ("numerical", numerical_pipeline, numerical_cols),
                 ("binary", binary_pipeline, binary_cols),
                 ("frequency", frequency_pipeline, frequency_cols),
