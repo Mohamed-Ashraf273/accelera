@@ -284,6 +284,17 @@ pre-commit run --all-files --hook-stage manual
 
 # Serve docs locally
 mkdocs serve
+# Run Benchmark
+## Run Backend
+cd accelera/src/benchmark/backend
+npm install
+npm run dev
+## Run Frontend
+cd accelera/src/benchmark/frontend
+npm install
+npm run dev
+
+
 ```
 
 ## License

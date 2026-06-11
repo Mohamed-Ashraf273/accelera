@@ -1,43 +1,33 @@
 import "./benchmarks.css";
+import Navigation from "./navigation";
+import { Link } from "react-router-dom";
+
 import { useEffect, useState } from "react";
 
 function Benchmarks() {
   const [benchmarks, setBenchmarks] = useState([]);
   const [problemType, setProblemType] = useState("");
   const [loading, setLoading] = useState(false);
-  console.log(benchmarks);
   const user = JSON.parse(localStorage.getItem("user"));
-  console.log(user);
-  const fetchWithoutFilter = async () => {
+  const fetchBenchmark = async (urlLink) => {
     setLoading(true);
-    const results = await fetch("http://localhost:3000/benchmark");
+    const results = await fetch(urlLink);
     const data = await results.json();
     setBenchmarks(data);
     setLoading(false);
+  };
+  const fetchWithoutFilter = async () => {
+    fetchBenchmark("http://localhost:3000/benchmark");
   };
 
   const fetchByProblemType = async (type) => {
     if (!type) return fetchWithoutFilter();
-
-    setLoading(true);
-    const results = await fetch(
-      `http://localhost:3000/benchmark/problem-type/${type}`,
-    );
-    const data = await results.json();
-    setBenchmarks(data);
-    setLoading(false);
+    fetchBenchmark(`http://localhost:3000/benchmark/problem-type/${type}`);
   };
 
   const fetchByUser = async () => {
     if (!user) return;
-
-    setLoading(true);
-    const results = await fetch(
-      `http://localhost:3000/benchmark/user/${user._id}`,
-    );
-    const data = await results.json();
-    setBenchmarks(data);
-    setLoading(false);
+    fetchBenchmark(`http://localhost:3000/benchmark/user/${user._id}`);
   };
 
   const deleteBenchmark = async (id) => {
@@ -50,7 +40,7 @@ function Benchmarks() {
         alert(data.message);
         return;
       }
-      setBenchmarks((prev) => prev.filter((b) => b._id !== id));
+      setBenchmarks((prev) => prev.filter((benchmark) => benchmark._id !== id));
     } catch (err) {
       console.error("Delete error:", err);
     }
@@ -60,57 +50,59 @@ function Benchmarks() {
   }, []);
 
   return (
-    <div className="benchmarks">
-      <h2 className="benchmarks-title">Benchmarks</h2>
-      <div className="filter-create">
-        <div className="benchmarks-filters">
-          <button className="benchmarks-btn" onClick={fetchWithoutFilter}>
-            All
-          </button>
-          {user && (
-            <button className="benchmarks-btn" onClick={fetchByUser}>
-              My Benchmarks
+    <div className="benchmarks-page">
+      <Navigation />
+      <div className="benchmark-page-content">
+        <h2 className="benchmarks-page-title">Benchmarks</h2>
+        <div className="benchmarks-page-actions">
+          <div className="benchmarks-filters">
+            <button className="benchmarks-button" onClick={fetchWithoutFilter}>
+              All
             </button>
-          )}
-          <select
-            className="benchmarks-select"
-            value={problemType}
-            onChange={(e) => {
-              setProblemType(e.target.value);
-              fetchByProblemType(e.target.value);
-            }}
-          >
-            <option value="">Filter by type</option>
-            <option value="classification">Classification</option>
-            <option value="regression">Regression</option>
-          </select>
-        </div>
-        <button className="benchmark-create-btn">Create New Benchmark</button>
-      </div>
-      {loading && <p className="loading">Loading...</p>}
-
-      {benchmarks.map((b) => (
-        <div key={b._id} className="benchmark-card">
-          <div className="benchmark-header">
-            <h3>{b.title}</h3>
-            <button className="benchmark-show-btn">Show</button>
-            {user && b.createdBy?._id === user._id && (
-              <button
-                className="benchmark-delete-btn"
-                onClick={() => deleteBenchmark(b._id)}
-              >
-                Delete
+            {user && (
+              <button className="benchmarks-button" onClick={fetchByUser}>
+                My Benchmarks
               </button>
             )}
+            <select
+              className="benchmarks-problemType-select"
+              value={problemType}
+              onChange={(e) => {
+                setProblemType(e.target.value);
+                fetchByProblemType(e.target.value);
+              }}
+            >
+              <option value="">All</option>
+              <option value="classification">Classification</option>
+              <option value="regression">Regression</option>
+            </select>
           </div>
-          <div className="benchmark-info">
-            <p>Type: {b.problemType}</p>
-            <p>Metric: {b.evaluationMetric?.name}</p>
-            <p>Created by: {b.createdBy?.name}</p>
-            <p>Created at: {b.creationDate}</p>
-          </div>
+          <Link className="benchmark-create-button" to="/create-benchmarks">
+            Create New Benchmark
+          </Link>
         </div>
-      ))}
+        {loading && <p className="loading">Loading...</p>}
+        <div className="benchmarks-display">
+        {benchmarks.map((benchmark) => (
+          <Link to="/" key={benchmark._id} className="benchmark-card">
+            <div className="benchmark-header">
+              <h3>{benchmark.title}</h3>
+              {user && benchmark.createdBy?._id === user._id && (
+                <button
+                  className="benchmark-delete-button"
+                  onClick={() => deleteBenchmark(benchmark._id)}
+                >
+                  ❌
+                </button>
+              )}
+            </div>
+            <div className="benchmark-info">
+              <p>Type: {benchmark.problemType}</p>              
+            </div>
+          </Link>
+        ))}
+        </div>
+      </div>
     </div>
   );
 }

@@ -7,6 +7,22 @@ const {
   isExistingMetric,
   isValidWhichBetter,
 } = require("../validations/metrics");
+router.get("/", async (req, res) => {
+  try {
+    const metrics = await Metric.find();
+    if (metrics.length === 0) {
+      return res.status(404).json({
+        message: `There is no metric `,
+      });
+    }
+    res.status(200).json(metrics);
+  } catch (error) {
+    console.error("Error while fetching metrics:", error);
+    res
+      .status(500)
+      .json({ message: "There is an error while fetching metrics" });
+  }
+});
 router.get("/problem-type/:problemType", async (req, res) => {
   try {
     let problemType = req.params.problemType;

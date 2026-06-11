@@ -2,6 +2,9 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./components/login";
 import Home from "./components/home";
 import Benchmarks from "./components/benchmarks";
+import CreateBenchmark from "./components/createBenchmark"
+import CreateMeric from "./components/createMetric"
+import Metrics from "./components/metrics"
 
 function App() {
   return (
@@ -9,6 +12,10 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/benchmarks" element={<Benchmarks />} />
+      <Route path="/benchmarks" element={<Benchmarks />} />
+      <Route path="/create-benchmarks" element={<CreateBenchmark />} />
+      <Route path="/create-metric" element={<CreateMeric />} />
+      <Route path="/metrics" element={<Metrics />} />
     </Routes>
   );
 }
