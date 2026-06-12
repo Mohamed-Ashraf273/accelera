@@ -189,7 +189,8 @@ void Graph::addNode(Node::Ptr node) {
 
       Node::Ptr nodeToAdd =
           (i == 0) ? node : NodeFactory::createNodeCopy(node, i);
-      nodeToAdd->setShouldCreateNewData(is_connected_to_input[i]);
+      nodeToAdd->setShouldCreateNewData(
+          is_connected_to_input[i] && nodeToAdd->type == NodeType::PREPROCESS);
       nodeToAdd->setSourceNode(leaves[i]);
       nodeToAdd->setGraph(this);
       m_nodes.push_back(nodeToAdd);
@@ -258,7 +259,8 @@ void Graph::split(const std::string &branch_name,
             continue;
           }
 
-          branchNode->setShouldCreateNewData(list_idx == 0);
+          branchNode->setShouldCreateNewData(
+              list_idx == 0 && branchNode->type == NodeType::PREPROCESS);
 
           m_nodes.push_back(branchNode);
           if (branchNode->type == NodeType::METRIC)
@@ -294,7 +296,8 @@ void Graph::split(const std::string &branch_name,
         if (!validateNodeConnection(branchNode, current_source)) {
           continue;
         }
-        branchNode->setShouldCreateNewData(true);
+        branchNode->setShouldCreateNewData(branchNode->type ==
+                                           NodeType::PREPROCESS);
 
         m_nodes.push_back(branchNode);
         if (branchNode->type == NodeType::METRIC)
