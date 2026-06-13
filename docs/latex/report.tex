@@ -444,14 +444,29 @@ output dictionary, but the decision to defensively copy the input is controlled
 independently. This avoids corrupting branch storage semantics while allowing
 safe copy reduction.
 
-\paragraph{Skipping defensive copies for sklearn transformers.}
-For sklearn transformer instances, the graph skips the branch-start defensive
-\texttt{X.copy()} and \texttt{y.copy()} step. Standard sklearn transformers
-such as \texttt{StandardScaler}, \texttt{MinMaxScaler}, and
-\texttt{SelectKBest} return transformed outputs instead of mutating the input
-object in place under their normal configuration. Custom callables remain
-conservative: they still receive a copied input at the start of a branch,
-because arbitrary Python functions may mutate their argument.
+\paragraph{Guarded defensive-copy reduction for preprocessing nodes.}
+The graph separates branch-output creation from input-copy decisions through
+the \texttt{shouldCopyPreprocessInput()} helper. A return value of
+\texttt{true} means that the preprocessing node receives defensive copies of
+\texttt{X} and \texttt{y}; a return value of \texttt{false} means that the node
+can safely read the existing branch input without copying it first. The helper
+first rejects non-preprocessing nodes, then inspects the Python preprocessing
+object stored under the \texttt{func} key. Non-sklearn callables remain
+conservative and are copied, because an arbitrary user function may mutate its
+input in place.
+
+For sklearn transformer instances, copying is disabled only when the
+transformer is not configured for in-place mutation. The implementation calls
+\texttt{get\_params(deep=False)} when available and checks the sklearn
+\texttt{copy} parameter. If \texttt{copy=False}, the graph keeps the defensive
+copy because the transformer is explicitly allowed to mutate its input. If the
+parameter is absent or inspection succeeds without finding an unsafe
+configuration, the copy is skipped. If inspection raises a Python error, the
+backend clears the error and falls back to copying. This design reduces memory
+for common sklearn preprocessors such as \texttt{StandardScaler} and
+\texttt{MinMaxScaler} under their default settings, while preserving isolation
+for custom callables and sklearn transformers configured with
+\texttt{copy=False}.
 
 \paragraph{Executed-graph data retention reduction.}
 Executed graph cloning keeps the fitted model state needed for future
