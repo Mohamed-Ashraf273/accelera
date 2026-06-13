@@ -11,6 +11,8 @@
 \usepackage{enumitem}
 \usepackage{float}
 \usepackage{caption}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 
 \hypersetup{
   colorlinks=true,
@@ -44,13 +46,12 @@
 }
 
 \author{
-  Mohamed Ashraf\\ID: 9220658
-  \and
-  Nesma Osama\\ID: 9220912
-  \and
-  Mazen Adel\\ID: 9220625
-  \and
-  Mohamed Khater\\ID: 9220713
+\begin{tabular}{cccc}
+Mohamed Ashraf & Nesma Osama & Mazen Adel & Mohamed Khater \\
+ID: 9220658 & ID: 9220912 & ID: 9220625 & ID: 9220713 \\
+\multicolumn{4}{c}{\vspace{0.8em}} \\
+\multicolumn{4}{c}{Supervisor: Dr. Salma Abdel monem}
+\end{tabular}
 }
 
 \date{April 17, 2026}
@@ -261,6 +262,145 @@ display wrapper according to the result type:
 
 \texttt{ModelReport} reuses this metric rendering and can optionally plot
 training history when a dictionary of history arrays is provided.
+
+\subsection{Empirical Comparison with sklearn}
+
+To evaluate the execution behavior of \texttt{accelera\_pipe}, a controlled
+comparison was performed against two sklearn baselines. The first baseline
+uses a direct manual sklearn loop, where each candidate scaler and model is
+cloned, fitted, evaluated on validation data, and then the selected candidate
+is evaluated on test data. The second baseline uses \texttt{sklearn.pipeline}
+with the same candidate pairs. The \project{} version expresses the same
+candidate space as two graph branches: two preprocessing alternatives
+(\texttt{StandardScaler} and \texttt{MinMaxScaler}) followed by two model
+alternatives (\texttt{LogisticRegression} and \texttt{SVC}). Therefore, all
+systems evaluate four candidate pipelines and select the path with the highest
+validation accuracy.
+
+The experiment uses synthetic four-class classification data with 25 features.
+Each dataset is split into 60\% training, 20\% validation, and 20\% test data.
+The validation split is used only for candidate selection, while the test
+split is used to report final accuracy. Table~\ref{tab:pipe-sklearn-benchmark}
+shows that all three implementations selected an equivalent best candidate and
+obtained the same test accuracy in every run. For small inputs, the native
+graph overhead dominates; for larger inputs, the parallel branch execution of
+\texttt{accelera\_pipe} reduces latency compared with both sklearn baselines.
+The memory measurements also show that \texttt{accelera\_pipe} currently pays
+a larger memory cost because multiple graph branches and fitted node states
+can be alive at the same time.
+
+\begin{table}[H]
+\centering
+\caption{Fair comparison between manual sklearn, sklearn Pipeline, and
+\texttt{accelera\_pipe}. Time is measured in seconds and RSS is the process
+resident-memory delta in MB.}
+\label{tab:pipe-sklearn-benchmark}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{rrrrrrrrrr}
+\toprule
+Samples & Train & Val & Test &
+sklearn Time & sklearn RSS &
+sklearn Pipe Time & sklearn Pipe RSS &
+Accelera Time & Accelera RSS \\
+\midrule
+1{,}000 & 600 & 200 & 200 & 0.06 & 1.62 & 0.05 & 0.16 & 0.34 & 19.32 \\
+5{,}000 & 3{,}000 & 1{,}000 & 1{,}000 & 2.47 & 3.62 & 2.12 & 1.09 & 2.02 & 21.62 \\
+10{,}000 & 6{,}000 & 2{,}000 & 2{,}000 & 2.64 & 11.25 & 2.67 & 2.19 & 2.10 & 28.43 \\
+50{,}000 & 30{,}000 & 10{,}000 & 10{,}000 & 23.96 & 126.95 & 23.25 & 9.75 & 14.81 & 209.25 \\
+100{,}000 & 60{,}000 & 20{,}000 & 20{,}000 & 77.79 & 139.70 & 77.10 & 47.65 & 67.04 & 300.93 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Accuracy and selected candidate behavior. The test-accuracy delta is
+computed as \texttt{accelera\_pipe} minus manual sklearn.}
+\label{tab:pipe-accuracy-benchmark}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{rllrrr}
+\toprule
+Samples & sklearn Best Candidate & Accelera Selected Candidate &
+Validation Accuracy & Test Accuracy & Test Accuracy Delta \\
+\midrule
+1{,}000 & MinMaxScaler $\rightarrow$ SVC & MinMaxScaler $\rightarrow$ SVC & 0.7900 & 0.8250 & +0.0000 \\
+5{,}000 & MinMaxScaler $\rightarrow$ SVC & MinMaxScaler $\rightarrow$ SVC & 0.9160 & 0.9100 & +0.0000 \\
+10{,}000 & MinMaxScaler $\rightarrow$ SVC & MinMaxScaler $\rightarrow$ SVC & 0.9385 & 0.9260 & +0.0000 \\
+50{,}000 & MinMaxScaler $\rightarrow$ SVC & MinMaxScaler $\rightarrow$ SVC & 0.9565 & 0.9598 & +0.0000 \\
+100{,}000 & StandardScaler $\rightarrow$ SVC & StandardScaler $\rightarrow$ SVC & 0.9675 & 0.9709 & +0.0000 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=0.95\textwidth,
+  height=0.42\textwidth,
+  xmode=log,
+  log basis x=10,
+  xlabel={Total samples},
+  ylabel={Execution time (s)},
+  grid=both,
+  legend style={at={(0.02,0.98)},anchor=north west},
+  legend cell align={left},
+  xtick={1000,5000,10000,50000,100000},
+  xticklabels={1k,5k,10k,50k,100k}
+]
+\addplot+[mark=*] coordinates {
+  (1000,0.06) (5000,2.47) (10000,2.64) (50000,23.96) (100000,77.79)
+};
+\addlegendentry{manual sklearn}
+\addplot+[mark=square*] coordinates {
+  (1000,0.05) (5000,2.12) (10000,2.67) (50000,23.25) (100000,77.10)
+};
+\addlegendentry{sklearn Pipeline}
+\addplot+[mark=triangle*] coordinates {
+  (1000,0.34) (5000,2.02) (10000,2.10) (50000,14.81) (100000,67.04)
+};
+\addlegendentry{\texttt{accelera\_pipe}}
+\end{axis}
+\end{tikzpicture}
+\caption{Latency scaling for the same four-candidate search space.}
+\label{fig:pipe-latency-scaling}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=0.95\textwidth,
+  height=0.42\textwidth,
+  xmode=log,
+  log basis x=10,
+  xlabel={Total samples},
+  ylabel={RSS memory delta (MB)},
+  grid=both,
+  legend style={at={(0.02,0.98)},anchor=north west},
+  legend cell align={left},
+  xtick={1000,5000,10000,50000,100000},
+  xticklabels={1k,5k,10k,50k,100k}
+]
+\addplot+[mark=*] coordinates {
+  (1000,1.62) (5000,3.62) (10000,11.25) (50000,126.95) (100000,139.70)
+};
+\addlegendentry{manual sklearn}
+\addplot+[mark=square*] coordinates {
+  (1000,0.16) (5000,1.09) (10000,2.19) (50000,9.75) (100000,47.65)
+};
+\addlegendentry{sklearn Pipeline}
+\addplot+[mark=triangle*] coordinates {
+  (1000,19.32) (5000,21.62) (10000,28.43) (50000,209.25) (100000,300.93)
+};
+\addlegendentry{\texttt{accelera\_pipe}}
+\end{axis}
+\end{tikzpicture}
+\caption{RSS memory delta for the same benchmark runs.}
+\label{fig:pipe-memory-scaling}
+\end{figure}
 
 \subsection{How to Use the Accelera Pipe Module}
 

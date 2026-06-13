@@ -28,8 +28,23 @@ bool shouldReleaseData(const Node::Ptr &node) {
   if (!node) {
     return false;
   }
-  return node->type != NodeType::INPUT && node->type != NodeType::MODEL &&
-         node->type != NodeType::METRIC;
+  return node->type != NodeType::MODEL && node->type != NodeType::METRIC;
+}
+
+void releaseNodeData(const Node::Ptr &node) {
+  if (node->type == NodeType::INPUT) {
+    if (node->getGraph() && node->getGraph()->getIsExecuted()) {
+      return;
+    }
+
+    auto input_node = std::dynamic_pointer_cast<InputNode>(node);
+    if (input_node) {
+      input_node->clearInputData();
+    }
+    return;
+  }
+
+  node->setData(std::make_shared<py::object>(py::none()));
 }
 
 std::unordered_map<Node::Ptr, size_t>
@@ -50,6 +65,29 @@ buildRemainingConsumerCounts(const std::vector<Node::Ptr> &nodes) {
   return consumer_counts;
 }
 
+bool is_sklearn_instance(const py::object &obj) {
+  if (obj.is_none()) {
+    return false;
+  }
+
+  try {
+    py::object module = obj.attr("__class__").attr("__module__");
+    std::string module_str = py::cast<std::string>(module);
+    return module_str.find("sklearn") != std::string::npos;
+  } catch (const py::error_already_set &) {
+    return false;
+  }
+}
+
+bool shouldCopyPreprocessInput(const Node::Ptr &node) {
+  if (!node || node->type != NodeType::PREPROCESS) {
+    return false;
+  }
+
+  py::dict params = node->py_func.cast<py::dict>();
+  return !is_sklearn_instance(params["func"]);
+}
+
 void releaseConsumedSources(
     const Node::Ptr &node,
     std::unordered_map<Node::Ptr, size_t> &remaining_consumers) {
@@ -65,7 +103,7 @@ void releaseConsumedSources(
 
     count_it->second--;
     if (count_it->second == 0 && shouldReleaseData(source)) {
-      source->setData(std::make_shared<py::object>(py::none()));
+      releaseNodeData(source);
     }
   }
 }
@@ -191,6 +229,8 @@ void Graph::addNode(Node::Ptr node) {
           (i == 0) ? node : NodeFactory::createNodeCopy(node, i);
       nodeToAdd->setShouldCreateNewData(
           is_connected_to_input[i] && nodeToAdd->type == NodeType::PREPROCESS);
+      nodeToAdd->setShouldCopyInput(is_connected_to_input[i] &&
+                                    shouldCopyPreprocessInput(nodeToAdd));
       nodeToAdd->setSourceNode(leaves[i]);
       nodeToAdd->setGraph(this);
       m_nodes.push_back(nodeToAdd);
@@ -261,6 +301,8 @@ void Graph::split(const std::string &branch_name,
 
           branchNode->setShouldCreateNewData(
               list_idx == 0 && branchNode->type == NodeType::PREPROCESS);
+          branchNode->setShouldCopyInput(list_idx == 0 &&
+                                         shouldCopyPreprocessInput(branchNode));
 
           m_nodes.push_back(branchNode);
           if (branchNode->type == NodeType::METRIC)
@@ -298,6 +340,7 @@ void Graph::split(const std::string &branch_name,
         }
         branchNode->setShouldCreateNewData(branchNode->type ==
                                            NodeType::PREPROCESS);
+        branchNode->setShouldCopyInput(shouldCopyPreprocessInput(branchNode));
 
         m_nodes.push_back(branchNode);
         if (branchNode->type == NodeType::METRIC)

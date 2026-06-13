@@ -54,6 +54,8 @@ public:
 
   void setShouldCreateNewData(bool should_create);
   bool getShouldCreateNewData() const;
+  void setShouldCopyInput(bool should_copy);
+  bool getShouldCopyInput() const;
 
   void usesGPU();
 
@@ -65,6 +67,7 @@ protected:
   Graph *m_graph = nullptr; // Pointer to parent graph
   std::vector<std::shared_ptr<Node>> m_sourceNode;
   bool m_uses_gpu = false;
+  bool m_should_copy_input = false;
 };
 
 } // namespace accelera

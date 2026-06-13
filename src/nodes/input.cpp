@@ -22,4 +22,10 @@ void InputNode::setInputData(py::object X, py::object y) {
   m_data_set = true;
 }
 
+void InputNode::clearInputData() {
+  m_X = py::none();
+  m_y = py::none();
+  m_data_set = false;
+}
+
 } // namespace accelera
