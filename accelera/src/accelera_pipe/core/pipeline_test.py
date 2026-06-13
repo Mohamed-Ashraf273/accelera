@@ -28,10 +28,7 @@ class CountingTransformer:
         self.delta = delta
 
     def __repr__(self):
-        return (
-            f"CountingTransformer(label={self.label!r}, "
-            f"delta={self.delta!r})"
-        )
+        return f"CountingTransformer(label={self.label!r}, delta={self.delta!r})"
 
     def fit(self, X, y=None):
         self.fit_counts[self.label] = self.fit_counts.get(self.label, 0) + 1

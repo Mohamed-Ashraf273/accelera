@@ -1,10 +1,12 @@
-from accelera.src.accelera_pipe.core.pipeline import Pipeline as accpipe
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.svm import SVC
+import numpy as np
 from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+
+from accelera.src.accelera_pipe.core.pipeline import Pipeline as accpipe
 from accelera.src.accelera_pipe.wrappers.graph_report import GraphReport
 from accelera.src.utils.accelera_utils import serialize
-import numpy as np
 
 pipeline = accpipe()
 pipeline.branch(

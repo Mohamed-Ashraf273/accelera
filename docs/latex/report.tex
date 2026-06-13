@@ -482,27 +482,22 @@ name, so identical operations with different names can still be shared.
 The optimization is intentionally restricted to first branch nodes. For list
 branches, only the first item is eligible for sharing:
 
-\begin{center}
-\begin{tabular}{cc}
-\textbf{Before sharing} & \textbf{After sharing} \\
-\begin{minipage}{0.42\textwidth}
-\begin{verbatim}
-Input
- |- p1 -> p2 -> p3
- |- p1 -> p4 -> p5
-\end{verbatim}
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.48\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{../../before_sharing.png}
+  \caption*{Before sharing}
 \end{minipage}
-&
-\begin{minipage}{0.42\textwidth}
-\begin{verbatim}
-Input
- |- p1
-     |- p2 -> p3
-     |- p4 -> p5
-\end{verbatim}
+\hfill
+\begin{minipage}{0.48\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{../../after_sharing.png}
+  \caption*{After sharing}
 \end{minipage}
-\end{tabular}
-\end{center}
+\caption{Branch graph before and after duplicate first-node sharing.}
+\label{fig:first-node-sharing}
+\end{figure}
 
 Later nodes are not merged, even if they have the same operation name or object
 representation, because their inputs may differ. For example,
