@@ -86,7 +86,28 @@ bool shouldCopyPreprocessInput(const Node::Ptr &node) {
   }
 
   py::dict params = node->py_func.cast<py::dict>();
-  return !is_sklearn_instance(params["func"]);
+  py::object func = params.contains("func") ? params["func"] : py::none();
+
+  // Non-sklearn callables remain conservative.
+  if (!is_sklearn_instance(func)) {
+    return true;
+  }
+
+  // For sklearn transformers, only skip the defensive copy when the transformer
+  // itself is configured to avoid in-place mutation.
+  try {
+    if (py::hasattr(func, "get_params")) {
+      py::dict transformer_params = func.attr("get_params")(py::arg("deep") = false);
+      if (transformer_params.contains("copy") && !py::cast<bool>(transformer_params["copy"])) {
+        return true;
+      }
+    }
+  } catch (const py::error_already_set &) {
+    PyErr_Clear();
+    return true; // be conservative on inspection failure
+  }
+
+  return false;
 }
 
 std::string nodeSignature(NodeType type, const py::object &node_obj) {
