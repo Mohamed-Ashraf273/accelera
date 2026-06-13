@@ -402,6 +402,122 @@ Validation Accuracy & Test Accuracy & Test Accuracy Delta \\
 \label{fig:pipe-memory-scaling}
 \end{figure}
 
+\subsection{Implemented Pipeline Optimizations}
+
+Several optimizations were added to reduce unnecessary work and memory
+retention in the native graph backend. These changes target the main cost of
+branch-based pipeline search: multiple candidate paths can hold similar
+intermediate arrays, fitted states, and prediction outputs at the same time.
+
+\paragraph{Optional cache execution.}
+Caching for preprocess and model nodes was made opt-in. The public Python API
+keeps the parameter \texttt{cache=False} by default for both
+\texttt{preprocess()} and \texttt{model()}. When caching is disabled, the C++
+nodes skip the expensive \texttt{joblib.hash()}, \texttt{joblib.load()}, and
+\texttt{joblib.dump()} path. This reduces latency and memory pressure in normal
+search runs, while preserving cache support for repeated experiments where the
+user explicitly enables it.
+
+\paragraph{Consumer-count based intermediate release.}
+The graph backend now computes how many downstream nodes still consume each
+node output. After a node finishes, the consumer count of its source nodes is
+decremented. When the count reaches zero, temporary data for releasable nodes
+is cleared. This is especially important for preprocessing outputs, because a
+transformed training array may be needed by multiple model branches but becomes
+dead once the last model has finished fitting.
+
+\paragraph{Input training-data release.}
+The original input node stores the raw training \texttt{X} and \texttt{y}.
+After all downstream training consumers have executed, these references are
+cleared as well. This prevents the graph from retaining the original training
+arrays after fitted preprocessors and models no longer require them. The
+release is disabled for executed graphs during inference, because the executed
+graph input must remain available while prediction nodes apply the fitted
+preprocessing chain to new test data.
+
+\paragraph{Separated output-container creation from input copying.}
+Originally, the internal flag \texttt{should\_create\_new\_data} controlled two
+different behaviors: creating a fresh branch output container and copying
+\texttt{X}/\texttt{y} before preprocessing. These meanings were separated into
+two concepts. A first preprocessing node in a branch still creates its own
+output dictionary, but the decision to defensively copy the input is controlled
+independently. This avoids corrupting branch storage semantics while allowing
+safe copy reduction.
+
+\paragraph{Skipping defensive copies for sklearn transformers.}
+For sklearn transformer instances, the graph skips the branch-start defensive
+\texttt{X.copy()} and \texttt{y.copy()} step. Standard sklearn transformers
+such as \texttt{StandardScaler}, \texttt{MinMaxScaler}, and
+\texttt{SelectKBest} return transformed outputs instead of mutating the input
+object in place under their normal configuration. Custom callables remain
+conservative: they still receive a copied input at the start of a branch,
+because arbitrary Python functions may mutate their argument.
+
+\paragraph{Executed-graph data retention reduction.}
+Executed graph cloning keeps the fitted model state needed for future
+prediction, but avoids carrying unnecessary training intermediates such as raw
+training arrays and preprocessing output dictionaries. The selected executable
+path therefore keeps fitted preprocessors and fitted models as reusable state,
+while temporary training data can be released.
+
+\paragraph{Duplicate first-branch-node sharing.}
+The split operation now deduplicates identical first nodes created from the
+same split source. For example, if a branch is declared as:
+
+\begin{lstlisting}[language=Python]
+pipe.branch(
+    "preprocessing",
+    pipe.preprocess("a", MinMaxScaler(), branch=True),
+    pipe.preprocess("b", StandardScaler(), branch=True),
+    pipe.preprocess("c", MinMaxScaler(), branch=True),
+)
+\end{lstlisting}
+
+the graph creates one \texttt{MinMaxScaler} node and one
+\texttt{StandardScaler} node rather than two equivalent
+\texttt{MinMaxScaler} nodes. The signature used for this sharing depends on
+the node type and Python object representation, not on the user-facing node
+name, so identical operations with different names can still be shared.
+
+The optimization is intentionally restricted to first branch nodes. For list
+branches, only the first item is eligible for sharing:
+
+\begin{center}
+\begin{tabular}{cc}
+\textbf{Before sharing} & \textbf{After sharing} \\
+\begin{minipage}{0.42\textwidth}
+\begin{verbatim}
+Input
+ |- p1 -> p2 -> p3
+ |- p1 -> p4 -> p5
+\end{verbatim}
+\end{minipage}
+&
+\begin{minipage}{0.42\textwidth}
+\begin{verbatim}
+Input
+ |- p1
+     |- p2 -> p3
+     |- p4 -> p5
+\end{verbatim}
+\end{minipage}
+\end{tabular}
+\end{center}
+
+Later nodes are not merged, even if they have the same operation name or object
+representation, because their inputs may differ. For example,
+\texttt{[p1, p2, p3]} and \texttt{[p4, p2, p3]} keep separate \texttt{p2}
+nodes because one \texttt{p2} receives data from \texttt{p1}, while the other
+receives data from \texttt{p4}. This preserves correctness while removing
+obvious duplicate work at branch entry points.
+
+\paragraph{Fair benchmark protocol.}
+The comparison script was adjusted so manual sklearn, sklearn Pipeline, and
+\texttt{accelera\_pipe} follow the same protocol: train and validate all four
+candidate paths, select the best validation path, and evaluate the test split
+only once for the selected path. This makes latency comparisons more
+meaningful by avoiding extra test predictions in the sklearn baselines.
+
 \subsection{How to Use the Accelera Pipe Module}
 
 A minimal classification pipeline is:
