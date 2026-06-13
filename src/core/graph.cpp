@@ -9,6 +9,7 @@
 #include <stack>
 #include <stdexcept>
 #include <thread>
+#include <unordered_map>
 
 #include "core/graph.hpp"
 #include "core/node_factory.hpp"
@@ -86,6 +87,11 @@ bool shouldCopyPreprocessInput(const Node::Ptr &node) {
 
   py::dict params = node->py_func.cast<py::dict>();
   return !is_sklearn_instance(params["func"]);
+}
+
+std::string nodeSignature(NodeType type, const py::object &node_obj) {
+  return std::to_string(static_cast<int>(type)) + ":" +
+         py::str(node_obj).cast<std::string>();
 }
 
 void releaseConsumedSources(
@@ -259,10 +265,22 @@ void Graph::split(const std::string &branch_name,
   }
 
   m_is_branched = true;
+  std::vector<size_t> branch_offsets;
+  branch_offsets.reserve(branch_objects.size());
+  size_t current_offset = 0;
+  for (const auto &branch_object : branch_objects) {
+    branch_offsets.push_back(current_offset);
+    try {
+      current_offset += py::len(py::cast<py::list>(branch_object));
+    } catch (const py::cast_error &) {
+      current_offset += 1;
+    }
+  }
 
   // For each leaf, create parallel branches
   for (size_t leaf_idx = 0; leaf_idx < leaves.size(); ++leaf_idx) {
     Node::Ptr leaf = leaves[leaf_idx];
+    std::unordered_map<std::string, Node::Ptr> first_branch_nodes;
 
     for (size_t branch_idx = 0; branch_idx < branch_objects.size();
          ++branch_idx) {
@@ -273,30 +291,41 @@ void Graph::split(const std::string &branch_name,
 
         // It's a list - create a chain of nodes for this branch
         for (size_t list_idx = 0; list_idx < node_list.size(); ++list_idx) {
+          size_t node_idx = branch_offsets[branch_idx] + list_idx;
           NodeType nodeType;
-          if (node_types[branch_idx + list_idx] == "INPUT") {
+          if (node_types[node_idx] == "INPUT") {
             nodeType = NodeType::INPUT;
-          } else if (node_types[branch_idx + list_idx] == "PREPROCESS") {
+          } else if (node_types[node_idx] == "PREPROCESS") {
             nodeType = NodeType::PREPROCESS;
-          } else if (node_types[branch_idx + list_idx] == "MODEL") {
+          } else if (node_types[node_idx] == "MODEL") {
             nodeType = NodeType::MODEL;
-          } else if (node_types[branch_idx + list_idx] == "PREDICT") {
+          } else if (node_types[node_idx] == "PREDICT") {
             nodeType = NodeType::PREDICT;
-          } else if (node_types[branch_idx + list_idx] == "METRIC") {
+          } else if (node_types[node_idx] == "METRIC") {
             nodeType = NodeType::METRIC;
           } else {
             throw std::runtime_error("Unknown node type: " +
-                                     node_types[branch_idx + list_idx]);
+                                     node_types[node_idx]);
           }
 
-          std::string uniqueName = node_names[branch_idx + list_idx] + "_" +
-                                   std::to_string(m_nodes.size());
+          std::string uniqueName =
+              node_names[node_idx] + "_" + std::to_string(m_nodes.size());
           py::object node_obj = node_list[list_idx];
           Node::Ptr branchNode =
               NodeFactory::createNode(nodeType, uniqueName, node_obj);
 
           if (!validateNodeConnection(branchNode, current_source)) {
             continue;
+          }
+
+          if (list_idx == 0) {
+            std::string signature = nodeSignature(nodeType, node_obj);
+            auto existing_node = first_branch_nodes.find(signature);
+            if (existing_node != first_branch_nodes.end()) {
+              current_source = existing_node->second;
+              continue;
+            }
+            first_branch_nodes[signature] = branchNode;
           }
 
           branchNode->setShouldCreateNewData(
@@ -313,24 +342,25 @@ void Graph::split(const std::string &branch_name,
           current_source = branchNode;
         }
       } catch (const py::cast_error &) {
+        size_t node_idx = branch_offsets[branch_idx];
         NodeType nodeType;
-        if (node_types[branch_idx] == "INPUT") {
+        if (node_types[node_idx] == "INPUT") {
           nodeType = NodeType::INPUT;
-        } else if (node_types[branch_idx] == "PREPROCESS") {
+        } else if (node_types[node_idx] == "PREPROCESS") {
           nodeType = NodeType::PREPROCESS;
-        } else if (node_types[branch_idx] == "MODEL") {
+        } else if (node_types[node_idx] == "MODEL") {
           nodeType = NodeType::MODEL;
-        } else if (node_types[branch_idx] == "PREDICT") {
+        } else if (node_types[node_idx] == "PREDICT") {
           nodeType = NodeType::PREDICT;
-        } else if (node_types[branch_idx] == "METRIC") {
+        } else if (node_types[node_idx] == "METRIC") {
           nodeType = NodeType::METRIC;
         } else {
           throw std::runtime_error("Unknown node type: " +
-                                   node_types[branch_idx]);
+                                   node_types[node_idx]);
         }
 
         std::string uniqueName =
-            node_names[branch_idx] + "_" + std::to_string(m_nodes.size());
+            node_names[node_idx] + "_" + std::to_string(m_nodes.size());
 
         Node::Ptr branchNode = NodeFactory::createNode(
             nodeType, uniqueName, branch_objects[branch_idx]);
@@ -338,6 +368,16 @@ void Graph::split(const std::string &branch_name,
         if (!validateNodeConnection(branchNode, current_source)) {
           continue;
         }
+
+        std::string signature =
+            nodeSignature(nodeType, branch_objects[branch_idx]);
+        auto existing_node = first_branch_nodes.find(signature);
+        if (existing_node != first_branch_nodes.end()) {
+          current_source = existing_node->second;
+          continue;
+        }
+        first_branch_nodes[signature] = branchNode;
+
         branchNode->setShouldCreateNewData(branchNode->type ==
                                            NodeType::PREPROCESS);
         branchNode->setShouldCopyInput(shouldCopyPreprocessInput(branchNode));
