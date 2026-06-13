@@ -57,6 +57,8 @@ public:
 
   bool save();
   bool load(const std::string &directory);
+  py::dict getState() const;
+  void setState(py::dict state);
 
 private:
   std::vector<Node::Ptr> m_execution_order;

@@ -86,7 +86,10 @@ bool shouldCopyPreprocessInput(const Node::Ptr &node) {
   }
 
   py::dict params = node->py_func.cast<py::dict>();
-  py::object func = params.contains("func") ? params["func"] : py::none();
+  py::object func = py::none();
+  if (params.contains("func")) {
+    func = params["func"];
+  }
 
   if (!is_sklearn_instance(func)) {
     return true;
@@ -149,6 +152,7 @@ Graph::Graph(const Graph &other) {
   m_parallel_enabled = other.m_parallel_enabled;
   m_multicore_threshold = other.m_multicore_threshold;
   m_is_branched = other.m_is_branched;
+  m_executed = other.m_executed;
 
   std::unordered_map<Node::Ptr, Node::Ptr> node_mapping;
 
@@ -969,14 +973,112 @@ bool Graph::savePreprocessedData(const std::string &directory) {
   return found_model_nodes || found_preprocess_leaves;
 }
 
-//----------- These 2 functions are used only on executed graphs -----------
-bool Graph::save() {
-  throw std::runtime_error("This function is not implemented yet");
+py::dict Graph::getState() const {
+  py::dict state;
+  py::list nodes;
+
+  for (const auto &node : m_nodes) {
+    py::dict node_state;
+    node_state["type"] = static_cast<int>(node->type);
+    node_state["name"] = node->name;
+    node_state["py_func"] = node->py_func;
+    node_state["should_create_new_data"] = node->getShouldCreateNewData();
+    node_state["should_copy_input"] = node->getShouldCopyInput();
+    node_state["uses_gpu"] = node->getUsesGPU();
+    node_state["selected_in_path"] = node->selected_in_path;
+
+    auto data = node->getData();
+    node_state["data"] = data ? *data : py::none();
+
+    py::list source_indices;
+    for (const auto &source : node->getSourceNodes()) {
+      auto source_it = std::find(m_nodes.begin(), m_nodes.end(), source);
+      if (source_it == m_nodes.end()) {
+        source_indices.append(py::none());
+      } else {
+        source_indices.append(
+            static_cast<int>(std::distance(m_nodes.begin(), source_it)));
+      }
+    }
+    node_state["source_indices"] = source_indices;
+    nodes.append(node_state);
+  }
+
+  state["nodes"] = nodes;
+  state["compiled"] = m_compiled;
+  state["executed"] = m_executed;
+  state["branched"] = m_is_branched;
+  state["parallel_enabled"] = m_parallel_enabled;
+  state["multicore_threshold"] = m_multicore_threshold;
+  return state;
 }
 
-bool Graph::load(const std::string &directory) {
-  throw std::runtime_error("This function is not implemented yet");
+void Graph::setState(py::dict state) {
+  clear();
+
+  py::list nodes = state["nodes"];
+  std::vector<std::vector<int>> source_indices_by_node;
+  source_indices_by_node.reserve(nodes.size());
+
+  for (const auto &item : nodes) {
+    py::dict node_state = item.cast<py::dict>();
+    NodeType node_type = static_cast<NodeType>(node_state["type"].cast<int>());
+    std::string node_name = node_state["name"].cast<std::string>();
+    py::object py_func = node_state["py_func"];
+
+    Node::Ptr node;
+    if (node_type == NodeType::INPUT) {
+      m_input_node = std::make_shared<InputNode>(node_name);
+      node = std::static_pointer_cast<Node>(m_input_node);
+    } else {
+      node = NodeFactory::createNode(node_type, node_name, py_func);
+    }
+
+    node->setGraph(this);
+    node->setShouldCreateNewData(
+        node_state["should_create_new_data"].cast<bool>());
+    node->setShouldCopyInput(node_state["should_copy_input"].cast<bool>());
+    node->setUsesGPU(node_state["uses_gpu"].cast<bool>());
+    node->selected_in_path = node_state["selected_in_path"].cast<bool>();
+    node->setData(
+        std::make_shared<py::object>(node_state["data"].cast<py::object>()));
+
+    if (node_type == NodeType::METRIC) {
+      m_metric_nodes.push_back(std::dynamic_pointer_cast<MetricNode>(node));
+    }
+
+    std::vector<int> source_indices;
+    py::list serialized_sources = node_state["source_indices"];
+    for (const auto &source_item : serialized_sources) {
+      if (source_item.is_none()) {
+        source_indices.push_back(-1);
+      } else {
+        source_indices.push_back(source_item.cast<int>());
+      }
+    }
+    source_indices_by_node.push_back(source_indices);
+    m_nodes.push_back(node);
+  }
+
+  for (size_t node_idx = 0; node_idx < source_indices_by_node.size();
+       ++node_idx) {
+    std::vector<Node::Ptr> sources;
+    for (int source_idx : source_indices_by_node[node_idx]) {
+      if (source_idx >= 0 && static_cast<size_t>(source_idx) < m_nodes.size()) {
+        sources.push_back(m_nodes[source_idx]);
+      }
+    }
+    if (!sources.empty()) {
+      m_nodes[node_idx]->setSourceNodes(sources);
+    }
+  }
+
+  m_compiled = state["compiled"].cast<bool>();
+  m_executed = state["executed"].cast<bool>();
+  m_is_branched = state["branched"].cast<bool>();
+  m_parallel_enabled = state["parallel_enabled"].cast<bool>();
+  m_multicore_threshold = state["multicore_threshold"].cast<size_t>();
+  m_compiled = false;
 }
-//--------------------------------------------------------------------------
 
 } // namespace accelera

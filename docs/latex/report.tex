@@ -235,9 +235,34 @@ reuse of executed graphs after merging.
 \texttt{ExecutedGraph} wraps a graph that has already been fitted or selected.
 Calling it with new \texttt{X} reuses the fitted pipeline. If \texttt{y\_true}
 is provided, metrics are temporarily enabled for that call and disabled
-afterward. \texttt{save(directory)} serializes the pipeline XML to
-\texttt{pipeline.xml}; the code notes that model artifact saving is still a
-future improvement.
+afterward.
+
+Executed graphs can now be persisted as a single pickle file. Calling
+\texttt{save()} with no arguments creates \texttt{pipeline.pkl} in the current
+working directory. The user may also pass an explicit file path such as
+\texttt{"my\_pipeline.pkl"}. Loading is performed through
+\texttt{ExecutedGraph.load()}, which reconstructs the native C++ graph and
+restores the fitted Python objects stored in the graph nodes. The loaded graph
+keeps the executed-state flag, so applying data to it performs inference
+directly rather than fitting the models again.
+
+\begin{lstlisting}[language=Python]
+predictions, executed_graph = pipeline(X_train, y_train)
+
+executed_graph.save()                  # writes pipeline.pkl
+loaded_graph = ExecutedGraph.load()    # reads pipeline.pkl
+
+test_predictions = loaded_graph(X_test)
+\end{lstlisting}
+
+The implementation uses a pybind pickle bridge for the C++ \texttt{Graph}
+object. During saving, the graph is converted into a Python dictionary
+containing node metadata, source-edge indices, selected-path flags, fitted
+preprocessors, and fitted model state. During loading, this dictionary is used
+to rebuild the graph topology and restore each node. This design stores the
+pipeline in one file, but it requires the Python objects inside the pipeline to
+be pickle-compatible; standard sklearn transformers and estimators satisfy
+this requirement, while lambdas and some local custom functions may not.
 
 \subsection{Reporting}
 
@@ -1012,9 +1037,34 @@ reuse of executed graphs after merging.
 \texttt{ExecutedGraph} wraps a graph that has already been fitted or selected.
 Calling it with new \texttt{X} reuses the fitted pipeline. If \texttt{y\_true}
 is provided, metrics are temporarily enabled for that call and disabled
-afterward. \texttt{save(directory)} serializes the pipeline XML to
-\texttt{pipeline.xml}; the code notes that model artifact saving is still a
-future improvement.
+afterward.
+
+Executed graphs can now be persisted as a single pickle file. Calling
+\texttt{save()} with no arguments creates \texttt{pipeline.pkl} in the current
+working directory. The user may also pass an explicit file path such as
+\texttt{"my\_pipeline.pkl"}. Loading is performed through
+\texttt{ExecutedGraph.load()}, which reconstructs the native C++ graph and
+restores the fitted Python objects stored in the graph nodes. The loaded graph
+keeps the executed-state flag, so applying data to it performs inference
+directly rather than fitting the models again.
+
+\begin{lstlisting}[language=Python]
+predictions, executed_graph = pipeline(X_train, y_train)
+
+executed_graph.save()                  # writes pipeline.pkl
+loaded_graph = ExecutedGraph.load()    # reads pipeline.pkl
+
+test_predictions = loaded_graph(X_test)
+\end{lstlisting}
+
+The implementation uses a pybind pickle bridge for the C++ \texttt{Graph}
+object. During saving, the graph is converted into a Python dictionary
+containing node metadata, source-edge indices, selected-path flags, fitted
+preprocessors, and fitted model state. During loading, this dictionary is used
+to rebuild the graph topology and restore each node. This design stores the
+pipeline in one file, but it requires the Python objects inside the pipeline to
+be pickle-compatible; standard sklearn transformers and estimators satisfy
+this requirement, while lambdas and some local custom functions may not.
 
 \subsection{Reporting}
 

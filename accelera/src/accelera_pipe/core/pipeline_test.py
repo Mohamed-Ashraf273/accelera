@@ -1,4 +1,5 @@
 import re
+import tempfile
 
 import numpy as np
 import pytest
@@ -17,6 +18,7 @@ from sklearn.metrics import v_measure_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
+from accelera.src.accelera_pipe.core.executed_graph import ExecutedGraph
 from accelera.src.accelera_pipe.core.pipeline import Pipeline
 
 
@@ -360,6 +362,43 @@ class TestPipelineCorrectness:
 
         executed_graph_result = executed_graph(self.test_data)[0]
         assert np.array_equal(executed_graph_result, manual_result)
+
+    def test_executed_graph_save_load_for_inference(self):
+        p = Pipeline()
+        p.preprocess("scale", StandardScaler())
+        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
+        p.predict("pred", self.test_data, output_func="predict")
+
+        _, executed_graph = p(self.X, self.y)
+        expected_result = executed_graph(self.test_data)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            pipeline_path = f"{tmp_dir}/saved_pipeline.pkl"
+            executed_graph.save(pipeline_path)
+            loaded_graph = ExecutedGraph.load(pipeline_path)
+
+        loaded_result = loaded_graph(self.test_data)
+
+        assert len(loaded_result) == len(expected_result)
+        assert np.array_equal(loaded_result[0], expected_result[0])
+
+    def test_executed_graph_save_load_directory_compatibility(self):
+        p = Pipeline()
+        p.preprocess("scale", StandardScaler())
+        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
+        p.predict("pred", self.test_data, output_func="predict")
+
+        _, executed_graph = p(self.X, self.y)
+        expected_result = executed_graph(self.test_data)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            executed_graph.save(tmp_dir)
+            loaded_graph = ExecutedGraph.load(tmp_dir)
+
+        loaded_result = loaded_graph(self.test_data)
+
+        assert len(loaded_result) == len(expected_result)
+        assert np.array_equal(loaded_result[0], expected_result[0])
 
     def test_hard_voting_merge_correctness(self):
         p = Pipeline()

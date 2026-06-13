@@ -18,6 +18,7 @@ class Config:
     BUILD_DIR_NAME: str = "build"
     BINDINGS_SUBDIR: str = "bindings"
     API_SUBDIR: str = "api"
+    PIPELINE_FILENAME: str = "pipeline.pkl"
     DATASETS: dict[str, dict] = field(
         default_factory=lambda: {
             "customer_purchase_data": {

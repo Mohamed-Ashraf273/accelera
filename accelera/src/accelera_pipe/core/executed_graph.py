@@ -1,7 +1,15 @@
-import os
+import pickle
+from pathlib import Path
 
 from accelera.src.accelera_pipe.core.pipeline_base import PipelineBase
-from accelera.src.utils.accelera_utils import serialize
+from accelera.src.config import config
+
+
+def _resolve_pipeline_path(path):
+    pipeline_path = Path(path)
+    if pipeline_path.exists() and pipeline_path.is_dir():
+        return pipeline_path / config.PIPELINE_FILENAME
+    return pipeline_path
 
 
 class ExecutedGraph(PipelineBase):
@@ -21,10 +29,27 @@ class ExecutedGraph(PipelineBase):
 
         return results
 
-    def save(self, directory):
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        serialize(self, os.path.join(directory, "pipeline.xml"))
-        # TODO: we need also to save models and other
-        # data needed later for loading
+    def save(self, path=config.PIPELINE_FILENAME):
+        pipeline_path = _resolve_pipeline_path(path)
+        if pipeline_path.parent != Path("."):
+            pipeline_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(pipeline_path, "wb") as file:
+            pickle.dump(self, file)
+
         return self
+
+    @classmethod
+    def load(cls, path=config.PIPELINE_FILENAME):
+        pipeline_path = _resolve_pipeline_path(path)
+
+        with open(pipeline_path, "rb") as file:
+            loaded_pipeline = pickle.load(file)
+
+        if not isinstance(loaded_pipeline, cls):
+            raise TypeError(
+                f"Expected saved {cls.__name__}, got "
+                f"{type(loaded_pipeline).__name__}"
+            )
+
+        return loaded_pipeline
