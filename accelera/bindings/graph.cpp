@@ -56,7 +56,14 @@ PYBIND11_MODULE(graph, m) {
 
       .def("setMulticoreThreshold", &Graph::setMulticoreThreshold,
            py::arg("threshold"),
-           "Set minimum number of tasks to use multicore execution");
+           "Set minimum number of tasks to use multicore execution")
+
+      .def(py::pickle([](const Graph &graph) { return graph.getState(); },
+                      [](py::dict state) {
+                        Graph graph;
+                        graph.setState(state);
+                        return graph;
+                      }));
 
   // Utility functions
   m.def("serialize_graph", &serialize_graph, py::arg("graph"),

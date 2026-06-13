@@ -20,6 +20,7 @@ Node::Ptr Node::clone() const {
   }
 
   new_node->setShouldCreateNewData(this->getShouldCreateNewData());
+  new_node->setShouldCopyInput(this->getShouldCopyInput());
   new_node->setUsesGPU(this->getUsesGPU());
   new_node->selected_in_path = this->selected_in_path;
 
@@ -69,6 +70,12 @@ void Node::setShouldCreateNewData(bool should_create) {
 }
 
 bool Node::getShouldCreateNewData() const { return should_create_new_data; }
+
+void Node::setShouldCopyInput(bool should_copy) {
+  m_should_copy_input = should_copy;
+}
+
+bool Node::getShouldCopyInput() const { return m_should_copy_input; }
 
 void Node::setUsesGPU(bool uses_gpu) { m_uses_gpu = uses_gpu; }
 

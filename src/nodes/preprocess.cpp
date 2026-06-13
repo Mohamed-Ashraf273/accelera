@@ -140,7 +140,7 @@ void PreprocessNode::execute() {
     auto [X, y] = getInputData(input);
     validateInputData(X);
 
-    if (should_create_new_data) {
+    if (getShouldCopyInput()) {
       X = X.attr("copy")();
       y = y.is_none() ? py::none() : y.attr("copy")();
       validateInputData(X);

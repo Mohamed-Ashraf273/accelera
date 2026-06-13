@@ -9,6 +9,7 @@
 #include <stack>
 #include <stdexcept>
 #include <thread>
+#include <unordered_map>
 
 #include "core/graph.hpp"
 #include "core/node_factory.hpp"
@@ -21,6 +22,122 @@
 #include "utils/graph_utils.hpp"
 
 namespace accelera {
+
+namespace {
+
+bool shouldReleaseData(const Node::Ptr &node) {
+  if (!node) {
+    return false;
+  }
+  return node->type != NodeType::MODEL && node->type != NodeType::METRIC;
+}
+
+void releaseNodeData(const Node::Ptr &node) {
+  if (node->type == NodeType::INPUT) {
+    if (node->getGraph() && node->getGraph()->getIsExecuted()) {
+      return;
+    }
+
+    auto input_node = std::dynamic_pointer_cast<InputNode>(node);
+    if (input_node) {
+      input_node->clearInputData();
+    }
+    return;
+  }
+
+  node->setData(std::make_shared<py::object>(py::none()));
+}
+
+std::unordered_map<Node::Ptr, size_t>
+buildRemainingConsumerCounts(const std::vector<Node::Ptr> &nodes) {
+  std::unordered_map<Node::Ptr, size_t> consumer_counts;
+  for (const auto &node : nodes) {
+    consumer_counts[node] = 0;
+  }
+
+  for (const auto &node : nodes) {
+    for (const auto &source : node->getSourceNodes()) {
+      if (source) {
+        consumer_counts[source]++;
+      }
+    }
+  }
+
+  return consumer_counts;
+}
+
+bool is_sklearn_instance(const py::object &obj) {
+  if (obj.is_none()) {
+    return false;
+  }
+
+  try {
+    py::object module = obj.attr("__class__").attr("__module__");
+    std::string module_str = py::cast<std::string>(module);
+    return module_str.find("sklearn") != std::string::npos;
+  } catch (const py::error_already_set &) {
+    return false;
+  }
+}
+
+bool shouldCopyPreprocessInput(const Node::Ptr &node) {
+  if (!node || node->type != NodeType::PREPROCESS) {
+    return false;
+  }
+
+  py::dict params = node->py_func.cast<py::dict>();
+  py::object func = py::none();
+  if (params.contains("func")) {
+    func = params["func"];
+  }
+
+  if (!is_sklearn_instance(func)) {
+    return true;
+  }
+
+  try {
+    if (py::hasattr(func, "get_params")) {
+      py::dict transformer_params =
+          func.attr("get_params")(py::arg("deep") = false);
+      if (transformer_params.contains("copy") &&
+          !py::cast<bool>(transformer_params["copy"])) {
+        return true;
+      }
+    }
+  } catch (const py::error_already_set &) {
+    PyErr_Clear();
+    return true; // be conservative on inspection failure
+  }
+
+  return false;
+}
+
+std::string nodeSignature(NodeType type, const py::object &node_obj) {
+  return std::to_string(static_cast<int>(type)) + ":" +
+         py::str(node_obj).cast<std::string>();
+}
+
+void releaseConsumedSources(
+    const Node::Ptr &node,
+    std::unordered_map<Node::Ptr, size_t> &remaining_consumers) {
+  for (const auto &source : node->getSourceNodes()) {
+    if (!source) {
+      continue;
+    }
+
+    auto count_it = remaining_consumers.find(source);
+    if (count_it == remaining_consumers.end() || count_it->second == 0) {
+      continue;
+    }
+
+    count_it->second--;
+    if (count_it->second == 0 && shouldReleaseData(source)) {
+      releaseNodeData(source);
+    }
+  }
+}
+
+} // namespace
 
 Graph::Graph() : m_compiled(false), m_parallel_enabled(false) {
   m_input_node =
@@ -35,6 +152,7 @@ Graph::Graph(const Graph &other) {
   m_parallel_enabled = other.m_parallel_enabled;
   m_multicore_threshold = other.m_multicore_threshold;
   m_is_branched = other.m_is_branched;
+  m_executed = other.m_executed;
 
   std::unordered_map<Node::Ptr, Node::Ptr> node_mapping;
 
@@ -139,7 +257,10 @@ void Graph::addNode(Node::Ptr node) {
 
       Node::Ptr nodeToAdd =
           (i == 0) ? node : NodeFactory::createNodeCopy(node, i);
-      nodeToAdd->setShouldCreateNewData(is_connected_to_input[i]);
+      nodeToAdd->setShouldCreateNewData(
+          is_connected_to_input[i] && nodeToAdd->type == NodeType::PREPROCESS);
+      nodeToAdd->setShouldCopyInput(is_connected_to_input[i] &&
+                                    shouldCopyPreprocessInput(nodeToAdd));
       nodeToAdd->setSourceNode(leaves[i]);
       nodeToAdd->setGraph(this);
       m_nodes.push_back(nodeToAdd);
@@ -168,10 +289,22 @@ void Graph::split(const std::string &branch_name,
   }
 
   m_is_branched = true;
+  std::vector<size_t> branch_offsets;
+  branch_offsets.reserve(branch_objects.size());
+  size_t current_offset = 0;
+  for (const auto &branch_object : branch_objects) {
+    branch_offsets.push_back(current_offset);
+    try {
+      current_offset += py::len(py::cast<py::list>(branch_object));
+    } catch (const py::cast_error &) {
+      current_offset += 1;
+    }
+  }
 
   // For each leaf, create parallel branches
   for (size_t leaf_idx = 0; leaf_idx < leaves.size(); ++leaf_idx) {
     Node::Ptr leaf = leaves[leaf_idx];
+    std::unordered_map<std::string, Node::Ptr> first_branch_nodes;
 
     for (size_t branch_idx = 0; branch_idx < branch_objects.size();
          ++branch_idx) {
@@ -182,24 +315,25 @@ void Graph::split(const std::string &branch_name,
 
         // It's a list - create a chain of nodes for this branch
         for (size_t list_idx = 0; list_idx < node_list.size(); ++list_idx) {
+          size_t node_idx = branch_offsets[branch_idx] + list_idx;
           NodeType nodeType;
-          if (node_types[branch_idx + list_idx] == "INPUT") {
+          if (node_types[node_idx] == "INPUT") {
             nodeType = NodeType::INPUT;
-          } else if (node_types[branch_idx + list_idx] == "PREPROCESS") {
+          } else if (node_types[node_idx] == "PREPROCESS") {
             nodeType = NodeType::PREPROCESS;
-          } else if (node_types[branch_idx + list_idx] == "MODEL") {
+          } else if (node_types[node_idx] == "MODEL") {
             nodeType = NodeType::MODEL;
-          } else if (node_types[branch_idx + list_idx] == "PREDICT") {
+          } else if (node_types[node_idx] == "PREDICT") {
             nodeType = NodeType::PREDICT;
-          } else if (node_types[branch_idx + list_idx] == "METRIC") {
+          } else if (node_types[node_idx] == "METRIC") {
             nodeType = NodeType::METRIC;
           } else {
             throw std::runtime_error("Unknown node type: " +
-                                     node_types[branch_idx + list_idx]);
+                                     node_types[node_idx]);
           }
 
-          std::string uniqueName = node_names[branch_idx + list_idx] + "_" +
-                                   std::to_string(m_nodes.size());
+          std::string uniqueName =
+              node_names[node_idx] + "_" + std::to_string(m_nodes.size());
           py::object node_obj = node_list[list_idx];
           Node::Ptr branchNode =
               NodeFactory::createNode(nodeType, uniqueName, node_obj);
@@ -208,7 +342,20 @@ void Graph::split(const std::string &branch_name,
             continue;
           }
 
-          branchNode->setShouldCreateNewData(list_idx == 0);
+          if (list_idx == 0) {
+            std::string signature = nodeSignature(nodeType, node_obj);
+            auto existing_node = first_branch_nodes.find(signature);
+            if (existing_node != first_branch_nodes.end()) {
+              current_source = existing_node->second;
+              continue;
+            }
+            first_branch_nodes[signature] = branchNode;
+          }
+
+          branchNode->setShouldCreateNewData(
+              list_idx == 0 && branchNode->type == NodeType::PREPROCESS);
+          branchNode->setShouldCopyInput(list_idx == 0 &&
+                                         shouldCopyPreprocessInput(branchNode));
 
           m_nodes.push_back(branchNode);
           if (branchNode->type == NodeType::METRIC)
@@ -219,24 +366,25 @@ void Graph::split(const std::string &branch_name,
           current_source = branchNode;
         }
       } catch (const py::cast_error &) {
+        size_t node_idx = branch_offsets[branch_idx];
         NodeType nodeType;
-        if (node_types[branch_idx] == "INPUT") {
+        if (node_types[node_idx] == "INPUT") {
           nodeType = NodeType::INPUT;
-        } else if (node_types[branch_idx] == "PREPROCESS") {
+        } else if (node_types[node_idx] == "PREPROCESS") {
           nodeType = NodeType::PREPROCESS;
-        } else if (node_types[branch_idx] == "MODEL") {
+        } else if (node_types[node_idx] == "MODEL") {
           nodeType = NodeType::MODEL;
-        } else if (node_types[branch_idx] == "PREDICT") {
+        } else if (node_types[node_idx] == "PREDICT") {
           nodeType = NodeType::PREDICT;
-        } else if (node_types[branch_idx] == "METRIC") {
+        } else if (node_types[node_idx] == "METRIC") {
           nodeType = NodeType::METRIC;
         } else {
           throw std::runtime_error("Unknown node type: " +
-                                   node_types[branch_idx]);
+                                   node_types[node_idx]);
         }
 
         std::string uniqueName =
-            node_names[branch_idx] + "_" + std::to_string(m_nodes.size());
+            node_names[node_idx] + "_" + std::to_string(m_nodes.size());
 
         Node::Ptr branchNode = NodeFactory::createNode(
             nodeType, uniqueName, branch_objects[branch_idx]);
@@ -244,7 +392,19 @@ void Graph::split(const std::string &branch_name,
         if (!validateNodeConnection(branchNode, current_source)) {
           continue;
         }
-        branchNode->setShouldCreateNewData(true);
+
+        std::string signature =
+            nodeSignature(nodeType, branch_objects[branch_idx]);
+        auto existing_node = first_branch_nodes.find(signature);
+        if (existing_node != first_branch_nodes.end()) {
+          current_source = existing_node->second;
+          continue;
+        }
+        first_branch_nodes[signature] = branchNode;
+
+        branchNode->setShouldCreateNewData(branchNode->type ==
+                                           NodeType::PREPROCESS);
+        branchNode->setShouldCopyInput(shouldCopyPreprocessInput(branchNode));
 
         m_nodes.push_back(branchNode);
         if (branchNode->type == NodeType::METRIC)
@@ -523,6 +683,7 @@ void Graph::setGPUUsage() {
 
 void Graph::runParallel() {
   py::gil_scoped_release release;
+  auto remaining_consumers = buildRemainingConsumerCounts(m_execution_order);
   std::map<Node::Ptr, bool> finished_executing;
   std::map<Node::Ptr, bool> started_executing;
   unsigned int num_cores = std::thread::hardware_concurrency();
@@ -573,7 +734,7 @@ void Graph::runParallel() {
             std::launch::async,
             [node, this, &finished_executing, &available_nodes, &data_mutex,
              &available_cpu_threads, &available_gpu_thread, &exceptions, i,
-             &rem_nodes, &gpu_mutex]() {
+             &rem_nodes, &gpu_mutex, &remaining_consumers]() {
               py::gil_scoped_acquire acquire;
               try {
                 if (node->getUsesGPU()) {
@@ -587,6 +748,7 @@ void Graph::runParallel() {
               }
               {
                 std::lock_guard<std::mutex> lock(data_mutex);
+                releaseConsumedSources(node, remaining_consumers);
                 finished_executing[node] = true;
                 rem_nodes--;
               }
@@ -632,9 +794,11 @@ void Graph::runParallel() {
 void Graph::run() {
   if (!m_compiled)
     compile();
+  auto remaining_consumers = buildRemainingConsumerCounts(m_execution_order);
   for (auto &node : m_execution_order) {
     try {
       node->execute();
+      releaseConsumedSources(node, remaining_consumers);
     } catch (const std::exception &e) {
       throw std::runtime_error("Error executing node '" + node->name +
                                "': " + std::string(e.what()));
@@ -809,14 +973,112 @@ bool Graph::savePreprocessedData(const std::string &directory) {
   return found_model_nodes || found_preprocess_leaves;
 }
 
-//----------- These 2 functions are used only on executed graphs -----------
-bool Graph::save() {
-  throw std::runtime_error("This function is not implemented yet");
+py::dict Graph::getState() const {
+  py::dict state;
+  py::list nodes;
+
+  for (const auto &node : m_nodes) {
+    py::dict node_state;
+    node_state["type"] = static_cast<int>(node->type);
+    node_state["name"] = node->name;
+    node_state["py_func"] = node->py_func;
+    node_state["should_create_new_data"] = node->getShouldCreateNewData();
+    node_state["should_copy_input"] = node->getShouldCopyInput();
+    node_state["uses_gpu"] = node->getUsesGPU();
+    node_state["selected_in_path"] = node->selected_in_path;
+
+    auto data = node->getData();
+    node_state["data"] = data ? *data : py::none();
+
+    py::list source_indices;
+    for (const auto &source : node->getSourceNodes()) {
+      auto source_it = std::find(m_nodes.begin(), m_nodes.end(), source);
+      if (source_it == m_nodes.end()) {
+        source_indices.append(py::none());
+      } else {
+        source_indices.append(
+            static_cast<int>(std::distance(m_nodes.begin(), source_it)));
+      }
+    }
+    node_state["source_indices"] = source_indices;
+    nodes.append(node_state);
+  }
+
+  state["nodes"] = nodes;
+  state["compiled"] = m_compiled;
+  state["executed"] = m_executed;
+  state["branched"] = m_is_branched;
+  state["parallel_enabled"] = m_parallel_enabled;
+  state["multicore_threshold"] = m_multicore_threshold;
+  return state;
 }
 
-bool Graph::load(const std::string &directory) {
-  throw std::runtime_error("This function is not implemented yet");
+void Graph::setState(py::dict state) {
+  clear();
+
+  py::list nodes = state["nodes"];
+  std::vector<std::vector<int>> source_indices_by_node;
+  source_indices_by_node.reserve(nodes.size());
+
+  for (const auto &item : nodes) {
+    py::dict node_state = item.cast<py::dict>();
+    NodeType node_type = static_cast<NodeType>(node_state["type"].cast<int>());
+    std::string node_name = node_state["name"].cast<std::string>();
+    py::object py_func = node_state["py_func"];
+
+    Node::Ptr node;
+    if (node_type == NodeType::INPUT) {
+      m_input_node = std::make_shared<InputNode>(node_name);
+      node = std::static_pointer_cast<Node>(m_input_node);
+    } else {
+      node = NodeFactory::createNode(node_type, node_name, py_func);
+    }
+
+    node->setGraph(this);
+    node->setShouldCreateNewData(
+        node_state["should_create_new_data"].cast<bool>());
+    node->setShouldCopyInput(node_state["should_copy_input"].cast<bool>());
+    node->setUsesGPU(node_state["uses_gpu"].cast<bool>());
+    node->selected_in_path = node_state["selected_in_path"].cast<bool>();
+    node->setData(
+        std::make_shared<py::object>(node_state["data"].cast<py::object>()));
+
+    if (node_type == NodeType::METRIC) {
+      m_metric_nodes.push_back(std::dynamic_pointer_cast<MetricNode>(node));
+    }
+
+    std::vector<int> source_indices;
+    py::list serialized_sources = node_state["source_indices"];
+    for (const auto &source_item : serialized_sources) {
+      if (source_item.is_none()) {
+        source_indices.push_back(-1);
+      } else {
+        source_indices.push_back(source_item.cast<int>());
+      }
+    }
+    source_indices_by_node.push_back(source_indices);
+    m_nodes.push_back(node);
+  }
+
+  for (size_t node_idx = 0; node_idx < source_indices_by_node.size();
+       ++node_idx) {
+    std::vector<Node::Ptr> sources;
+    for (int source_idx : source_indices_by_node[node_idx]) {
+      if (source_idx >= 0 && static_cast<size_t>(source_idx) < m_nodes.size()) {
+        sources.push_back(m_nodes[source_idx]);
+      }
+    }
+    if (!sources.empty()) {
+      m_nodes[node_idx]->setSourceNodes(sources);
+    }
+  }
+
+  m_compiled = state["compiled"].cast<bool>();
+  m_executed = state["executed"].cast<bool>();
+  m_is_branched = state["branched"].cast<bool>();
+  m_parallel_enabled = state["parallel_enabled"].cast<bool>();
+  m_multicore_threshold = state["multicore_threshold"].cast<size_t>();
+  m_compiled = false;
 }
-//--------------------------------------------------------------------------
 
 } // namespace accelera

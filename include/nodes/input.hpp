@@ -15,6 +15,7 @@ public:
   virtual ~InputNode() = default;
   void execute() override;
   void setInputData(py::object X, py::object y = py::object());
+  void clearInputData();
 
   py::object getX() const { return m_X; }
   py::object getY() const { return m_y; }

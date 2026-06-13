@@ -7,11 +7,14 @@ from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline as SklearnPipeline
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
 from accelera.src.accelera_pipe.core.pipeline import Pipeline as accpipeline
+from accelera.src.accelera_pipe.wrappers.graph_report import GraphReport
+from accelera.src.utils.accelera_utils import serialize
 
 
 def get_memory_info():
@@ -35,7 +38,7 @@ def sample_data():
 
     # Create a large, realistic dataset
     X, y = make_classification(
-        n_samples=100_000,  # Large dataset
+        n_samples=50_000,  # Large dataset
         n_features=25,  # High-dimensional features
         n_classes=4,  # Multi-class problem
         n_informative=20,  # Most features are informative
@@ -102,7 +105,7 @@ def extract_metric(metric_result):
 
 sk_start_mem = get_memory_info()
 sk_start_time = time.time()
-sk_results = []
+best_sk = None
 
 for scaler, model in candidates:
     scaler_inst = clone(scaler)
@@ -110,35 +113,71 @@ for scaler, model in candidates:
 
     X_train_scaled = scaler_inst.fit_transform(X_train)
     X_val_scaled = scaler_inst.transform(X_val)
-    X_test_scaled = scaler_inst.transform(X_test)
 
     model_inst.fit(X_train_scaled, y_train)
     y_val_pred = model_inst.predict(X_val_scaled)
-    y_test_pred = model_inst.predict(X_test_scaled)
+    val_acc = accuracy_score(y_val, y_val_pred)
 
-    sk_results.append(
-        {
+    if best_sk is None or val_acc > best_sk["val_acc"]:
+        best_sk = {
             "scaler": scaler_inst.__class__.__name__,
             "model": model_inst.__class__.__name__,
-            "val_acc": accuracy_score(y_val, y_val_pred),
-            "test_acc": accuracy_score(y_test, y_test_pred),
+            "scaler_inst": scaler_inst,
+            "model_inst": model_inst,
+            "val_acc": val_acc,
         }
-    )
 
-best_sk = max(sk_results, key=lambda r: r["val_acc"])
+X_test_scaled = best_sk["scaler_inst"].transform(X_test)
+y_test_pred = best_sk["model_inst"].predict(X_test_scaled)
+
+best_sk["test_acc"] = accuracy_score(y_test, y_test_pred)
 sk_end_time = time.time()
 sk_end_mem = get_memory_info()
 
+sk_pipe_start_mem = get_memory_info()
+sk_pipe_start_time = time.time()
+best_sk_pipe = None
+
+for scaler, model in candidates:
+    pipe = SklearnPipeline(
+        [
+            ("scaler", clone(scaler)),
+            ("model", clone(model)),
+        ]
+    )
+
+    pipe.fit(X_train, y_train)
+    y_val_pred = pipe.predict(X_val)
+    val_acc = accuracy_score(y_val, y_val_pred)
+
+    if best_sk_pipe is None or val_acc > best_sk_pipe["val_acc"]:
+        best_sk_pipe = {
+            "scaler": pipe.named_steps["scaler"].__class__.__name__,
+            "model": pipe.named_steps["model"].__class__.__name__,
+            "pipe": pipe,
+            "val_acc": val_acc,
+        }
+
+y_test_pred = best_sk_pipe["pipe"].predict(X_test)
+best_sk_pipe["test_acc"] = accuracy_score(y_test, y_test_pred)
+sk_pipe_end_time = time.time()
+sk_pipe_end_mem = get_memory_info()
+
 acc_start_mem = get_memory_info()
 acc_start_time = time.time()
-_, best_path = acc_pipe(X_train, y_train, select_strategy="max")
-acc_val_results = best_path(X_val, y_true=y_val)
+acc_val_results, best_path = acc_pipe(X_train, y_train, select_strategy="max")
+serialize(acc_pipe, "accelera_pipe.xml")
+report = GraphReport("report", "accelera_pipe.xml", acc_val_results)
+img_path = report.execute()
 acc_test_results = best_path(X_test, y_true=y_test)
 acc_end_time = time.time()
 acc_end_mem = get_memory_info()
 
-acc_val_acc = extract_metric(acc_val_results[0])
+acc_val_acc = max(extract_metric(result) for result in acc_val_results)
 acc_test_acc = extract_metric(acc_test_results[0])
+sk_time = sk_end_time - sk_start_time
+sk_pipe_time = sk_pipe_end_time - sk_pipe_start_time
+acc_time = acc_end_time - acc_start_time
 
 print("\n=== Fair Comparison Report ===")
 print(
@@ -151,7 +190,7 @@ print(
     f"Best candidate: {best_sk['scaler']} -> {best_sk['model']} | "
     f"val_acc={best_sk['val_acc']:.4f} | test_acc={best_sk['test_acc']:.4f}"
 )
-print(f"Time: {sk_end_time - sk_start_time:.2f} s")
+print(f"Time: {sk_time:.2f} s")
 print(
     f"Memory delta (RSS/VMS/Swap MB): "
     f"{sk_end_mem['rss_mb'] - sk_start_mem['rss_mb']:.2f} / "
@@ -159,9 +198,23 @@ print(
     f"{sk_end_mem['swap_mb'] - sk_start_mem['swap_mb']:.2f}"
 )
 
+print("\n[sklearn Pipeline]")
+print(
+    f"Best candidate: {best_sk_pipe['scaler']} -> {best_sk_pipe['model']} | "
+    f"val_acc={best_sk_pipe['val_acc']:.4f} | "
+    f"test_acc={best_sk_pipe['test_acc']:.4f}"
+)
+print(f"Time: {sk_pipe_time:.2f} s")
+print(
+    f"Memory delta (RSS/VMS/Swap MB): "
+    f"{sk_pipe_end_mem['rss_mb'] - sk_pipe_start_mem['rss_mb']:.2f} / "
+    f"{sk_pipe_end_mem['vms_mb'] - sk_pipe_start_mem['vms_mb']:.2f} / "
+    f"{sk_pipe_end_mem['swap_mb'] - sk_pipe_start_mem['swap_mb']:.2f}"
+)
+
 print("\n[accelera]")
 print(f"Selected path val_acc={acc_val_acc:.4f} | test_acc={acc_test_acc:.4f}")
-print(f"Time: {acc_end_time - acc_start_time:.2f} s")
+print(f"Time: {acc_time:.2f} s")
 print(
     f"Memory delta (RSS/VMS/Swap MB): "
     f"{acc_end_mem['rss_mb'] - acc_start_mem['rss_mb']:.2f} / "
@@ -174,7 +227,5 @@ print(
     f"Test accuracy delta (accelera - sklearn): "
     f"{acc_test_acc - best_sk['test_acc']:+.4f}"
 )
-print(
-    f"Time delta (accelera - sklearn): "
-    f"{(acc_end_time - acc_start_time) - (sk_end_time - sk_start_time):+.2f} s"
-)
+print(f"Time delta (accelera - sklearn): {acc_time - sk_time:+.2f} s")
+print(f"Time delta (accelera - sklearn Pipeline): {acc_time - sk_pipe_time:+.2f} s")

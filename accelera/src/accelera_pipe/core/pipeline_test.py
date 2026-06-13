@@ -1,4 +1,5 @@
 import re
+import tempfile
 
 import numpy as np
 import pytest
@@ -17,7 +18,26 @@ from sklearn.metrics import v_measure_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
+from accelera.src.accelera_pipe.core.executed_graph import ExecutedGraph
 from accelera.src.accelera_pipe.core.pipeline import Pipeline
+
+
+class CountingTransformer:
+    fit_counts = {}
+
+    def __init__(self, label, delta=0.0):
+        self.label = label
+        self.delta = delta
+
+    def __repr__(self):
+        return f"CountingTransformer(label={self.label!r}, delta={self.delta!r})"
+
+    def fit(self, X, y=None):
+        self.fit_counts[self.label] = self.fit_counts.get(self.label, 0) + 1
+        return self
+
+    def transform(self, X):
+        return X + self.delta
 
 
 class TestPipelineCorrectness:
@@ -343,6 +363,43 @@ class TestPipelineCorrectness:
         executed_graph_result = executed_graph(self.test_data)[0]
         assert np.array_equal(executed_graph_result, manual_result)
 
+    def test_executed_graph_save_load_for_inference(self):
+        p = Pipeline()
+        p.preprocess("scale", StandardScaler())
+        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
+        p.predict("pred", self.test_data, output_func="predict")
+
+        _, executed_graph = p(self.X, self.y)
+        expected_result = executed_graph(self.test_data)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            pipeline_path = f"{tmp_dir}/saved_pipeline.pkl"
+            executed_graph.save(pipeline_path)
+            loaded_graph = ExecutedGraph.load(pipeline_path)
+
+        loaded_result = loaded_graph(self.test_data)
+
+        assert len(loaded_result) == len(expected_result)
+        assert np.array_equal(loaded_result[0], expected_result[0])
+
+    def test_executed_graph_save_load_directory_compatibility(self):
+        p = Pipeline()
+        p.preprocess("scale", StandardScaler())
+        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
+        p.predict("pred", self.test_data, output_func="predict")
+
+        _, executed_graph = p(self.X, self.y)
+        expected_result = executed_graph(self.test_data)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            executed_graph.save(tmp_dir)
+            loaded_graph = ExecutedGraph.load(tmp_dir)
+
+        loaded_result = loaded_graph(self.test_data)
+
+        assert len(loaded_result) == len(expected_result)
+        assert np.array_equal(loaded_result[0], expected_result[0])
+
     def test_hard_voting_merge_correctness(self):
         p = Pipeline()
         p.preprocess("scale", StandardScaler())
@@ -436,6 +493,65 @@ class TestPipelineCorrectness:
 
         assert len(pipeline_result) == 1
         assert np.array_equal(pipeline_result[0], manual_hard_vote)
+
+    def test_duplicate_first_branch_nodes_are_shared(self):
+        CountingTransformer.fit_counts = {}
+        p = Pipeline()
+        p.branch(
+            "preprocessing",
+            p.preprocess(
+                "same", CountingTransformer("same", delta=1.0), branch=True
+            ),
+            p.preprocess(
+                "other", CountingTransformer("other", delta=2.0), branch=True
+            ),
+            p.preprocess(
+                "same_with_different_name",
+                CountingTransformer("same", delta=1.0),
+                branch=True,
+            ),
+        )
+
+        pipeline_result, _ = p(self.X, self.y)
+
+        assert len(pipeline_result) == 2
+        assert CountingTransformer.fit_counts == {"same": 1, "other": 1}
+
+    def test_only_first_nodes_in_branch_lists_are_shared(self):
+        CountingTransformer.fit_counts = {}
+        p = Pipeline()
+        p.branch(
+            "preprocessing",
+            [
+                p.preprocess(
+                    "first",
+                    CountingTransformer("first", delta=1.0),
+                    branch=True,
+                ),
+                p.preprocess(
+                    "tail",
+                    CountingTransformer("tail", delta=2.0),
+                    branch=True,
+                ),
+            ],
+            [
+                p.preprocess(
+                    "first",
+                    CountingTransformer("first", delta=1.0),
+                    branch=True,
+                ),
+                p.preprocess(
+                    "tail",
+                    CountingTransformer("tail", delta=2.0),
+                    branch=True,
+                ),
+            ],
+        )
+
+        pipeline_result, _ = p(self.X, self.y)
+
+        assert len(pipeline_result) == 2
+        assert CountingTransformer.fit_counts == {"first": 1, "tail": 2}
 
     def test_merge_with_predict_proba(self):
         """Test merge with probability predictions"""
