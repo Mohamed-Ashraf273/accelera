@@ -60,8 +60,7 @@ std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
         if (!getGraph()->getIsExecuted()) {
           transformer_instance = execute_fit(transformer_instance, X, y);
         }
-        X = py::cast<py::array_t<double>>(
-            transformer_instance.attr("transform")(X));
+        X = transformer_instance.attr("transform")(X);
         py_func["func"] = transformer_instance;
       } catch (const py::error_already_set &e) {
         throw std::runtime_error("Python error in model fitting: " +
@@ -92,8 +91,7 @@ std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
         if (!getGraph()->getIsExecuted()) {
           transformer_instance = execute_fit(transformer_instance, X, y);
         }
-        X = py::cast<py::array_t<double>>(
-            transformer_instance.attr("transform")(X));
+        X = transformer_instance.attr("transform")(X);
         py_func["func"] = transformer_instance;
         joblib.attr("dump")(transformer_instance, modelPathStr);
         joblib.attr("dump")(X, dataPathStr);
