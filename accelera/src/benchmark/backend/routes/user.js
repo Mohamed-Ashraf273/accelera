@@ -4,7 +4,7 @@ const User = require("../schemas/user");
 
 router.post("/login", async (req, res) => {
   try {
-    const {  email } = req.body;
+    const { email } = req.body;
     const user = await User.findOne({ email: email });
     if (!user) {
       return res
@@ -31,6 +31,18 @@ router.post("/signup", async (req, res) => {
   try {
     let { name, email, role } = req.body;
     role = role.toLowerCase();
+    name = name.toLowerCase();
+    email = email.toLowerCase();
+    const userByName = await User.findOne({ name });
+    if (userByName)
+      return res.status(400).json({
+        message: `There is name  ${name} already exist`,
+      });
+    const userByEmail = await User.findOne({ email });
+    if (userByEmail)
+      return res.status(400).json({
+        message: `There is email  ${email} already exist`,
+      });
     const user = new User({
       name,
       email,

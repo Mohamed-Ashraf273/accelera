@@ -54,7 +54,7 @@ const benchmarkSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Metric",
   },
-  metricPramaters: {
+  metricParamaters: {
     type: Map,
     of: String,
     default: {},

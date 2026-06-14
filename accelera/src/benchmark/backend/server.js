@@ -15,8 +15,9 @@ app.use("/metrics", metricsRoutes);
 app.use("/benchmark", bechmarkRoutes);
 app.use("/user", UserRoutes);
 app.use("/submission", SubmissionRoutes);
-app.listen(process.env.PORT, () => {
-  console.log(`The server is running on port ${process.env.PORT}`);
+app.listen(process.env.DB_PORT, () => {
+  console.log(`The server is running on port ${process.env.DB_PORT}`);
 });
+
 
 

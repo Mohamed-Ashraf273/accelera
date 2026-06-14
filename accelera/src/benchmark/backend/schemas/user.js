@@ -3,6 +3,7 @@ const userSChema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
+
   },
   email: {
     type: String,
@@ -14,6 +15,7 @@ const userSChema = new mongoose.Schema({
     required: true,
     enum: ["admin", "user"],
   },
+  
 });
 const User = mongoose.model("User", userSChema);
 module.exports = User;

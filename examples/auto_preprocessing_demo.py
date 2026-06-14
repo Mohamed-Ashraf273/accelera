@@ -22,10 +22,15 @@ def handle_data_preprocessing_type(
     text_column=None,
     dataset_type="tabular_dataset",
     report_path=None,
+    columns_need_to_drop=[],
 ):
     if dataset_type == "tabular_dataset":
         X_train, y_train, X_test, y_test = ClassicalTrainingPreprocessing(
-            df, target_column, problem_type, folder_path=report_path
+            df,
+            target_column,
+            problem_type,
+            folder_path=report_path,
+            columns_need_to_drop=columns_need_to_drop,
         ).common_preprocessing()
     elif dataset_type == "text_dataset":
         X_train, y_train, X_test, y_test = TextTrainingPreprocessing(
@@ -48,8 +53,16 @@ def main():
                 label = info["target_column"]
                 report_path = info["report_path"]
                 text_column = info.get("text_column", None)
+                columns_need_to_drop = info.get("columns_need_to_drop", [])
+
                 handle_data_preprocessing_type(
-                    df, label, problem_type, text_column, dataset_type, report_path
+                    df,
+                    label,
+                    problem_type,
+                    text_column,
+                    dataset_type,
+                    report_path,
+                    columns_need_to_drop,
                 )
                 retriever.close()
 

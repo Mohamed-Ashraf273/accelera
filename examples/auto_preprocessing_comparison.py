@@ -22,12 +22,19 @@ def get_data_set_info():
     return ds
 
 
-def autogluon_preprocessing(df, label, eval_metric="f1_weighted"):
+def autogluon_preprocessing(
+    df, label, eval_metric="f1_weighted", auto_gloun_model="CAT"
+):
     start_time = time.time()
     df = df.drop_duplicates()
     training_df, testing_df = train_test_split(df, test_size=0.2, random_state=42)
     predictor = TabularPredictor(label=label, eval_metric=eval_metric).fit(
-        training_df, time_limit=1000
+        training_df,
+        time_limit=1000,
+        hyperparameters={auto_gloun_model: {}},
+        num_bag_folds=0,
+        num_stack_levels=0,
+        verbosity=2,
     )
     evaluation = predictor.evaluate(testing_df)[eval_metric]
     end_time = time.time()
@@ -71,6 +78,7 @@ def without_autogluon_preprocessing(
     eval_metric="f1_weighted",
     ds_type="tabular_dataset",
     text_column=None,
+    auto_gloun_model="CAT",
 ):
     start_time = time.time()
     X_train_df, X_test_df = handle_data_preprocessing_type(
@@ -86,6 +94,10 @@ def without_autogluon_preprocessing(
         train_data=X_train_df,
         feature_generator=None,
         time_limit=1000,
+        hyperparameters={auto_gloun_model: {}},
+        num_bag_folds=0,
+        num_stack_levels=0,
+        verbosity=2,
     )
     evaluation = predictor.evaluate(X_test_df)[eval_metric]
     end_time = time.time()
@@ -137,9 +149,13 @@ def main():
                 label = info["target_column"]
                 report_path = info["report_path"]
                 eval_metric = info["eval_metric"]
+                auto_gloun_model = info["autoGlounModel"]
                 text_column = info.get("text_column", None)
                 autogloun_score, autogloun_time = autogluon_preprocessing(
-                    df, label, eval_metric=eval_metric
+                    df,
+                    label,
+                    eval_metric=eval_metric,
+                    auto_gloun_model=auto_gloun_model,
                 )
                 accelera_score, accelera_time = without_autogluon_preprocessing(
                     df,
@@ -149,6 +165,7 @@ def main():
                     eval_metric=eval_metric,
                     text_column=text_column,
                     ds_type=dataset_type,
+                    auto_gloun_model=auto_gloun_model,
                 )
                 results.append(
                     {

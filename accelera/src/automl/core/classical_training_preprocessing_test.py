@@ -5,10 +5,10 @@ import tempfile
 import numpy as np
 import pandas as pd
 import pytest
+from category_encoders import BinaryEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import StandardScaler
 
@@ -175,6 +175,7 @@ class TestClassicalTrainingPreprocessing:
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
+            columns_need_to_drop=["ID"],
         )
         assert training_preprocessing.df is not None
         assert training_preprocessing.target_col == "target"
@@ -253,6 +254,7 @@ class TestClassicalTrainingPreprocessing:
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
+            columns_need_to_drop=["ID"],
         )
         shape_before_drop = training_preprocessing.df.shape
         training_preprocessing.data_overview()
@@ -282,6 +284,7 @@ class TestClassicalTrainingPreprocessing:
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
+            columns_need_to_drop=["ID"],
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
@@ -321,6 +324,7 @@ class TestClassicalTrainingPreprocessing:
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
+            columns_need_to_drop=["ID"],
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
@@ -330,7 +334,7 @@ class TestClassicalTrainingPreprocessing:
         assert "ID" in col_drop
         assert "const_feature" in col_drop
         assert "most_nulls_feature" in col_drop
-        assert col_drop["ID"] == "The column name contains id or ends with _id"
+        assert col_drop["ID"] == "Column Inside user given list to drop"
         assert col_drop["const_feature"] == "The column is constant"
         assert (
             col_drop["most_nulls_feature"] == "Missing above missing_threshold 0.5"
@@ -343,6 +347,7 @@ class TestClassicalTrainingPreprocessing:
             target_col="target",
             problem_type="classification",
             folder_path=self.temp_dir,
+            columns_need_to_drop=["ID"],
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
@@ -366,6 +371,7 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+            columns_need_to_drop=["ID"],
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
@@ -396,6 +402,7 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+            columns_need_to_drop=["ID"],
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
@@ -439,6 +446,7 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+            columns_need_to_drop=["ID"],
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
@@ -478,6 +486,7 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+            columns_need_to_drop=["ID"],
         )
         training_preprocessing.data_overview()
         X_train, X_val, y_train, y_val = training_preprocessing.split_data()
@@ -528,6 +537,7 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+            columns_need_to_drop=["ID"],
         )
         training_preprocessing.data_overview()
         X_train, X_val, y_train, y_val = training_preprocessing.split_data()
@@ -576,6 +586,7 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+            columns_need_to_drop=["ID"],
         )
         training_preprocessing.data_overview()
         X_train, X_val, y_train, y_val = training_preprocessing.split_data()
@@ -602,11 +613,7 @@ class TestClassicalTrainingPreprocessing:
             )
         )
         imputer = SimpleImputer(strategy="most_frequent")
-        one_hot_encoder = OneHotEncoder(
-            handle_unknown="ignore",
-            sparse_output=False,
-            drop="first",
-        )
+        one_hot_encoder = BinaryEncoder()
         X_train_manual = X_train[["one_hot_feature"]].values
         X_val_manual = X_val[["one_hot_feature"]].values
         X_train_imputed = imputer.fit_transform(X_train_manual)
@@ -628,6 +635,7 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+            columns_need_to_drop=["ID"],
         )
         training_preprocessing.data_overview()
         X_train, X_val, y_train, y_val = training_preprocessing.split_data()
@@ -676,6 +684,7 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+            columns_need_to_drop=["ID"],
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()
@@ -730,6 +739,7 @@ class TestClassicalTrainingPreprocessing:
             folder_path=self.temp_dir,
             cardinality_threshold=6,
             max_unique_ordinal=8,
+            columns_need_to_drop=["ID"],
         )
         training_preprocessing.data_overview()
         training_preprocessing.drop_duplicates()

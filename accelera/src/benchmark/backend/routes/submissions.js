@@ -23,7 +23,7 @@ router.get("/benchmark/:id", async (req, res) => {
     const typeSort = benchmark.evaluationMetric.whichBetter;
 
     const submissions = await Submission.find({ benchmarkId: benchmarkID })
-      .select("score submittedBy submissionDate")
+      .select("score repoLink submittedBy submissionDate")
       .populate("submittedBy", "name email")
       .sort(typeSort === "higher" ? "-score" : "score");
 
@@ -39,7 +39,7 @@ router.get("/user/:id", async (req, res) => {
   try {
     const userId = req.params.id;
     const submissions = await Submission.find({ submittedBy: userId })
-      .select("score submissionDate benchmark")
+      .select("score repoLink submissionDate benchmark")
       .populate("benchmarkId", "title");
     return res.status(200).json(submissions);
   } catch (err) {
@@ -74,11 +74,12 @@ router.post("/:benchmarkId", async (req, res) => {
   try {
     const benchmarkId = req.params.benchmarkId;
     let { submittedBy, repoLink, predictedColumnLink } = req.body;
-    const existSubmission = await Submission.find({
+    const existSubmission = await Submission.findOne({
       submittedBy: submittedBy,
       benchmarkId: benchmarkId,
     });
-    if (!!existSubmission) {
+    console.log(existSubmission)
+    if (existSubmission) {
       return res.status(400).json({
         message: `This submission is already exist`,
       });
@@ -108,6 +109,7 @@ router.post("/:benchmarkId", async (req, res) => {
         message: `This link ${repoLink}  is not a valid link`,
       });
     }
+    const metricParams = benchmark.metricPramaters || {};
 
     const results = await run_python(
       benchmark.predictedColumnLink,
@@ -116,7 +118,7 @@ router.post("/:benchmarkId", async (req, res) => {
       submittedBy,
       "get_score",
       benchmark.evaluationMetric.sklearnMetricName,
-      JSON.stringify(Object.fromEntries(benchmark.metricPramaters)),
+      JSON.stringify(metricParams),
     );
     if (results.isValid === false) {
       return res.status(400).json({
@@ -164,6 +166,7 @@ router.patch("/:id", async (req, res) => {
         message: `This id ${submissionId} is not exist`,
       });
     }
+    const metricParams = submission.benchmarkId.metricPramaters || {};
 
     const results = await run_python(
       submission.benchmarkId.predictedColumnLink,
@@ -172,9 +175,7 @@ router.patch("/:id", async (req, res) => {
       submission.submittedBy,
       "get_score",
       submission.benchmarkId.evaluationMetric.sklearnMetricName,
-      JSON.stringify(
-        Object.fromEntries(submission.benchmarkId.metricPramaters),
-      ),
+      JSON.stringify(metricParams),
     );
     if (results.isValid === false) {
       return res.status(400).json({

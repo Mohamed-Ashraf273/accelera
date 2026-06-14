@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
+from category_encoders import BinaryEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import StandardScaler
@@ -48,6 +48,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         cardinality_threshold=8,
         max_unique_ordinal=10,
         missing_threshold=0.5,
+        columns_need_to_drop=[],
         is_report=True,
     ):
         super().__init__(df, target_col, val_size, random_state, folder_path)
@@ -56,6 +57,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         self.max_unique_ordinal = max_unique_ordinal
         self.missing_threshold = missing_threshold
         self.is_report = is_report
+        self.columns_need_to_drop = columns_need_to_drop
         if self.problem_type is None:
             raise ValueError("problem_type cannot be None")
         self.problem_type = problem_type.lower()
@@ -71,6 +73,9 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             raise ValueError(
                 "Target must be integer or object fro classification problem"
             )
+        if not isinstance(self.columns_need_to_drop, list):
+            raise ValueError("columns_need_to_drop must be a list")
+
         if self.problem_type == "regression" and (
             not np.issubdtype(self.target_type, np.number)
             or self.target_type == "bool"
@@ -97,12 +102,13 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         save_pickle(self.folder_path, self.df.columns.tolist(), "data_columns.pkl")
 
     def is_drop_column(self, info, col):
+        if col in self.columns_need_to_drop:
+            print(col)
+            return True, "Column Inside user given list to drop"
         if info[col].get("is_constant", False):
             return True, "The column is constant"
-        elif col.lower() == "id" or col.lower().endswith("_id"):
-            return True, "The column name contains id or ends with _id"
 
-        elif info[col].get("p_missing", 0) > self.missing_threshold:
+        if info[col].get("p_missing", 0) > self.missing_threshold:
             return (
                 True,
                 f"Missing above missing_threshold {self.missing_threshold}",
@@ -218,7 +224,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                     info[col]["col_type"] = "low level cardinality"
                     info[col]["preprossing_steps"] = [
                         "Fill missing with most frequent",
-                        "One hot encoding",
+                        "Binary encoding",
                     ]
                     one_hot_cols.append(col)
                 else:
@@ -384,17 +390,10 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 ("scaler", StandardScaler()),
             ]
         )
-        one_hot_pipeline = Pipeline(
+        binary_encoder_pipeline = Pipeline(
             [
                 ("imputer", SimpleImputer(strategy="most_frequent")),
-                (
-                    "one_hot_encoder",
-                    OneHotEncoder(
-                        handle_unknown="ignore",
-                        sparse_output=False,
-                        drop="first",
-                    ),
-                ),
+                ("binary_encoder", BinaryEncoder()),
             ]
         )
         frequency_pipeline = Pipeline(
@@ -422,7 +421,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         )
         preprocessor = ColumnTransformer(
             transformers=[
-                ("onehot", one_hot_pipeline, one_hot_cols),
+                ("onehot", binary_encoder_pipeline, one_hot_cols),
                 ("numerical", numerical_pipeline, numerical_cols),
                 ("binary", binary_pipeline, binary_cols),
                 ("frequency", frequency_pipeline, frequency_cols),
