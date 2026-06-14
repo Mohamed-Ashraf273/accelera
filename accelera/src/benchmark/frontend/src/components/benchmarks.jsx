@@ -40,7 +40,7 @@ function Benchmarks() {
         alert(data.message);
         return;
       }
-      setBenchmarks((prev) => prev.filter((benchmark) => benchmark._id !== id));
+      setBenchmarks((prevBenchmarks) => prevBenchmarks.filter((benchmark) => benchmark._id !== id));
     } catch (err) {
       console.error("Delete error:", err);
     }
@@ -84,7 +84,7 @@ function Benchmarks() {
         {loading && <p className="loading">Loading...</p>}
         <div className="benchmarks-display">
         {benchmarks.map((benchmark) => (
-          <Link to="/" key={benchmark._id} className="benchmark-card">
+          <Link to="/display-benchmark" state={{benchmark}} key={benchmark._id} className="benchmark-card">
             <div className="benchmark-header">
               <h3>{benchmark.title}</h3>
               {user && benchmark.createdBy?._id === user._id && (

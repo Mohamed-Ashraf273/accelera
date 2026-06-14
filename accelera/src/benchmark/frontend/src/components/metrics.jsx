@@ -50,7 +50,7 @@ function Metrics() {
     <div className="metrics-page">
       <Navigation />
       <div className="metrics-page-content">
-        <h2 className="metrics-page-title">metrics</h2>
+        <h2 className="metrics-page-title">Metrics</h2>
         <div className="metrics-page-actions">
           <div className="metrics-filters">
             <select
@@ -75,7 +75,7 @@ function Metrics() {
         {loading && <p className="loading">Loading...</p>}
         <div className="metrics-display">
           {metrics.map((metric) => (
-            <Link to="/" key={metric._id} className="metric-card" >
+            <Link to="/display-metric" state={{metric}} key={metric._id} className="metric-card" >
               <div className="metric-header">
                 <h3>{metric.name}</h3>
                 {user && user.role === "admin" && (

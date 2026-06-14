@@ -13,7 +13,7 @@ function CreateMetric() {
   const [paramName, setParamName] = useState("");
   const [paramValue, setParamValue] = useState("");
 
-  const addParameter = () => {
+  const addNewParameter = () => {
     if (!paramName.trim()) return;
 
     setForm((prev) => ({
@@ -27,7 +27,7 @@ function CreateMetric() {
     setParamName("");
   };
 
-  const removeParameter = (key) => {
+  const removeOneParameter = (key) => {
     const newParamtersObj = { ...form.neededParameters };
     delete newParamtersObj[key];
 
@@ -37,7 +37,7 @@ function CreateMetric() {
     }));
   };
 
-  const addParamValue = (key) => {
+  const addNewParamValue = (key) => {
     if (!paramValue.trim()) return;
 
     setForm((prev) => ({
@@ -51,7 +51,7 @@ function CreateMetric() {
     setParamValue("");
   };
 
-  const removeParamValue = (key, index) => {
+  const removeOneParamValue = (key, index) => {
     const updatedParamValues = form.neededParameters[key].filter(
       (_, i) => i !== index,
     );
@@ -150,7 +150,7 @@ function CreateMetric() {
 
               <button
                 type="button"
-                onClick={addParameter}
+                onClick={addNewParameter}
                 className="param-button"
               >
                 Add Parameter
@@ -169,7 +169,7 @@ function CreateMetric() {
 
                   <button
                     type="button"
-                    onClick={() => addParamValue(key)}
+                    onClick={() => addNewParamValue(key)}
                     className="param-button"
                   >
                     Add Value
@@ -180,7 +180,7 @@ function CreateMetric() {
                     <div className="param-card">
                       <p key={index}>{value}</p>
                       <button
-                        onClick={() => removeParamValue(key, index)}
+                        onClick={() => removeOneParamValue(key, index)}
                         className="param-button"
                       >
                         ❌
@@ -191,7 +191,7 @@ function CreateMetric() {
 
                 <button
                   type="button"
-                  onClick={() => removeParameter(key)}
+                  onClick={() => removeOneParameter(key)}
                   className="param-button"
                 >
                   Remove Parameter

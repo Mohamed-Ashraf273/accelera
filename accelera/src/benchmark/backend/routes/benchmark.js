@@ -12,7 +12,7 @@ router.get("/", async (req, res) => {
   try {
     const benchmarks = await Benchmark.find()
       .select(
-        "title problemType creationDate metricPramaters evaluationMetric createdBy",
+        "title problemType targetColumn testSetWithoutPredictionsLink datasetLink description creationDate metricParamaters evaluationMetric createdBy",
       )
       .populate("createdBy", "name email")
       .populate("evaluationMetric", "name");
@@ -29,7 +29,7 @@ router.get("/user/:id", async (req, res) => {
     const userId = req.params.id;
     const benchmarks = await Benchmark.find({ createdBy: userId })
       .select(
-        "title problemType creationDate metricPramaters evaluationMetric createdBy",
+        "title problemType targetColumn testSetWithoutPredictionsLink datasetLink description creationDate metricParamaters evaluationMetric createdBy",
       )
       .populate("evaluationMetric", "name")
       .populate("createdBy", "name email");
@@ -53,7 +53,9 @@ router.get("/problem-type/:problemType", async (req, res) => {
     const benchmarks = await Benchmark.find({
       problemType: problemType,
     })
-      .select("title creationDate evaluationMetric metricPramaters createdBy")
+      .select(
+        "title problemType targetColumn testSetWithoutPredictionsLink datasetLink description creationDate metricParamaters evaluationMetric createdBy",
+      )
       .populate("createdBy", "name email")
       .populate("evaluationMetric", "name");
     return res.status(200).json(benchmarks);
@@ -95,7 +97,7 @@ router.post("/", async (req, res) => {
       predictedColumnLink,
       problemType,
       evaluationMetric,
-      metricPramaters,
+      metricParamaters,
       createdBy,
     } = req.body;
 
@@ -163,7 +165,7 @@ router.post("/", async (req, res) => {
       predictedColumnLink,
       problemType,
       evaluationMetric,
-      metricPramaters,
+      metricParamaters,
       createdBy,
     });
     return res.status(201).json(newBenchmark);
