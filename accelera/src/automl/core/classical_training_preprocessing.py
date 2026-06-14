@@ -1,14 +1,13 @@
 import numpy as np
 import pandas as pd
+from category_encoders import BinaryEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import StandardScaler
-from category_encoders import BinaryEncoder
 
 from accelera.src.automl.core.training_tabular_preprocessing_base import (
     TrainingTabularPreprocessingBase,
@@ -90,7 +89,10 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         ):
             raise ValueError("cardinality_threshold must be positive integer")
 
-        if not isinstance(self.max_unique_ordinal, int) or self.max_unique_ordinal < 0:
+        if (
+            not isinstance(self.max_unique_ordinal, int)
+            or self.max_unique_ordinal < 0
+        ):
             raise ValueError("max_unique_ordinal must be positive integer")
         if not isinstance(self.missing_threshold, float) or not (
             0 <= self.missing_threshold <= 1
@@ -306,7 +308,10 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 )
                 graph.build_graph()
                 self.report_data["graphs"]["images_name"].append(f"{col}")
-            if info[col]["col_type"] == "ordinal" and self.problem_type == "regression":
+            if (
+                info[col]["col_type"] == "ordinal"
+                and self.problem_type == "regression"
+            ):
                 graph = OrdinalRegression(
                     new_df,
                     col,
@@ -388,9 +393,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         binary_encoder_pipeline = Pipeline(
             [
                 ("imputer", SimpleImputer(strategy="most_frequent")),
-                (
-                    "binary_encoder",BinaryEncoder()
-                ),
+                ("binary_encoder", BinaryEncoder()),
             ]
         )
         frequency_pipeline = Pipeline(
@@ -503,7 +506,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             return
         X_train[bool_type_col] = X_train[bool_type_col].astype(int)
         X_val[bool_type_col] = X_val[bool_type_col].astype(int)
-
 
     def common_preprocessing(self):
         self.data_overview()

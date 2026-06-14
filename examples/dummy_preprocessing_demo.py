@@ -1,25 +1,29 @@
 import json
+import os
 import time
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import os
+from catboost import CatBoostClassifier
+from catboost import CatBoostRegressor
+from sklearn.metrics import f1_score
+from sklearn.metrics import r2_score
+from sklearn.model_selection import train_test_split
 
 from accelera.src.automl.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
 )
 from accelera.src.utils.dataset_retriever import retriever
 
-from catboost import CatBoostClassifier, CatBoostRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import f1_score, r2_score
-
 OUTPUT_DIR = "benchmark_results"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 
 def get_data_set_info():
     with open("auto_preproceesing_ds.json", "r") as f:
         return json.loads(f.read())
+
 
 def handel_data_raw(df, target_col):
     df = df.drop_duplicates().copy()
@@ -30,12 +34,15 @@ def handel_data_raw(df, target_col):
         X, y, test_size=0.2, random_state=42
     )
 
-    cat_features = X_train.select_dtypes(include=["object", "category"]).columns.tolist()
+    cat_features = X_train.select_dtypes(
+        include=["object", "category"]
+    ).columns.tolist()
 
     X_train[cat_features] = X_train[cat_features].fillna("missing")
     X_test[cat_features] = X_test[cat_features].fillna("missing")
 
     return X_train, X_test, y_train, y_test, cat_features
+
 
 def handle_data_preprocessing_type(
     df,
@@ -46,7 +53,6 @@ def handle_data_preprocessing_type(
     report_path=None,
     columns_need_to_drop=None,
 ):
-
     if columns_need_to_drop is None:
         columns_need_to_drop = []
 
@@ -105,6 +111,7 @@ def handle_data_preprocessing_type(
         "pre_time": pre_time,
     }
 
+
 def plot_and_save(df):
     x = np.arange(len(df))
 
@@ -144,6 +151,7 @@ def plot_and_save(df):
     plt.savefig(os.path.join(OUTPUT_DIR, "score_comparison.png"))
     plt.close()
 
+
 def main():
     ds = get_data_set_info()
     results = []
@@ -154,7 +162,6 @@ def main():
 
         for problem_type, datasets in datasets_typed.items():
             for dataset, info in datasets.items():
-
                 retriever.connect()
                 df = retriever.retrieve_dataset(dataset, url=info["link"], df=True)
 
@@ -179,6 +186,7 @@ def main():
     print(df_results)
 
     plot_and_save(df_results)
+
 
 if __name__ == "__main__":
     main()

@@ -1,15 +1,16 @@
 import json
+
 import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision.models as models
 
-from accelera.src.automl.core.classification_image_training_preprocessing import (  # noqa: E501
-    ClassificationImageTrainingPreprocessing,
-)
 from accelera.src.automl.core.classification_image_testing_preprocessing import (  # noqa: E501
     ClassificationImageTestingPreprocessing,
+)
+from accelera.src.automl.core.classification_image_training_preprocessing import (  # noqa: E501
+    ClassificationImageTrainingPreprocessing,
 )
 
 
@@ -134,7 +135,7 @@ def main():
         augment = info["augment"] == "True"
         is_train = info["train"] == "True"
         n_class = info.get("n_class", None)
-        
+
         inferernce = info.get("inferernce", None)
         obj = ClassificationTraining(dataset, folder_path, n_class)
         train_loader, val_loader = obj.handle_data(train_folder, val_folder, augment)

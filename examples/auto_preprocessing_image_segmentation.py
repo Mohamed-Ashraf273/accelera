@@ -1,15 +1,15 @@
 import json
+
+import matplotlib.pyplot as plt
 import pandas as pd
 import torch
 import torch.nn as nn
-import torch.optim as optim
-import torchvision.models as models
-import matplotlib.pyplot as plt
-from accelera.src.automl.core.segmentation_image_training_preprocessing import (  # noqa: E501
-    SegmentationImageTrainingPreprocessing,
-)
+
 from accelera.src.automl.core.segmentation_image_testing_preprocessing import (  # noqa: E501
     SegmentationImageTestingPreprocessing,
+)
+from accelera.src.automl.core.segmentation_image_training_preprocessing import (  # noqa: E501
+    SegmentationImageTrainingPreprocessing,
 )
 
 
@@ -225,7 +225,9 @@ class SegmentationTraining:
     def train(self, train_loader, val_loader, epochs):
         log_interval = 100
         model = UnetModel()
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
+        optimizer = torch.optim.Adam(
+            model.parameters(), lr=0.001, weight_decay=0.0001
+        )
         loss_1 = nn.BCEWithLogitsLoss()
         loss_2 = SoftDiceLoss()
         model = model.to(self.device)
@@ -247,7 +249,9 @@ class SegmentationTraining:
 
                 if (batch_idx + 1) % log_interval == 0:
                     print(
-                        f"Epoch [{_e+1}/{epochs}] | Batch [{batch_idx+1}/{len(train_loader)}] | Train loss: {loss_mean / lm_count:.4f}"
+                        f"Epoch [{_e + 1}/{epochs}] | "
+                        f"Batch [{batch_idx + 1}/{len(train_loader)}] | "
+                        f"Train loss: {loss_mean / lm_count:.4f}"
                     )
 
             val_loss, val_dice = validate(
@@ -255,7 +259,7 @@ class SegmentationTraining:
             )
 
             print(
-                f"Epoch {_e+1}: "
+                f"Epoch {_e + 1}: "
                 f"val_loss = {val_loss:.4f}, val_dice = {val_dice:.4f}"
             )
             self.logs.append(

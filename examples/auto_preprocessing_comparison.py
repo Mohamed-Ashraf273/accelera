@@ -105,7 +105,9 @@ def without_autogluon_preprocessing(
     return evaluation, total_time
 
 
-def plot_comparison(results_df, problem_type, target_graph, ds_type="tabular_dataset"):
+def plot_comparison(
+    results_df, problem_type, target_graph, ds_type="tabular_dataset"
+):
     plt.figure(figsize=(10, 6))
     x_range = np.arange(len(results_df["dataset"]))
 
