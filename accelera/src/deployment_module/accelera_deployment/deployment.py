@@ -3,6 +3,8 @@ import json
 import os
 import shlex
 import subprocess
+import urllib.error
+import urllib.request
 
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(project_root)
@@ -220,6 +222,7 @@ def ec2_deploy(args):
 
     print("Building and starting the Docker container on EC2...")
     _run_remote(args, script)
+    _check_ec2_public_url(args)
 
 
 def ec2_stop(args):
@@ -253,6 +256,31 @@ def _run_remote(args, command):
     subprocess.run(
         [*_ssh_command(args), _remote_target(args), remote_command], check=True
     )
+
+
+def _check_ec2_public_url(args):
+    port = validate_port(args.port)
+    url = f"http://{args.host}:{port}/health"
+    gui_url = f"http://{args.host}:{port}/gui"
+
+    print("Checking public EC2 URL...")
+    try:
+        with urllib.request.urlopen(url, timeout=8) as response:
+            if response.status < 400:
+                print("Public health check: OK")
+                print(f"GUI URL: {gui_url}")
+                return
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        print(
+            "Public health check failed. The container is healthy on the EC2 "
+            "host, but the public URL is not reachable."
+        )
+        print(
+            "Open the EC2 security group inbound rule for "
+            f"TCP port {port} from your IP, then retry:"
+        )
+        print(f"  {gui_url}")
+        print(f"Details: {exc}")
 
 
 def _remote_target(args):

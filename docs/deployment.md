@@ -252,6 +252,17 @@ http://<host>:8000/gui
 ```
 
 Make sure the EC2 security group allows inbound traffic on the selected port.
+The deployment script verifies that the container is healthy inside EC2 and then
+checks the public URL. If the internal check passes but the public check times
+out, add an inbound security group rule:
+
+```text
+Type: Custom TCP
+Port: 8000
+Source: your IP address, or 0.0.0.0/0 for a public demo
+```
+
+Use the same port you pass with `--port` if you do not use the default `8000`.
 
 ## Generated Docker Image
 
