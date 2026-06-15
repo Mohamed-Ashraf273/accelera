@@ -704,6 +704,70 @@ response = requests.post(
 The classifier result is expected to contain \texttt{result}, which is then
 interpreted as a predicted loop class.
 
+\subsection{OpenMP Classifier Model}
+
+The classifier used by the Parallelizer is stored in
+\modulepath{models/open\_mp\_classifier}. It is packaged as a small FastAPI
+service so that the Python parallelization logic can send a loop embedding and
+receive a loop category without embedding the model code directly inside the
+converter. The service loads two serialized files: \texttt{model.pkl}, which is
+the trained classifier, and \texttt{label\_encoder.pkl}, which maps numeric
+model outputs back to textual labels.
+
+The prediction API accepts one 40-dimensional feature vector:
+
+\begin{lstlisting}
+{
+  "embedding": [0.0, 1.0, 0.0, "..."]
+}
+\end{lstlisting}
+
+and returns one of the supported loop labels:
+
+\begin{lstlisting}
+{
+  "result": "parallel_for"
+}
+\end{lstlisting}
+
+The deployed model is an \texttt{XGBClassifier}. The saved model inspected from
+\texttt{model.pkl} has 300 boosting rounds, maximum tree depth 9, learning rate
+0.03, objective \texttt{multi:softprob}, and 40 input features. The label
+encoder stores three classes: \texttt{none}, \texttt{parallel\_for}, and
+\texttt{reduction}. The accompanying notebook \texttt{m1.ipynb} trains the model
+from \modulepath{data/data.csv}, where each row contains 40 extracted static
+features and one label column. The dataset contains 32,595 loop samples:
+15,240 labeled \texttt{none}, 13,482 labeled \texttt{parallel\_for}, and 3,873
+labeled \texttt{reduction}. Training uses a stratified 80/20 split with
+\texttt{random\_state=42}.
+
+\begin{table}[H]
+  \centering
+  \caption{OpenMP classifier test metrics from the training notebook.}
+  \label{tab:openmp-classifier-metrics}
+  \begin{tabular}{lrrrr}
+    \toprule
+    Class & Precision & Recall & F1-score & Support \\
+    \midrule
+    \texttt{none} & 0.82 & 0.85 & 0.84 & 3048 \\
+    \texttt{parallel\_for} & 0.86 & 0.81 & 0.83 & 2696 \\
+    \texttt{reduction} & 0.79 & 0.82 & 0.80 & 775 \\
+    \midrule
+    Accuracy & \multicolumn{3}{r}{0.83} & 6519 \\
+    Macro average & 0.82 & 0.83 & 0.83 & 6519 \\
+    Weighted average & 0.83 & 0.83 & 0.83 & 6519 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+These metrics show that the classifier is useful but not treated as the only
+source of truth. Accelera keeps deterministic fallback rules around the model:
+the classifier provides the first prediction, then rule-based checks can recover
+well-known safe cases such as reductions, collapsed nested loops, and
+independent array writes. This hybrid design is important because an incorrect
+OpenMP pragma can change program semantics, so the system favors explainable
+static evidence when the model is uncertain or unavailable.
+
 \subsection{Loop Class Resolution}
 
 The function \texttt{\_resolve\_loop\_class(loop\_code, pred\_class)} combines
@@ -715,6 +779,8 @@ class other than \texttt{none}, that class is used. If it predicts
   \item \texttt{reduction}, when scalar reduction updates are detected.
   \item \texttt{parallel\_for}, when consecutive nested \texttt{for} loops are
         detected.
+  \item \texttt{parallel\_for}, when the loop performs independent array writes
+        without loop-carried dependencies, indirect indexing, or early exits.
 \end{itemize}
 
 Otherwise the loop remains \texttt{none}. This means the module is not purely
