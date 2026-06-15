@@ -312,7 +312,11 @@ graph overhead dominates; for larger inputs, the parallel branch execution of
 \texttt{accelera\_pipe} reduces latency compared with both sklearn baselines.
 The memory measurements also show that \texttt{accelera\_pipe} currently pays
 a larger memory cost because multiple graph branches and fitted node states
-can be alive at the same time.
+can be alive at the same time. The largest run, with 150{,}000 training
+samples, 50{,}000 validation samples, and 50{,}000 test samples, is especially
+important: \texttt{accelera\_pipe} matched the sklearn test accuracy while
+reducing runtime by approximately 309 seconds compared with both sklearn
+baselines.
 
 \begin{table}[H]
 \centering
@@ -333,6 +337,7 @@ Accelera Time & Accelera RSS \\
 10{,}000 & 6{,}000 & 2{,}000 & 2{,}000 & 2.64 & 11.25 & 2.67 & 2.19 & 2.10 & 28.43 \\
 50{,}000 & 30{,}000 & 10{,}000 & 10{,}000 & 23.96 & 126.95 & 23.25 & 9.75 & 14.81 & 209.25 \\
 100{,}000 & 60{,}000 & 20{,}000 & 20{,}000 & 77.79 & 139.70 & 77.10 & 47.65 & 67.04 & 300.93 \\
+250{,}000 & 150{,}000 & 50{,}000 & 50{,}000 & 803.56 & 303.95 & 803.01 & 28.52 & 494.64 & 594.86 \\
 \bottomrule
 \end{tabular}%
 }
@@ -354,6 +359,7 @@ Validation Accuracy & Test Accuracy & Test Accuracy Delta \\
 10{,}000 & MinMaxScaler $\rightarrow$ SVC & MinMaxScaler $\rightarrow$ SVC & 0.9385 & 0.9260 & +0.0000 \\
 50{,}000 & MinMaxScaler $\rightarrow$ SVC & MinMaxScaler $\rightarrow$ SVC & 0.9565 & 0.9598 & +0.0000 \\
 100{,}000 & StandardScaler $\rightarrow$ SVC & StandardScaler $\rightarrow$ SVC & 0.9675 & 0.9709 & +0.0000 \\
+250{,}000 & StandardScaler $\rightarrow$ SVC & StandardScaler $\rightarrow$ SVC & 0.9774 & 0.9768 & +0.0000 \\
 \bottomrule
 \end{tabular}%
 }
@@ -372,19 +378,19 @@ Validation Accuracy & Test Accuracy & Test Accuracy Delta \\
   grid=both,
   legend style={at={(0.02,0.98)},anchor=north west},
   legend cell align={left},
-  xtick={1000,5000,10000,50000,100000},
-  xticklabels={1k,5k,10k,50k,100k}
+  xtick={1000,5000,10000,50000,100000,250000},
+  xticklabels={1k,5k,10k,50k,100k,250k}
 ]
 \addplot+[mark=*] coordinates {
-  (1000,0.06) (5000,2.47) (10000,2.64) (50000,23.96) (100000,77.79)
+  (1000,0.06) (5000,2.47) (10000,2.64) (50000,23.96) (100000,77.79) (250000,803.56)
 };
 \addlegendentry{manual sklearn}
 \addplot+[mark=square*] coordinates {
-  (1000,0.05) (5000,2.12) (10000,2.67) (50000,23.25) (100000,77.10)
+  (1000,0.05) (5000,2.12) (10000,2.67) (50000,23.25) (100000,77.10) (250000,803.01)
 };
 \addlegendentry{sklearn Pipeline}
 \addplot+[mark=triangle*] coordinates {
-  (1000,0.34) (5000,2.02) (10000,2.10) (50000,14.81) (100000,67.04)
+  (1000,0.34) (5000,2.02) (10000,2.10) (50000,14.81) (100000,67.04) (250000,494.64)
 };
 \addlegendentry{\texttt{accelera\_pipe}}
 \end{axis}
@@ -406,19 +412,19 @@ Validation Accuracy & Test Accuracy & Test Accuracy Delta \\
   grid=both,
   legend style={at={(0.02,0.98)},anchor=north west},
   legend cell align={left},
-  xtick={1000,5000,10000,50000,100000},
-  xticklabels={1k,5k,10k,50k,100k}
+  xtick={1000,5000,10000,50000,100000,250000},
+  xticklabels={1k,5k,10k,50k,100k,250k}
 ]
 \addplot+[mark=*] coordinates {
-  (1000,1.62) (5000,3.62) (10000,11.25) (50000,126.95) (100000,139.70)
+  (1000,1.62) (5000,3.62) (10000,11.25) (50000,126.95) (100000,139.70) (250000,303.95)
 };
 \addlegendentry{manual sklearn}
 \addplot+[mark=square*] coordinates {
-  (1000,0.16) (5000,1.09) (10000,2.19) (50000,9.75) (100000,47.65)
+  (1000,0.16) (5000,1.09) (10000,2.19) (50000,9.75) (100000,47.65) (250000,28.52)
 };
 \addlegendentry{sklearn Pipeline}
 \addplot+[mark=triangle*] coordinates {
-  (1000,19.32) (5000,21.62) (10000,28.43) (50000,209.25) (100000,300.93)
+  (1000,19.32) (5000,21.62) (10000,28.43) (50000,209.25) (100000,300.93) (250000,594.86)
 };
 \addlegendentry{\texttt{accelera\_pipe}}
 \end{axis}
@@ -814,7 +820,9 @@ Constants & \texttt{None}, bool, int, float, string &
 \texttt{std::string} literals.\\
 Names & \texttt{x} & Emitted as the same identifier.\\
 Binary operations & \texttt{+}, \texttt{-}, \texttt{*}, \texttt{/},
-\texttt{\%} & Parenthesized infix expressions. \texttt{**} is rejected.\\
+\texttt{\%}, \texttt{**} & Parenthesized infix expressions. Power
+expressions are emitted as \texttt{std::pow(left, right)} with
+\texttt{<cmath>}.\\
 Unary operations & unary \texttt{+}, unary \texttt{-}, \texttt{not} &
 Mapped to \texttt{+}, \texttt{-}, and \texttt{!}.\\
 Comparisons & \texttt{==}, \texttt{!=}, \texttt{<}, \texttt{<=},
@@ -829,8 +837,9 @@ Printing & \texttt{print(a, b)} & Mapped to \texttt{std::cout << a << " " << b
 Attributes & \texttt{obj.attr} & Mapped to \texttt{obj.attr}.\\
 Subscript & \texttt{arr[i]} & Mapped to \texttt{arr[i]}. Slices are rejected.\\
 Assignments & \texttt{x = expr} & First assignment declares inferred type;
-later assignments reuse the variable. Multi-target and non-name assignments
-are rejected.\\
+later assignments reuse the variable. Subscript assignment such as
+\texttt{X[i][j] = expr} is emitted directly. Multi-target assignments are
+rejected.\\
 Augmented assignment & \texttt{x += y}, \texttt{x -= y}, \texttt{x *= y},
 \texttt{x /= y}, \texttt{x \%= y} & Simple-name targets only. \texttt{x += 1}
 is emitted as \texttt{x++}.\\
@@ -839,8 +848,10 @@ Conditionals & \texttt{if}/\texttt{else} & Standard C++ braces.\\
 For loops & \texttt{for i in range(...)} & Supports \texttt{range(stop)},
 \texttt{range(start, stop)}, and \texttt{range(start, stop, step)} with simple
 name targets.\\
-Functions & \texttt{def f(a, b): ...} & Emitted as \texttt{auto f(auto a, auto
-b) \{...\}}. Decorators are rejected.\\
+Functions & \texttt{def f(a, b): ...} & Emitted as a C++17 template function
+with \texttt{auto} return type, for example
+\texttt{template <typename T0, typename T1> auto f(T0 a, T1 b) \{...\}}.
+Decorators are rejected.\\
 Type inference & bool, int, float, string constants & Emits \texttt{bool},
 \texttt{int}, \texttt{double}, or \texttt{std::string}; otherwise
 \texttt{auto}.\\
@@ -895,6 +906,123 @@ int main() {
     return 0;
 }
 \end{lstlisting}
+
+\subsection{Hard-File Parallelizer Evaluation}
+
+The hard-file evaluation script
+\modulepath{tools/evaluate\_hard\_parallelizer.py} was added to execute the
+parallelizer on the hard examples in \modulepath{data/hard\_test\_files}. The
+script parallelizes each file in a temporary directory, compiles both the
+baseline and generated versions with OpenMP support, runs each executable
+three times, compares the outputs, and writes a JSON report to
+\modulepath{hard\_parallelizer\_eval\_results\_generated.json}. For numeric
+outputs, the script uses tolerant floating-point comparison because OpenMP
+reductions can change the order of addition and therefore slightly change the
+last printed digits without changing the mathematical result.
+
+\begin{table}[H]
+\centering
+\caption{Hard-file parallelizer evaluation results.}
+\begin{tabular}{p{0.28\linewidth}p{0.18\linewidth}p{0.18\linewidth}p{0.16\linewidth}}
+\toprule
+\textbf{File} & \textbf{Baseline time} & \textbf{Parallel time} &
+\textbf{Speedup}\\
+\midrule
+\texttt{hard\_eval\_000.cpp} & 1786.28 ms & 195.47 ms & 9.138$\times$\\
+\texttt{hard\_eval\_001.cpp} & 63.98 ms & 31.47 ms & 2.033$\times$\\
+\texttt{hard\_eval\_002.py} & 42.66 ms & 7.67 ms & 5.563$\times$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All three hard examples were parallelized, compiled, executed, and verified
+successfully. The generated and baseline outputs matched for every file. The
+summary report contained 11 extracted loops, 8 gold pragmas, and 8 generated
+pragmas. Exact pragma matching reached 8 out of 8 gold pragmas, and the
+average pragma similarity was 1.0. The average measured parallelization
+latency was 231.53 ms. Across the three verified files, the average speedup
+was 5.578$\times$, and all three files became faster after parallelization.
+
+\subsection{Integration with Accelera Pipe}
+
+The parallelizer was also integrated with \texttt{accelera\_pipe} so that
+custom preprocessing functions can be optimized automatically when their
+syntax is supported. The integration is implemented through the
+\texttt{Pipeline.preprocess} builder and the \texttt{parallelizer} utility.
+When a preprocessing object is detected as a custom Python function, the
+pipeline attempts to optimize it through \texttt{optimize\_pymethod}. The
+optimization path is intentionally best-effort: if conversion, loop extraction,
+OpenMP annotation, or native compilation fails, the original Python function
+is preserved and the pipeline remains correct.
+
+The integration path is:
+
+\begin{enumerate}[leftmargin=*]
+  \item Extract the Python source of the custom preprocessing function using
+        \texttt{inspect.getsource}.
+  \item Convert the supported Python subset to C++ using
+        \texttt{py2cpp\_converter}.
+  \item Run the parallelizer in in-memory code mode
+        \texttt{parallelize(code, file=False)}, which extracts loops without
+        writing a generated \texttt{.c} file or loop JSON file.
+  \item Insert OpenMP pragmas such as \texttt{\#pragma omp parallel for}.
+  \item Rewrite the generated function into a pybind11-compatible NumPy
+        extension for two-dimensional \texttt{float64} arrays.
+  \item Compile the generated C++ code into a cached Python extension module
+        under \modulepath{.accelera\_cache/compiled}.
+  \item Store the compiled function in the preprocess node, so the existing
+        C++ graph execution can call it exactly like an ordinary Python
+        callable.
+\end{enumerate}
+
+The current compiler helper targets NumPy-style preprocessing kernels and uses
+\texttt{pybind11}, Python include paths, and OpenMP compiler flags. For the
+row-normalization example in \modulepath{examples/parallel\_accpipe.py}, the
+Python function:
+
+\begin{lstlisting}[language=Python]
+def normalize_rows(X):
+    for i in range(len(X)):
+        s = 0
+        for j in range(len(X[i])):
+            s += X[i][j] * X[i][j]
+
+        norm = s**0.5
+
+        for j in range(len(X[i])):
+            X[i][j] = X[i][j] / norm
+
+    return X
+\end{lstlisting}
+
+is transformed into a pybind11 function using mutable NumPy accessors and an
+OpenMP parallel loop. The generated kernel operates in-place on the input
+array and returns the same NumPy array object after normalization.
+
+\begin{table}[H]
+\centering
+\caption{Accelera Pipe integration benchmark for automatic custom-function
+parallelization.}
+\begin{tabular}{p{0.32\linewidth}p{0.22\linewidth}p{0.30\linewidth}}
+\toprule
+\textbf{Mode} & \textbf{Samples} & \textbf{Reported pipeline time}\\
+\midrule
+Python custom preprocessing function & 500,000 & 6.95 s\\
+Compiled OpenMP preprocessing function & 500,000 & 0.07 s\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This experiment shows an approximate speedup of
+\[
+  \frac{6.95}{0.07} \approx 99.3\times
+\]
+for the preprocessing-heavy example. Both runs used the same generated dataset
+shape, \texttt{(500000, 25)}, the same first 500 samples as test data, and the
+same row-normalization logic. The result demonstrates that the parallelizer can
+serve not only as a source-to-source OpenMP tool, but also as a runtime
+acceleration backend for supported custom preprocessing functions in
+\texttt{accelera\_pipe}.
 
 \iffalse
 \section{Accelera Pipe Module}
