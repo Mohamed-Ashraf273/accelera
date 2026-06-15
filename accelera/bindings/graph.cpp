@@ -60,8 +60,8 @@ PYBIND11_MODULE(graph, m) {
 
       .def(py::pickle([](const Graph &graph) { return graph.getState(); },
                       [](py::dict state) {
-                        Graph graph;
-                        graph.setState(state);
+                        auto graph = std::make_unique<Graph>();
+                        graph->setState(state);
                         return graph;
                       }));
 
