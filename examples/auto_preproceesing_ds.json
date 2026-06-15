@@ -1,6 +1,6 @@
 {
   "tabular_dataset": {
-    "autoGlounModel": "CAT",
+    "autoGlounModel": "GBM",
     "problemType": {
       "classification": {
         "startup_founder_burnout_2026": {

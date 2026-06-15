@@ -145,8 +145,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             }
 
             if np.issubdtype(df_new[col].dtype, np.number):
-                info[col]["skew"] = df_new[col].skew()
-                info[col]["variance"] = df_new[col].var()
                 info[col]["Q1"] = df_new[col].quantile(0.25)
                 info[col]["Q3"] = df_new[col].quantile(0.75)
                 info[col]["min"] = df_new[col].min()
@@ -205,8 +203,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                     info[col]["col_type"] = "numerical"
                     info[col]["preprossing_steps"] = [
                         "Fill missing with median",
-                        "IQR transform",
-                        "Standard scaling",
+                        "Robust scaling",
                     ]
                     numerical_cols.append(col)
 
@@ -214,8 +211,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 info[col]["col_type"] = "continuous"
                 info[col]["preprossing_steps"] = [
                     "Fill missing with median",
-                    "IQR transform",
-                    "Standard scaling",
+                    "Robust scaling",
                 ]
                 numerical_cols.append(col)
 
@@ -386,8 +382,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         numerical_pipeline = Pipeline(
             [
                 ("imputer", SimpleImputer(strategy="median")),
-                ("iqr_transformer", IQRTransform(info, numerical_cols)),
-                ("scaler", StandardScaler()),
+                ("scaler", RobustScaler()),
             ]
         )
         binary_encoder_pipeline = Pipeline(
@@ -499,15 +494,15 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         save_pickle(self.folder_path, target_dict, "target_info.pkl")
         return y_train, y_val
 
-    def handel_bool_types(self, X_train, X_val):
-        bool_type_col = X_train.select_dtypes(include=["bool"]).columns
+    def handel_bool_types(self):
+        bool_type_col = self.df.select_dtypes(include=["bool"]).columns
         save_pickle(self.folder_path, bool_type_col, "bool_type_col.pkl")
         if len(bool_type_col) == 0:
             return
-        X_train[bool_type_col] = X_train[bool_type_col].astype(int)
-        X_val[bool_type_col] = X_val[bool_type_col].astype(int)
+        self.df[bool_type_col] = self.df[bool_type_col].astype(int)
 
     def common_preprocessing(self):
+        self.handel_bool_types()
         self.data_overview()
         self.drop_duplicates()
         X_train, X_val, y_train, y_val = self.split_data()
@@ -522,7 +517,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             _,
         ) = self.detect_column_types(X_train, info)
         self.make_graphs(X_train, y_train, info)
-        self.handel_bool_types(X_train, X_val)
         X_train, X_val = self.features_preprocessing(
             X_train,
             X_val,

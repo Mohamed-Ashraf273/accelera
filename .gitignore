@@ -50,5 +50,6 @@ examples/healthy_diet_calorie_intake
 examples/Concrete_Data_Yeh
 examples/TestReviews
 examples/CarPrice_Assignment
+examples/catboost_info
 .env
 /models

@@ -1155,7 +1155,7 @@ report.execute()
 
 \section{AutoML Module}
 
-The goal of this module is to automate the machine learning workflow by reducing the manual effort required for data preparation and model development. It is divided into two main submodules:
+The main aim of this module is to automate the machine learning workflow by reducing the manual effort required for data preparation and model development. It is divided into two main submodules:
 
 \begin{itemize}
 \item \textbf{AutoPreprocessing}: Automatically preprocesses tabular, image, and text data, transforming raw data into a format model can work on it for training and inference also generating user-friendly reports.
@@ -1168,7 +1168,7 @@ The goal of this module is to automate the machine learning workflow by reducing
 Together, these submodules enable users to build machine learning solutions more quickly and effectively.
 \subsection{AutoPreprocessing}
    The aim of Auto Preprocessing to automate common preprocessing steps that are repeatedly performed in machine learning tasks.
-    By reducing manual effort and repetitive work, it accelerates the data preparation stage. It also provides a detailed report that includes an overview of the data, all preprocessing steps, and visualizations.
+     It also provides a detailed report that includes an overview of the data, all preprocessing steps, and visualizations.
     
 \vspace{0.5cm}
 \subsubsection{Supported Dataset Types}
@@ -1177,26 +1177,28 @@ Together, these submodules enable users to build machine learning solutions more
   \item Text Dataset
   \item Image Dataset
 \end{itemize}
+\subsubsection{Supported Tasks }
 
-\subsubsection[short]{Tabular Dataset}
+\begin{itemize}
+  \item Classification and Regression for tabular dataset
+  \item Classification for text dataset
+  \item Classification and Segmentation for image dataset
+
+\end{itemize}
+
+\subsubsection{Tabular Dataset}
 
 The tabular dataset refers to structured data organized in rows and columns, where features can be either categorical or numerical.
 \vspace{0.5cm}
 
-\textbf{Supported Tasks}
-\begin{itemize}
-  \item Classification
-  \item Regression
-\end{itemize}
 
-\textbf{Preprocessing Steps}
+\paragraph{Training Preprocessing Steps}
 \begin{enumerate}
-  \item Load Data and User Configuration.
+  \item Load data and user configuration.
   \item Get data overview.
-  \item Lowercase dataframe.
   \item Drop duplicates.
-  \item Split data into \texttt{X\_train}, \texttt{X\_val}, \texttt{y\_train}, \texttt{y\_val}.
-  \item Get data information.
+  \item Split dataset.
+  \item Get training data information.
   \item Specify columns to drop.
   \item Drop selected columns.
   \item Detect the type of each column based on the training data.
@@ -1207,68 +1209,178 @@ The tabular dataset refers to structured data organized in rows and columns, whe
   \item Generate Report if user enable report generation.
   \item Return \texttt{X\_train}, \texttt{y\_train}, \texttt{X\_val}, \texttt{y\_val}.
 \end{enumerate}
+
 \vspace{5cm}
-\textbf{Load Data and User Configuration}
+\subparagraph{Load data and user configuration:}
 The preprocessing pipeline is initialized through the class constructor. 
 During initialization, all user-defined parameters are assigned and validated to ensure consistency and correctness before executing any preprocessing steps. 
 These validations help prevent invalid configurations such as incorrect problem types, wrong target column name, or invalid hyperparameter values, which could otherwise lead to runtime errors or incorrect model behavior.
-\begin{table}[H]
-\centering
+\vspace{0.3cm}
+\input{tabels/auto\_preprocessing/classical\_training\_params.tex}
+\subparagraph{Data Overview:}
 
-\caption{Classical Training Data Preprocessing Parameters}
-\label{tab:classicaltrainingparams}
+This step is responsible for generating a comprehensive statistical and structural summary of the dataset before preprocessing begins. It helps generate report.
 
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{ll}
-\toprule
-\textbf{Parameter} & \textbf{Description} \\
-\midrule
+\begin{enumerate}
+    \item \textbf{Capture initial data snapshot:} The first five rows of the original dataset are stored to preserve the original structure before any modifications.
 
-df &
-The dataframe of the dataset. \\
+    \item \textbf{Standardize text data:} All string-based values in the dataset are converted to lowercase, ensuring consistency in categorical values.
 
-target\_col &
-The name of the target column in the dataset. \\
+    \item \textbf{Capture transformed snapshot:} After applying lowercase transformation, another preview of the dataset is stored for comparison purposes.
 
-problem\_type &
-Classification or Regression. \\
+    \item \textbf{Generate dataset structure information:} to capture column types, non-null counts, and memory usage.
 
-folder\_path &
-Path to store reports, charts, and serialized objects. \\
+    \item \textbf{Separate numerical and categorical features:} Columns are divided based on data type into numerical and categorical subsets using \texttt{select\_dtypes()}.
 
-val\_size &
-Percentage of data used for validation split. \\
+    \item \textbf{Compute descriptive statistics:}
+    \begin{itemize}
+        \item Numerical features: mean, standard deviation, min, max, quartiles.
+        \item Categorical features: frequency, unique values, top category.
+    \end{itemize}
 
-random\_state &
-Seed for reproducibility of random operations. \\
+    \item \textbf{Compute missing values:} The number of missing values per column is calculated.
 
-cardinality\_threshold &
-Threshold for separating low and high cardinality categorical features. \\
+    \item \textbf{Detect duplicate rows:}
+    \begin{itemize}
+        \item Total number of duplicate rows is computed.
+        \item Percentage of duplicated rows is calculated relative to dataset size.
+    \end{itemize}
 
-max\_unique\_ordinal &
-Maximum number of unique values to treat integer column as ordinal. \\
+    \item \textbf{Store dataset shape:} The final dataset dimensions (rows and columns) are recorded.
 
-missing\_threshold &
-Drop columns exceeding this missing ratio threshold. \\
+    \item \textbf{Save all results into report structure:} All computed statistics, snapshots, and metadata are stored for later reporting and visualization.
+\end{enumerate}
 
-unique\_threshold &
-Drop columns exceeding this uniqueness ratio threshold. \\
+\subparagraph{Drop duplicates:}
 
-columns\_need\_to\_drop &
-List of user-specified columns to remove. \\
+Duplicate rows are removed from the dataset to prevent the model from overfitting to repeated examples and to ensure a more reliable evaluation process.
 
-is\_report &
-Enables or disables preprocessing report generation. \\
+After performing this step, the system reports key statistics to the user, including the total number of duplicate rows detected, the percentage of duplicated data, and the resulting dataset shape after removal. This allows the user to verify that the dataset no longer contains redundant entries.
+\subparagraph{ Split data:}
+Split the data into \texttt{X\_train}, \texttt{X\_val}, \texttt{y\_train}, and \texttt{y\_val} using the \texttt{train\_test\_split} function from Scikit-learn based on the \texttt{test\_size} parameter and the \texttt{random\_state} parameter.\vspace{5cm}
+\subparagraph{ Get training data information:}
+For each column, calculate the required information, such as the percentage of missing values,number of unique values, the mean and median for numerical columns, and the mode value.
+\subparagraph{Specify Columns to Drop:}
+A column is dropped if:
+\begin{itemize}
+    \item It is included in the user-provided \texttt{columns\_need\_to\_drop} parameter.
+    \item The percentage of missing values is greater than the user-provided \texttt{missing\_threshold}.
+    \item The column is a constant value.
+\end{itemize}
+\subparagraph{Drop Selected Columns:}
+The specified columns are removed from both \texttt{X\_train} and \texttt{X\_val}.A preview of the updated datasets is saved to the preprocessing report. Additionally, the column names are serialized and saved as a pickle file to ensure consistency when applying the same preprocessing steps on future data.
+\subparagraph{Detect the type of each column based on the training data:}
+\subparagraph{Detect Column Types:}
 
-\bottomrule
-\end{tabular}%
-}
-\end{table}
+Each feature is automatically assigned a column type based on its data type and the number of unique values. The detected type determines the preprocessing techniques that will be applied later in the pipeline.
 
+\begin{itemize}
+    \item \textbf{Binary:} Columns containing exactly two unique values (or boolean values) are classified as binary features.
+
+    \item \textbf{Ordinal:} Integer columns with a number of unique values less than or equal to \texttt{max\_unique\_ordinal} are treated as ordinal features.
+
+    \item \textbf{Numerical:} Integer columns with a number of unique values greater than \texttt{max\_unique\_ordinal} are classified as numerical features. 
+
+    \item \textbf{Continuous:} Floating-point columns are classified as continuous features.
+
+    \item \textbf{Low-Cardinality Categorical:} Object columns with a number of unique values less than or equal to \texttt{cardinality\_threshold} are classified as low-cardinality categorical features. 
+
+    \item \textbf{High-Cardinality Categorical:} Object columns with a number of unique values greater than \texttt{cardinality\_threshold} are classified as high-cardinality categorical features.
+    \item \textbf{Other:} Columns with unsupported data types are marked as other and excluded from the preprocessing pipeline.
+\end{itemize}
+
+\subparagraph{Generate visualizations of the training data based on column types and task type:}
+The tabular preprocessing report generates a set of graphs for each detected feature type and task type. 
+
+\begin{itemize}
+  \item \textbf{Binary / categorical features with classification targets:} The report uses \texttt{CategoricalClassification}, which produces
+    \begin{itemize}
+      \item a null-vs-non-null pie chart,
+      \item a category count plot (Top 5 Categories + Other),
+      \item a category vs target count plot (Top 5 Categories + Other).
+    \end{itemize}
+  \item \textbf{Binary / categorical features with regression targets:} The report uses \texttt{CategoricalRegression}, which produces
+    \begin{itemize}
+      \item a null-vs-non-null pie chart,
+      \item a category count plot,
+      \item a box plot of the continuous target for each category.
+    \end{itemize}
+  \item \textbf{Ordinal features with classification targets:} The report uses \texttt{OrdinalClassification}, rendering
+    \begin{itemize}
+      \item a null-vs-non-null pie chart,
+      \item an ordered count plot,
+      \item an ordered count plot split by class label.
+    \end{itemize}
+  \item \textbf{Ordinal features with regression targets:} The report uses \texttt{OrdinalRegression}, rendering
+    \begin{itemize}
+      \item a null-vs-non-null pie chart,
+      \item an ordered count plot,
+      \item a box plot of the regression target for each ordinal level.
+    \end{itemize}
+  \item \textbf{Numerical / continuous features with classification targets:} The report uses \texttt{NumericalClassification}, which produces
+    \begin{itemize}
+      \item a null-vs-non-null pie chart,
+      \item a histogram with a kernel density estimate,
+      \item a box plot of the feature grouped by class label.
+    \end{itemize}
+  \item \textbf{Numerical / continuous features with regression targets:} The report uses \texttt{NumericalRegression}, producing
+    \begin{itemize}
+      \item a null-vs-non-null pie chart,
+      \item a histogram with a kernel density estimate,
+      \item a scatter plot of feature value against the regression target.
+    \end{itemize}
+  \item \textbf{Target variable for classification:} The report uses \texttt{TargetClassification}, which produces
+    \begin{itemize}
+      \item a null-vs-non-null pie chart,
+      \item a target class frequency count plot.
+    \end{itemize}
+  \item \textbf{Target variable for regression:} The report uses \texttt{TargetRegression}, which produces
+    \begin{itemize}
+      \item a null-vs-non-null pie chart,
+      \item a histogram with a kernel density estimate,
+      \item a box plot of the target distribution.
+    \end{itemize}
+  \item \textbf{Numeric correlation matrix:} The report uses \texttt{CorrelationGraph} to generate a heatmap of pairwise correlations across all numeric columns. This helps detect redundant features, multicollinearity, and strong linear relationships.
+\end{itemize}
+
+\subparagraph{Apply feature preprocessing techniques for each column based on its detected type:}
+
+\begin{itemize}
+  \item \textbf{Numerical columns:} imputation with \texttt{SimpleImputer(strategy="median")}, followed by robust scaling with \texttt{RobustScaler()}.
+  \item \textbf{Binary columns:} imputation with \texttt{SimpleImputer(strategy="most\_frequent")}, followed by ordinal encoding with \texttt{OrdinalEncoder(handle\_unknown="use\_encoded\_value", unknown\_value=-1)}.
+  \item \textbf{Low-cardinality categorical columns:} imputation with \texttt{SimpleImputer(strategy="most\_frequent")}, followed by binary encoding.
+  \item \textbf{Frequency-encoded categorical columns:} imputation with \texttt{SimpleImputer(strategy="most\_frequent")}, followed by a frequency encoding transform.
+  \item \textbf{Ordinal columns:} imputation with \texttt{SimpleImputer(strategy="most\_frequent")}, followed by \texttt{RobustScaler()}.
+\end{itemize}
+
+The fitted preprocessor is saved as \texttt{training\_preprocessor.pkl}, and the derived feature names are saved as \texttt{feature\_names.pkl}. The report stores head snapshots of the processed \texttt{X\_train} and \texttt{X\_val}.
+
+\subparagraph{Apply target preprocessing based on the selected task:}
+Target preprocessing differs for classification and regression:
+
+\begin{itemize}
+  \item \textbf{Classification:} Fill missing target values with the training-mode label, then encode the labels with \texttt{LabelEncoder}. The fitted encoder is saved to \texttt{target\_preprocessor.pkl}.
+  \item \textbf{Regression:} Fill missing target values with the training median, then standard scale the target using \texttt{StandardScaler}. The fitted scaler is saved to \texttt{target\_preprocessor.pkl}.
+\end{itemize}
+
+In both cases, the selected target-imputation strategy and transformation are recorded in the report metadata, and the first rows of processed \texttt{y\_train} and \texttt{y\_val} are stored as report snapshots.
+
+\subparagraph{Save all files required for preprocessing the test data:}
+The preprocessing pipeline persists the objects required for later inference and reuse:
+
+\begin{itemize}
+  \item \texttt{training\_preprocessor.pkl}: the fitted feature preprocessor.
+  \item \texttt{feature\_names.pkl}: the output column names produced by the feature preprocessor.
+  \item \texttt{target\_preprocessor.pkl}: the fitted target encoder or scaler.
+  \item \texttt{target\_info.pkl}: target metadata such as mode or median.
+\end{itemize}
+
+Other preprocessing artifacts are also saved earlier in the pipeline, including boolean column names, dropped-column lists, and original data column names.
+
+\subparagraph{Generate Report if user enable report generation:}
+When \texttt{is\_report} is enabled, the code constructs \texttt{TabularPreprocessingReport(self.folder\_path, self.report\_data)} and calls \texttt{report.execute()}. This generates the report from the accumulated \texttt{report\_data} structure, including the generated graphs, preprocessing summaries, and processed data snapshots.
 
 \section{Deployment Module}
-
-\vspace{5cm}
 
 \section{Benchmark Platform Module}
 

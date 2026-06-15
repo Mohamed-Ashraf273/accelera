@@ -157,10 +157,10 @@ def main():
     results = []
 
     for dataset_type, datasets_typed in ds.items():
-        if dataset_type == "image_dataset":
+        if dataset_type != "tabular_dataset":
             continue
 
-        for problem_type, datasets in datasets_typed.items():
+        for problem_type, datasets in datasets_typed["problemType"].items():
             for dataset, info in datasets.items():
                 retriever.connect()
                 df = retriever.retrieve_dataset(dataset, url=info["link"], df=True)
