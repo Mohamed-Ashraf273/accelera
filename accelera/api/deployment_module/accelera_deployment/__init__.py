@@ -10,4 +10,8 @@ from accelera.src.deployment_module.accelera_deployment import (
 from accelera.src.deployment_module.accelera_deployment import (
     modelservice as modelservice,
 )
+from accelera.src.deployment_module.accelera_deployment import (
+    schema_validation as schema_validation,
+)
 from accelera.src.deployment_module.accelera_deployment import server as server
+from accelera.src.deployment_module.accelera_deployment import tracking as tracking

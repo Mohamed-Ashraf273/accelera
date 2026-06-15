@@ -55,6 +55,7 @@ def validate_port(port):
 def write_requirements():
     with open("accelera_deployment/requirements.txt", "w", encoding="utf-8") as req:
         req.write("fastapi==0.136.1\n")
+        req.write("great-expectations==1.18.1\n")
         req.write("uvicorn[standard]==0.46.0\n")
         req.write("scikit-learn==1.8.0\n")
         req.write("category-encoders==2.9.0\n")
@@ -77,6 +78,10 @@ def write_dockerfile(configurations):
         )
         f.write("COPY accelera_deployment/server.py server.py\n")
         f.write("COPY accelera_deployment/modelservice.py modelservice.py\n")
+        f.write(
+            "COPY accelera_deployment/schema_validation.py schema_validation.py\n"
+        )
+        f.write("COPY accelera_deployment/tracking.py tracking.py\n")
         f.write("COPY config.json config.json\n")
         for pkl in models.values():
             f.write(f"COPY {pkl} /app/{pkl}\n")
@@ -122,6 +127,7 @@ def run_local(_args):
 
     print("\n--- Starting container  ---\n")
     print(f" API: http://localhost:{port}")
+    print(f" GUI: http://localhost:{port}/gui")
     subprocess.run(
         [
             "docker",
@@ -168,6 +174,7 @@ def heroku_release(args):
     subprocess.run(
         ["heroku", "container:release", "web", "--app", args.app], check=True
     )
+    print(f"GUI: https://{args.app}.herokuapp.com/gui")
 
 
 def heroku_open(args):
@@ -332,6 +339,7 @@ for attempt in 1 2 3 4 5; do
 done
 sudo docker ps --filter name={shlex.quote(container_name)} --format 'container={{{{.Names}}}} image={{{{.Image}}}} status={{{{.Status}}}} ports={{{{.Ports}}}}'
 echo "Application URL: http://{args.host}:{port}"
+echo "GUI URL: http://{args.host}:{port}/gui"
 """.strip()
 
 
