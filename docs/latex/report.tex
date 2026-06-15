@@ -820,7 +820,9 @@ Constants & \texttt{None}, bool, int, float, string &
 \texttt{std::string} literals.\\
 Names & \texttt{x} & Emitted as the same identifier.\\
 Binary operations & \texttt{+}, \texttt{-}, \texttt{*}, \texttt{/},
-\texttt{\%} & Parenthesized infix expressions. \texttt{**} is rejected.\\
+\texttt{\%}, \texttt{**} & Parenthesized infix expressions. Power
+expressions are emitted as \texttt{std::pow(left, right)} with
+\texttt{<cmath>}.\\
 Unary operations & unary \texttt{+}, unary \texttt{-}, \texttt{not} &
 Mapped to \texttt{+}, \texttt{-}, and \texttt{!}.\\
 Comparisons & \texttt{==}, \texttt{!=}, \texttt{<}, \texttt{<=},
@@ -835,8 +837,9 @@ Printing & \texttt{print(a, b)} & Mapped to \texttt{std::cout << a << " " << b
 Attributes & \texttt{obj.attr} & Mapped to \texttt{obj.attr}.\\
 Subscript & \texttt{arr[i]} & Mapped to \texttt{arr[i]}. Slices are rejected.\\
 Assignments & \texttt{x = expr} & First assignment declares inferred type;
-later assignments reuse the variable. Multi-target and non-name assignments
-are rejected.\\
+later assignments reuse the variable. Subscript assignment such as
+\texttt{X[i][j] = expr} is emitted directly. Multi-target assignments are
+rejected.\\
 Augmented assignment & \texttt{x += y}, \texttt{x -= y}, \texttt{x *= y},
 \texttt{x /= y}, \texttt{x \%= y} & Simple-name targets only. \texttt{x += 1}
 is emitted as \texttt{x++}.\\
@@ -845,8 +848,10 @@ Conditionals & \texttt{if}/\texttt{else} & Standard C++ braces.\\
 For loops & \texttt{for i in range(...)} & Supports \texttt{range(stop)},
 \texttt{range(start, stop)}, and \texttt{range(start, stop, step)} with simple
 name targets.\\
-Functions & \texttt{def f(a, b): ...} & Emitted as \texttt{auto f(auto a, auto
-b) \{...\}}. Decorators are rejected.\\
+Functions & \texttt{def f(a, b): ...} & Emitted as a C++17 template function
+with \texttt{auto} return type, for example
+\texttt{template <typename T0, typename T1> auto f(T0 a, T1 b) \{...\}}.
+Decorators are rejected.\\
 Type inference & bool, int, float, string constants & Emits \texttt{bool},
 \texttt{int}, \texttt{double}, or \texttt{std::string}; otherwise
 \texttt{auto}.\\
@@ -901,6 +906,87 @@ int main() {
     return 0;
 }
 \end{lstlisting}
+
+\subsection{Integration with Accelera Pipe}
+
+The parallelizer was also integrated with \texttt{accelera\_pipe} so that
+custom preprocessing functions can be optimized automatically when their
+syntax is supported. The integration is implemented through the
+\texttt{Pipeline.preprocess} builder and the \texttt{parallelizer} utility.
+When a preprocessing object is detected as a custom Python function, the
+pipeline attempts to optimize it through \texttt{optimize\_pymethod}. The
+optimization path is intentionally best-effort: if conversion, loop extraction,
+OpenMP annotation, or native compilation fails, the original Python function
+is preserved and the pipeline remains correct.
+
+The integration path is:
+
+\begin{enumerate}[leftmargin=*]
+  \item Extract the Python source of the custom preprocessing function using
+        \texttt{inspect.getsource}.
+  \item Convert the supported Python subset to C++ using
+        \texttt{py2cpp\_converter}.
+  \item Run the parallelizer in in-memory code mode
+        \texttt{parallelize(code, file=False)}, which extracts loops without
+        writing a generated \texttt{.c} file or loop JSON file.
+  \item Insert OpenMP pragmas such as \texttt{\#pragma omp parallel for}.
+  \item Rewrite the generated function into a pybind11-compatible NumPy
+        extension for two-dimensional \texttt{float64} arrays.
+  \item Compile the generated C++ code into a cached Python extension module
+        under \modulepath{.accelera\_cache/compiled}.
+  \item Store the compiled function in the preprocess node, so the existing
+        C++ graph execution can call it exactly like an ordinary Python
+        callable.
+\end{enumerate}
+
+The current compiler helper targets NumPy-style preprocessing kernels and uses
+\texttt{pybind11}, Python include paths, and OpenMP compiler flags. For the
+row-normalization example in \modulepath{examples/parallel\_accpipe.py}, the
+Python function:
+
+\begin{lstlisting}[language=Python]
+def normalize_rows(X):
+    for i in range(len(X)):
+        s = 0
+        for j in range(len(X[i])):
+            s += X[i][j] * X[i][j]
+
+        norm = s**0.5
+
+        for j in range(len(X[i])):
+            X[i][j] = X[i][j] / norm
+
+    return X
+\end{lstlisting}
+
+is transformed into a pybind11 function using mutable NumPy accessors and an
+OpenMP parallel loop. The generated kernel operates in-place on the input
+array and returns the same NumPy array object after normalization.
+
+\begin{table}[H]
+\centering
+\caption{Accelera Pipe integration benchmark for automatic custom-function
+parallelization.}
+\begin{tabular}{p{0.32\linewidth}p{0.22\linewidth}p{0.30\linewidth}}
+\toprule
+\textbf{Mode} & \textbf{Samples} & \textbf{Reported pipeline time}\\
+\midrule
+Python custom preprocessing function & 500,000 & 6.95 s\\
+Compiled OpenMP preprocessing function & 500,000 & 0.07 s\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This experiment shows an approximate speedup of
+\[
+  \frac{6.95}{0.07} \approx 99.3\times
+\]
+for the preprocessing-heavy example. Both runs used the same generated dataset
+shape, \texttt{(500000, 25)}, the same first 500 samples as test data, and the
+same row-normalization logic. The result demonstrates that the parallelizer can
+serve not only as a source-to-source OpenMP tool, but also as a runtime
+acceleration backend for supported custom preprocessing functions in
+\texttt{accelera\_pipe}.
 
 \iffalse
 \section{Accelera Pipe Module}

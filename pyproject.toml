@@ -28,6 +28,7 @@ dependencies = [
     "absl-py",
     "numpy",
     "packaging",
+    "pybind11",
     "regex",
     "rich",
 ]

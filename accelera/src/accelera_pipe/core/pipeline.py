@@ -4,6 +4,8 @@ from accelera.src.accelera_pipe.core.pipeline_base import PipelineBase
 from accelera.src.utils.accelera_utils import execute_fit
 from accelera.src.utils.accelera_utils import get_correct_metric_class
 from accelera.src.utils.accelera_utils import get_metric_object
+from accelera.src.utils.accelera_utils import is_custom_function
+from accelera.src.utils.parallelizer import parallelizer
 
 
 class Pipeline(PipelineBase):
@@ -24,6 +26,9 @@ class Pipeline(PipelineBase):
         return predictions, executed_graph
 
     def preprocess(self, name, func, branch=False, cache=False):
+        if is_custom_function(func):
+            func = parallelizer.optimize_pymethod(func)
+
         func_params = {
             "func": func,
             "execute_fit": execute_fit,
@@ -38,6 +43,9 @@ class Pipeline(PipelineBase):
         return self
 
     def model(self, name, model, branch=False, cache=False):
+        if is_custom_function(model):
+            model = parallelizer.optimize_pymethod(model)
+
         model_params = {
             "model": model,
             "execute_fit": execute_fit,

@@ -17,6 +17,15 @@ class TestPy2CppConverter:
         assert "x++;" in cpp
         assert "y += 2;" in cpp
 
+    def test_converts_power_operator(self):
+        cpp = py2cpp_converter("norm = s**0.5")
+        assert "#include <cmath>" in cpp
+        assert "auto norm = std::pow(s, 0.5);" in cpp
+
+    def test_converts_subscript_assignment(self):
+        cpp = py2cpp_converter("X[i][j] = X[i][j] / norm")
+        assert "X[i][j] = (X[i][j] / norm);" in cpp
+
     def test_converts_for_range(self):
         cpp = py2cpp_converter("for i in range(0, 3):\n    print(i)")
         assert "int main() {" in cpp
@@ -31,8 +40,9 @@ def add(a, b):
     return c
 """.strip()
         )
-        assert "auto add(auto a, auto b)" in cpp
+        assert "template <typename T0, typename T1>" in cpp
+        assert "auto add(T0 a, T1 b)" in cpp
         assert "auto c = (a + b);" in cpp
         assert "return c;" in cpp
         assert "int main() {" in cpp
-        assert cpp.index("auto add(auto a, auto b)") < cpp.index("int main() {")
+        assert cpp.index("auto add(T0 a, T1 b)") < cpp.index("int main() {")

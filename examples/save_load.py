@@ -119,11 +119,10 @@ def test_save_load_pipeline():
     )
     accpipe.save("pipeline.pkl")
     loaded_pipeline = Pipeline.load("pipeline.pkl")
-    loaded_results, loaded_executed_graph = loaded_pipeline(
-        X, y, select_strategy="max"
-    )
+    _, loaded_executed_graph = loaded_pipeline(X, y, select_strategy="max")
     print("==============Accelera Results Of Loaded Pipeline==============")
     print(loaded_executed_graph(X_test, y_true=y_test)[0]["result"])
 
 
 test_save_load_executed_pipe()
+test_save_load_pipeline()
