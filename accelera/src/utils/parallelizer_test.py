@@ -70,6 +70,15 @@ class TestParallelizer:
 
         assert result == "reduction"
 
+    def test_resolve_loop_class_upgrades_independent_array_write(self):
+        loop_code = (
+            "for (int i = 0; i < n; i++) {\n    input[i] = (i % 1000) * 0.001;\n}"
+        )
+
+        result = _resolve_loop_class(loop_code, "none")
+
+        assert result == "parallel_for"
+
     def test_generate_omp_pragma_with_loop_adds_validated_pragma(self, monkeypatch):
         parallelizer = Parallelizer()
 

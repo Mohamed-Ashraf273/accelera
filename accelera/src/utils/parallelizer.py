@@ -365,11 +365,23 @@ def _consecutive_for_depth(code: str) -> int:
             pos += 1
 
 
+def _is_independent_array_write_loop(loop_code: str) -> bool:
+    features = extract_features(loop_code)
+    return bool(
+        features["array_writes"]
+        and not features["has_loop_carried_dep"]
+        and not features["has_indirect_access"]
+        and not features["has_early_exit"]
+    )
+
+
 def _resolve_loop_class(loop_code: str, pred_class: str) -> str:
     if pred_class != "none":
         return pred_class
     if _has_scalar_reduction_update(loop_code):
         return "reduction"
+    if _is_independent_array_write_loop(loop_code):
+        return "parallel_for"
     if _consecutive_for_depth(loop_code) > 1:
         return "parallel_for"
     return "none"

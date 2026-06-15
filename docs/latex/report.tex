@@ -907,6 +907,42 @@ int main() {
 }
 \end{lstlisting}
 
+\subsection{Hard-File Parallelizer Evaluation}
+
+The hard-file evaluation script
+\modulepath{tools/evaluate\_hard\_parallelizer.py} was added to execute the
+parallelizer on the hard examples in \modulepath{data/hard\_test\_files}. The
+script parallelizes each file in a temporary directory, compiles both the
+baseline and generated versions with OpenMP support, runs each executable
+three times, compares the outputs, and writes a JSON report to
+\modulepath{hard\_parallelizer\_eval\_results\_generated.json}. For numeric
+outputs, the script uses tolerant floating-point comparison because OpenMP
+reductions can change the order of addition and therefore slightly change the
+last printed digits without changing the mathematical result.
+
+\begin{table}[H]
+\centering
+\caption{Hard-file parallelizer evaluation results.}
+\begin{tabular}{p{0.28\linewidth}p{0.18\linewidth}p{0.18\linewidth}p{0.16\linewidth}}
+\toprule
+\textbf{File} & \textbf{Baseline time} & \textbf{Parallel time} &
+\textbf{Speedup}\\
+\midrule
+\texttt{hard\_eval\_000.cpp} & 1786.28 ms & 195.47 ms & 9.138$\times$\\
+\texttt{hard\_eval\_001.cpp} & 63.98 ms & 31.47 ms & 2.033$\times$\\
+\texttt{hard\_eval\_002.py} & 42.66 ms & 7.67 ms & 5.563$\times$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All three hard examples were parallelized, compiled, executed, and verified
+successfully. The generated and baseline outputs matched for every file. The
+summary report contained 11 extracted loops, 8 gold pragmas, and 8 generated
+pragmas. Exact pragma matching reached 8 out of 8 gold pragmas, and the
+average pragma similarity was 1.0. The average measured parallelization
+latency was 231.53 ms. Across the three verified files, the average speedup
+was 5.578$\times$, and all three files became faster after parallelization.
+
 \subsection{Integration with Accelera Pipe}
 
 The parallelizer was also integrated with \texttt{accelera\_pipe} so that
