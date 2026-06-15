@@ -11,6 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import RobustScaler
 
 from accelera.src.automl.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
@@ -513,17 +514,13 @@ class TestClassicalTrainingPreprocessing:
             )
         )
         imputer = SimpleImputer(strategy="median")
-        iqr_trasnform = IQRTransform(info, ["continuous_feature"])
-        scaler = StandardScaler()
+        scaler = RobustScaler()
         X_train_manual = X_train[["continuous_feature"]].values
         X_val_manual = X_val[["continuous_feature"]].values
         X_train_imputed = imputer.fit_transform(X_train_manual)
         X_val_imputed = imputer.transform(X_val_manual)
-        iqr_trasnform.fit(X_train_imputed)
-        X_train_iqr = iqr_trasnform.transform(X_train_imputed)
-        X_val_iqr = iqr_trasnform.transform(X_val_imputed)
-        X_train_scaled = scaler.fit_transform(X_train_iqr)
-        X_val_scaled = scaler.transform(X_val_iqr)
+        X_train_scaled = scaler.fit_transform(X_train_imputed)
+        X_val_scaled = scaler.transform(X_val_imputed)
         assert X_train_processed.shape == X_train_scaled.shape
         assert X_val_processed.shape == X_val_scaled.shape
         assert np.allclose(X_train_processed, X_train_scaled, atol=1e-6)
