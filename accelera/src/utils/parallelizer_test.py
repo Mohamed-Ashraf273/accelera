@@ -4,12 +4,27 @@ import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 
+import numpy as np
 import pytest
 
 from accelera.src.utils.parallelizer import Parallelizer
 from accelera.src.utils.parallelizer import _resolve_loop_class
 from accelera.src.utils.parallelizer import extract_loops
 from accelera.src.utils.parallelizer import write_loops_to_json
+
+
+def normalize_rows_for_parallelizer_test(X):
+    for i in range(len(X)):
+        s = 0
+        for j in range(len(X[i])):
+            s += X[i][j] * X[i][j]
+
+        norm = s**0.5
+
+        for j in range(len(X[i])):
+            X[i][j] = X[i][j] / norm
+
+    return X
 
 
 class TestParallelizer:
@@ -55,6 +70,15 @@ class TestParallelizer:
 
         assert result == "reduction"
 
+    def test_resolve_loop_class_upgrades_independent_array_write(self):
+        loop_code = (
+            "for (int i = 0; i < n; i++) {\n    input[i] = (i % 1000) * 0.001;\n}"
+        )
+
+        result = _resolve_loop_class(loop_code, "none")
+
+        assert result == "parallel_for"
+
     def test_generate_omp_pragma_with_loop_adds_validated_pragma(self, monkeypatch):
         parallelizer = Parallelizer()
 
@@ -74,6 +98,24 @@ class TestParallelizer:
 
         assert result.startswith("#pragma omp parallel for\n")
         assert "for (int i = 0; i < n; ++i) {}" in result
+
+    def test_generate_omp_pragma_does_not_reduce_local_loop_variable(self):
+        parallelizer = Parallelizer()
+        loop_code = (
+            "for (int i = 0; i < len(X); i++) {\n"
+            "    int s = 0;\n"
+            "    for (int j = 0; j < len(X[i]); j++) {\n"
+            "        s += (X[i][j] * X[i][j]);\n"
+            "    }\n"
+            "}"
+        )
+
+        result = parallelizer._generate_omp_pragma_with_loop(
+            loop_code, "parallel_for"
+        )
+
+        assert result.startswith("#pragma omp parallel for\n")
+        assert "reduction(+ : s)" not in result
 
     def test_parallelize_writes_parallelized_output(self, monkeypatch, tmp_path):
         source_file = tmp_path / "sample.c"
@@ -132,6 +174,104 @@ class TestParallelizer:
         assert result is None
         assert output_file.exists()
         assert "#pragma omp parallel for" in output_file.read_text()
+
+    def test_parallelize_code_string_returns_parallelized_code(
+        self, monkeypatch, tmp_path
+    ):
+        code = (
+            "int main() {\n"
+            "for (int i = 0; i < n; ++i) {\n"
+            "    out[i] = in[i];\n"
+            "}\n"
+            "return 0;\n"
+            "}\n"
+        )
+        loop_code = "for (int i = 0; i < n; ++i) {\n    out[i] = in[i];\n}"
+
+        parallelizer = Parallelizer()
+        parallelizer.cache_dir = tmp_path / "cache"
+        monkeypatch.setattr(
+            "accelera.src.utils.parallelizer.extract_loops",
+            lambda code: [
+                SimpleNamespace(
+                    code=loop_code,
+                    start_line=2,
+                    end_line=4,
+                    type="for",
+                )
+            ],
+        )
+        monkeypatch.setattr(parallelizer, "_classify", lambda code: "parallel_for")
+
+        result = parallelizer.parallelize(code, file=False)
+
+        assert "#pragma omp parallel for" in result
+        assert not list(tmp_path.rglob("parallelized_*.c"))
+        assert not list(tmp_path.rglob("extracted_loops_*.json"))
+
+    def test_parallelize_uses_rule_based_fallback_when_classifier_fails(
+        self, monkeypatch, tmp_path
+    ):
+        code = (
+            "int main() {\n"
+            "for (int i = 0; i < n; ++i) {\n"
+            "    for (int j = 0; j < m; ++j) {\n"
+            "        out[i][j] = in[i][j];\n"
+            "    }\n"
+            "}\n"
+            "return 0;\n"
+            "}\n"
+        )
+        loop_code = (
+            "for (int i = 0; i < n; ++i) {\n"
+            "    for (int j = 0; j < m; ++j) {\n"
+            "        out[i][j] = in[i][j];\n"
+            "    }\n"
+            "}"
+        )
+
+        parallelizer = Parallelizer()
+        parallelizer.cache_dir = tmp_path / "cache"
+        monkeypatch.setattr(
+            "accelera.src.utils.parallelizer.extract_loops",
+            lambda code: [
+                SimpleNamespace(
+                    code=loop_code,
+                    start_line=2,
+                    end_line=6,
+                    type="for",
+                )
+            ],
+        )
+        monkeypatch.setattr(
+            parallelizer,
+            "_classify",
+            lambda code: (_ for _ in ()).throw(RuntimeError("offline")),
+        )
+
+        result = parallelizer.parallelize(code, file=False)
+
+        assert "#pragma omp parallel for collapse(2)" in result
+
+    def test_optimize_pymethod_falls_back_for_unsupported_function(self):
+        parallelizer = Parallelizer()
+
+        def unsupported_tuple_return(x):
+            return x, x
+
+        result = parallelizer.optimize_pymethod(unsupported_tuple_return)
+
+        assert result is unsupported_tuple_return
+
+    def test_optimize_pymethod_compiles_supported_numpy_loop(self):
+        parallelizer = Parallelizer()
+        X = np.array([[3.0, 4.0], [5.0, 12.0]], dtype=np.float64)
+
+        result = parallelizer.optimize_pymethod(normalize_rows_for_parallelizer_test)
+        normalized = result(X.copy())
+
+        assert result is not normalize_rows_for_parallelizer_test
+        assert np.allclose(np.linalg.norm(normalized, axis=1), 1.0)
 
     def test_parallelize_skips_inner_loop_when_outer_selected(
         self, monkeypatch, tmp_path

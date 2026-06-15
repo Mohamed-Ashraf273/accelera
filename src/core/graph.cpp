@@ -112,6 +112,44 @@ bool shouldCopyPreprocessInput(const Node::Ptr &node) {
   return false;
 }
 
+void clearExecutedGraphValidationData(Graph *graph) {
+  if (!graph) {
+    return;
+  }
+
+  for (const auto &node : graph->getNodes()) {
+    if (!node) {
+      continue;
+    }
+
+    if (node->type == NodeType::PREDICT &&
+        py::isinstance<py::dict>(node->py_func)) {
+      py::dict copied_func = node->py_func.cast<py::dict>().attr("copy")();
+      copied_func["test_data"] = py::none();
+      node->py_func = copied_func;
+      continue;
+    }
+
+    if (node->type != NodeType::METRIC) {
+      continue;
+    }
+
+    try {
+      py::object copied_metric =
+          py::module_::import("copy").attr("deepcopy")(node->py_func);
+      if (py::hasattr(copied_metric, "y_true")) {
+        copied_metric.attr("y_true") = py::none();
+      }
+      if (py::hasattr(copied_metric, "X")) {
+        copied_metric.attr("X") = py::none();
+      }
+      node->py_func = copied_metric;
+    } catch (const py::error_already_set &) {
+      PyErr_Clear();
+    }
+  }
+}
+
 std::string nodeSignature(NodeType type, const py::object &node_obj) {
   return std::to_string(static_cast<int>(type)) + ":" +
          py::str(node_obj).cast<std::string>();
@@ -495,6 +533,7 @@ std::vector<py::object> Graph::execute(py::object X, py::object y,
   if (!getIsExecuted()) {
     Graph *executed_graph = clone();
     executed_graph->setIsExecuted(true);
+    clearExecutedGraphValidationData(executed_graph);
     py::object executed_graph_obj = py::cast(executed_graph);
     final_result.push_back(executed_graph_obj);
   }

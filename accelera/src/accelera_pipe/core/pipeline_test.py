@@ -400,6 +400,23 @@ class TestPipelineCorrectness:
         assert len(loaded_result) == len(expected_result)
         assert np.array_equal(loaded_result[0], expected_result[0])
 
+    def test_pipeline_save_load_before_execution(self):
+        p = Pipeline()
+        p.preprocess("scale", StandardScaler())
+        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
+        p.predict("pred", self.test_data, output_func="predict")
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            pipeline_path = f"{tmp_dir}/saved_pipeline.pkl"
+            p.save(pipeline_path)
+            loaded_pipeline = Pipeline.load(pipeline_path)
+
+        original_result, _ = p(self.X, self.y)
+        loaded_result, _ = loaded_pipeline(self.X, self.y)
+
+        assert len(loaded_result) == len(original_result)
+        assert np.array_equal(loaded_result[0], original_result[0])
+
     def test_hard_voting_merge_correctness(self):
         p = Pipeline()
         p.preprocess("scale", StandardScaler())

@@ -57,7 +57,7 @@ void PredictNode::execute() {
     }
 
     py::object test_data = py_func["test_data"];
-    if (test_data.is_none()) {
+    if (!getGraph()->getIsExecuted() && test_data.is_none()) {
       throw std::runtime_error("PredictNode: No test data provided");
     }
 

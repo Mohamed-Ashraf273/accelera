@@ -38,6 +38,9 @@ class _PythonToCpp(ast.NodeVisitor):
             return node.id
 
         if isinstance(node, ast.BinOp):
+            if isinstance(node.op, ast.Pow):
+                self._includes.add("#include <cmath>")
+                return f"std::pow({self.expr(node.left)}, {self.expr(node.right)})"
             op = self._binop(node.op)
             return f"({self.expr(node.left)} {op} {self.expr(node.right)})"
 
@@ -96,7 +99,6 @@ class _PythonToCpp(ast.NodeVisitor):
             ast.Mult: "*",
             ast.Div: "/",
             ast.Mod: "%",
-            ast.Pow: None,
         }
         out = table.get(type(op))
         if out is None:
@@ -155,10 +157,11 @@ class _PythonToCpp(ast.NodeVisitor):
         if len(node.targets) != 1:
             raise _CppEmitError("multi-target assignment is not supported")
         target = node.targets[0]
-        if not isinstance(target, ast.Name):
-            raise _CppEmitError("only simple name assignment is supported")
-        name = target.id
         value = self.expr(node.value)
+        if not isinstance(target, ast.Name):
+            self.emit(f"{self.expr(target)} = {value};")
+            return
+        name = target.id
         if name not in self._declared:
             ctype = self._infer_ctype(node.value)
             self._declared.add(name)
@@ -218,9 +221,10 @@ class _PythonToCpp(ast.NodeVisitor):
             raise _CppEmitError("decorators are not supported")
         if node.returns is not None:
             pass
-        args = []
-        for a in node.args.args:
-            args.append(f"auto {a.arg}")
+        template_params = [f"typename T{i}" for i, _ in enumerate(node.args.args)]
+        args = [f"T{i} {a.arg}" for i, a in enumerate(node.args.args)]
+        if template_params:
+            self.emit(f"template <{', '.join(template_params)}>")
         self.emit(f"auto {node.name}({', '.join(args)}) {{")
         self._indent += 1
         prev_declared = self._declared
