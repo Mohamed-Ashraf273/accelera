@@ -1155,7 +1155,116 @@ report.execute()
 
 \section{AutoML Module}
 
+The goal of this module is to automate the machine learning workflow by reducing the manual effort required for data preparation and model development. It is divided into two main submodules:
+
+\begin{itemize}
+\item \textbf{AutoPreprocessing}: Automatically preprocesses tabular, image, and text data, transforming raw data into a format model can work on it for training and inference also generating user-friendly reports.
+
+\item \textbf{AutoModeling}:  Automates model selection, training, and evaluation by identifying suitable machine learning algorithms.
+
+
+\end{itemize}
+
+Together, these submodules enable users to build machine learning solutions more quickly and effectively.
+\subsection{AutoPreprocessing}
+   The aim of Auto Preprocessing to automate common preprocessing steps that are repeatedly performed in machine learning tasks.
+    By reducing manual effort and repetitive work, it accelerates the data preparation stage. It also provides a detailed report that includes an overview of the data, all preprocessing steps, and visualizations.
+    
+\vspace{0.5cm}
+\subsubsection{Supported Dataset Types}
+\begin{itemize}
+  \item Tabular Dataset
+  \item Text Dataset
+  \item Image Dataset
+\end{itemize}
+
+\subsubsection[short]{Tabular Dataset}
+
+The tabular dataset refers to structured data organized in rows and columns, where features can be either categorical or numerical.
+\vspace{0.5cm}
+
+\textbf{Supported Tasks}
+\begin{itemize}
+  \item Classification
+  \item Regression
+\end{itemize}
+
+\textbf{Preprocessing Steps}
+\begin{enumerate}
+  \item Load Data and User Configuration.
+  \item Get data overview.
+  \item Lowercase dataframe.
+  \item Drop duplicates.
+  \item Split data into \texttt{X\_train}, \texttt{X\_val}, \texttt{y\_train}, \texttt{y\_val}.
+  \item Get data information.
+  \item Specify columns to drop.
+  \item Drop selected columns.
+  \item Detect the type of each column based on the training data.
+  \item Generate visualizations of the training data based on column types and task type.
+  \item Apply feature preprocessing techniques for each column based on its detected type.
+  \item Apply target preprocessing based on the selected task.
+  \item Save all files required for preprocessing the test data.
+  \item Generate Report if user enable report generation.
+  \item Return \texttt{X\_train}, \texttt{y\_train}, \texttt{X\_val}, \texttt{y\_val}.
+\end{enumerate}
 \vspace{5cm}
+\textbf{Load Data and User Configuration}
+The preprocessing pipeline is initialized through the class constructor. 
+During initialization, all user-defined parameters are assigned and validated to ensure consistency and correctness before executing any preprocessing steps. 
+These validations help prevent invalid configurations such as incorrect problem types, wrong target column name, or invalid hyperparameter values, which could otherwise lead to runtime errors or incorrect model behavior.
+\begin{table}[H]
+\centering
+
+\caption{Classical Training Data Preprocessing Parameters}
+\label{tab:classicaltrainingparams}
+
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Description} \\
+\midrule
+
+df &
+The dataframe of the dataset. \\
+
+target\_col &
+The name of the target column in the dataset. \\
+
+problem\_type &
+Classification or Regression. \\
+
+folder\_path &
+Path to store reports, charts, and serialized objects. \\
+
+val\_size &
+Percentage of data used for validation split. \\
+
+random\_state &
+Seed for reproducibility of random operations. \\
+
+cardinality\_threshold &
+Threshold for separating low and high cardinality categorical features. \\
+
+max\_unique\_ordinal &
+Maximum number of unique values to treat integer column as ordinal. \\
+
+missing\_threshold &
+Drop columns exceeding this missing ratio threshold. \\
+
+unique\_threshold &
+Drop columns exceeding this uniqueness ratio threshold. \\
+
+columns\_need\_to\_drop &
+List of user-specified columns to remove. \\
+
+is\_report &
+Enables or disables preprocessing report generation. \\
+
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
 
 \section{Deployment Module}
 
