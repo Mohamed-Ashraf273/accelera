@@ -570,5 +570,19 @@ class Parallelizer:
             )
             return func
 
+    def optimize_pyinstance(self, instance):
+        if "transform" not in instance.__class__.__dict__:
+            return instance
+
+        method = getattr(instance, "transform", None)
+        if method is None:
+            return instance
+
+        optimized_method = self.optimize_pymethod(method)
+        if optimized_method is not method:
+            setattr(instance, "transform", optimized_method)
+
+        return instance
+
 
 parallelizer = Parallelizer()
