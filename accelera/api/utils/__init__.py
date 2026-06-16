@@ -16,3 +16,4 @@ from accelera.src.utils import parallelizer_test as parallelizer_test
 from accelera.src.utils import preprocessing as preprocessing
 from accelera.src.utils import py2cpp_converter as py2cpp_converter
 from accelera.src.utils import py2cpp_converter_test as py2cpp_converter_test
+from accelera.src.utils import source_backed_function as source_backed_function

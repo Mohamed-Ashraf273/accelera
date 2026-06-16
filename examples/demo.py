@@ -289,5 +289,4 @@ print("length of predictions: ", predictions)
 report = GraphReport("report", "test.xml", simple_predictions)
 img_path = report.execute()
 
-p.save_preprocessed_data("preprocessed_data")
-best_path.save("best_path")
+best_path.save()

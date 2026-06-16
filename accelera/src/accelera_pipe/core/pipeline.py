@@ -7,6 +7,7 @@ from accelera.src.utils.accelera_utils import get_correct_metric_class
 from accelera.src.utils.accelera_utils import get_metric_object
 from accelera.src.utils.accelera_utils import is_custom_function
 from accelera.src.utils.parallelizer import parallelizer
+from accelera.src.utils.source_backed_function import SourceBackedFunction
 
 
 class Pipeline(PipelineBase):
@@ -28,7 +29,9 @@ class Pipeline(PipelineBase):
 
     def preprocess(self, name, func, branch=False, cache=False):
         if is_custom_function(func):
-            func = parallelizer.optimize_pymethod(func)
+            source_func = SourceBackedFunction(func)
+            source_func.set_runtime_func(parallelizer.optimize_pymethod(func))
+            func = source_func
         elif isinstance(func, CustomTransformer):
             func = parallelizer.optimize_pyinstance(func)
 
