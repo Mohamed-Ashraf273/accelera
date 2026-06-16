@@ -2,6 +2,7 @@ import "./leaderBoard.css";
 import Navigation from "./navigation";
 import { useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { authHeaders, getUser } from "../auth";
 function LeaderBoard() {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
@@ -11,11 +12,10 @@ function LeaderBoard() {
   const [message, setMessage] = useState(null);
   const [updatedSubmission, setUpdatedSubmission] = useState(null);
   const benchmark_id = location.state;
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = getUser();
   const [form, setForm] = useState({
     repoLink: "",
     predictedColumnLink: "",
-    submittedBy: user._id,
   });
   const [updateForm, setUpdateForm] = useState({
     predictedColumnLink: "",
@@ -58,6 +58,7 @@ function LeaderBoard() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            ...authHeaders(),
           },
           body: JSON.stringify(form),
         },
@@ -94,6 +95,7 @@ function LeaderBoard() {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            ...authHeaders(),
           },
           body: JSON.stringify(updateForm),
         },
@@ -118,6 +120,7 @@ function LeaderBoard() {
     try {
       const results = await fetch(`http://localhost:3000/submission/${id}`, {
         method: "DELETE",
+        headers: authHeaders(),
       });
       const data = await results.json();
       if (!results.ok) {
@@ -147,9 +150,11 @@ function LeaderBoard() {
         <div className="leader-board-content">
           <div className="leader-board-header">
             <h1>Submissions</h1>
-            <button className="add-button" onClick={() => setAction("Add")}>
-              Add Submission
-            </button>
+            {user && (
+              <button className="add-button" onClick={() => setAction("Add")}>
+                Add Submission
+              </button>
+            )}
           </div>
           <div className="submissions">
             {submissions.map((submission) => (
@@ -166,7 +171,10 @@ function LeaderBoard() {
                   <p>Submission Date: {submission.submissionDate}</p>
                   <p>Submitted By: {submission.submittedBy.name}</p>
                 </div>
-                {submission.submittedBy._id === user._id && (
+                {user && (
+                  submission.submittedBy._id === user._id ||
+                  user.role === "admin"
+                ) && (
                   <>
                     <button onClick={() => deleteSubmission(submission._id)}>
                       ❌

@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const Metric = require("../schemas/metrics");
 const Benchmark = require("../schemas/benchmark");
+const auth = require("../middleware/auth");
+const admin = require("../middleware/admin");
 
 const {
   isExistingMetric,
@@ -60,7 +62,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", auth, admin, async (req, res) => {
   try {
     let {
       name,
@@ -101,7 +103,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, admin, async (req, res) => {
   try {
     const metricId = req.params.id;
 

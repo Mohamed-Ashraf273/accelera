@@ -1,6 +1,7 @@
 const mongoose = require("mongoose")
 const dotenv = require("dotenv")
-dotenv.config()
+dotenv.config({ path: ".env", quiet: true })
+dotenv.config({ path: "env", quiet: true })
 const connectMongo = async () => {
     try {
     const connection = await mongoose.connect(process.env.Mongos_url)

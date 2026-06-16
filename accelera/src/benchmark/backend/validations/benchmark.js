@@ -1,5 +1,6 @@
 const isUrl = require("is-url");
 const { spawn } = require("child_process");
+const path = require("path");
 const isUrlValidation = (value) => {
   return isUrl(value);
 };
@@ -14,16 +15,22 @@ const isValidProblemType = (problemType) => {
 const isGoogleDriveFileLink = (link) => {
   return /drive\.google\.com\/file\/d\/.+/.test(link);
 };
-const ignoreWrongPrints = (printed) => {
-  if (
-    printed.includes("%|") ||
-    printed.includes("Downloading") ||
-    printed.includes("Cache") ||
-    printed.includes("Downloaded")
-  ) {
-    return true;
+
+const getJsonFromPythonOutput = (stdout, stderr) => {
+  const lines = `${stdout}\n${stderr}`
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("{") && line.endsWith("}"));
+
+  for (let i = lines.length - 1; i >= 0; i--) {
+    try {
+      return JSON.parse(lines[i]);
+    } catch (err) {
+      continue;
+    }
   }
-  return false;
+
+  return null;
 };
 
 const run_python = (
@@ -36,28 +43,35 @@ const run_python = (
   metric_paramters,
 ) => {
   return new Promise((resolve, reject) => {
-    const pythonProcess = spawn("python", [
-      `scripts/${which_python}.py`,
+    const projectRoot = path.resolve(__dirname, "../../../../..");
+    const scriptPath = path.resolve(__dirname, `../scripts/${which_python}.py`);
+    const pythonPath = process.env.PYTHONPATH
+      ? `${projectRoot}:${process.env.PYTHONPATH}`
+      : projectRoot;
+    const pythonProcess = spawn(process.env.PYTHON_BIN || "python", [
+      scriptPath,
       file_1,
       file_2,
       targetColumn,
       userId,
       sklearn_name,
       metric_paramters,
-    ]);
+    ], {
+      cwd: projectRoot,
+      env: {
+        ...process.env,
+        PYTHONPATH: pythonPath,
+      },
+    });
     let printedDataCorrectly = "";
     let printedError = "";
     let alreadyOccured = false;
     pythonProcess.stdout.on("data", (data) => {
-      const printed = data.toString();
-      if (ignoreWrongPrints(printed)) return;
-      printedDataCorrectly += printed;
+      printedDataCorrectly += data.toString();
     });
 
     pythonProcess.stderr.on("data", (data) => {
-      const printed = data.toString();
-      if (ignoreWrongPrints(printed)) return;
-      printedError += printed;
+      printedError += data.toString();
     });
 
     pythonProcess.on("error", (err) => {
@@ -71,22 +85,25 @@ const run_python = (
       if (alreadyOccured) return;
       alreadyOccured = true;
 
-      try {
-        const result = JSON.parse(printedDataCorrectly);
-        if (code !== 0) {
-          return reject({
-            message: result.message || printedError || "failed when run python",
-            isValid: false,
-          });
-        }
-
-        return resolve(result);
-      } catch (err) {
+      const result = getJsonFromPythonOutput(printedDataCorrectly, printedError);
+      if (!result) {
         return reject({
-          message: "Invalid json",
-          error: err.message,
+          message:
+            printedError.trim() ||
+            printedDataCorrectly.trim() ||
+            "Invalid json",
+          error: "No json response from python script",
         });
       }
+
+      if (code !== 0) {
+        return reject({
+          message: result.message || printedError || "failed when run python",
+          isValid: false,
+        });
+      }
+
+      return resolve(result);
     });
   });
 };

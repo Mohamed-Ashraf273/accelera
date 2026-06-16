@@ -3,6 +3,7 @@ import Navigation from "./navigation";
 import { Link } from "react-router-dom";
 
 import { useEffect, useState } from "react";
+import { authHeaders } from "../auth";
 
 function Benchmarks() {
   const [benchmarks, setBenchmarks] = useState([]);
@@ -34,6 +35,7 @@ function Benchmarks() {
     try {
       const results = await fetch(`http://localhost:3000/benchmark/${id}`, {
         method: "DELETE",
+        headers: authHeaders(),
       });
       const data = await results.json();
       if (!results.ok) {
@@ -87,7 +89,10 @@ function Benchmarks() {
           <Link to="/display-benchmark" state={{benchmark}} key={benchmark._id} className="benchmark-card">
             <div className="benchmark-header">
               <h3>{benchmark.title}</h3>
-              {user && benchmark.createdBy?._id === user._id && (
+              {user && (
+                benchmark.createdBy?._id === user._id ||
+                user.role === "admin"
+              ) && (
                 <button
                   className="benchmark-delete-button"
                   onClick={() => deleteBenchmark(benchmark._id)}

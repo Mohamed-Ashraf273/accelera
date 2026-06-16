@@ -3,6 +3,7 @@ import Navigation from "./navigation";
 import { Link } from "react-router-dom";
 
 import { useEffect, useState } from "react";
+import { authHeaders } from "../auth";
 
 function Metrics() {
   const [metrics, setMetrics] = useState([]);
@@ -30,6 +31,7 @@ function Metrics() {
     try {
       const results = await fetch(`http://localhost:3000/metrics/${id}`, {
         method: "DELETE",
+        headers: authHeaders(),
       });
       const data = await results.json();
       if (!results.ok) {

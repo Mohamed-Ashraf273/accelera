@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import Navigation from "./navigation";
 import "./createBenchmark.css";
+import { authHeaders, getUser } from "../auth";
 function CreateBenchmark() {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = getUser();
   const [loading, setLoading] = useState(false);
   const [metrics, setMetrics] = useState([]);
   const [metric, setMetric] = useState({});
@@ -18,7 +19,7 @@ function CreateBenchmark() {
     problemType: "classification",
     evaluationMetric: "",
     metricParamaters: "",
-    createdBy: user._id,
+    createdBy: user?._id,
   });
   const fetchMetric = async (problemType) => {
     setLoading(true);
@@ -27,6 +28,13 @@ function CreateBenchmark() {
     );
     const data = await results.json();
     setMetrics(data);
+    if (data.length > 0) {
+      setMetric(data[0]);
+      setForm((prev) => ({
+        ...prev,
+        evaluationMetric: data[0]._id,
+      }));
+    }
     setLoading(false);
   };
   useEffect(() => {
@@ -93,12 +101,16 @@ function CreateBenchmark() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setChecking(true);
-    if (!checkFill()) return;
+    if (!checkFill()) {
+      setChecking(false);
+      return;
+    }
     try {
       const response = await fetch("http://localhost:3000/benchmark/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...authHeaders(),
         },
         body: JSON.stringify(form),
       });
@@ -121,11 +133,12 @@ function CreateBenchmark() {
         problemType: "classification",
         evaluationMetric: "",
         metricParamaters: "",
-        createdBy: user._id,
+        createdBy: user?._id,
       });
     } catch (err) {
       console.error(err.response?.data || err.message);
       alert(err.response?.data?.message || "Error creating benchmark");
+      setChecking(false);
     }
   };
 
@@ -134,8 +147,9 @@ function CreateBenchmark() {
       <Navigation />
       <div className="create-benchmark-content">
         <h2>Create Benchmark</h2>
+        {!user && <p>You need to login first</p>}
         {loading && <p className="loading">Loading...</p>}
-        {!loading && (
+        {!loading && user && (
           <form onSubmit={handleSubmit} className="create-benchmark-form">
             <div className="form-input">
               <p>Title</p>

@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import Navigation from "./navigation";
+import "./auth.css";
 
 function Login() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
   const navigate = useNavigate();
@@ -16,7 +19,7 @@ function Login() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
@@ -24,7 +27,8 @@ function Login() {
       if (!res.ok) {
         setMessage(data.message);
       } else {
-        localStorage.setItem("user", JSON.stringify(data));
+        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("token", data.token);
 
         setMessage("Login successful ✅");
 
@@ -36,23 +40,38 @@ function Login() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Login</h2>
+    <div className="auth-page">
+      <Navigation />
+      <div className="auth-page-content">
+        <h2>Login</h2>
 
-      <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="Enter email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        <form onSubmit={handleLogin} className="auth-form">
+          <div className="auth-input">
+            <p>Email</p>
+            <input
+              type="email"
+              placeholder="Enter email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
 
-        <br /><br />
+          <div className="auth-input">
+            <p>Password</p>
+            <input
+              type="password"
+              placeholder="Enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
 
-        <button type="submit">Login</button>
-      </form>
+          <button type="submit" className="auth-button">Login</button>
+        </form>
 
-      <p>{message}</p>
+        <p className="auth-message">{message}</p>
+        <Link to="/signup" className="auth-link">Create new account</Link>
+      </div>
     </div>
   );
 }

@@ -13,7 +13,16 @@ import requests
 from platformdirs import user_cache_dir
 
 from accelera.src.config import config
-from accelera.src.utils.accelera_utils import print_msg
+
+try:
+    from accelera.src.utils.accelera_utils import print_msg
+except ImportError:
+
+    def print_msg(message, line_break=True, level="info"):
+        if line_break:
+            print(message)
+        else:
+            print(message, end="")
 
 
 class DatasetRetriever:
