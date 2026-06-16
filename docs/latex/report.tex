@@ -1270,115 +1270,206 @@ A column is dropped if:
 \subparagraph{Drop Selected Columns:}
 The specified columns are removed from both \texttt{X\_train} and \texttt{X\_val}.A preview of the updated datasets is saved to the preprocessing report. Additionally, the column names are serialized and saved as a pickle file to ensure consistency when applying the same preprocessing steps on future data.
 \subparagraph{Detect the type of each column based on the training data:}
-\subparagraph{Detect Column Types:}
-
 Each feature is automatically assigned a column type based on its data type and the number of unique values. The detected type determines the preprocessing techniques that will be applied later in the pipeline.
-
-\begin{itemize}
-    \item \textbf{Binary:} Columns containing exactly two unique values (or boolean values) are classified as binary features.
-
-    \item \textbf{Ordinal:} Integer columns with a number of unique values less than or equal to \texttt{max\_unique\_ordinal} are treated as ordinal features.
-
-    \item \textbf{Numerical:} Integer columns with a number of unique values greater than \texttt{max\_unique\_ordinal} are classified as numerical features. 
-
-    \item \textbf{Continuous:} Floating-point columns are classified as continuous features.
-
-    \item \textbf{Low-Cardinality Categorical:} Object columns with a number of unique values less than or equal to \texttt{cardinality\_threshold} are classified as low-cardinality categorical features. 
-
-    \item \textbf{High-Cardinality Categorical:} Object columns with a number of unique values greater than \texttt{cardinality\_threshold} are classified as high-cardinality categorical features.
-    \item \textbf{Other:} Columns with unsupported data types are marked as other and excluded from the preprocessing pipeline.
-\end{itemize}
+\begin{table}[H]
+\centering
+\caption{Detected column types.}
+\begin{tabular}{p{0.25\linewidth}p{0.70\linewidth}}
+\toprule
+\textbf{Column type} & \textbf{Detection rule}\\
+\midrule
+\textbf{Binary} & Columns containing exactly two unique values or boolean values.\\
+\textbf{Ordinal} & Integer columns with a number of unique values less than or equal to \texttt{max\_unique\_ordinal}.\\
+\textbf{Numerical} & Integer columns with a number of unique values greater than \texttt{max\_unique\_ordinal}.\\
+\textbf{Continuous} & Floating-point columns.\\
+\textbf{Low-Cardinality Categorical} & Object columns with a number of unique values less than or equal to \texttt{cardinality\_threshold}.\\
+\textbf{High-Cardinality Categorical} & Object columns with a number of unique values greater than \texttt{cardinality\_threshold}.\\
+\textbf{Other} & Columns with unsupported data types that are excluded from the preprocessing pipeline.\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subparagraph{Generate visualizations of the training data based on column types and task type:}
 The tabular preprocessing report generates a set of graphs for each detected feature type and task type. 
 
 \begin{itemize}
-  \item \textbf{Binary / categorical features with classification targets:} The report uses \texttt{CategoricalClassification}, which produces
+  \item \textbf{Binary / categorical features with classification targets:} The report produces these graphs
     \begin{itemize}
       \item a null-vs-non-null pie chart,
       \item a category count plot (Top 5 Categories + Other),
       \item a category vs target count plot (Top 5 Categories + Other).
     \end{itemize}
-  \item \textbf{Binary / categorical features with regression targets:} The report uses \texttt{CategoricalRegression}, which produces
+  \item \textbf{Binary / categorical features with regression targets:} The report produces these graphs
     \begin{itemize}
       \item a null-vs-non-null pie chart,
-      \item a category count plot,
+      \item a category count plot (Top 5 Categories + Other),
       \item a box plot of the continuous target for each category.
     \end{itemize}
-  \item \textbf{Ordinal features with classification targets:} The report uses \texttt{OrdinalClassification}, rendering
+  \item \textbf{Ordinal features with classification targets:} The report produces these graphs
     \begin{itemize}
       \item a null-vs-non-null pie chart,
       \item an ordered count plot,
       \item an ordered count plot split by class label.
     \end{itemize}
-  \item \textbf{Ordinal features with regression targets:} The report uses \texttt{OrdinalRegression}, rendering
+  \item \textbf{Ordinal features with regression targets:} The report  produces these graphs
     \begin{itemize}
       \item a null-vs-non-null pie chart,
       \item an ordered count plot,
       \item a box plot of the regression target for each ordinal level.
     \end{itemize}
-  \item \textbf{Numerical / continuous features with classification targets:} The report uses \texttt{NumericalClassification}, which produces
+  \item \textbf{Numerical / continuous features with classification targets:} The report  produces these graphs
     \begin{itemize}
       \item a null-vs-non-null pie chart,
       \item a histogram with a kernel density estimate,
       \item a box plot of the feature grouped by class label.
     \end{itemize}
-  \item \textbf{Numerical / continuous features with regression targets:} The report uses \texttt{NumericalRegression}, producing
+  \item \textbf{Numerical / continuous features with regression targets:} The report  produces these graphs
     \begin{itemize}
       \item a null-vs-non-null pie chart,
       \item a histogram with a kernel density estimate,
       \item a scatter plot of feature value against the regression target.
     \end{itemize}
-  \item \textbf{Target variable for classification:} The report uses \texttt{TargetClassification}, which produces
+  \item \textbf{Target variable for classification:} The report produces these graphs
     \begin{itemize}
       \item a null-vs-non-null pie chart,
       \item a target class frequency count plot.
     \end{itemize}
-  \item \textbf{Target variable for regression:} The report uses \texttt{TargetRegression}, which produces
+  \item \textbf{Target variable for regression:} The report produces these graphs
     \begin{itemize}
       \item a null-vs-non-null pie chart,
       \item a histogram with a kernel density estimate,
       \item a box plot of the target distribution.
     \end{itemize}
-  \item \textbf{Numeric correlation matrix:} The report uses \texttt{CorrelationGraph} to generate a heatmap of pairwise correlations across all numeric columns. This helps detect redundant features, multicollinearity, and strong linear relationships.
+  \item \textbf{Numeric correlation matrix:} The report generates a heatmap of pairwise correlations across all numeric features.
 \end{itemize}
 
 \subparagraph{Apply feature preprocessing techniques for each column based on its detected type:}
 
-\begin{itemize}
-  \item \textbf{Numerical columns:} imputation with \texttt{SimpleImputer(strategy="median")}, followed by robust scaling with \texttt{RobustScaler()}.
-  \item \textbf{Binary columns:} imputation with \texttt{SimpleImputer(strategy="most\_frequent")}, followed by ordinal encoding with \texttt{OrdinalEncoder(handle\_unknown="use\_encoded\_value", unknown\_value=-1)}.
-  \item \textbf{Low-cardinality categorical columns:} imputation with \texttt{SimpleImputer(strategy="most\_frequent")}, followed by binary encoding.
-  \item \textbf{Frequency-encoded categorical columns:} imputation with \texttt{SimpleImputer(strategy="most\_frequent")}, followed by a frequency encoding transform.
-  \item \textbf{Ordinal columns:} imputation with \texttt{SimpleImputer(strategy="most\_frequent")}, followed by \texttt{RobustScaler()}.
-\end{itemize}
-
-The fitted preprocessor is saved as \texttt{training\_preprocessor.pkl}, and the derived feature names are saved as \texttt{feature\_names.pkl}. The report stores head snapshots of the processed \texttt{X\_train} and \texttt{X\_val}.
+\begin{table}[H]
+\centering
+\caption{Feature preprocessing applied by column type.}
+\begin{tabular}{p{0.30\linewidth}p{0.65\linewidth}}
+\toprule
+\textbf{Column type} & \textbf{Applied preprocessing}\\
+\midrule
+\textbf{Numerical / continuous} & Imputation with \texttt{SimpleImputer(strategy="median")}, followed by \texttt{RobustScaler()}.\\
+\textbf{Binary} & Imputation with \texttt{SimpleImputer(strategy="most\_frequent")}, followed by \texttt{OrdinalEncoder(handle\_unknown="use\_encoded\_value", unknown\_value=-1)}.\\
+\textbf{Low-cardinality categorical} & Imputation with \texttt{SimpleImputer(strategy="most\_frequent")}, followed by \texttt{BinaryEncoder()}.\\
+\textbf{Frequency-encoded categorical} & Imputation with \texttt{SimpleImputer(strategy="most\_frequent")}, followed by a frequency encoding transform.\\
+\textbf{Ordinal} & Imputation with \texttt{SimpleImputer(strategy="most\_frequent")}, followed by \texttt{RobustScaler()}.\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subparagraph{Apply target preprocessing based on the selected task:}
-Target preprocessing differs for classification and regression:
+Target preprocessing changes based on problem type (classification / regression):
 
 \begin{itemize}
-  \item \textbf{Classification:} Fill missing target values with the training-mode label, then encode the labels with \texttt{LabelEncoder}. The fitted encoder is saved to \texttt{target\_preprocessor.pkl}.
-  \item \textbf{Regression:} Fill missing target values with the training median, then standard scale the target using \texttt{StandardScaler}. The fitted scaler is saved to \texttt{target\_preprocessor.pkl}.
+  \item \textbf{Classification:} Fill missing target values with the training-mode label, then encode the labels with \texttt{LabelEncoder}.
+  \item \textbf{Regression:} Fill missing target values with the training median, then standard scale the target using \texttt{StandardScaler}. 
 \end{itemize}
 
-In both cases, the selected target-imputation strategy and transformation are recorded in the report metadata, and the first rows of processed \texttt{y\_train} and \texttt{y\_val} are stored as report snapshots.
 
 \subparagraph{Save all files required for preprocessing the test data:}
 The preprocessing pipeline persists the objects required for later inference and reuse:
 
-\begin{itemize}
-  \item \texttt{training\_preprocessor.pkl}: the fitted feature preprocessor.
-  \item \texttt{feature\_names.pkl}: the output column names produced by the feature preprocessor.
-  \item \texttt{target\_preprocessor.pkl}: the fitted target encoder or scaler.
-  \item \texttt{target\_info.pkl}: target metadata such as mode or median.
-\end{itemize}
-
-Other preprocessing artifacts are also saved earlier in the pipeline, including boolean column names, dropped-column lists, and original data column names.
-
+\begin{table}[H]
+\centering
+\caption{Saved preprocessing artifacts for test-time reuse.}
+\begin{tabular}{p{0.30\linewidth}p{0.65\linewidth}}
+\toprule
+\textbf{Artifact} & \textbf{Purpose}\\
+\midrule
+\texttt{training\_preprocessor.pkl} & The fitted feature preprocessor.\\
+\texttt{feature\_names.pkl} & The output feature names produced by the feature preprocessor.\\
+\texttt{target\_preprocessor.pkl} & The fitted target encoder or scaler.\\
+\texttt{target\_info.pkl} & Information about the target, including target name, problem type, mode, and median.\\
+\texttt{bool\_type\_col.pkl} & Boolean columns that are converted to integer values during preprocessing.\\
+\texttt{data\_columns.pkl} & The column names of the input DataFrame before preprocessing.\\
+\texttt{col\_drop.pkl} & The names of the dropped columns.\\
+\bottomrule
+\end{tabular}
+\end{table}
 \subparagraph{Generate Report if user enable report generation:}
-When \texttt{is\_report} is enabled, the code constructs \texttt{TabularPreprocessingReport(self.folder\_path, self.report\_data)} and calls \texttt{report.execute()}. This generates the report from the accumulated \texttt{report\_data} structure, including the generated graphs, preprocessing summaries, and processed data snapshots.
+When \texttt{is\_report} is enabled, the code generates the report from the accumulated \texttt{report\_data} structure, including the generated graphs, preprocessing summaries, and processed data snapshots.
+\paragraph{Testing Preprocessing Steps}
+The testing preprocessing workflow is designed to reuse the exact training preprocessing artifacts and transformations.
+
+\begin{enumerate}
+  \item Verify the required artifact files exist: \texttt{target\_preprocessor},\texttt{training\_preprocessor},\texttt{data\_columns.pkl}, \texttt{col\_drop.pkl}, \texttt{target\_info.pkl}, and \texttt{bool\_type\_col.pkl}.
+  \item Load the saved dataset columns, dropped columns, target information, boolean-column list,training-preprocessor, and target-preprocessor.
+  \item Confirm \texttt{target\_info} contains a valid \texttt{col\_name} and \texttt{problem\_type} (classification or regression).
+  \item Confirm \texttt{target\_preprocessor} and \texttt{training\_preprocessor} is not none.
+  \item Ensure that the test dataset column order matches the saved training columns. If the target column is missing, testing proceeds in \texttt{features\_only} mode.
+  \item Normalize string values in the test dataset by lowercasing them, matching the same text normalization used during training preprocessing.
+  \item Separate the test DataFrame into \texttt{X\_test} and \texttt{y\_test} when the target column is present.
+  \item Convert boolean columns to integers using the list saved in \texttt{bool\_type\_col.pkl}.
+  \item Drop the same columns identified during training using \texttt{col\_drop.pkl}.
+  \item Apply the saved \texttt{training\_preprocessor.pkl} transformer to \texttt{X\_test}.
+  \item Apply target preprocessing when the target variable is present:
+    \begin{itemize}
+      \item For classification, fill missing labels with the training-mode value, then apply the saved label encoder.
+      \item For regression, fill missing values with the training median, then apply the saved standard scaler.
+    \end{itemize}
+  \item Return the preprocessed test features and labels.
+\end{enumerate}
+
+This ensures the test pipeline uses the same feature transformation and target encoding logic as training.
+\input{tabels/auto_preprocessing/classical_testing_params.tex}
+
+\subsubsection{Text Dataset}
+
+The text dataset consists of unstructured data containing a single text column used for natural language processing tasks. Text preprocessing transforms the raw text column into numerical features suitable for machine learning models.
+\vspace{0.5cm}
+
+\paragraph{Training Preprocessing Parameters}
+
+\input{tabels/auto_preprocessing/text_training_params.tex}
+
+\paragraph{Training Preprocessing Steps}
+
+\input{tabels/auto_preprocessing/text_training_steps.tex}
+
+\subparagraph{Detailed Step Descriptions:}
+
+\begin{enumerate}
+  \item \textbf{Load data and user configuration:} The text preprocessing pipeline is initialized through the class constructor. During initialization, all user-defined parameters are assigned and validated to ensure consistency and correctness before executing any preprocessing steps.
+  
+  \item \textbf{Text normalization and cleaning:} Text is converted to lowercase, null values are filled with empty strings, and various text preprocessing techniques are applied including removal of special characters, normalization of contractions, and whitespace handling.
+  
+  \item \textbf{Tokenization and stemming:} The custom tokenizer performs word-level tokenization, removes English stopwords (except "not" and "no"), and applies Porter stemming to normalize word forms.
+  
+  \item \textbf{Feature extraction:} A TF-IDF (Term Frequency-Inverse Document Frequency) vectorizer is trained on the preprocessed text to extract numerical features. The vectorizer configuration includes:
+    \begin{itemize}
+      \item \texttt{max\_features}: Maximum vocabulary size (default: 500)
+      \item \texttt{ngram\_range}: N-gram range for feature extraction (default: (1, 2))
+      \item \texttt{max\_df}: Maximum document frequency threshold to filter common terms (default: 0.85)
+      \item \texttt{min\_df}: Minimum document frequency threshold to filter rare terms (default: 3)
+    \end{itemize}
+  
+  \item \textbf{Target preprocessing:} Target labels are encoded using LabelEncoder for classification tasks.
+  
+  \item \textbf{Artifact serialization:} All preprocessing components (TF-IDF vectorizer, label encoder, text column name, target column name) are saved as pickle files to ensure consistent test preprocessing.
+\end{enumerate}
+
+\paragraph{Testing Preprocessing Parameters}
+
+\input{tabels/auto_preprocessing/text_testing_params.tex}
+
+\paragraph{Testing Preprocessing Steps}
+
+\input{tabels/auto_preprocessing/text_testing_steps.tex}
+
+\subparagraph{Testing Preprocessing Workflow:}
+
+The text testing preprocessing workflow is designed to reuse the exact training preprocessing artifacts, vocabulary, and feature extraction models. This ensures the test pipeline uses the same text normalization, tokenization, stemming, and TF-IDF feature extraction logic as training. The preprocessing follows these principles:
+
+\begin{enumerate}
+  \item Load all saved artifacts (TF-IDF vectorizer, label encoder, column names) from the training phase.
+  \item Apply identical text normalization steps as the training phase.
+  \item Use the fitted TF-IDF vectorizer from training to transform test text into features, ensuring the feature dimensions and vocabulary match exactly.
+  \item Handle missing target labels gracefully, supporting features-only prediction mode when the target column is absent.
+\end{enumerate}
 
 \section{Deployment Module}
 

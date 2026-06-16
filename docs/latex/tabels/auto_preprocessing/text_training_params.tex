@@ -1,0 +1,38 @@
+\begin{table}[H]
+\centering
+
+\caption{Text Training Preprocessing Parameters}
+\label{tab:textrainingparams}
+
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Description} \\
+\midrule
+
+df & The input dataframe containing the dataset. \\
+
+target\_col & The name of the target column in the dataset (for supervised classification tasks). \\
+
+text\_col & The name of the column containing raw text data. \\
+
+folder\_path & Path to store reports, preprocessors, and serialized objects. Default: None. \\
+
+val\_size & Fraction of data used for validation split (e.g., 0.2 for 20\%). Default: 0.2. \\
+
+random\_state & Random seed to ensure reproducible data splits. Default: 42. \\
+
+tfidf\_max\_features & Maximum number of features (vocabulary size) for TF-IDF vectorizer. Default: 500. \\
+
+tfidf\_ngram & N-gram range for TF-IDF vectorizer as tuple (min\_n, max\_n). Default: (1, 2). \\
+
+tfidf\_max\_df & Maximum document frequency threshold for TF-IDF (0.0 to 1.0). Default: 0.85. \\
+
+tfidf\_min\_df & Minimum document frequency threshold for TF-IDF (0.0 to 1.0 or integer count). Default: 3. \\
+
+is\_report & Boolean flag to enable or disable preprocessing report generation. Default: True. \\
+
+\bottomrule
+\end{tabular}%
+}
+\end{table}

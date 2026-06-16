@@ -505,7 +505,6 @@ class TestClassicalTrainingPreprocessing:
             training_preprocessing.features_preprocessing(
                 X_train,
                 X_val,
-                info,
                 binary_cols,
                 numerical_cols,
                 one_hot_cols,
@@ -552,7 +551,6 @@ class TestClassicalTrainingPreprocessing:
             training_preprocessing.features_preprocessing(
                 X_train,
                 X_val,
-                info,
                 binary_cols,
                 numerical_cols,
                 one_hot_cols,
@@ -601,7 +599,6 @@ class TestClassicalTrainingPreprocessing:
             training_preprocessing.features_preprocessing(
                 X_train,
                 X_val,
-                info,
                 binary_cols,
                 numerical_cols,
                 one_hot_cols,
@@ -650,7 +647,6 @@ class TestClassicalTrainingPreprocessing:
             training_preprocessing.features_preprocessing(
                 X_train,
                 X_val,
-                info,
                 binary_cols,
                 numerical_cols,
                 one_hot_cols,
@@ -700,7 +696,6 @@ class TestClassicalTrainingPreprocessing:
             training_preprocessing.features_preprocessing(
                 X_train,
                 X_val,
-                info,
                 binary_cols,
                 numerical_cols,
                 one_hot_cols,
@@ -755,7 +750,6 @@ class TestClassicalTrainingPreprocessing:
             training_preprocessing.features_preprocessing(
                 X_train,
                 X_val,
-                info,
                 binary_cols,
                 numerical_cols,
                 one_hot_cols,

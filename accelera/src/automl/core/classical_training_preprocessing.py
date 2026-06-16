@@ -372,7 +372,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         self,
         X_train,
         X_val,
-        info,
         binary_cols,
         numerical_cols,
         one_hot_cols,
@@ -520,7 +519,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         X_train, X_val = self.features_preprocessing(
             X_train,
             X_val,
-            info,
             binary_cols,
             numerical_cols,
             one_hot_cols,

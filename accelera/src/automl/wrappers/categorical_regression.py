@@ -21,7 +21,6 @@ class CategoricalRegression(TabularGraphBase):
 
     def build_graph(self):
         _, ax = plt.subplots(1, 3, figsize=(12, 4))
-        # pie plot of nulls percent
         ax[0].pie(
             [float(self.nulls_percent), float(100 - self.nulls_percent)],
             labels=["Nulls", "Not Nulls"],

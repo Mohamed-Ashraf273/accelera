@@ -1,0 +1,28 @@
+\begin{table}[H]
+\centering
+
+\caption{Text Testing Preprocessing Steps}
+\label{tab:textestingsteps}
+
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{p{0.1\linewidth}p{0.45\linewidth}p{0.35\linewidth}}
+\toprule
+\textbf{Step} & \textbf{Description} & \textbf{Output} \\
+\midrule
+
+1 & Load saved preprocessing artifacts from training & Loaded TF-IDF model, encoders, data info \\
+
+2 & Fill null values in text column & Text data with nulls replaced by empty string \\
+
+3 & Normalize text (lowercase) & Lowercased text data \\
+
+4 & Apply training TF-IDF vectorizer to test data & Numerical feature matrix matching training format \\
+
+5 & Apply target label encoding (if not features-only mode) & Encoded target labels \\
+
+6 & Return results & X\_test and y\_test (or X\_test only) \\
+
+\bottomrule
+\end{tabular}%
+}
+\end{table}
