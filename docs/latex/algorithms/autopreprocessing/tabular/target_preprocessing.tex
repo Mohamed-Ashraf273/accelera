@@ -1,0 +1,28 @@
+\begin{algorithm}[H]
+\caption{Target Variable Preprocessing}
+\begin{algorithmic}[1]
+
+\IF{Problem Type = Classification}
+
+    \STATE Replace missing target values using the most frequent value
+    \STATE Fit a Label Encoder on the training target
+    \STATE Transform training and validation targets
+    \STATE Save the fitted Label Encoder
+    \STATE Record preprocessing information in the report
+
+\ELSIF{Problem Type = Regression}
+
+    \STATE Replace missing target values using the median value
+    \STATE Fit a Standard Scaler on the training target
+    \STATE Scale training and validation targets
+    \STATE Save the fitted Standard Scaler
+    \STATE Record preprocessing information in the report
+
+\ENDIF
+
+\STATE Store processed target samples in the report
+\STATE Save target metadata for inference
+\STATE Return processed training and validation targets
+
+\end{algorithmic}
+\end{algorithm}

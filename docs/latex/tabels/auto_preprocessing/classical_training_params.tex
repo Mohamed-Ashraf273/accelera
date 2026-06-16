@@ -1,8 +1,8 @@
 \begin{table}[H]
 \centering
 
-\caption{Classical Training Data Preprocessing Parameters}
-\label{tab:classicaltrainingparams}
+\caption{Classical Training Data Preprocessing Parameters - Description}
+\label{tab:params_description}
 
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{ll}
@@ -17,7 +17,7 @@ target\_col &
 The name of the target column in the dataset. \\
 
 problem\_type &
-Classification or Regression. \\
+Classification or Regression task type. \\
 
 folder\_path &
 Path to store reports, charts, and serialized objects. \\
@@ -26,19 +26,17 @@ val\_size &
 Percentage of data used for validation split. \\
 
 random\_state &
-To give the same split each run. \\
+To ensure reproducible data splitting. \\
 
 cardinality\_threshold &
 Threshold for separating low and high cardinality categorical features. \\
 
 max\_unique\_ordinal &
-Maximum number of unique values to treat integer column as ordinal. \\
+Maximum number of unique values to treat a column as ordinal. \\
 
 missing\_threshold &
-Drop columns exceeding this missing ratio threshold. \\
+Threshold for dropping columns based on missing values ratio. \\
 
-unique\_threshold &
-Drop columns exceeding this uniqueness ratio threshold. \\
 
 columns\_need\_to\_drop &
 List of user-specified columns to remove. \\
@@ -50,4 +48,3 @@ Enables or disables preprocessing report generation. \\
 \end{tabular}%
 }
 \end{table}
-

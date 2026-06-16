@@ -1,6 +1,6 @@
 {
   "tabular_dataset": {
-    "autoGlounModel": "GBM",
+    "autoGlounModel": "KNN",
     "problemType": {
       "classification": {
         "startup_founder_burnout_2026": {
@@ -93,12 +93,6 @@
           "link": "https://drive.google.com/uc?id=11AYSyIHdlnby4DkgvmwHBYI6uNPo7NND",
           "target_column": "csMPa",
           "report_path": "./Concrete_Data_Yeh",
-          "eval_metric": "r2"
-        },
-        "job_salary_prediction_dataset": {
-          "link": "https://drive.google.com/uc?id=1r5HEDyelbzfZbXPSx-0G7vEvrgXGqb9r",
-          "target_column": "salary",
-          "report_path": "./job_salary_prediction_dataset",
           "eval_metric": "r2"
         },
         "Housing": {

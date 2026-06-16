@@ -20,7 +20,7 @@ class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
         if self.target_col not in self.df.columns:
             raise ValueError("target_col must be one of the dataframe columns")
 
-        if (not (isinstance(self.val_size, (int, float)))) or (
+        if (not (isinstance(self.val_size, float))) or (
             not (0 < self.val_size <= 0.5)
         ):
             raise ValueError(

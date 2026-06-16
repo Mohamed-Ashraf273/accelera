@@ -1,0 +1,37 @@
+\begin{algorithm}[H]
+\caption{Data Overview Generation}
+\label{alg:data_overview}
+
+\begin{algorithmic}[1]
+
+\STATE Input: Dataframe $D$
+\STATE Output: Stored data overview in report object
+
+\STATE Extract first rows of Dataframe (head)
+\STATE Apply lowercasing to all string values in object-type columns
+\STATE Extract Dataframe structure information using info function
+
+\STATE Split Dataframe into:
+\STATE \quad Numerical features $D_{num}$
+\STATE \quad Categorical features $D_{cat}$
+
+\IF{$D_{num}$ is not empty}
+    \STATE Compute statistical summary (mean, std, min, max, etc.)
+\ENDIF
+
+\IF{$D_{cat}$ is not empty}
+    \STATE Compute categorical statistics (unique values, frequency, etc.)
+\ENDIF
+
+\STATE Compute missing values for each column
+\STATE Compute number of duplicate rows
+\STATE Compute duplicate percentage
+\STATE Get Dataframe shape (rows, columns)
+
+\STATE Store all computed results into report dictionary:
+\STATE \quad head, info, statistics, missing values, duplicates, shape
+
+\STATE Save results in internal variable: \texttt{report\_data["data\_overview"]}
+
+\end{algorithmic}
+\end{algorithm}

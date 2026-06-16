@@ -178,7 +178,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
     def detect_column_types(self, X_train, info):
         binary_cols = []
         numerical_cols = []
-        one_hot_cols = []
+        binay_encoding_cols = []
         frequency_cols = []
         ordinal_cols = []
         others = []
@@ -222,7 +222,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                         "Fill missing with most frequent",
                         "Binary encoding",
                     ]
-                    one_hot_cols.append(col)
+                    binay_encoding_cols.append(col)
                 else:
                     info[col]["col_type"] = "high level cardinality"
                     info[col]["preprossing_steps"] = [
@@ -248,7 +248,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         return (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             others,
@@ -374,7 +374,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         X_val,
         binary_cols,
         numerical_cols,
-        one_hot_cols,
+        binay_encoding_cols,
         frequency_cols,
         ordinal_cols,
     ):
@@ -415,7 +415,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         )
         preprocessor = ColumnTransformer(
             transformers=[
-                ("onehot", binary_encoder_pipeline, one_hot_cols),
+                ("onehot", binary_encoder_pipeline, binay_encoding_cols),
                 ("numerical", numerical_pipeline, numerical_cols),
                 ("binary", binary_pipeline, binary_cols),
                 ("frequency", frequency_pipeline, frequency_cols),
@@ -510,7 +510,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -521,7 +521,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             X_val,
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
         )

@@ -382,13 +382,13 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
         assert set(binary_cols) == {"binary_feature"}
-        assert set(one_hot_cols) == {"one_hot_feature"}
+        assert set(binay_encoding_cols) == {"one_hot_feature"}
         assert set(frequency_cols) == {
             "frequency_feature",
         }
@@ -413,7 +413,7 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -425,7 +425,7 @@ class TestClassicalTrainingPreprocessing:
         expected_num_graphs = (
             len(binary_cols)
             + len(numerical_cols)
-            + len(one_hot_cols)
+            + len(binay_encoding_cols)
             + len(frequency_cols)
             + len(ordinal_cols)
             + 2
@@ -457,7 +457,7 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -466,10 +466,9 @@ class TestClassicalTrainingPreprocessing:
             training_preprocessing.features_preprocessing(
                 X_train,
                 X_val,
-                info,
                 binary_cols,
                 numerical_cols,
-                one_hot_cols,
+                binay_encoding_cols,
                 frequency_cols,
                 ordinal_cols,
             )
@@ -496,7 +495,7 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -507,7 +506,7 @@ class TestClassicalTrainingPreprocessing:
                 X_val,
                 binary_cols,
                 numerical_cols,
-                one_hot_cols,
+                binay_encoding_cols,
                 frequency_cols,
                 ordinal_cols,
             )
@@ -542,7 +541,7 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -553,7 +552,7 @@ class TestClassicalTrainingPreprocessing:
                 X_val,
                 binary_cols,
                 numerical_cols,
-                one_hot_cols,
+                binay_encoding_cols,
                 frequency_cols,
                 ordinal_cols,
             )
@@ -590,7 +589,7 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -601,7 +600,7 @@ class TestClassicalTrainingPreprocessing:
                 X_val,
                 binary_cols,
                 numerical_cols,
-                one_hot_cols,
+                binay_encoding_cols,
                 frequency_cols,
                 ordinal_cols,
             )
@@ -638,7 +637,7 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -649,7 +648,7 @@ class TestClassicalTrainingPreprocessing:
                 X_val,
                 binary_cols,
                 numerical_cols,
-                one_hot_cols,
+                binay_encoding_cols,
                 frequency_cols,
                 ordinal_cols,
             )
@@ -687,7 +686,7 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -698,7 +697,7 @@ class TestClassicalTrainingPreprocessing:
                 X_val,
                 binary_cols,
                 numerical_cols,
-                one_hot_cols,
+                binay_encoding_cols,
                 frequency_cols,
                 ordinal_cols,
             )
@@ -741,7 +740,7 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -752,7 +751,7 @@ class TestClassicalTrainingPreprocessing:
                 X_val,
                 binary_cols,
                 numerical_cols,
-                one_hot_cols,
+                binay_encoding_cols,
                 frequency_cols,
                 ordinal_cols,
             )
