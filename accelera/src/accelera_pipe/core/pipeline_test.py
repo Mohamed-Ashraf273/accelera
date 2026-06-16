@@ -40,6 +40,10 @@ class CountingTransformer:
         return X + self.delta
 
 
+def save_load_custom_shift(x):
+    return x + 1.0
+
+
 class TestPipelineCorrectness:
     @pytest.fixture(autouse=True)
     def setup(self):
@@ -403,6 +407,60 @@ class TestPipelineCorrectness:
     def test_pipeline_save_load_before_execution(self):
         p = Pipeline()
         p.preprocess("scale", StandardScaler())
+        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
+        p.predict("pred", self.test_data, output_func="predict")
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            pipeline_path = f"{tmp_dir}/saved_pipeline.pkl"
+            p.save(pipeline_path)
+            loaded_pipeline = Pipeline.load(pipeline_path)
+
+        original_result, _ = p(self.X, self.y)
+        loaded_result, _ = loaded_pipeline(self.X, self.y)
+
+        assert len(loaded_result) == len(original_result)
+        assert np.array_equal(loaded_result[0], original_result[0])
+
+    def test_pipeline_save_after_execution_remains_trainable(self):
+        p = Pipeline()
+        p.preprocess("scale", StandardScaler())
+        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
+        p.predict("pred", self.test_data, output_func="predict")
+
+        original_result, executed_graph = p(self.X, self.y)
+        executed_result = executed_graph(self.test_data)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            pipeline_path = f"{tmp_dir}/saved_pipeline.pkl"
+            p.save(pipeline_path)
+            loaded_pipeline = Pipeline.load(pipeline_path)
+
+        loaded_result, _ = loaded_pipeline(self.X, self.y)
+
+        assert np.array_equal(executed_result[0], original_result[0])
+        assert len(loaded_result) == len(original_result)
+        assert np.array_equal(loaded_result[0], original_result[0])
+
+    def test_pipeline_save_load_with_lambda_preprocess(self):
+        p = Pipeline()
+        p.preprocess("scale", lambda x: x * 2.0)
+        p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
+        p.predict("pred", self.test_data, output_func="predict")
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            pipeline_path = f"{tmp_dir}/saved_pipeline.pkl"
+            p.save(pipeline_path)
+            loaded_pipeline = Pipeline.load(pipeline_path)
+
+        original_result, _ = p(self.X, self.y)
+        loaded_result, _ = loaded_pipeline(self.X, self.y)
+
+        assert len(loaded_result) == len(original_result)
+        assert np.array_equal(loaded_result[0], original_result[0])
+
+    def test_pipeline_save_load_with_custom_function_preprocess(self):
+        p = Pipeline()
+        p.preprocess("shift", save_load_custom_shift)
         p.model("lr", LogisticRegression(random_state=42, max_iter=1000))
         p.predict("pred", self.test_data, output_func="predict")
 

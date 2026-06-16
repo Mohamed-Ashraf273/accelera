@@ -44,11 +44,6 @@ class PipelineBase:
         self.__graph.enableParallelExecution(False)
         return self
 
-    def save_preprocessed_data(self, directory):
-        if not self.__graph.savePreprocessedData(directory):
-            raise ValueError("Saving data to disk failed.")
-        return self
-
     def save(self, path=config.PIPELINE_FILENAME):
         pipeline_path = self._resolve_pipeline_path(path)
         if pipeline_path.parent != Path("."):

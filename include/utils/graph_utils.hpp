@@ -17,8 +17,6 @@ ACCELERA_API void log_warning(const std::string &message);
 ACCELERA_API bool validateNodeConnection(Node::Ptr newNode,
                                          Node::Ptr sourceNode);
 ACCELERA_API std::string nodeTypeToString(NodeType type);
-ACCELERA_API void saveAsCsv(const std::string &directory, py::object X,
-                            py::object y, std::string name);
 
 } // namespace accelera
 
