@@ -27,6 +27,21 @@ def normalize_rows_for_parallelizer_test(X):
     return X
 
 
+class NormalizeRowsInstanceForParallelizerTest:
+    def transform(self, X):
+        for i in range(len(X)):
+            s = 0
+            for j in range(len(X[i])):
+                s += X[i][j] * X[i][j]
+
+            norm = s**0.5
+
+            for j in range(len(X[i])):
+                X[i][j] = X[i][j] / norm
+
+        return X
+
+
 class TestParallelizer:
     def test_classify_returns_prediction(self, monkeypatch):
         parallelizer = Parallelizer()
@@ -271,6 +286,17 @@ class TestParallelizer:
         normalized = result(X.copy())
 
         assert result is not normalize_rows_for_parallelizer_test
+        assert np.allclose(np.linalg.norm(normalized, axis=1), 1.0)
+
+    def test_optimize_pyinstance_compiles_transform(self):
+        parallelizer = Parallelizer()
+        instance = NormalizeRowsInstanceForParallelizerTest()
+        X = np.array([[3.0, 4.0], [5.0, 12.0]], dtype=np.float64)
+
+        result = parallelizer.optimize_pyinstance(instance)
+        normalized = result.transform(X.copy())
+
+        assert result is instance
         assert np.allclose(np.linalg.norm(normalized, axis=1), 1.0)
 
     def test_parallelize_skips_inner_loop_when_outer_selected(

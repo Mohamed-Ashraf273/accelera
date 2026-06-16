@@ -532,13 +532,13 @@ branches, only the first item is eligible for sharing:
 \centering
 \begin{minipage}{0.48\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{../../before_sharing.png}
+  \includegraphics[width=\linewidth]{imgs/before_sharing.png}
   \caption*{Before sharing}
 \end{minipage}
 \hfill
 \begin{minipage}{0.48\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{../../after_sharing.png}
+  \includegraphics[width=\linewidth]{imgs/after_sharing.png}
   \caption*{After sharing}
 \end{minipage}
 \caption{Branch graph before and after duplicate first-node sharing.}
@@ -1021,6 +1021,15 @@ optimization path is intentionally best-effort: if conversion, loop extraction,
 OpenMP annotation, or native compilation fails, the original Python function
 is preserved and the pipeline remains correct.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{imgs/parallelizer_accelera_pipe_flow.png}
+\caption{Architecture of the integration between custom Python preprocessing,
+the Python-to-C++ converter, the OpenMP parallelizer, the native compiler, and
+\texttt{accelera\_pipe}.}
+\label{fig:parallelizer-accelera-pipe-flow}
+\end{figure}
+
 The integration path is:
 
 \begin{enumerate}[leftmargin=*]
@@ -1067,28 +1076,39 @@ array and returns the same NumPy array object after normalization.
 
 \begin{table}[H]
 \centering
-\caption{Accelera Pipe integration benchmark for automatic custom-function
-parallelization.}
-\begin{tabular}{p{0.32\linewidth}p{0.22\linewidth}p{0.30\linewidth}}
+\caption{Accelera Pipe integration benchmark for automatic custom
+preprocessing acceleration.}
+\begin{tabular}{p{0.36\linewidth}p{0.18\linewidth}p{0.28\linewidth}}
 \toprule
-\textbf{Mode} & \textbf{Samples} & \textbf{Reported pipeline time}\\
+\textbf{Mode} & \textbf{Samples} & \textbf{Measured time}\\
 \midrule
 Python custom preprocessing function & 500,000 & 6.95 s\\
-Compiled OpenMP preprocessing function & 500,000 & 0.07 s\\
+Compiled OpenMP kernel execution only & 500,000 & 0.07 s\\
+End-to-end compiled run, cold cache & 500,000 & 4.45 s\\
+End-to-end compiled run, cached module & 500,000 & 2.59 s\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-This experiment shows an approximate speedup of
+The original 0.07 s measurement isolates the execution of the compiled OpenMP
+preprocessing kernel after compilation has already happened. It does not
+include Python source extraction, Python-to-C++ conversion, OpenMP
+parallelization, C++ compilation, dynamic module loading, or graph setup.
+Therefore, the execution-only speedup is
 \[
   \frac{6.95}{0.07} \approx 99.3\times
 \]
-for the preprocessing-heavy example. Both runs used the same generated dataset
-shape, \texttt{(500000, 25)}, the same first 500 samples as test data, and the
-same row-normalization logic. The result demonstrates that the parallelizer can
-serve not only as a source-to-source OpenMP tool, but also as a runtime
-acceleration backend for supported custom preprocessing functions in
-\texttt{accelera\_pipe}.
+for the preprocessing-heavy kernel itself. For full user-visible pipeline
+execution, the first compiled run measured 4.45 s because it included native
+compilation and module creation. A second run, after the compiled extension was
+available in the cache, measured 2.59 s. These end-to-end measurements still
+improve over the Python preprocessing baseline, but they give a more realistic
+view of the cost paid when automatic compilation is included in the workflow.
+Both runs used the same generated dataset shape, \texttt{(500000, 25)}, the
+same first 500 samples as test data, and the same row-normalization logic. The
+result demonstrates that the parallelizer can serve not only as a
+source-to-source OpenMP tool, but also as a runtime acceleration backend for
+supported custom preprocessing functions in \texttt{accelera\_pipe}.
 
 \iffalse
 \section{Accelera Pipe Module}

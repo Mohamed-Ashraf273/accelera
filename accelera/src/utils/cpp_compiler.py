@@ -3,9 +3,12 @@ import importlib.util
 import os
 import re
 import subprocess
+import sys
 import sysconfig
 
 from accelera.src.config import config
+
+_COMPILE_CACHE_VERSION = "preprocess-v2"
 
 
 def _python_include_flags() -> list[str]:
@@ -31,7 +34,7 @@ def _pybind11_include_flag() -> str:
     return f"-I{include_dir}"
 
 
-def _to_numpy_preprocess_cpp(cpp_code: str, func_name: str, module_name: str) -> str:
+def _to_numpy_code_cpp(cpp_code: str, func_name: str, module_name: str) -> str:
     code = cpp_code
     if "int main()" in code:
         code = code[: code.index("int main()")].rstrip()
@@ -67,24 +70,47 @@ def _to_numpy_preprocess_cpp(cpp_code: str, func_name: str, module_name: str) ->
     )
 
 
+def _compile_opt_flag() -> str:
+    return os.getenv("ACCELERA_CPP_OPT_LEVEL", "-O0")
+
+
+def _compiled_module_name(
+    cpp_code: str,
+    func_name: str,
+    extension_suffix: str,
+) -> str:
+    cache_key = "\n".join(
+        [
+            _COMPILE_CACHE_VERSION,
+            func_name,
+            _compile_opt_flag(),
+            extension_suffix,
+            cpp_code,
+        ]
+    )
+    source_hash = hashlib.md5(cache_key.encode()).hexdigest()
+    return f"accelera_parallel_{source_hash}"
+
+
 def compile_parallelized_code(cpp_code: str, func_name: str):
-    source_hash = hashlib.md5(cpp_code.encode()).hexdigest()
-    module_name = f"accelera_parallel_{source_hash}"
+    extension_suffix = sysconfig.get_config_var("EXT_SUFFIX") or ".so"
+    module_name = _compiled_module_name(cpp_code, func_name, extension_suffix)
+    loaded_module = sys.modules.get(module_name)
+    if loaded_module is not None:
+        return getattr(loaded_module, func_name)
+
     build_dir = config.cache_dir / "compiled"
     build_dir.mkdir(parents=True, exist_ok=True)
 
-    extension_suffix = sysconfig.get_config_var("EXT_SUFFIX") or ".so"
     cpp_path = build_dir / f"{module_name}.cpp"
     module_path = build_dir / f"{module_name}{extension_suffix}"
 
     if not module_path.exists():
-        cpp_path.write_text(
-            _to_numpy_preprocess_cpp(cpp_code, func_name, module_name)
-        )
+        cpp_path.write_text(_to_numpy_code_cpp(cpp_code, func_name, module_name))
         cxx = os.getenv("CXX", "c++")
         cmd = [
             cxx,
-            "-O3",
+            _compile_opt_flag(),
             "-shared",
             "-std=c++17",
             "-fPIC",
@@ -103,4 +129,5 @@ def compile_parallelized_code(cpp_code: str, func_name: str):
 
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
+    sys.modules[module_name] = module
     return getattr(module, func_name)

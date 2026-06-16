@@ -49,9 +49,9 @@ def normalize_rows(X):
 
 
 X, y, X_val, y_val = sample_data()
-accpipe = Pipeline()
-accpipe.preprocess("normalize", normalize_rows)  # , parallelize=True)
 start_time = time.time()
+accpipe = Pipeline()
+accpipe.preprocess("normalize", normalize_rows)
 res, executed_graph = accpipe(X, y, select_strategy="max")
 print("==============Accelera Results==============")
 elapsed = time.time() - start_time

@@ -81,21 +81,6 @@ candidates = [
 # 4. MinMaxScaler -> SVC(C=10)
 # Total: 4 pipelines
 
-acc_pipe = accpipeline()
-acc_pipe.branch(
-    "preprocessing",
-    acc_pipe.preprocess("scaler", StandardScaler(), branch=True),
-    acc_pipe.preprocess("scaler", MinMaxScaler(), branch=True),
-).branch(
-    "models",
-    acc_pipe.model("model_lr", LogisticRegression(max_iter=1000), branch=True),
-    acc_pipe.model("model_svc", SVC(C=10), branch=True),
-).predict("predict", test_data=X_val).metric(
-    "metric",
-    "accuracy_score",
-    y_true=y_val,
-)
-
 
 def extract_metric(metric_result):
     if isinstance(metric_result, dict) and "result" in metric_result:
@@ -165,6 +150,22 @@ sk_pipe_end_mem = get_memory_info()
 
 acc_start_mem = get_memory_info()
 acc_start_time = time.time()
+
+acc_pipe = accpipeline()
+acc_pipe.branch(
+    "preprocessing",
+    acc_pipe.preprocess("scaler", StandardScaler(), branch=True),
+    acc_pipe.preprocess("scaler", MinMaxScaler(), branch=True),
+).branch(
+    "models",
+    acc_pipe.model("model_lr", LogisticRegression(max_iter=1000), branch=True),
+    acc_pipe.model("model_svc", SVC(C=10), branch=True),
+).predict("predict", test_data=X_val).metric(
+    "metric",
+    "accuracy_score",
+    y_true=y_val,
+)
+
 acc_val_results, best_path = acc_pipe(X_train, y_train, select_strategy="max")
 serialize(acc_pipe, "accelera_pipe.xml")
 report = GraphReport("report", "accelera_pipe.xml", acc_val_results)
