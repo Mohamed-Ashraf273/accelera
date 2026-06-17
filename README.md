@@ -57,7 +57,9 @@ source .venv/bin/activate
 pip install -r requirements.txt
 pip install psutil requests gdown graphviz
 
-export PYTHONPATH="$PWD"
+# Add Accelera to Python's import path for this terminal session.
+# This is required before running examples, notebooks, or tests from the repo.
+export PYTHONPATH="$PWD:${PYTHONPATH:-}"
 
 # Linux only, required before CMake if you want to build code-parallelizer
 # bindings and also because the current Linux CMake config expects LLVM.
@@ -65,7 +67,14 @@ sudo bash shell/install_llvm.sh 18
 
 cmake -S . -B build
 cmake --build build -j"$(nproc)"
+
+# After building the C++/pybind modules, also expose the generated bindings.
+export PYTHONPATH="$PWD:$PWD/build/bindings:${PYTHONPATH:-}"
 ```
+
+Run the `export PYTHONPATH=...` command again whenever you open a new terminal.
+If you skip it, imports such as `from accelera.src...` or the native `graph`
+binding may fail even when the package files exist locally.
 
 ### Run Examples
 
@@ -128,167 +137,21 @@ print(best_result)
 
 ## More Usage Examples
 
-### Dataset Retriever
-
-```python
-from accelera.src.utils.dataset_retriever import retriever
-
-print(retriever.available_datasets())
-
-retriever.connect()
-housing_df = retriever.retrieve_dataset("Housing", df=True)
-print(housing_df.head())
-retriever.close()
-```
-
-### Tabular Auto Preprocessing
-
-```python
-from accelera.src.automl.core.classical_training_preprocessing import (
-    ClassicalTrainingPreprocessing,
-)
-from accelera.src.utils.dataset_retriever import retriever
-
-retriever.connect()
-df = retriever.retrieve_dataset("Titanic-Dataset", df=True)
-
-preprocessor = ClassicalTrainingPreprocessing(
-    df,
-    target_col="Survived",
-    problem_type="classification",
-    folder_path="./titanic_preprocessing_report",
-)
-X_train, y_train, X_val, y_val = preprocessor.common_preprocessing()
-
-retriever.close()
-```
-
-### Text Auto Preprocessing
-
-```python
-import pandas as pd
-
-from accelera.src.automl.core.text_training_preprocessing import (
-    TextTrainingPreprocessing,
-)
-
-reviews_df = pd.DataFrame(
-    {
-        "review": ["Great product", "Very bad experience", "I like it"],
-        "class": [1, 0, 1],
-    }
-)
-
-text_preprocessor = TextTrainingPreprocessing(
-    reviews_df,
-    target_col="class",
-    text_col="review",
-    folder_path="./reviews_report",
-)
-X_train, y_train, X_val, y_val = text_preprocessor.common_preprocessing()
-```
-
-### Image Auto Preprocessing
-
-```python
-from accelera.src.automl.core.classification_image_training_preprocessing import (
-    ClassificationImageTrainingPreprocessing,
-)
-
-image_preprocessor = ClassificationImageTrainingPreprocessing(
-    training_folder_images="./PetImages",  # replace with your class folders
-    folder_path="./PetImagesReport",
-    split_training=True,
-    val_size=0.2,
-    images_size=(224, 224),
-    augment=True,
-)
-training_loader, validation_loader = image_preprocessor.common_preprocessing()
-```
-
-### Pipeline Graph Report
-
-```python
-from accelera.src.utils.accelera_utils import serialize
-from accelera.src.accelera_pipe.wrappers.graph_report import GraphReport
-
-predictions, executed_graph = pipe(X, y, select_strategy="max")
-serialize(pipe, "pipeline.xml")
-
-report = GraphReport("pipeline_report", "pipeline.xml", predictions)
-report.execute()
-```
-
-### Standalone Model Report
-
-```python
-from sklearn.metrics import accuracy_score
-
-from accelera.src.accelera_pipe.wrappers.model_report import ModelReport
-
-accuracy = accuracy_score(y_test, model.predict(X_test))
-results = [
-    {
-        "metric name": "accuracy",
-        "result": accuracy,
-        "plot_func": None,
-        "labels_name": None,
-        "headers_name": None,
-    }
-]
-
-report = ModelReport("model_report", results=results)
-report.execute()
-```
-
-### C/C++ Loop Parallelization
-
-```python
-from accelera.src.utils.parallelizer import parallelizer
-
-parallelizer.parallelize("examples/test_loops.c")
-# Writes examples/parallelized_test_loops.c
-```
-
-## Accelera Pipe and Parallelizer Guide
-
-This section documents the two core modules used for graph pipeline execution
-and loop acceleration:
-
-- `accelera/src/accelera_pipe/`: graph-based machine-learning pipelines.
-- `accelera/src/utils/parallelizer.py`: OpenMP loop parallelization.
-- `accelera/src/utils/py2cpp_converter.py`: restricted Python-to-C++ converter.
-- `accelera/src/utils/cpp_compiler.py`: compiles supported generated C++ into
-  Python-callable modules for custom preprocessing.
-
-### Required Setup
-
-Run these from the repository root:
+The examples below assume you already ran the Quick Start setup and exported
+`PYTHONPATH`. For graph-backed pipeline examples, use:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-
-pip install -r requirements.txt
-pip install psutil requests gdown graphviz
-
-export PYTHONPATH="$PWD:$PWD/build/bindings"
-
-# Linux only. Required for code_parallelizer_utils and current CMake config.
-sudo bash shell/install_llvm.sh 18
-
-cmake -S . -B build
-cmake --build build -j"$(nproc)"
+export PYTHONPATH="$PWD:$PWD/build/bindings:${PYTHONPATH:-}"
 ```
 
-If the Python import fails with `The 'graph' C++ module could not be imported`,
-the native C++ bindings were not built or `build/bindings` is not visible in
-`PYTHONPATH`.
+If the native graph import fails, rebuild the C++ bindings with
+`cmake --build build -j"$(nproc)"` and run the export command again.
 
-### Accelera Pipe Usage
+### Accelera Pipe Branch Selection
 
-Use `Pipeline` to create a graph. Each call adds one node. Branch nodes are
-created by passing `branch=True`, then grouped with `branch()`.
+Use `Pipeline` when you want to compare several preprocessing/model paths in a
+single graph run. Each builder call adds a node. Passing `branch=True` creates
+a branch candidate, and `branch()` groups those candidates under one split.
 
 ```python
 from sklearn.datasets import make_classification
@@ -324,28 +187,32 @@ print(results)
 print(test_results)
 ```
 
-Important pipeline options:
+Useful pipeline options:
 
 - `select_strategy="all"` returns all graph paths.
 - `select_strategy="max"` selects the path with the highest metric.
 - `select_strategy="min"` selects the path with the lowest metric.
-- `custom_strategy=` can pass a user selection function.
+- `custom_strategy=` accepts a user-defined path selection function.
 - `pipe.disable_parallel_execution()` forces serial graph execution.
 - `pipe.set_multicore_threshold(n)` changes the backend threshold for
   multicore execution.
 - `cache=False` is the default for preprocess/model nodes. Enable cache only
   when repeated runs reuse the same expensive node inputs.
 
-### Save and Load
+### Save and Load Pipelines
 
-Both unexecuted pipelines and executed graphs can be saved as one pickle file.
+Unexecuted pipelines and executed graphs can both be saved as one pickle file.
+Save an unexecuted pipeline when you want to store the graph recipe and train
+it later. Save an executed graph when you already trained the pipeline and want
+to reuse the fitted preprocessing/model path for inference.
 
 ```python
+from accelera.src.accelera_pipe.core.executed_graph import ExecutedGraph
+from accelera.src.accelera_pipe.core.pipeline import Pipeline
+
 pipe.save("pipeline.pkl")
 loaded_pipe = Pipeline.load("pipeline.pkl")
 results, executed_graph = loaded_pipe(X, y, select_strategy="max")
-
-from accelera.src.accelera_pipe.core.executed_graph import ExecutedGraph
 
 executed_graph.save("executed_graph.pkl")
 loaded_graph = ExecutedGraph.load("executed_graph.pkl")
@@ -354,26 +221,164 @@ predictions = loaded_graph(X_test, y_true=y_test)
 
 Notes:
 
-- An unexecuted pipeline stores the graph recipe and can be trained later.
-- An executed graph stores fitted preprocessors/models and is used for
-  inference.
-- Top-level custom preprocess functions and simple lambdas are stored through
-  source-backed wrappers when possible.
-- Custom functions with closures are not saved safely because captured external
-  variables cannot be reconstructed from source alone.
+- An unexecuted pipeline stores the graph structure and callable node objects.
+- An executed graph stores the fitted objects needed for inference.
+- Top-level custom preprocess functions and simple lambdas can be stored
+  through source-backed wrappers when possible.
+- Custom functions with closures are rejected because captured external
+  variables cannot be reconstructed safely from source code alone.
 
-### Parallelizer Usage
+### Dataset Retriever
 
-For C/C++ files:
+Use the dataset retriever when you want to pull one of the shared demo datasets
+without manually downloading CSV files. Call `available_datasets()` first to
+see the registered names, then connect, retrieve the dataset, and close the
+connection when finished.
+
+```python
+from accelera.src.utils.dataset_retriever import retriever
+
+print(retriever.available_datasets())
+
+retriever.connect()
+housing_df = retriever.retrieve_dataset("Housing", df=True)
+print(housing_df.head())
+retriever.close()
+```
+
+### Tabular Auto Preprocessing
+
+Tabular preprocessing prepares classical machine-learning datasets. It handles
+common cleaning, train/validation splitting, target handling, and report output
+under the folder you pass in `folder_path`.
+
+```python
+from accelera.src.automl.core.classical_training_preprocessing import (
+    ClassicalTrainingPreprocessing,
+)
+from accelera.src.utils.dataset_retriever import retriever
+
+retriever.connect()
+df = retriever.retrieve_dataset("Titanic-Dataset", df=True)
+
+preprocessor = ClassicalTrainingPreprocessing(
+    df,
+    target_col="Survived",
+    problem_type="classification",
+    folder_path="./titanic_preprocessing_report",
+)
+X_train, y_train, X_val, y_val = preprocessor.common_preprocessing()
+
+retriever.close()
+```
+
+### Text Auto Preprocessing
+
+Text preprocessing prepares a text column and target column for NLP
+experiments. Pass the dataframe, the target column, and the text column, then
+use the returned train/validation arrays in your model code.
+
+```python
+import pandas as pd
+
+from accelera.src.automl.core.text_training_preprocessing import (
+    TextTrainingPreprocessing,
+)
+
+reviews_df = pd.DataFrame(
+    {
+        "review": ["Great product", "Very bad experience", "I like it"],
+        "class": [1, 0, 1],
+    }
+)
+
+text_preprocessor = TextTrainingPreprocessing(
+    reviews_df,
+    target_col="class",
+    text_col="review",
+    folder_path="./reviews_report",
+)
+X_train, y_train, X_val, y_val = text_preprocessor.common_preprocessing()
+```
+
+### Image Auto Preprocessing
+
+Image preprocessing expects a folder structure that contains class folders.
+When `split_training=True`, it creates a validation split from the training
+folder. Use `augment=True` when you want training-time augmentation.
+
+```python
+from accelera.src.automl.core.classification_image_training_preprocessing import (
+    ClassificationImageTrainingPreprocessing,
+)
+
+image_preprocessor = ClassificationImageTrainingPreprocessing(
+    training_folder_images="./PetImages",  # replace with your class folders
+    folder_path="./PetImagesReport",
+    split_training=True,
+    val_size=0.2,
+    images_size=(224, 224),
+    augment=True,
+)
+training_loader, validation_loader = image_preprocessor.common_preprocessing()
+```
+
+### Pipeline Graph Report
+
+Graph reports visualize a serialized pipeline graph together with the pipeline
+results. Serialize the pipeline to XML first, then pass that XML file and the
+results to `GraphReport`.
+
+```python
+from accelera.src.utils.accelera_utils import serialize
+from accelera.src.accelera_pipe.wrappers.graph_report import GraphReport
+
+predictions, executed_graph = pipe(X, y, select_strategy="max")
+serialize(pipe, "pipeline.xml")
+
+report = GraphReport("pipeline_report", "pipeline.xml", predictions)
+report.execute()
+```
+
+### Standalone Model Report
+
+Use `ModelReport` when you already have metric results from a normal model and
+want the same report format without building a full Accelera Pipe graph.
+
+```python
+from sklearn.metrics import accuracy_score
+
+from accelera.src.accelera_pipe.wrappers.model_report import ModelReport
+
+accuracy = accuracy_score(y_test, model.predict(X_test))
+results = [
+    {
+        "metric name": "accuracy",
+        "result": accuracy,
+        "plot_func": None,
+        "labels_name": None,
+        "headers_name": None,
+    }
+]
+
+report = ModelReport("model_report", results=results)
+report.execute()
+```
+
+### C/C++ Loop Parallelization
+
+Use the parallelizer when you want to analyze loop-heavy C/C++ code and emit
+OpenMP pragmas. The module is Linux-only and needs the C++ bindings, LLVM/Clang,
+and the classifier endpoint configured in `accelera/src/config.py`.
 
 ```python
 from accelera.src.utils.parallelizer import parallelizer
 
 parallelizer.parallelize("examples/test_loops.c")
-# Output: examples/parallelized_test_loops.c
+# Writes examples/parallelized_test_loops.c
 ```
 
-For in-memory code:
+For in-memory C/C++ code:
 
 ```python
 from accelera.src.utils.parallelizer import parallelizer
@@ -391,7 +396,8 @@ parallelized_code = parallelizer.parallelize(code, file=False)
 print(parallelized_code)
 ```
 
-For supported Python code, the parallelizer first converts Python to C++:
+For supported Python code, the parallelizer first converts Python to C++ and
+then applies the same loop extraction and OpenMP insertion path:
 
 ```python
 code = """
@@ -418,7 +424,7 @@ The Python-to-C++ converter supports a restricted loop-friendly subset:
 Unsupported Python syntax raises an error or falls back to the original Python
 function when used through automatic pipeline optimization.
 
-### Automatic Custom Preprocessing Acceleration
+### Automatic Custom Preprocessing Acceleration in Accelera Pipe
 
 `Pipeline.preprocess()` automatically tries to optimize custom preprocessing
 functions through the Parallelizer when possible.
