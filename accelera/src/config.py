@@ -21,7 +21,6 @@ class Config:
     API_SUBDIR: str = "api"
     PIPELINE_FILENAME: str = "pipeline.pkl"
     DUMMY_PREPROCESSING_OUTPUT_DIR: str = "benchmark_results"
-    COMPILE_CACHE_VERSION: str = "preprocess-v2"
     INIT_GENERATOR_SKIP_NAMES: frozenset[str] = frozenset({"__pycache__"})
     INIT_GENERATOR_TEMPLATE_HEADER: str = (
         '"""DO NOT EDIT.\n\n'

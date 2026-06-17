@@ -34,6 +34,7 @@ parallelization.
   metafeatures, and optionally build voting or stacked ensembles.
 - **Dataset retriever**: list and download shared CSV datasets into a local
   cache with `accelera.src.utils.dataset_retriever.DatasetRetriever`.
+<<<<<<< HEAD
 - **Python/C++ code parallelizer**: convert supported Python loops to C++,
   analyze C/C++ loops with Clang AST, classify safe OpenMP opportunities with
   rules and the OpenMP classifier service, and emit parallelized C++.
@@ -44,6 +45,23 @@ parallelization.
 - **Benchmark backend prototype**: Express/MongoDB backend scaffolding for
   benchmarks, users, metrics, and submissions.
 
+=======
+- **C/C++ code parallelizer**: extract loops with Clang AST, derive loop
+  features, call an OpenMP classifier service, and inject OpenMP pragmas
+  into parallelizable `for` loops. This module is Linux-only.
+- **Benchmark backend prototype**: Express/MongoDB backend scaffolding for
+  benchmarks, users, metrics, and submissions.
+
+## Current Status
+
+- The core DAG pipeline, custom estimator interfaces, reports, dataset
+  retrieval, and preprocessing utilities are implemented in this repo.
+- The AutoML search agent API exists, but the default search algorithm is
+  still a placeholder.
+- The benchmark backend is an early prototype.
+- The code parallelizer requires Linux, LLVM/Clang, built pybind bindings,
+  and the classifier endpoint configured in `accelera/src/config.py`.
+>>>>>>> 544416c (update docs (#168))
 
 ## Quick Start
 
@@ -53,6 +71,7 @@ parallelization.
 git clone https://github.com/Mohamed-Ashraf273/accelera.git
 cd accelera
 
+<<<<<<< HEAD
 python -m venv .venv
 ```
 
@@ -143,6 +162,32 @@ The datasets are required for image classification and segmentation demos.
 If you prefer to run the demo without setting everything up locally, you can use the provided Colab notebook. The notebook demonstrates the full setup flow, including preparing the datasets and running the project Makefile.
 
 Colab notebook: [Demo](https://colab.research.google.com/drive/1J-22PPwm26Hs_OPI_L_ovZlffwl9HP4N?usp=sharing)
+=======
+python3 -m venv .venv
+source .venv/bin/activate
+
+pip install -r requirements.txt
+pip install psutil requests gdown graphviz
+
+# Add Accelera to Python's import path for this terminal session.
+# This is required before running examples, notebooks, or tests from the repo.
+export PYTHONPATH="$PWD:${PYTHONPATH:-}"
+
+# Linux only, required before CMake if you want to build code-parallelizer
+# bindings and also because the current Linux CMake config expects LLVM.
+sudo bash shell/install_llvm.sh 18
+
+cmake -S . -B build
+cmake --build build -j"$(nproc)"
+
+# After building the C++/pybind modules, also expose the generated bindings.
+export PYTHONPATH="$PWD:$PWD/build/bindings:${PYTHONPATH:-}"
+```
+
+Run the `export PYTHONPATH=...` command again whenever you open a new terminal.
+If you skip it, imports such as `from accelera.src...` or the native `graph`
+binding may fail even when the package files exist locally.
+>>>>>>> 544416c (update docs (#168))
 
 ### Run Examples
 
@@ -237,13 +282,25 @@ print(best_result)
 
 ## More Usage Examples
 
+<<<<<<< HEAD
 The examples below assume you already ran the Quick Start setup and either
 installed the package or exported `PYTHONPATH`.
+=======
+The examples below assume you already ran the Quick Start setup and exported
+`PYTHONPATH`. For graph-backed pipeline examples, use:
+
+```bash
+export PYTHONPATH="$PWD:$PWD/build/bindings:${PYTHONPATH:-}"
+```
+>>>>>>> 544416c (update docs (#168))
 
 If the native graph import fails, rebuild the C++ bindings with
 `cmake --build build -j"$(nproc)"` and run the export command again.
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 544416c (update docs (#168))
 ### Accelera Pipe Branch Selection
 
 Use `Pipeline` when you want to compare several preprocessing/model paths in a
@@ -325,6 +382,7 @@ Notes:
 - Custom functions with closures are rejected because captured external
   variables cannot be reconstructed safely from source code alone.
 
+<<<<<<< HEAD
 
 ### C/C++ Loop Parallelization
 
@@ -451,6 +509,8 @@ Python custom function
 If conversion, classification, OpenMP insertion, compilation, or import fails,
 Accelera keeps the original Python function so the pipeline remains correct.
 
+=======
+>>>>>>> 544416c (update docs (#168))
 ### Dataset Retriever
 
 Use the dataset retriever when you want to pull one of the shared demo datasets
@@ -474,7 +534,10 @@ retriever.close()
 Tabular preprocessing prepares classical machine-learning datasets. It handles
 common cleaning, train/validation splitting, target handling, and report output
 under the folder you pass in `folder_path`.
+<<<<<<< HEAD
 it returns X_train, y_train, X_val, y_val generated from this pipeline and also 
+=======
+>>>>>>> 544416c (update docs (#168))
 
 ```python
 from accelera.src.autopreprocessing.core.classical_training_preprocessing import (
@@ -591,6 +654,7 @@ When `split_training=True`, it creates a validation split from the training
 folder. Use `augment=True` when you want training-time augmentation.
 Expected Folder Structure
 
+<<<<<<< HEAD
 ```
 Training/
 ├── Cats/
@@ -600,6 +664,12 @@ Validation/
 ├── Cats/
 └── Dogs/
 ```
+=======
+Image preprocessing expects a folder structure that contains class folders.
+When `split_training=True`, it creates a validation split from the training
+folder. Use `augment=True` when you want training-time augmentation.
+
+>>>>>>> 544416c (update docs (#168))
 ```python
 from accelera.src.autopreprocessing.core.classification_image_training_preprocessing import (
     ClassificationImageTrainingPreprocessing,
@@ -726,6 +796,10 @@ pip install .
 
 Classification example:
 
+Use the parallelizer when you want to analyze loop-heavy C/C++ code and emit
+OpenMP pragmas. The module is Linux-only and needs the C++ bindings, LLVM/Clang,
+and the classifier endpoint configured in `accelera/src/config.py`.
+
 ```python
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
@@ -836,6 +910,139 @@ Things that can prevent these modules from running:
 Useful environment variables:
 
 ```bash
+export ACCELERA_CLASSIFIER_ENDPOINT="https://accelera-ai-open-mp-classifier.hf.space/predict"
+export ACCELERA_REQUEST_TIMEOUT_S=10
+export ACCELERA_ENABLE_CPP_FORMATTING=0  # optional
+export ACCELERA_CPP_OPT_LEVEL=-O0        # faster compile, default in cpp_compiler
+```
+
+Useful validation commands:
+
+```bash
+python examples/sklearn_comp.py
+python examples/parallel_accpipe.py
+python tools/evaluate_hard_parallelizer.py
+pytest accelera/src/accelera_pipe/core/pipeline_test.py -q
+pytest accelera/src/utils/parallelizer_test.py -q
+```
+
+For in-memory C/C++ code:
+
+```python
+from accelera.src.utils.parallelizer import parallelizer
+
+code = """
+int main() {
+    int total = 0;
+    for (int i = 0; i < 1000; i++) {
+        total += i;
+    }
+}
+"""
+
+parallelized_code = parallelizer.parallelize(code, file=False)
+print(parallelized_code)
+```
+
+For supported Python code, the parallelizer first converts Python to C++ and
+then applies the same loop extraction and OpenMP insertion path:
+
+```python
+code = """
+total = 0
+for i in range(1000):
+    total += i
+print(total)
+"""
+
+parallelized_code = parallelizer.parallelize(code, file=False)
+print(parallelized_code)
+```
+
+The Python-to-C++ converter supports a restricted loop-friendly subset:
+
+- constants, variables, arithmetic, comparisons, boolean operations;
+- function calls and `print`;
+- attribute access and indexing, but not slices;
+- simple assignment and simple-name augmented assignment;
+- `if`/`else`, `return`;
+- `for i in range(...)` with one, two, or three arguments;
+- simple `def` functions without decorators.
+
+Unsupported Python syntax raises an error or falls back to the original Python
+function when used through automatic pipeline optimization.
+
+### Automatic Custom Preprocessing Acceleration in Accelera Pipe
+
+`Pipeline.preprocess()` automatically tries to optimize custom preprocessing
+functions through the Parallelizer when possible.
+
+```python
+from accelera.src.accelera_pipe.core.pipeline import Pipeline
+
+def normalize_rows(X):
+    for i in range(len(X)):
+        s = 0
+        for j in range(len(X[i])):
+            s += X[i][j] * X[i][j]
+        norm = s ** 0.5
+        for j in range(len(X[i])):
+            X[i][j] = X[i][j] / norm
+    return X
+
+pipe = Pipeline()
+pipe.preprocess("normalize", normalize_rows)
+```
+
+The automatic path is:
+
+```text
+Python custom function
+-> py2cpp_converter
+-> parallelizer OpenMP pragma insertion
+-> cpp_compiler.py / pybind11 native module
+-> Accelera Pipe preprocess node
+```
+
+If conversion, classification, OpenMP insertion, compilation, or import fails,
+Accelera keeps the original Python function so the pipeline remains correct.
+
+### Runtime Requirements and Common Blockers
+
+Things that can prevent these modules from running:
+
+- **Missing C++ bindings**: run `cmake --build build` and export
+  `PYTHONPATH="$PWD:$PWD/build/bindings"`.
+- **Not on Linux**: the code parallelizer bindings are disabled on Windows and
+  macOS in the current CMake configuration.
+- **LLVM/Clang missing**: install LLVM/Clang before configuring CMake. The
+  project script is `sudo bash shell/install_llvm.sh 18`.
+- **OpenMP compiler support missing**: generated native code requires a compiler
+  with OpenMP support. On Linux this usually means `g++`/`clang++` plus OpenMP
+  runtime libraries.
+- **Classifier endpoint unavailable**: set
+  `ACCELERA_CLASSIFIER_ENDPOINT` or ensure the default Hugging Face Space is
+  reachable. Also check `ACCELERA_REQUEST_TIMEOUT_S` for slow networks.
+- **`clang-format` missing**: output formatting is optional. Install
+  `clang-format` or set `ACCELERA_ENABLE_CPP_FORMATTING=0`.
+- **Unsupported Python syntax**: the converter is intentionally limited. Use
+  simple numeric loops, `range`, scalar variables, and indexing.
+- **Custom function source unavailable**: functions defined dynamically,
+  interactively, or inside closures may not be inspectable or saveable.
+- **Closure variables in saved custom functions**: source-backed save/load
+  rejects closures because external captured values are not stored.
+- **Pickle limitations**: custom classes/functions must be pickle-compatible
+  unless wrapped by the source-backed function path.
+- **Large memory usage in branch-heavy searches**: graph execution may use more
+  memory than sklearn Pipeline because multiple branches and fitted states can
+  be alive during selection.
+- **Cache confusion**: cache is off by default. Enable it only when repeated
+  identical node inputs justify the hashing and disk I/O cost.
+
+Useful environment variables:
+
+```bash
+export PYTHONPATH="$PWD:$PWD/build/bindings"
 export ACCELERA_CLASSIFIER_ENDPOINT="https://accelera-ai-open-mp-classifier.hf.space/predict"
 export ACCELERA_REQUEST_TIMEOUT_S=10
 export ACCELERA_ENABLE_CPP_FORMATTING=0  # optional

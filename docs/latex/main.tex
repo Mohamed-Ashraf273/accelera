@@ -12,7 +12,6 @@
 \usepackage{float}
 \usepackage{caption}
 \usepackage{pgfplots}
-\usepackage{needspace}
 \pgfplotsset{compat=1.18}
 
 \hypersetup{
@@ -63,11 +62,14 @@
 \renewcommand{\lstlistlistingname}{List of Algorithms}
 \renewcommand{\thelstnumber}{\arabic{lstnumber}:}
 \setlength{\emergencystretch}{2em}
+<<<<<<< HEAD
 \raggedbottom
 \renewcommand{\topfraction}{0.9}
 \renewcommand{\bottomfraction}{0.8}
 \renewcommand{\textfraction}{0.07}
 \renewcommand{\floatpagefraction}{0.8}
+=======
+>>>>>>> 544416c (update docs (#168))
 
 \newcommand{\modulepath}[1]{\texttt{#1}}
 \newcommand{\project}{Accelera}
@@ -104,8 +106,13 @@ learning workflows as directed graph nodes for preprocessing, modelling,
 prediction, metric evaluation, branching, and merging. The Code Parallelizer
 analyzes C/C++ and supported Python code, extracts loop features, predicts
 parallelization opportunities, and emits OpenMP-annotated C++ code. This thesis
+<<<<<<< HEAD
 documents the architecture, methodology, optimizations, and experimental
 results of the system modules, while reserving space for modules
+=======
+documents the architecture, methodology, optimizations, usage patterns, and
+experimental results of the system modules, while reserving space for modules
+>>>>>>> 544416c (update docs (#168))
 whose documentation is still under development.
 \end{abstract}
 
@@ -138,8 +145,14 @@ algorithms, and experimental results can be expanded independently.
 \section{Methodology}
 \input{sections/methdoloy-mohamed}
 
+<<<<<<< HEAD
 \subsection{AutoPreprocessing Module}
 \input{sections/methodology-nesma}
+=======
+\subsection{AutoML Module}
+
+\vspace{2em}
+>>>>>>> 544416c (update docs (#168))
 
 \subsection{Deployment Module}
 
