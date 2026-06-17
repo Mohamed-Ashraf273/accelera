@@ -14,10 +14,11 @@ from sklearn.model_selection import train_test_split
 from accelera.src.automl.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
 )
+from accelera.src.config import config
 from accelera.src.utils.dataset_retriever import retriever
 
-OUTPUT_DIR = "benchmark_results"
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+output_dir = config.DUMMY_PREPROCESSING_OUTPUT_DIR
+os.makedirs(output_dir, exist_ok=True)
 
 
 def get_data_set_info():
@@ -115,7 +116,7 @@ def handle_data_preprocessing_type(
 def plot_and_save(df):
     x = np.arange(len(df))
 
-    df.to_csv(os.path.join(OUTPUT_DIR, "results.csv"), index=False)
+    df.to_csv(os.path.join(output_dir, "results.csv"), index=False)
 
     fig, ax = plt.subplots(figsize=(10, 5))
     b1 = ax.bar(x - 0.1, df["raw_time"], width=0.2, label="Raw")
@@ -131,7 +132,7 @@ def plot_and_save(df):
     ax.legend()
 
     plt.tight_layout()
-    plt.savefig(os.path.join(OUTPUT_DIR, "time_comparison.png"))
+    plt.savefig(os.path.join(output_dir, "time_comparison.png"))
     plt.close()
 
     fig, ax = plt.subplots(figsize=(10, 5))
@@ -148,7 +149,7 @@ def plot_and_save(df):
     ax.legend()
 
     plt.tight_layout()
-    plt.savefig(os.path.join(OUTPUT_DIR, "score_comparison.png"))
+    plt.savefig(os.path.join(output_dir, "score_comparison.png"))
     plt.close()
 
 
@@ -181,7 +182,7 @@ def main():
                 retriever.close()
 
     df_results = pd.DataFrame(results)
-    df_results.to_csv(os.path.join(OUTPUT_DIR, "final_results.csv"), index=False)
+    df_results.to_csv(os.path.join(output_dir, "final_results.csv"), index=False)
 
     print(df_results)
 
