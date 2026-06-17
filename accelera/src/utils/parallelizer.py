@@ -495,7 +495,9 @@ class Parallelizer:
 
         return "\n".join(code_lines)
 
-    def _process_file(self, file_path: str) -> None:
+    def _process_file(
+        self, file_path: str, output_dir: str | Path | None = None
+    ) -> None:
         with open(file_path, "r") as source_file:
             code = source_file.read()
 
@@ -519,9 +521,12 @@ class Parallelizer:
         parallelized_code = self._apply_parallel_loops(
             code, self._select_parallel_loops(loops_data)
         )
-        final_output_path = os.path.join(
-            config.REPO_ROOT, f"parallelized_{Path(file_path).stem}.c"
+        source_path = Path(file_path)
+        output_path = (
+            Path(output_dir) if output_dir is not None else Path(config.REPO_ROOT)
         )
+        output_path.mkdir(parents=True, exist_ok=True)
+        final_output_path = output_path / f"parallelized_{source_path.stem}.c"
         with open(final_output_path, "w") as output_file:
             output_file.write(parallelized_code)
 
@@ -541,9 +546,11 @@ class Parallelizer:
             code, self._select_parallel_loops(loops_data)
         )
 
-    def parallelize(self, file_path: str, file: bool = True) -> str:
+    def parallelize(
+        self, file_path: str, file: bool = True, output_dir: str | Path | None = None
+    ) -> str:
         if file:
-            return self._process_file(file_path)
+            return self._process_file(file_path, output_dir)
         return self._process_code(file_path)
 
     def optimize_pymethod(self, func):
