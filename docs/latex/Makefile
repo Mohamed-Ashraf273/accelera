@@ -1,6 +1,6 @@
 LATEXMK ?= latexmk
 PDFLATEX ?= pdflatex
-MAIN := report
+MAIN := main
 PDF := thesis.pdf
 
 .PHONY: pdf clean

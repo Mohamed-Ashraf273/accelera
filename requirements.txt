@@ -2,6 +2,7 @@ autogluon.tabular
 scikit-learn
 pandas==2.3.3
 numpy
+pybind11
 --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Core Python Utilities
@@ -15,6 +16,7 @@ dm-tree
 category-encoders
 
 # Dev & Testing Tools
+gdown
 tqdm
 pre-commit
 ruff

@@ -1,3 +1,4 @@
+import ast
 import hashlib
 import json
 import os
@@ -10,6 +11,7 @@ import numpy as np
 import requests
 
 from accelera.src.config import config
+from accelera.src.utils.accelera_utils import print_msg
 from accelera.src.utils.py2cpp_converter import py2cpp_converter
 
 try:
@@ -28,6 +30,17 @@ def extract_loops(code: str, clang_args: list | None = None) -> list:
 
 def write_loops_to_json(loops: list, output_json: str) -> bool:
     return _write_loops_to_json(loops, output_json)
+
+
+def _loop_to_dict(loop) -> dict:
+    if isinstance(loop, dict):
+        return loop
+    return {
+        "code": loop.code,
+        "start_line": loop.start_line,
+        "end_line": loop.end_line,
+        "type": loop.type,
+    }
 
 
 def pragma_to_class(label: str, pragma: str) -> str:
@@ -146,6 +159,16 @@ def _has_scalar_reduction_update(code: str) -> bool:
         reduction_features["reduction_var"]
         or reduction_features["is_reduction_max"]
         or reduction_features["is_reduction_min"]
+    )
+
+
+def _is_declared_inside_loop(loop_code: str, var_name: str) -> bool:
+    return bool(
+        re.search(
+            rf"\b(?:auto|bool|char|double|float|int|long|short|size_t)\s+"
+            rf"{re.escape(var_name)}\b",
+            loop_code,
+        )
     )
 
 
@@ -342,11 +365,23 @@ def _consecutive_for_depth(code: str) -> int:
             pos += 1
 
 
+def _is_independent_array_write_loop(loop_code: str) -> bool:
+    features = extract_features(loop_code)
+    return bool(
+        features["array_writes"]
+        and not features["has_loop_carried_dep"]
+        and not features["has_indirect_access"]
+        and not features["has_early_exit"]
+    )
+
+
 def _resolve_loop_class(loop_code: str, pred_class: str) -> str:
     if pred_class != "none":
         return pred_class
     if _has_scalar_reduction_update(loop_code):
         return "reduction"
+    if _is_independent_array_write_loop(loop_code):
+        return "parallel_for"
     if _consecutive_for_depth(loop_code) > 1:
         return "parallel_for"
     return "none"
@@ -394,11 +429,17 @@ class Parallelizer:
             clauses.append(f"collapse({depth})")
 
         reduction_var = features.get("reduction_var")
-        if features.get("has_reduction_plus") and reduction_var:
+        if (
+            features.get("has_reduction_plus")
+            and reduction_var
+            and not _is_declared_inside_loop(loop_code, reduction_var)
+        ):
             clauses.append(f"reduction(+ : {reduction_var})")
         elif features.get("has_reduction_mul"):
             if match := re.search(r"\b([A-Za-z_]\w*)\s*\*=", loop_code):
-                clauses.append(f"reduction(* : {match.group(1)})")
+                reduction_var = match.group(1)
+                if not _is_declared_inside_loop(loop_code, reduction_var):
+                    clauses.append(f"reduction(* : {reduction_var})")
 
         pragma = "#pragma omp parallel for"
         if clauses:
@@ -406,41 +447,26 @@ class Parallelizer:
 
         return f"{pragma}\n{loop_code}"
 
-    def parallelize(self, file_path: str) -> str:
-        with open(file_path, "r") as file:
-            code = file.read()
-
-        if file_path.endswith(".py"):
-            code = py2cpp_converter(code)
-
-        loops = extract_loops(code)
-        code_lines = code.split("\n")
-        file_name = hashlib.md5(code.encode()).hexdigest()
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
-        json_path = self.cache_dir / f"extracted_loops_{file_name}.json"
-
-        if not os.path.exists(json_path):
-            self.cache_dir.mkdir(parents=True, exist_ok=True)
-            try:
-                write_loops_to_json(loops, str(json_path))
-            except Exception as e:
-                raise RuntimeError("Error writing JSON") from e
-
-        with open(json_path, "r") as f:
-            loops_data = json.load(f)
-
+    def _select_parallel_loops(self, loops_data: list) -> list:
         selected_loops = []
         for loop in loops_data:
             loop_code = loop["code"]
             if loop["type"] != "for":
                 continue
 
-            pred_class = self._classify(loop_code)
+            try:
+                pred_class = self._classify(loop_code)
+            except RuntimeError:
+                pred_class = "none"
             loop_class = _resolve_loop_class(loop_code, pred_class)
 
             if loop_class != "none":
                 selected_loops.append((loop, loop_class))
 
+        return selected_loops
+
+    def _apply_parallel_loops(self, code: str, selected_loops: list) -> str:
+        code_lines = code.split("\n")
         selected_ranges = [
             (loop["start_line"], loop["end_line"]) for loop, _ in selected_loops
         ]
@@ -467,14 +493,96 @@ class Parallelizer:
             new_segment_len = len(new_segment)
             shift += new_segment_len - current_segment_len
 
-        current_dir = Path(file_path).parent
-        final_output_path = current_dir / f"parallelized_{Path(file_path).stem}.c"
+        return "\n".join(code_lines)
 
-        with open(final_output_path, "w") as file:
-            file.write("\n".join(code_lines))
+    def _process_file(self, file_path: str) -> None:
+        with open(file_path, "r") as source_file:
+            code = source_file.read()
+
+        if file_path.endswith(".py"):
+            code = py2cpp_converter(code)
+
+        loops = extract_loops(code)
+        file_name = hashlib.md5(code.encode()).hexdigest()
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        json_path = self.cache_dir / f"extracted_loops_{file_name}.json"
+
+        if not os.path.exists(json_path):
+            try:
+                write_loops_to_json(loops, str(json_path))
+            except Exception as e:
+                raise RuntimeError("Error writing JSON") from e
+
+        with open(json_path, "r") as f:
+            loops_data = json.load(f)
+
+        parallelized_code = self._apply_parallel_loops(
+            code, self._select_parallel_loops(loops_data)
+        )
+        final_output_path = (
+            Path(file_path).parent / f"parallelized_{Path(file_path).stem}.c"
+        )
+        with open(final_output_path, "w") as output_file:
+            output_file.write(parallelized_code)
 
         if clang_format := shutil.which("clang-format"):
             subprocess.run([clang_format, "-i", str(final_output_path)], check=True)
+
+    def _process_code(self, code: str) -> str:
+        try:
+            ast.parse(code)
+        except SyntaxError:
+            pass
+        else:
+            code = py2cpp_converter(code)
+
+        loops_data = [_loop_to_dict(loop) for loop in extract_loops(code)]
+        return self._apply_parallel_loops(
+            code, self._select_parallel_loops(loops_data)
+        )
+
+    def parallelize(self, file_path: str, file: bool = True) -> str:
+        if file:
+            return self._process_file(file_path)
+        return self._process_code(file_path)
+
+    def optimize_pymethod(self, func):
+        import inspect
+        import textwrap
+
+        from accelera.src.utils.cpp_compiler import compile_parallelized_code
+
+        try:
+            code = textwrap.dedent(inspect.getsource(func))
+            cpp_code = self.parallelize(code, file=False)
+            return compile_parallelized_code(cpp_code, func.__name__)
+        except (
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+            subprocess.CalledProcessError,
+        ):
+            print_msg(
+                f"Failed to optimize function '{func.__name__}', "
+                "falling back to original function.",
+                level="warning",
+            )
+            return func
+
+    def optimize_pyinstance(self, instance):
+        if "transform" not in instance.__class__.__dict__:
+            return instance
+
+        method = getattr(instance, "transform", None)
+        if method is None:
+            return instance
+
+        optimized_method = self.optimize_pymethod(method)
+        if optimized_method is not method:
+            setattr(instance, "transform", optimized_method)
+
+        return instance
 
 
 parallelizer = Parallelizer()

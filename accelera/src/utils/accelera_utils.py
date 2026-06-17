@@ -50,6 +50,12 @@ def get_metric_object(
     return metric_func
 
 
+def is_custom_function(arg):
+    if inspect.isfunction(arg):
+        return True
+    return False
+
+
 def get_correct_metric_class(
     metric_name,
     metric,

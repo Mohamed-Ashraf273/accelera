@@ -1,3 +1,8 @@
+import pickle
+from pathlib import Path
+
+from accelera.src.config import config
+
 try:
     import graph
 except ImportError as e:
@@ -24,6 +29,13 @@ class PipelineBase:
             "__call__ method must be implemented in subclasses."
         )
 
+    @staticmethod
+    def _resolve_pipeline_path(path):
+        pipeline_path = Path(path)
+        if pipeline_path.exists() and pipeline_path.is_dir():
+            return pipeline_path / config.PIPELINE_FILENAME
+        return pipeline_path
+
     def set_multicore_threshold(self, threshold):
         self.__graph.setMulticoreThreshold(threshold)
         return self
@@ -32,7 +44,27 @@ class PipelineBase:
         self.__graph.enableParallelExecution(False)
         return self
 
-    def save_preprocessed_data(self, directory):
-        if not self.__graph.savePreprocessedData(directory):
-            raise ValueError("Saving data to disk failed.")
+    def save(self, path=config.PIPELINE_FILENAME):
+        pipeline_path = self._resolve_pipeline_path(path)
+        if pipeline_path.parent != Path("."):
+            pipeline_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(pipeline_path, "wb") as file:
+            pickle.dump(self, file)
+
         return self
+
+    @classmethod
+    def load(cls, path=config.PIPELINE_FILENAME):
+        pipeline_path = cls._resolve_pipeline_path(path)
+
+        with open(pipeline_path, "rb") as file:
+            loaded_pipeline = pickle.load(file)
+
+        if not isinstance(loaded_pipeline, cls):
+            raise TypeError(
+                f"Expected saved {cls.__name__}, got "
+                f"{type(loaded_pipeline).__name__}"
+            )
+
+        return loaded_pipeline

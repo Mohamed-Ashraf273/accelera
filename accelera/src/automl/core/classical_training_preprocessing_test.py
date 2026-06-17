@@ -10,8 +10,8 @@ from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OrdinalEncoder
-from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import StandardScaler
 
 from accelera.src.automl.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
@@ -19,7 +19,6 @@ from accelera.src.automl.core.classical_training_preprocessing import (
 from accelera.src.automl.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
 )
-from accelera.src.automl.wrappers.IQR_transform import IQRTransform
 from accelera.src.utils.preprocessing import check_path_exists
 from accelera.src.utils.preprocessing import load_pickle
 

@@ -53,8 +53,6 @@ public:
   std::shared_ptr<InputNode> getInputNode() const { return m_input_node; }
 
   void enableDisableMetrics(py::object y_true, py::object enable);
-  bool savePreprocessedData(const std::string &directory);
-
   bool save();
   bool load(const std::string &directory);
   py::dict getState() const;

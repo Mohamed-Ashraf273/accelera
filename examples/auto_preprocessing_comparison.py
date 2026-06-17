@@ -106,7 +106,11 @@ def without_autogluon_preprocessing(
 
 
 def plot_comparison(
-    results_df, problem_type, target_graph, ds_type="tabular_dataset",autogloun_model="CAT"
+    results_df,
+    problem_type,
+    target_graph,
+    ds_type="tabular_dataset",
+    autogloun_model="CAT",
 ):
     plt.figure(figsize=(10, 6))
     x_range = np.arange(len(results_df["dataset"]))
@@ -127,11 +131,16 @@ def plot_comparison(
     plt.bar_label(bar2, fmt="%.2f", padding=3)
     plt.xlabel("Dataset Name")
     plt.ylabel(target_graph)
-    plt.title(f"AutoGluon vs Accelera Preprocessing Comparison - {problem_type}-{autogloun_model}")
+    plt.title(
+        f"AutoGluon vs Accelera Preprocessing "
+        f"Comparison - {problem_type}-{autogloun_model}"
+    )
     plt.legend()
     plt.xticks(x_range, results_df["dataset"], rotation=45)
     plt.tight_layout()
-    plt.savefig(f"{ds_type}_comparison_{problem_type}_{target_graph}_{autogloun_model}.png")
+    plt.savefig(
+        f"{ds_type}_comparison_{problem_type}_{target_graph}_{autogloun_model}.png"
+    )
 
 
 def main():
@@ -140,8 +149,8 @@ def main():
     for dataset_type, datasets_obj in ds.items():
         if dataset_type == "image_dataset":
             continue
-        auto_gloun_model=datasets_obj["autoGlounModel"]
-        datasets_problem=datasets_obj["problemType"]
+        auto_gloun_model = datasets_obj["autoGlounModel"]
+        datasets_problem = datasets_obj["problemType"]
         for problem_type, datasets in datasets_problem.items():
             results = []
             for dataset, info in datasets.items():
@@ -178,17 +187,23 @@ def main():
                         "accelera_time": accelera_time,
                         "dataset_type": dataset_type,
                         "problem_type": problem_type,
-                        "autogloun_model":auto_gloun_model
+                        "autogloun_model": auto_gloun_model,
                     }
                 )
                 retriever.close()
             results_df = pd.DataFrame(results)
             total_results.extend(results)
 
-            plot_comparison(results_df, problem_type, "score", dataset_type,auto_gloun_model)
-            plot_comparison(results_df, problem_type, "time", dataset_type,auto_gloun_model)
+            plot_comparison(
+                results_df, problem_type, "score", dataset_type, auto_gloun_model
+            )
+            plot_comparison(
+                results_df, problem_type, "time", dataset_type, auto_gloun_model
+            )
     total_results_df = pd.DataFrame(total_results)
-    total_results_df.to_csv(f"preprocessing_comparison_results_{auto_gloun_model}.csv", index=False)
+    total_results_df.to_csv(
+        f"preprocessing_comparison_results_{auto_gloun_model}.csv", index=False
+    )
 
 
 if __name__ == "__main__":

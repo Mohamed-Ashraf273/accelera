@@ -45,7 +45,7 @@ def main():
     for dataset_type, datasets_obj in ds.items():
         if dataset_type == "image_dataset":
             continue
-        datasets_problem=datasets_obj["problemType"]
+        datasets_problem = datasets_obj["problemType"]
         for problem_type, datasets in datasets_problem.items():
             for dataset, info in datasets.items():
                 retriever.connect()

@@ -47,6 +47,13 @@ std::tuple<py::object, py::object> PreprocessNode::processData(py::object X,
                                                                py::object y) {
 
   if (py::hasattr(py_func["func"], "fit")) {
+    if (!getGraph()->getIsExecuted()) {
+      py::dict params = py_func.cast<py::dict>();
+      if (!params.contains("_original_func")) {
+        params["_original_func"] = py_func["func"];
+      }
+    }
+
     py::object transformer_instance =
         py::module::import("copy").attr("deepcopy")(py_func["func"]);
 

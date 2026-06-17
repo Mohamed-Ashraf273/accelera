@@ -4,7 +4,7 @@ from sklearn.base import TransformerMixin
 
 class CustomTransformer(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
-        raise NotImplementedError("CustomTransformer.fit is not implemented yet.")
+        return self
 
     def transform(self, X):
         raise NotImplementedError(

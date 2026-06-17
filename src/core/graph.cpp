@@ -112,6 +112,76 @@ bool shouldCopyPreprocessInput(const Node::Ptr &node) {
   return false;
 }
 
+void clearExecutedGraphValidationData(Graph *graph) {
+  if (!graph) {
+    return;
+  }
+
+  for (const auto &node : graph->getNodes()) {
+    if (!node) {
+      continue;
+    }
+
+    if (node->type == NodeType::PREDICT &&
+        py::isinstance<py::dict>(node->py_func)) {
+      py::dict copied_func = node->py_func.cast<py::dict>().attr("copy")();
+      copied_func["test_data"] = py::none();
+      node->py_func = copied_func;
+      continue;
+    }
+
+    if (node->type != NodeType::METRIC) {
+      continue;
+    }
+
+    try {
+      py::object copied_metric =
+          py::module_::import("copy").attr("deepcopy")(node->py_func);
+      if (py::hasattr(copied_metric, "y_true")) {
+        copied_metric.attr("y_true") = py::none();
+      }
+      if (py::hasattr(copied_metric, "X")) {
+        copied_metric.attr("X") = py::none();
+      }
+      node->py_func = copied_metric;
+    } catch (const py::error_already_set &) {
+      PyErr_Clear();
+    }
+  }
+}
+
+void clearTrainingGraphRuntimeData(Graph *graph) {
+  if (!graph) {
+    return;
+  }
+
+  for (const auto &node : graph->getNodes()) {
+    if (!node) {
+      continue;
+    }
+
+    if (node->type == NodeType::INPUT) {
+      auto input_node = std::dynamic_pointer_cast<InputNode>(node);
+      if (input_node) {
+        input_node->clearInputData();
+      }
+    } else {
+      node->setData(std::make_shared<py::object>(py::none()));
+    }
+
+    if (node->type == NodeType::PREPROCESS &&
+        py::isinstance<py::dict>(node->py_func)) {
+      py::dict params = node->py_func.cast<py::dict>();
+      if (params.contains("_original_func")) {
+        py::dict copied_params = params.attr("copy")();
+        copied_params["func"] = params["_original_func"];
+        copied_params.attr("__delitem__")("_original_func");
+        node->py_func = copied_params;
+      }
+    }
+  }
+}
+
 std::string nodeSignature(NodeType type, const py::object &node_obj) {
   return std::to_string(static_cast<int>(type)) + ":" +
          py::str(node_obj).cast<std::string>();
@@ -495,6 +565,8 @@ std::vector<py::object> Graph::execute(py::object X, py::object y,
   if (!getIsExecuted()) {
     Graph *executed_graph = clone();
     executed_graph->setIsExecuted(true);
+    clearExecutedGraphValidationData(executed_graph);
+    clearTrainingGraphRuntimeData(this);
     py::object executed_graph_obj = py::cast(executed_graph);
     final_result.push_back(executed_graph_obj);
   }
@@ -929,48 +1001,6 @@ void Graph::enableDisableMetrics(py::object y_true, py::object enable) {
       }
     }
   }
-}
-
-bool Graph::savePreprocessedData(const std::string &directory) {
-  bool found_model_nodes = false;
-  bool found_preprocess_leaves = false;
-
-  auto savePreprocessNode =
-      [&](std::shared_ptr<PreprocessNode> preprocess_node) {
-        if (!preprocess_node)
-          return;
-
-        std::shared_ptr<py::object> data_ptr = preprocess_node->getData();
-        if (!data_ptr || data_ptr->is_none()) {
-          throw std::runtime_error("No data available in preprocess node '" +
-                                   preprocess_node->name + "'");
-        }
-        auto dict = data_ptr->cast<py::dict>();
-        py::object X = dict["X"];
-        py::object y = dict["y"];
-        saveAsCsv(directory, X, y, preprocess_node->name);
-      };
-
-  for (const auto &node : m_nodes) {
-    if (node->type == NodeType::MODEL && node->selected_in_path) {
-      found_model_nodes = true;
-      auto preprocess_node =
-          std::dynamic_pointer_cast<PreprocessNode>(node->getSourceNode());
-      savePreprocessNode(preprocess_node);
-    }
-  }
-
-  if (!found_model_nodes) {
-    std::vector<Node::Ptr> leaves = findLeafNodes();
-    for (const auto &leaf : leaves) {
-      if (leaf->type == NodeType::PREPROCESS && leaf->selected_in_path) {
-        found_preprocess_leaves = true;
-        auto preprocess_node = std::dynamic_pointer_cast<PreprocessNode>(leaf);
-        savePreprocessNode(preprocess_node);
-      }
-    }
-  }
-  return found_model_nodes || found_preprocess_leaves;
 }
 
 py::dict Graph::getState() const {

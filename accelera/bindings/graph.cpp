@@ -51,17 +51,14 @@ PYBIND11_MODULE(graph, m) {
            py::arg("y_true") = py::none(), py::arg("enable") = true,
            "Enable metric nodes with provided true labels")
 
-      .def("savePreprocessedData", &Graph::savePreprocessedData,
-           py::arg("directory"), "Save preprocess node data to disk")
-
       .def("setMulticoreThreshold", &Graph::setMulticoreThreshold,
            py::arg("threshold"),
            "Set minimum number of tasks to use multicore execution")
 
       .def(py::pickle([](const Graph &graph) { return graph.getState(); },
                       [](py::dict state) {
-                        Graph graph;
-                        graph.setState(state);
+                        auto graph = std::make_unique<Graph>();
+                        graph->setState(state);
                         return graph;
                       }));
 

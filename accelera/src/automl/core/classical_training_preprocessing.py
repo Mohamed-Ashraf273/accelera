@@ -20,7 +20,6 @@ from accelera.src.automl.wrappers.correlation_graph import CorrelationGraph
 from accelera.src.automl.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
 )
-
 from accelera.src.automl.wrappers.numerical_classification import (
     NumericalClassification,
 )

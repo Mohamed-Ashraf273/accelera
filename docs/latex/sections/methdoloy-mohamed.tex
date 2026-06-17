@@ -1,0 +1,318 @@
+\subsection{Accelera Pipe Module}
+
+\subsubsection{Module Responsibility}
+
+Accelera Pipe is implemented under
+\modulepath{accelera/src/accelera\_pipe/}. Its responsibility is to provide a
+Python builder API over a C++ graph backend. The user writes a pipeline in
+Python, but the graph structure, node scheduling, branch execution, and
+intermediate memory lifetime are handled by the native backend.
+
+The core files are:
+
+\begin{itemize}[leftmargin=*]
+  \item \modulepath{core/pipeline\_base.py}: owns or receives a native
+        \texttt{graph.Graph} instance and provides shared save/load behavior.
+  \item \modulepath{core/pipeline.py}: implements the public builder API:
+        \texttt{preprocess}, \texttt{model}, \texttt{predict},
+        \texttt{metric}, \texttt{merge}, and \texttt{branch}.
+  \item \modulepath{core/executed\_graph.py}: wraps a trained graph for
+        repeated inference.
+  \item \modulepath{core/metric.py}: defines the metric abstraction.
+  \item \modulepath{wrappers/}: contains supervised and unsupervised metric
+        adapters.
+\end{itemize}
+
+\subsubsection{Graph Execution Model}
+
+Each pipeline operation becomes a graph node. A preprocessing node transforms
+the input matrix, a model node fits or applies an estimator, a prediction node
+performs inference, a metric node evaluates the prediction, and a merge node
+combines multiple branch outputs. The graph is built incrementally, so the
+Python API remains fluent while the backend receives enough structure to
+execute independent branches in parallel.
+
+\begin{table}[H]
+\centering
+\caption{Accelera Pipe builder methods}
+\begin{tabular}{lll}
+\toprule
+Method & Node type & Main role \\
+\midrule
+\texttt{preprocess(name, func)} & PREPROCESS & Transform input data \\
+\texttt{model(name, model)} & MODEL & Fit or apply estimator \\
+\texttt{predict(name, test\_data)} & PREDICT & Run model prediction \\
+\texttt{metric(name, metric)} & METRIC & Score predictions \\
+\texttt{merge(name, method)} & MERGE & Combine branch outputs \\
+\texttt{branch(name, ...)} & Multiple & Create alternative graph paths \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The pipeline returns two objects after training: the metric or prediction
+results and an \texttt{ExecutedGraph}. The executed graph contains the fitted
+objects required for inference. This separation is important because training
+uses temporary arrays, validation targets, and candidate branches, while
+inference should keep only the selected executable state.
+
+\begin{lstlisting}[style=algostyle,caption={Pipeline training and executed graph construction}]
+Input: training data X, target y, graph G, selection strategy S
+Output: results R, executed graph E
+
+1:  Attach X and y to the input node of G
+2:  Execute ready preprocessing, model, prediction, metric, and merge nodes
+3:  For each candidate path:
+4:      collect validation metric and path metadata
+5:  Select path P according to strategy S
+6:  Clone the selected fitted nodes from P into a compact executed graph E
+7:  Remove temporary training arrays and non-required execution data from G
+8:  Return results R and executed graph E
+\end{lstlisting}
+
+\subsubsection{Branching and Node Sharing}
+
+Branching is one of the main reasons Accelera Pipe uses a graph rather than a
+linear pipeline object. A user may compare several preprocessors, several
+models, or complete candidate sub-pipelines. The backend can then schedule
+independent branches concurrently. A key optimization added to the branch
+construction step is duplicate first-node sharing. If a branch starts with the
+same single preprocessing object as another branch, the graph creates the node
+once and connects the later branch consumers to the same output. This avoids
+running identical first-stage transformations multiple times.
+
+The sharing rule is intentionally conservative. It is applied only to single
+branch nodes, the first node of a branch list, or a list containing one item.
+Later duplicated nodes inside two different lists are not merged automatically,
+because by that point their inputs may already be different. For example,
+\texttt{[p1, p2, p3]} and \texttt{[p4, p2, p3]} do not share \texttt{p2};
+the first path feeds \texttt{p2} with \texttt{p1(X)}, while the second feeds it
+with \texttt{p4(X)}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{imgs/before_sharing.png}
+\caption{Branch graph before duplicate first-node sharing}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{imgs/after_sharing.png}
+\caption{Branch graph after duplicate first-node sharing}
+\end{figure}
+
+\subsubsection{Memory-Lifetime Optimizations}
+
+The largest memory pressure in Accelera Pipe appears during branch execution.
+Each preprocessing node can produce a transformed training array, and that
+array may be consumed by several downstream model nodes. The backend therefore
+tracks how many consumers still need each intermediate output. When the last
+consumer finishes, the output becomes dead and can be released.
+
+\begin{lstlisting}[style=algostyle,caption={Consumer-count based intermediate release}]
+Input: executed node N, graph consumer count table C
+Output: graph with dead temporary arrays cleared
+
+1:  for each source node S that feeds N do
+2:      C[S] = C[S] - 1
+3:      if C[S] == 0 and S is releasable then
+4:          clear temporary data stored by S
+5:      end if
+6:  end for
+7:  if N is a model node and fit has completed then
+8:      clear the training input stored only for fitting N
+9:  end if
+\end{lstlisting}
+
+Several smaller optimizations support this lifetime policy. Cache execution is
+optional and disabled by default using \texttt{cache=False}, because retaining
+node data can increase memory growth on large datasets. Model nodes release
+their training arrays after fitting because the fitted estimator is sufficient
+for inference. The backend also separates output-container allocation from
+input copying. For preprocessing, the helper \texttt{shouldCopyPreprocessInput}
+decides whether a defensive copy is needed. Scikit-learn transformers normally
+return transformed data without mutating the original input, so unnecessary
+copies can be skipped for those objects. Custom functions remain protected when
+mutation is possible.
+
+\subsubsection{Saving and Loading Pipelines}
+
+Pipeline objects can be saved as pickle files. Native graph pickling is
+provided through the PyBind binding for \texttt{graph.Graph}, where C++ exposes
+a \texttt{py::pickle} state pair. During \texttt{pickle.dump}, Python asks the
+bound object for its registered pickle state, and the C++ graph returns a
+Python dictionary that describes the graph structure and stored objects. During
+load, the inverse state function rebuilds the graph object.
+
+Custom preprocessing functions are handled by storing source code when normal
+pickle cannot serialize the function object directly. The save path extracts a
+top-level function or simple lambda source, and the load path executes that
+source inside a controlled namespace to recover the callable. Functions with
+closures are rejected because their external captured variables would not be
+available from source text alone.
+
+\subsubsection{How to Use Accelera Pipe}
+
+\begin{lstlisting}[language=Python,caption={Accelera Pipe example}]
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.svm import SVC
+from accelera.src.accelera_pipe.core.pipeline import Pipeline
+
+accpipe = Pipeline()
+results, executed = (
+    accpipe
+    .branch(
+        "preprocessing",
+        accpipe.preprocess("standard", StandardScaler(), branch=True),
+        accpipe.preprocess("minmax", MinMaxScaler(), branch=True),
+    )
+    .model("svc", SVC())
+    .predict("predict", test_data=X_val)
+    .metric("accuracy", "accuracy_score", y_true=y_val)
+)(X_train, y_train, select_strategy="max")
+
+test_results = executed(X_test, y_true=y_test)
+executed.save("pipeline.pkl")
+loaded = executed.load("pipeline.pkl")
+\end{lstlisting}
+
+\subsection{Code Parallelizer Module}
+
+\subsubsection{Module Responsibility}
+
+The Code Parallelizer transforms supported loop-heavy source code into
+OpenMP-annotated C++. The main Python orchestration file is
+\modulepath{accelera/src/utils/parallelizer.py}. Python input is first lowered
+by \modulepath{accelera/src/utils/py2cpp\_converter.py}. Native loop extraction
+and pragma insertion are implemented in C++ under \modulepath{src/ast/} and
+\modulepath{src/utils/code\_parallelizer\_utils.cpp}. The module can process
+files or in-memory code strings.
+
+The workflow has four stages:
+
+\begin{enumerate}[leftmargin=*]
+  \item Convert supported Python code to C++ when the input is Python.
+  \item Use Clang-based analysis to extract loops and loop metadata.
+  \item Predict the loop class using a classifier and rule checks.
+  \item Insert OpenMP pragmas and return the transformed C++ code.
+\end{enumerate}
+
+\subsubsection{Loop Analysis and Pragma Selection}
+
+Loop extraction records syntactic and semantic features such as loop nesting,
+array access, assignments, reduction patterns, loop-carried dependencies,
+function calls, and scalar updates. These features are passed to the classifier
+service. The classifier predicts one of three classes: \texttt{none},
+\texttt{parallel\_for}, or \texttt{reduction}. The rule layer then validates
+the predicted class before emitting the pragma.
+
+\begin{lstlisting}[style=algostyle,caption={Loop classification and OpenMP annotation}]
+Input: source program P
+Output: OpenMP-annotated C++ program P'
+
+1:  if P is Python then
+2:      convert the supported Python subset to C++
+3:  end if
+4:  Parse C++ source using the Clang frontend action
+5:  for each extracted loop L do
+6:      compute structural and dependency features F(L)
+7:      request class c from the OpenMP classifier
+8:      if c is parallel_for and dependency checks pass then
+9:          insert "#pragma omp parallel for"
+10:     else if c is reduction and reduction variable is valid then
+11:         insert "#pragma omp parallel for reduction(...)"
+12:     else
+13:         keep the loop sequential
+14:     end if
+15: end for
+16: Return the rewritten C++ source
+\end{lstlisting}
+
+\subsubsection{Classifier Model and Rule-Based Decision}
+
+The classifier assets are stored under
+\modulepath{models/open\_mp\_classifier/}. The service loads
+\modulepath{model.pkl} and \modulepath{label\_encoder.pkl}, exposes a FastAPI
+prediction endpoint, and maps loop features to one of the supported pragma
+classes. The trained model is an \texttt{XGBClassifier} over a fixed
+40-feature loop representation.
+
+An earlier generator trial attempted to generate pragma decisions using a
+neural sequence model. The model used a custom PyTorch encoder-decoder
+architecture: a bidirectional LSTM encoder, an attention-based LSTM decoder,
+teacher forcing during training, cross-entropy loss, Adam optimization,
+gradient clipping, and a custom BPE tokenizer. This approach was rejected for
+two scientific reasons. First, the available dataset contained about 15,000
+samples, which was not enough for a sequence model to generalize reliably to
+unseen program structures; the model overfit easily. Second, generating extra
+training programs with AI tools risked injecting generator-specific bias, which
+would lower generalization on real user code. The final approach therefore
+uses explicit loop features, a classifier, and rule-based safety checks.
+
+\subsubsection{Python-to-C++ Converter Support}
+
+The Python converter intentionally supports a restricted subset. This makes the
+generated C++ predictable enough for the parallelizer and avoids silently
+miscompiling dynamic Python behavior.
+
+\begin{longtable}{p{0.22\textwidth}p{0.35\textwidth}p{0.33\textwidth}}
+\caption{Supported operations in the Python-to-C++ converter}\\
+\toprule
+Category & Supported forms & Notes \\
+\midrule
+\endfirsthead
+\toprule
+Category & Supported forms & Notes \\
+\midrule
+\endhead
+Values and names & Numeric constants, names, simple lists & Dynamic objects are outside the subset. \\
+Arithmetic & \texttt{+}, \texttt{-}, \texttt{*}, \texttt{/}, \texttt{\%}, \texttt{**} & Power maps to \texttt{std::pow}. \\
+Boolean logic & \texttt{and}, \texttt{or}, \texttt{not} & Emitted as C++ boolean expressions. \\
+Comparisons & \texttt{<}, \texttt{<=}, \texttt{>}, \texttt{>=}, \texttt{==}, \texttt{!=} & Chained comparisons are restricted. \\
+Calls & Supported built-ins and direct calls & Unsupported calls raise converter errors. \\
+Indexing & Array-style subscripting & Slice semantics are not supported. \\
+Assignment & Simple assignment and selected augmented assignment & Used for loop updates and reductions. \\
+Control flow & \texttt{if}/\texttt{else}, \texttt{return}, \texttt{for range(...)} & Main loop form used by the parallelizer. \\
+Functions & Plain function definitions & Decorators, closures, and dynamic dispatch are outside the safe subset. \\
+\bottomrule
+\end{longtable}
+
+\subsubsection{Integration with Accelera Pipe}
+
+The parallelizer is integrated into Accelera Pipe for custom preprocessing
+functions and custom transformer instances. If a preprocessing function is a
+user-defined Python function, the pipeline attempts to optimize it through the
+parallelizer. If the object is a custom transformer, the transform method can
+be optimized and attached back to the instance. This allows the user to write a
+normal Python preprocessing step while the system compiles the loop-heavy part
+into a Python-callable C++ extension.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{imgs/parallelizer_accelera_pipe_flow.png}
+\caption{Integration path from Python custom function to compiled Accelera Pipe preprocessing}
+\end{figure}
+
+\subsubsection{How to Use the Parallelizer}
+
+\begin{lstlisting}[language=Python,caption={Parallelizer file and in-memory usage}]
+from accelera.src.utils.parallelizer import Parallelizer
+
+parallelizer = Parallelizer()
+
+# File mode
+cpp_code = parallelizer.parallelize("examples/loop_example.py")
+
+# In-memory code mode
+source = """
+def normalize_rows(X):
+    for i in range(len(X)):
+        s = 0
+        for j in range(len(X[i])):
+            s += X[i][j] * X[i][j]
+        norm = s ** 0.5
+        for j in range(len(X[i])):
+            X[i][j] = X[i][j] / norm
+    return X
+"""
+cpp_code = parallelizer.parallelize(source, file=False)
+\end{lstlisting}

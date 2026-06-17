@@ -8,6 +8,7 @@ from accelera.src.utils import accelera_utils as accelera_utils
 from accelera.src.utils import accelera_utils_test as accelera_utils_test
 from accelera.src.utils import array_utils as array_utils
 from accelera.src.utils import array_utils_test as array_utils_test
+from accelera.src.utils import cpp_compiler as cpp_compiler
 from accelera.src.utils import dataset_retriever as dataset_retriever
 from accelera.src.utils import dataset_retriever_test as dataset_retriever_test
 from accelera.src.utils import parallelizer as parallelizer
@@ -15,3 +16,4 @@ from accelera.src.utils import parallelizer_test as parallelizer_test
 from accelera.src.utils import preprocessing as preprocessing
 from accelera.src.utils import py2cpp_converter as py2cpp_converter
 from accelera.src.utils import py2cpp_converter_test as py2cpp_converter_test
+from accelera.src.utils import source_backed_function as source_backed_function
