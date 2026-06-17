@@ -183,7 +183,7 @@ class TestParallelizer:
             lambda code, cls, code_context="": f"#pragma omp parallel for\n{code}",
         )
 
-        result = parallelizer.parallelize(str(source_file))
+        result = parallelizer.parallelize(str(source_file), output_dir=tmp_path)
 
         output_file = tmp_path / "parallelized_sample.c"
         assert result is None
@@ -362,7 +362,7 @@ class TestParallelizer:
         )
         monkeypatch.setattr(parallelizer, "_classify", lambda code: "parallel_for")
 
-        parallelizer.parallelize(str(source_file))
+        parallelizer.parallelize(str(source_file), output_dir=tmp_path)
 
         output = (tmp_path / "parallelized_nested.c").read_text()
         assert output.count("#pragma omp parallel for") == 1
