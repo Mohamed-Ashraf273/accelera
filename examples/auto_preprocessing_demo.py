@@ -87,22 +87,18 @@ def classifcation_problem(training_folder_images, folder_path, augment, image_si
 def main():
     ds = get_data_set_info()
     for dataset_type, datasets_obj in ds.items():
-        print(f"\nNow Process {dataset_type} datasets")
         if dataset_type == "image_dataset":
-            for problem_type, datasets in datasets_obj.items():
-                for ds_name, ds_info in datasets.items():
-                    print(f"\nDataset Name {ds_name}")
-                    image_size = (
-                        ds_info["image_size"]["width"],
-                        ds_info["image_size"]["height"],
-                    )
-                    if problem_type == "classification":
-                        classifcation_problem(
-                            EXAMPLES_DIR / ds_info["train_folder"],
-                            EXAMPLES_DIR / ds_info["report_path"],
-                            ds_info["augment"],
-                            image_size=image_size,
-                        )
+            continue
+        datasets_problem = datasets_obj["problemType"]
+        for problem_type, datasets in datasets_problem.items():
+            for dataset, info in datasets.items():
+                retriever.connect()
+                link = info["link"]
+                df = retriever.retrieve_dataset(dataset, url=link, df=True)
+                label = info["target_column"]
+                report_path = info["report_path"]
+                text_column = info.get("text_column", None)
+                columns_need_to_drop = info.get("columns_need_to_drop", [])
 
         else:
             datasets_problem = datasets_obj["problemType"]

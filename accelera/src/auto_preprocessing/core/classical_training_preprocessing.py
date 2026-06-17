@@ -23,7 +23,7 @@ from accelera.src.auto_preprocessing.wrappers.correlation_graph import (
 from accelera.src.auto_preprocessing.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
 )
-from accelera.src.auto_preprocessing.wrappers.numerical_classification import (
+from accelera.src.automl.wrappers.numerical_classification import (
     NumericalClassification,
 )
 from accelera.src.auto_preprocessing.wrappers.numerical_regression import (
@@ -527,6 +527,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         if len(bool_type_col) == 0:
             return
         self.df[bool_type_col] = self.df[bool_type_col].astype(int)
+<<<<<<< HEAD:accelera/src/auto_preprocessing/core/classical_training_preprocessing.py
 
     def features_importance(self, X_train, y_train, X_val):
         if self.problem_type == "classification":
@@ -562,6 +563,8 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             "selected_features.pkl",
         )
         return X_train_selected.to_numpy(), X_val_selected.to_numpy()
+=======
+>>>>>>> 94c3e5a (start docs (#164)):accelera/src/automl/core/classical_training_preprocessing.py
 
     def common_preprocessing(self):
         self.handel_bool_types()
