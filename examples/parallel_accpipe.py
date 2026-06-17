@@ -5,6 +5,16 @@ from sklearn.datasets import make_classification
 
 from accelera.src.accelera_pipe.core.pipeline import Pipeline
 
+# Demo 2
+print("\n" * 2 + "=" * 80)
+print("===Parallelizer Demo: Parallelizing a Custom Preprocessing Function===")
+print(
+    "Protocol: Generate a large synthetic dataset, \n"
+    "define a custom row-wise normalization function, \n"
+    "execute it through an Accelera pipeline, and measure execution time."
+)
+print("=" * 80)
+
 
 def sample_data(random_state=42, n_samples=500_000):
     """Generate a big dataset for testing parallel execution performance."""
@@ -53,7 +63,21 @@ start_time = time.time()
 accpipe = Pipeline()
 accpipe.preprocess("normalize", normalize_rows)
 res, executed_graph = accpipe(X, y, select_strategy="max")
-print("==============Accelera Results==============")
+acc_elapsed = time.time() - start_time
+
+start_time = time.time()
+# Execute the same normalization function without Accelera for comparison
+X_normalized = normalize_rows(X)
+print("==============Non-Accelera Results==============")
 elapsed = time.time() - start_time
-print(f"Accelera pipeline execution time: {elapsed:.2f} seconds")
-print(res[0])
+print(f"Non-Accelera execution time: {elapsed:.2f} seconds")
+
+print("==============Accelera Results==============")
+print(f"Accelera pipeline execution time: {acc_elapsed:.2f} seconds")
+
+print("==============Validation==============")
+# Validate that the results are the same
+if np.allclose(X_normalized, res):
+    print("Validation successful: Accelera results match non-Accelera results.")
+else:
+    print("Validation failed: Accelera results do not match non-Accelera results.")

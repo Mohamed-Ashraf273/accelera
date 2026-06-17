@@ -11,6 +11,17 @@ from sklearn.preprocessing import StandardScaler
 from accelera.src.accelera_pipe.core.executed_graph import ExecutedGraph
 from accelera.src.accelera_pipe.core.pipeline import Pipeline
 
+# Demo 4
+print("\n" * 2 + "=" * 80)
+print("===Save and Load Executed Pipeline Demo===")
+print(
+    "Protocol: Generate a large synthetic dataset, \n"
+    "define a pipeline with preprocessing and model training, \n"
+    "execute it, save the executed pipeline, load it back, \n"
+    "and evaluate on test data."
+)
+print("=" * 80)
+
 
 def sample_data(random_state=42, n_samples=50_000):
     """Generate a big dataset for testing parallel execution performance."""
@@ -119,9 +130,12 @@ def test_save_load_pipeline():
     )
     accpipe.save("pipeline.pkl")
     loaded_pipeline = Pipeline.load("pipeline.pkl")
+    start_time = time.time()
     _, loaded_executed_graph = loaded_pipeline(X, y, select_strategy="max")
     print("==============Accelera Results Of Loaded Pipeline==============")
     print(loaded_executed_graph(X_test, y_true=y_test)[0]["result"])
+    elapsed = time.time() - start_time
+    print(f"Accelera pipeline execution time: {elapsed:.2f} seconds")
 
 
 test_save_load_executed_pipe()

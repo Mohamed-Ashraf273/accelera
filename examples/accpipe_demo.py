@@ -2,6 +2,7 @@ import time
 
 import numpy as np
 import psutil
+import torch
 from sklearn.base import clone
 from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
@@ -11,10 +12,98 @@ from sklearn.pipeline import Pipeline as SklearnPipeline
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
+from torch import nn
+from torch import optim
 
 from accelera.src.accelera_pipe.core.pipeline import Pipeline as accpipeline
 from accelera.src.accelera_pipe.wrappers.graph_report import GraphReport
+from accelera.src.custom.classifier import CustomClassifier
 from accelera.src.utils.accelera_utils import serialize
+
+# Demo 1
+print("=" * 80)
+print("===Accelera Pipe Demo: Comparing against sklearn pipelines===")
+print(
+    "Protocol: same train/val/test split, same 4 candidate pipelines, \n"
+    "selection on val accuracy, report on test accuracy"
+)
+print("=" * 80)
+
+
+class TorchDenseModel(CustomClassifier):
+    def __init__(
+        self,
+        input_dim=None,
+        hidden_dim=32,
+        lr=0.01,
+        epochs=100,
+        random_state=None,
+    ):
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.lr = lr
+        self.epochs = epochs
+        self.random_state = random_state
+
+        self.model = None
+        print("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    def _build_model(self, input_dim, num_classes):
+        return nn.Sequential(
+            nn.Linear(input_dim, self.hidden_dim),
+            nn.ReLU(),
+            nn.Linear(self.hidden_dim, num_classes),
+        ).to(self.device)
+
+    def fit(self, X, y):
+        X = np.asarray(X, dtype=np.float32)
+        y = np.asarray(y, dtype=np.int64)
+
+        n_samples, n_features = X.shape
+        num_classes = len(np.unique(y))
+
+        if self.model is None:
+            self.model = self._build_model(n_features, num_classes).to(self.device)
+
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
+
+        X_tensor = torch.tensor(X, device=self.device)
+        y_tensor = torch.tensor(y, device=self.device)
+
+        self.model.train()
+        for _ in range(self.epochs):
+            optimizer.zero_grad()
+            outputs = self.model(X_tensor)
+            loss = criterion(outputs, y_tensor)
+            loss.backward()
+            optimizer.step()
+
+        return self
+
+    def predict(self, X):
+        X = np.asarray(X, dtype=np.float32)
+        X_tensor = torch.tensor(X, device=self.device)
+
+        self.model.eval()
+        with torch.no_grad():
+            logits = self.model(X_tensor)
+            preds = torch.argmax(logits, dim=1).cpu().numpy()
+
+        return preds
+
+    def predict_proba(self, X):
+        X = np.asarray(X, dtype=np.float32)
+        X_tensor = torch.tensor(X, device=self.device)
+
+        self.model.eval()
+        with torch.no_grad():
+            logits = self.model(X_tensor)
+            # Apply softmax to convert logits to probabilities
+            probabilities = torch.softmax(logits, dim=1).cpu().numpy()
+
+        return probabilities
 
 
 def get_memory_info():
@@ -38,7 +127,7 @@ def sample_data():
 
     # Create a large, realistic dataset
     X, y = make_classification(
-        n_samples=250_000,  # Large dataset
+        n_samples=10_000,  # Large dataset
         n_features=25,  # High-dimensional features
         n_classes=4,  # Multi-class problem
         n_informative=20,  # Most features are informative
@@ -150,7 +239,6 @@ sk_pipe_end_mem = get_memory_info()
 
 acc_start_mem = get_memory_info()
 acc_start_time = time.time()
-
 acc_pipe = accpipeline()
 acc_pipe.branch(
     "preprocessing",
@@ -167,12 +255,13 @@ acc_pipe.branch(
 )
 
 acc_val_results, best_path = acc_pipe(X_train, y_train, select_strategy="max")
-serialize(acc_pipe, "accelera_pipe.xml")
-report = GraphReport("report", "accelera_pipe.xml", acc_val_results)
-img_path = report.execute()
 acc_test_results = best_path(X_test, y_true=y_test)
 acc_end_time = time.time()
 acc_end_mem = get_memory_info()
+
+serialize(acc_pipe, "accelera_pipe.xml")
+report = GraphReport("report", "accelera_pipe.xml", acc_val_results)
+img_path = report.execute()
 
 acc_val_acc = max(extract_metric(result) for result in acc_val_results)
 acc_test_acc = extract_metric(acc_test_results[0])
@@ -180,7 +269,7 @@ sk_time = sk_end_time - sk_start_time
 sk_pipe_time = sk_pipe_end_time - sk_pipe_start_time
 acc_time = acc_end_time - acc_start_time
 
-print("\n=== Fair Comparison Report ===")
+print("\n===Comparison Report ===")
 print(
     "Protocol: same train/val/test split, "
     "same 4 candidate pipelines, selection on val "
