@@ -23,7 +23,6 @@ from accelera.src.accelera_pipe.wrappers import (
     graph_pipeline_report as graph_pipeline_report,
 )
 from accelera.src.accelera_pipe.wrappers import graph_report as graph_report
-from accelera.src.accelera_pipe.wrappers import model_report as model_report
 from accelera.src.accelera_pipe.wrappers import (
     supervised_metric as supervised_metric,
 )

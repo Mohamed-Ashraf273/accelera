@@ -86,8 +86,8 @@ class ClassicalTestingPreprocessing(TestingTabularPreprocessingBase):
 
     def common_preprocessing(self):
         try:
-            drop_columns(self.X_test, self.col_drop)
             self.handel_bool_type()
+            drop_columns(self.X_test, self.col_drop)
             self.X_test = self.training_preprocessor.transform(self.X_test)
             if not self.features_only:
                 self.target_preprocessing()

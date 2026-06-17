@@ -30,7 +30,7 @@ def autogluon_preprocessing(
     training_df, testing_df = train_test_split(df, test_size=0.2, random_state=42)
     predictor = TabularPredictor(label=label, eval_metric=eval_metric).fit(
         training_df,
-        time_limit=1000,
+        time_limit=500,
         hyperparameters={auto_gloun_model: {}},
         num_bag_folds=0,
         num_stack_levels=0,
@@ -93,7 +93,7 @@ def without_autogluon_preprocessing(
     predictor = TabularPredictor(label=target_column, eval_metric=eval_metric).fit(
         train_data=X_train_df,
         feature_generator=None,
-        time_limit=1000,
+        time_limit=500,
         hyperparameters={auto_gloun_model: {}},
         num_bag_folds=0,
         num_stack_levels=0,
@@ -106,7 +106,11 @@ def without_autogluon_preprocessing(
 
 
 def plot_comparison(
-    results_df, problem_type, target_graph, ds_type="tabular_dataset"
+    results_df,
+    problem_type,
+    target_graph,
+    ds_type="tabular_dataset",
+    autogloun_model="CAT",
 ):
     plt.figure(figsize=(10, 6))
     x_range = np.arange(len(results_df["dataset"]))
@@ -127,20 +131,27 @@ def plot_comparison(
     plt.bar_label(bar2, fmt="%.2f", padding=3)
     plt.xlabel("Dataset Name")
     plt.ylabel(target_graph)
-    plt.title(f"AutoGluon vs Accelera Preprocessing Comparison - {problem_type}")
+    plt.title(
+        f"AutoGluon vs Accelera Preprocessing "
+        f"Comparison - {problem_type}-{autogloun_model}"
+    )
     plt.legend()
     plt.xticks(x_range, results_df["dataset"], rotation=45)
     plt.tight_layout()
-    plt.savefig(f"{ds_type}_comparison_{problem_type}_{target_graph}.png")
+    plt.savefig(
+        f"{ds_type}_comparison_{problem_type}_{target_graph}_{autogloun_model}.png"
+    )
 
 
 def main():
     ds = get_data_set_info()
     total_results = []
-    for dataset_type, datasets_typed in ds.items():
+    for dataset_type, datasets_obj in ds.items():
         if dataset_type == "image_dataset":
             continue
-        for problem_type, datasets in datasets_typed.items():
+        auto_gloun_model = datasets_obj["autoGlounModel"]
+        datasets_problem = datasets_obj["problemType"]
+        for problem_type, datasets in datasets_problem.items():
             results = []
             for dataset, info in datasets.items():
                 retriever.connect()
@@ -149,7 +160,6 @@ def main():
                 label = info["target_column"]
                 report_path = info["report_path"]
                 eval_metric = info["eval_metric"]
-                auto_gloun_model = info["autoGlounModel"]
                 text_column = info.get("text_column", None)
                 autogloun_score, autogloun_time = autogluon_preprocessing(
                     df,
@@ -177,16 +187,23 @@ def main():
                         "accelera_time": accelera_time,
                         "dataset_type": dataset_type,
                         "problem_type": problem_type,
+                        "autogloun_model": auto_gloun_model,
                     }
                 )
                 retriever.close()
             results_df = pd.DataFrame(results)
             total_results.extend(results)
 
-            plot_comparison(results_df, problem_type, "score", dataset_type)
-            plot_comparison(results_df, problem_type, "time", dataset_type)
+            plot_comparison(
+                results_df, problem_type, "score", dataset_type, auto_gloun_model
+            )
+            plot_comparison(
+                results_df, problem_type, "time", dataset_type, auto_gloun_model
+            )
     total_results_df = pd.DataFrame(total_results)
-    total_results_df.to_csv("preprocessing_comparison_results.csv", index=False)
+    total_results_df.to_csv(
+        f"preprocessing_comparison_results_{auto_gloun_model}.csv", index=False
+    )
 
 
 if __name__ == "__main__":

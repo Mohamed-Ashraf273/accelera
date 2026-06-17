@@ -175,28 +175,28 @@ p = Pipeline()
 
 # p.disable_parallel_execution()
 
-p.branch(
-    "preprocessing",
-    [
-        p.preprocess("standard_scaler", StandardScaler(), branch=True),
-        p.preprocess(
-            "power_transform",
-            lambda x: np.sign(x) * np.power(np.abs(x), 0.8),
-            branch=True,
-        ),
-    ],
-    p.preprocess(
-        "normalize",
-        lambda x: x / (np.linalg.norm(x, axis=1, keepdims=True) + 1e-8),
-        branch=True,
-    ),
-    p.preprocess(
-        "power_transform",
-        lambda x: np.sign(x) * np.power(np.abs(x), 0.8),
-        branch=True,
-    ),
-)
-p.preprocess("clip", lambda x: np.clip(x, -5, 5))
+# p.branch(
+#     "preprocessing",
+#     [
+#         p.preprocess("standard_scaler", StandardScaler(), branch=True),
+#         p.preprocess(
+#             "power_transform",
+#             lambda x: np.sign(x) * np.power(np.abs(x), 0.8),
+#             branch=True,
+#         ),
+#     ],
+#     p.preprocess(
+#         "normalize",
+#         lambda x: x / (np.linalg.norm(x, axis=1, keepdims=True) + 1e-8),
+#         branch=True,
+#     ),
+#     p.preprocess(
+#         "power_transform",
+#         lambda x: np.sign(x) * np.power(np.abs(x), 0.8),
+#         branch=True,
+#     ),
+# )
+# p.preprocess("clip", lambda x: np.clip(x, -5, 5))
 
 p.branch(
     "models",
@@ -275,7 +275,6 @@ simple_predictions, best_path = p(
 )
 predictions = best_path(test_data, y_true=y_test)
 serialize(p, "test.xml")
-
 end = time.time()
 end_mem = get_memory_info()
 
@@ -288,5 +287,4 @@ print("length of predictions: ", predictions)
 #     print(pred)
 report = GraphReport("report", "test.xml", simple_predictions)
 img_path = report.execute()
-
 best_path.save()

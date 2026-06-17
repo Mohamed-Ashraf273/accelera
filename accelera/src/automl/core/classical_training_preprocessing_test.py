@@ -10,6 +10,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OrdinalEncoder
+from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import StandardScaler
 
 from accelera.src.automl.core.classical_training_preprocessing import (
@@ -18,7 +19,6 @@ from accelera.src.automl.core.classical_training_preprocessing import (
 from accelera.src.automl.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
 )
-from accelera.src.automl.wrappers.IQR_transform import IQRTransform
 from accelera.src.utils.preprocessing import check_path_exists
 from accelera.src.utils.preprocessing import load_pickle
 
@@ -381,13 +381,13 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
         ) = training_preprocessing.detect_column_types(X_train, info)
         assert set(binary_cols) == {"binary_feature"}
-        assert set(one_hot_cols) == {"one_hot_feature"}
+        assert set(binay_encoding_cols) == {"one_hot_feature"}
         assert set(frequency_cols) == {
             "frequency_feature",
         }
@@ -412,7 +412,7 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -424,7 +424,7 @@ class TestClassicalTrainingPreprocessing:
         expected_num_graphs = (
             len(binary_cols)
             + len(numerical_cols)
-            + len(one_hot_cols)
+            + len(binay_encoding_cols)
             + len(frequency_cols)
             + len(ordinal_cols)
             + 2
@@ -456,7 +456,7 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -465,10 +465,9 @@ class TestClassicalTrainingPreprocessing:
             training_preprocessing.features_preprocessing(
                 X_train,
                 X_val,
-                info,
                 binary_cols,
                 numerical_cols,
-                one_hot_cols,
+                binay_encoding_cols,
                 frequency_cols,
                 ordinal_cols,
             )
@@ -495,7 +494,7 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -504,26 +503,21 @@ class TestClassicalTrainingPreprocessing:
             training_preprocessing.features_preprocessing(
                 X_train,
                 X_val,
-                info,
                 binary_cols,
                 numerical_cols,
-                one_hot_cols,
+                binay_encoding_cols,
                 frequency_cols,
                 ordinal_cols,
             )
         )
         imputer = SimpleImputer(strategy="median")
-        iqr_trasnform = IQRTransform(info, ["continuous_feature"])
-        scaler = StandardScaler()
+        scaler = RobustScaler()
         X_train_manual = X_train[["continuous_feature"]].values
         X_val_manual = X_val[["continuous_feature"]].values
         X_train_imputed = imputer.fit_transform(X_train_manual)
         X_val_imputed = imputer.transform(X_val_manual)
-        iqr_trasnform.fit(X_train_imputed)
-        X_train_iqr = iqr_trasnform.transform(X_train_imputed)
-        X_val_iqr = iqr_trasnform.transform(X_val_imputed)
-        X_train_scaled = scaler.fit_transform(X_train_iqr)
-        X_val_scaled = scaler.transform(X_val_iqr)
+        X_train_scaled = scaler.fit_transform(X_train_imputed)
+        X_val_scaled = scaler.transform(X_val_imputed)
         assert X_train_processed.shape == X_train_scaled.shape
         assert X_val_processed.shape == X_val_scaled.shape
         assert np.allclose(X_train_processed, X_train_scaled, atol=1e-6)
@@ -546,7 +540,7 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -555,10 +549,9 @@ class TestClassicalTrainingPreprocessing:
             training_preprocessing.features_preprocessing(
                 X_train,
                 X_val,
-                info,
                 binary_cols,
                 numerical_cols,
-                one_hot_cols,
+                binay_encoding_cols,
                 frequency_cols,
                 ordinal_cols,
             )
@@ -595,7 +588,7 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -604,10 +597,9 @@ class TestClassicalTrainingPreprocessing:
             training_preprocessing.features_preprocessing(
                 X_train,
                 X_val,
-                info,
                 binary_cols,
                 numerical_cols,
-                one_hot_cols,
+                binay_encoding_cols,
                 frequency_cols,
                 ordinal_cols,
             )
@@ -644,7 +636,7 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -653,10 +645,9 @@ class TestClassicalTrainingPreprocessing:
             training_preprocessing.features_preprocessing(
                 X_train,
                 X_val,
-                info,
                 binary_cols,
                 numerical_cols,
-                one_hot_cols,
+                binay_encoding_cols,
                 frequency_cols,
                 ordinal_cols,
             )
@@ -694,7 +685,7 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -703,10 +694,9 @@ class TestClassicalTrainingPreprocessing:
             training_preprocessing.features_preprocessing(
                 X_train,
                 X_val,
-                info,
                 binary_cols,
                 numerical_cols,
-                one_hot_cols,
+                binay_encoding_cols,
                 frequency_cols,
                 ordinal_cols,
             )
@@ -749,7 +739,7 @@ class TestClassicalTrainingPreprocessing:
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
@@ -758,10 +748,9 @@ class TestClassicalTrainingPreprocessing:
             training_preprocessing.features_preprocessing(
                 X_train,
                 X_val,
-                info,
                 binary_cols,
                 numerical_cols,
-                one_hot_cols,
+                binay_encoding_cols,
                 frequency_cols,
                 ordinal_cols,
             )

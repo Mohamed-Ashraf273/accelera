@@ -20,7 +20,6 @@ from accelera.src.automl.wrappers.correlation_graph import CorrelationGraph
 from accelera.src.automl.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
 )
-from accelera.src.automl.wrappers.IQR_transform import IQRTransform
 from accelera.src.automl.wrappers.numerical_classification import (
     NumericalClassification,
 )
@@ -145,8 +144,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             }
 
             if np.issubdtype(df_new[col].dtype, np.number):
-                info[col]["skew"] = df_new[col].skew()
-                info[col]["variance"] = df_new[col].var()
                 info[col]["Q1"] = df_new[col].quantile(0.25)
                 info[col]["Q3"] = df_new[col].quantile(0.75)
                 info[col]["min"] = df_new[col].min()
@@ -180,7 +177,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
     def detect_column_types(self, X_train, info):
         binary_cols = []
         numerical_cols = []
-        one_hot_cols = []
+        binay_encoding_cols = []
         frequency_cols = []
         ordinal_cols = []
         others = []
@@ -205,8 +202,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                     info[col]["col_type"] = "numerical"
                     info[col]["preprossing_steps"] = [
                         "Fill missing with median",
-                        "IQR transform",
-                        "Standard scaling",
+                        "Robust scaling",
                     ]
                     numerical_cols.append(col)
 
@@ -214,8 +210,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 info[col]["col_type"] = "continuous"
                 info[col]["preprossing_steps"] = [
                     "Fill missing with median",
-                    "IQR transform",
-                    "Standard scaling",
+                    "Robust scaling",
                 ]
                 numerical_cols.append(col)
 
@@ -226,7 +221,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                         "Fill missing with most frequent",
                         "Binary encoding",
                     ]
-                    one_hot_cols.append(col)
+                    binay_encoding_cols.append(col)
                 else:
                     info[col]["col_type"] = "high level cardinality"
                     info[col]["preprossing_steps"] = [
@@ -252,7 +247,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         return (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             others,
@@ -376,18 +371,16 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         self,
         X_train,
         X_val,
-        info,
         binary_cols,
         numerical_cols,
-        one_hot_cols,
+        binay_encoding_cols,
         frequency_cols,
         ordinal_cols,
     ):
         numerical_pipeline = Pipeline(
             [
                 ("imputer", SimpleImputer(strategy="median")),
-                ("iqr_transformer", IQRTransform(info, numerical_cols)),
-                ("scaler", StandardScaler()),
+                ("scaler", RobustScaler()),
             ]
         )
         binary_encoder_pipeline = Pipeline(
@@ -421,7 +414,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         )
         preprocessor = ColumnTransformer(
             transformers=[
-                ("onehot", binary_encoder_pipeline, one_hot_cols),
+                ("onehot", binary_encoder_pipeline, binay_encoding_cols),
                 ("numerical", numerical_pipeline, numerical_cols),
                 ("binary", binary_pipeline, binary_cols),
                 ("frequency", frequency_pipeline, frequency_cols),
@@ -499,15 +492,15 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         save_pickle(self.folder_path, target_dict, "target_info.pkl")
         return y_train, y_val
 
-    def handel_bool_types(self, X_train, X_val):
-        bool_type_col = X_train.select_dtypes(include=["bool"]).columns
+    def handel_bool_types(self):
+        bool_type_col = self.df.select_dtypes(include=["bool"]).columns
         save_pickle(self.folder_path, bool_type_col, "bool_type_col.pkl")
         if len(bool_type_col) == 0:
             return
-        X_train[bool_type_col] = X_train[bool_type_col].astype(int)
-        X_val[bool_type_col] = X_val[bool_type_col].astype(int)
+        self.df[bool_type_col] = self.df[bool_type_col].astype(int)
 
     def common_preprocessing(self):
+        self.handel_bool_types()
         self.data_overview()
         self.drop_duplicates()
         X_train, X_val, y_train, y_val = self.split_data()
@@ -516,20 +509,18 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         (
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
             _,
         ) = self.detect_column_types(X_train, info)
         self.make_graphs(X_train, y_train, info)
-        self.handel_bool_types(X_train, X_val)
         X_train, X_val = self.features_preprocessing(
             X_train,
             X_val,
-            info,
             binary_cols,
             numerical_cols,
-            one_hot_cols,
+            binay_encoding_cols,
             frequency_cols,
             ordinal_cols,
         )

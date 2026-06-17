@@ -42,10 +42,11 @@ def handle_data_preprocessing_type(
 
 def main():
     ds = get_data_set_info()
-    for dataset_type, datasets_typed in ds.items():
+    for dataset_type, datasets_obj in ds.items():
         if dataset_type == "image_dataset":
             continue
-        for problem_type, datasets in datasets_typed.items():
+        datasets_problem = datasets_obj["problemType"]
+        for problem_type, datasets in datasets_problem.items():
             for dataset, info in datasets.items():
                 retriever.connect()
                 link = info["link"]
