@@ -1,0 +1,205 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Accelera Report</title>
+          <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #000000;
+            color: #ffffff;
+            margin-left:30px
+            }
+            h1 {
+            color: #ffcc00;
+            text-align: center;
+            }
+            h2{
+            font-style:italic;
+            text-align: center;
+            }
+            h3{
+            color: #ffee00;
+            }
+            h4 {
+            color: #ffcc00; 
+            }
+            
+            table{
+            border-collapse: collapse;
+            width: 80%;
+            }
+             th, td {
+            border: 1px solid #444;
+            padding: 6px;
+            text-align: center;
+            }
+            .metric-container {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+            }
+            div{
+                margin:40px 10px ;
+            }
+        </style>
+        </head>
+        <body>
+        <h1>Accelera Report</h1>
+        <div>
+<h2>Data Overview</h2>
+<div>
+<h3>Training Folder Overview</h2>
+<div>
+<h4>Total Images </h4>
+<p>Count : 3064</p>
+</div>
+<div>
+<h4>Invalid Images</h4>
+<div>
+<p>Count : 0</p>
+</div>
+<div>
+<ul>
+</ul>
+</div>
+</div>
+<div>
+<h4>Random Sample</h4>
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>training_folder_paths</th>
+      <th>training_folder_labels</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>./brain/images\2457.png</td>
+      <td>./brain/masks\2457.png</td>
+    </tr>
+    <tr>
+      <td>./brain/images\417.png</td>
+      <td>./brain/masks\417.png</td>
+    </tr>
+    <tr>
+      <td>./brain/images\1181.png</td>
+      <td>./brain/masks\1181.png</td>
+    </tr>
+    <tr>
+      <td>./brain/images\1522.png</td>
+      <td>./brain/masks\1522.png</td>
+    </tr>
+    <tr>
+      <td>./brain/images\1517.png</td>
+      <td>./brain/masks\1517.png</td>
+    </tr>
+  </tbody>
+</table></div>
+</div>
+</div>
+<div>
+<h2>Splitting</h2>
+<div>
+<h3>Validation Size</h3>
+
+<p>0.2</p>
+</div>
+<div>
+<h3>Training After Splitting</h3>
+<div>
+<h4>Total Images </h4>
+<p>2451</p>
+</div>
+<div>
+<h4>Random Sample</h4>
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>training_paths</th>
+      <th>training_labels</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>./brain/images\2332.png</td>
+      <td>./brain/masks\2332.png</td>
+    </tr>
+    <tr>
+      <td>./brain/images\1317.png</td>
+      <td>./brain/masks\1317.png</td>
+    </tr>
+    <tr>
+      <td>./brain/images\1992.png</td>
+      <td>./brain/masks\1992.png</td>
+    </tr>
+    <tr>
+      <td>./brain/images\922.png</td>
+      <td>./brain/masks\922.png</td>
+    </tr>
+    <tr>
+      <td>./brain/images\1380.png</td>
+      <td>./brain/masks\1380.png</td>
+    </tr>
+  </tbody>
+</table></div>
+</div>
+<div>
+<h3>Validation After Splitting</h3>
+<div>
+<h4>Total Images </h4>
+<p>613</p>
+</div>
+<div>
+<h4>Random Sample</h4>
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>validation_paths</th>
+      <th>validation_labels</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>./brain/images\1052.png</td>
+      <td>./brain/masks\1052.png</td>
+    </tr>
+    <tr>
+      <td>./brain/images\571.png</td>
+      <td>./brain/masks\571.png</td>
+    </tr>
+    <tr>
+      <td>./brain/images\2001.png</td>
+      <td>./brain/masks\2001.png</td>
+    </tr>
+    <tr>
+      <td>./brain/images\748.png</td>
+      <td>./brain/masks\748.png</td>
+    </tr>
+    <tr>
+      <td>./brain/images\2537.png</td>
+      <td>./brain/masks\2537.png</td>
+    </tr>
+  </tbody>
+</table></div>
+</div>
+</div>
+<div>
+<h2>Graphs</h2>
+<img src='.\graphs\training_folder_summary.png' style='max-width:100%; margin:10px 0;'/>
+<img src='.\graphs\training_folder_random_samples.png' style='max-width:100%; margin:10px 0;'/>
+<img src='.\graphs\training_after_splitting_random_samples.png' style='max-width:100%; margin:10px 0;'/>
+<img src='.\graphs\validation_after_splitting_random_samples.png' style='max-width:100%; margin:10px 0;'/>
+<img src='.\graphs\training_after_data_loader_samples.png' style='max-width:100%; margin:10px 0;'/>
+<img src='.\graphs\validation_after_data_loader_samples.png' style='max-width:100%; margin:10px 0;'/>
+</div>
+
+        </body>
+        </html>
+        

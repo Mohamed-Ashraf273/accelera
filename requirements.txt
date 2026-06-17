@@ -26,3 +26,4 @@ seaborn
 nltk
 platformdirs
 requests
+AutoCleanML
