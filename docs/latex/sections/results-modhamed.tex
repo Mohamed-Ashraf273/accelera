@@ -1,0 +1,186 @@
+\subsection{Accelera Pipe Results}
+
+The Accelera Pipe experiments compare three implementations under the same
+train, validation, and test split. The first implementation is a manually
+written scikit-learn loop over the candidate pipelines. The second uses
+\texttt{sklearn.pipeline.Pipeline} to represent the same candidates. The third
+uses Accelera Pipe with graph branches. Each candidate is selected using
+validation accuracy, and the final selected path is evaluated on the test set.
+This protocol checks whether the graph execution improves latency without
+changing the selected model or the measured predictive accuracy.
+
+\begin{table}[H]
+\centering
+\caption{Accelera Pipe latency and memory scaling}
+\label{tab:pipe-scale}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{rrrrrrrrrr}
+\toprule
+Samples & Train & Val & Test &
+sklearn time & sklearn RSS &
+Pipeline time & Pipeline RSS &
+Accelera time & Accelera RSS \\
+\midrule
+1,000 & 600 & 200 & 200 &
+0.06 & 1.62 & \bestcell 0.05 & \bestcell 0.16 & 0.34 & 19.32 \\
+5,000 & 3,000 & 1,000 & 1,000 &
+2.47 & 3.62 & 2.12 & \bestcell 1.09 & \bestcell 2.02 & 21.62 \\
+10,000 & 6,000 & 2,000 & 2,000 &
+2.64 & 11.25 & 2.67 & \bestcell 2.19 & \bestcell 2.10 & 28.43 \\
+50,000 & 30,000 & 10,000 & 10,000 &
+23.96 & 126.95 & 23.25 & \bestcell 9.75 & \bestcell 14.81 & 209.25 \\
+100,000 & 60,000 & 20,000 & 20,000 &
+77.79 & 139.70 & 77.10 & \bestcell 47.65 & \bestcell 67.04 & 300.93 \\
+250,000 & 150,000 & 50,000 & 50,000 &
+803.56 & 303.95 & 803.01 & \bestcell 28.52 & \bestcell 494.64 & 594.86 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+Table~\ref{tab:pipe-scale} shows the main performance trend. At very small sizes, Accelera Pipe is
+slower because the native graph setup, branch creation, and Python/C++ boundary
+cost dominate the actual model computation. Once the dataset grows, those fixed
+costs become small compared with fitting multiple candidate branches. At
+50,000 samples, Accelera Pipe reduces runtime from 23.96 seconds to 14.81
+seconds. At 250,000 samples, it reduces runtime from about 803 seconds to about
+495 seconds, saving more than five minutes while selecting the same candidate.
+The table also shows the current cost of graph-level parallelism: Accelera Pipe
+uses more RSS memory because multiple branch states and intermediate arrays can
+exist at the same time. The memory optimizations in the methodology section
+target exactly this issue.
+
+\begin{table}[H]
+\centering
+\caption{Selected candidate and accuracy across sample sizes}
+\label{tab:pipe-accuracy}
+\begin{tabular}{rlll}
+\toprule
+Samples & Selected candidate & Validation accuracy & Test accuracy \\
+\midrule
+1,000 & MinMaxScaler $\rightarrow$ SVC & 0.7900 & 0.8250 \\
+5,000 & MinMaxScaler $\rightarrow$ SVC & 0.9160 & 0.9100 \\
+10,000 & MinMaxScaler $\rightarrow$ SVC & 0.9385 & 0.9260 \\
+50,000 & MinMaxScaler $\rightarrow$ SVC & 0.9565 & 0.9598 \\
+100,000 & StandardScaler $\rightarrow$ SVC & 0.9675 & 0.9709 \\
+250,000 & StandardScaler $\rightarrow$ SVC & 0.9774 & 0.9768 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:pipe-accuracy} confirms that the speedup does not come from changing the search
+space. Accelera Pipe evaluates the same candidate pipelines and reports the
+same validation and test behavior. The selected preprocessing strategy changes
+from MinMax scaling to standard scaling only when the larger dataset makes
+StandardScaler with SVC the best validation candidate. This is expected because
+the candidate set and selection rule are fixed while the data distribution
+becomes better represented at larger sizes.
+
+\begin{table}[H]
+\centering
+\caption{Largest Accelera Pipe comparison}
+\label{tab:pipe-largest}
+\begin{tabular}{lrrrr}
+\toprule
+Implementation & Time (s) & RSS MB & VMS MB & Test accuracy \\
+\midrule
+sklearn manual loop & 803.56 & 303.95 & 315.41 & 0.9768 \\
+sklearn Pipeline & 803.01 & \bestcell 28.52 & \bestcell 28.61 & 0.9768 \\
+Accelera Pipe & \bestcell 494.64 & \warncell 594.86 & \warncell 787.47 & 0.9768 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:pipe-largest} isolates the largest run: 150,000 training samples, 50,000 validation
+samples, and 50,000 test samples. Accelera Pipe keeps exactly the same selected
+path, StandardScaler followed by SVC, and the same test accuracy. The runtime
+drop is 308.91 seconds relative to the manual scikit-learn loop and 308.36
+seconds relative to scikit-learn Pipeline. This result is important because it
+demonstrates the value of graph scheduling on realistic branch-heavy workloads.
+The memory columns also show the next engineering target: scikit-learn Pipeline
+is extremely memory efficient, while Accelera Pipe trades memory for parallel
+branch execution and native graph state.
+
+\subsection{Code Parallelizer Results}
+
+The OpenMP classifier was evaluated as a three-class loop classifier. The
+labels are \texttt{none}, \texttt{parallel\_for}, and \texttt{reduction}. The
+classification report shows that the model is balanced enough to guide the
+rule layer, while the final pragma decision remains protected by dependency
+checks.
+
+\begin{table}[H]
+\centering
+\caption{OpenMP classifier report}
+\label{tab:classifier-report}
+\begin{tabular}{lrrrr}
+\toprule
+Class & Precision & Recall & F1-score & Support \\
+\midrule
+none & 0.82 & 0.85 & 0.84 & 3048 \\
+parallel\_for & 0.86 & 0.81 & 0.83 & 2696 \\
+reduction & 0.79 & 0.82 & 0.80 & 775 \\
+\midrule
+accuracy & & & 0.83 & 6519 \\
+macro avg & 0.82 & 0.83 & 0.83 & 6519 \\
+weighted avg & 0.83 & 0.83 & 0.83 & 6519 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:classifier-report} should be read as a guidance-quality result, not as a proof that every
+predicted loop is safe. The classifier is responsible for identifying likely
+parallelization opportunities. The rule layer is responsible for rejecting
+unsafe or unsupported cases. This two-stage design is useful because source
+code parallelization has correctness constraints that pure statistical
+classification should not decide alone.
+
+\begin{table}[H]
+\centering
+\caption{Hard parallelizer evaluation}
+\label{tab:hard-eval}
+\begin{tabular}{lrrrr}
+\toprule
+File & Baseline ms & Parallel ms & Speedup & Output match \\
+\midrule
+hard\_eval\_000.cpp & 1786.28 & \bestcell 195.47 & 9.138$\times$ & true \\
+hard\_eval\_001.cpp & 63.98 & \bestcell 31.47 & 2.033$\times$ & true \\
+hard\_eval\_002.py & 42.66 & \bestcell 7.67 & 5.563$\times$ & true \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:hard-eval} evaluates harder programs from \modulepath{data/hard\_test\_files}.
+The benchmark compiles and runs both the baseline and the generated
+parallelized code, then compares their outputs. The first file obtains the
+largest improvement because its loop body has enough work to amortize OpenMP
+thread overhead. The second file still improves, but the smaller absolute
+runtime limits the maximum speedup. The Python-origin file demonstrates the
+full converter path: Python subset to C++, then loop extraction, then pragma
+insertion. Across the three files, the evaluation extracted 11 loops, generated
+8 pragmas, matched all 8 expected pragmas, reached average similarity 1.0, and
+obtained an average speedup of 5.578$\times$.
+
+\begin{table}[H]
+\centering
+\caption{Parallelizer and Accelera Pipe integration benchmark}
+\label{tab:pipe-parallelizer-integration}
+\begin{tabular}{lrr}
+\toprule
+Mode & Samples & Time (s) \\
+\midrule
+Python custom preprocessing function & 500,000 & 6.95 \\
+Compiled OpenMP kernel only & 500,000 & \bestcell 0.07 \\
+End-to-end compiled run, cold cache & 500,000 & 4.45 \\
+End-to-end compiled run, cached module & 500,000 & \bestcell 2.59 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:pipe-parallelizer-integration} separates kernel execution time from end-to-end pipeline time. The
+0.07 second measurement is the compiled preprocessing kernel alone and does not
+include compilation. The 4.45 second run includes conversion, OpenMP
+parallelization, C++ extension compilation, module loading, and execution. The
+2.59 second run benefits from the compiled-module cache, so it represents the
+more realistic repeated-run cost. This confirms that the integration is useful,
+but also shows why compilation caching is necessary: without caching, compile
+latency hides part of the kernel speedup.
