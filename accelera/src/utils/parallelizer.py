@@ -519,8 +519,8 @@ class Parallelizer:
         parallelized_code = self._apply_parallel_loops(
             code, self._select_parallel_loops(loops_data)
         )
-        final_output_path = (
-            Path(file_path).parent / f"parallelized_{Path(file_path).stem}.c"
+        final_output_path = os.path.join(
+            config.REPO_ROOT, f"parallelized_{Path(file_path).stem}.c"
         )
         with open(final_output_path, "w") as output_file:
             output_file.write(parallelized_code)
