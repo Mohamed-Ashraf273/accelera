@@ -195,7 +195,11 @@ class _PythonToCpp(ast.NodeVisitor):
             return
         name = target.id
         if name not in self._declared:
-            ctype = "long long" if name in self._wide_int_vars else self._infer_ctype(node.value)
+            ctype = (
+                "long long"
+                if name in self._wide_int_vars
+                else self._infer_ctype(node.value)
+            )
             self._declared.add(name)
             self._var_types[name] = ctype
             self.emit(f"{ctype} {name} = {value};")
@@ -305,7 +309,10 @@ class _PythonToCpp(ast.NodeVisitor):
                 return "double"
 
             if isinstance(node.op, ast.Mult):
-                if left_type in {"int", "long long"} and right_type in {"int", "long long"}:
+                if left_type in {"int", "long long"} and right_type in {
+                    "int",
+                    "long long",
+                }:
                     return "long long"
 
             if left_type == "long long" or right_type == "long long":

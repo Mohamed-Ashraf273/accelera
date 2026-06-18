@@ -126,7 +126,11 @@ def to_numpy_code_cpp(cpp_code: str, func_name: str, module_name: str) -> str:
         r"x(\1, \2)",
         code,
     )
-    code = re.sub(r"\bint\s+s\s*=\s*0\s*;", "double s = 0.0;", code)
+    code = re.sub(
+        r"\b(?:int|long\s+long|auto)\s+s\s*=\s*0\s*;",
+        "double s = 0.0;",
+        code,
+    )
 
     return (
         "#include <cmath>\n"

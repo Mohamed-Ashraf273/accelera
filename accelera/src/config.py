@@ -172,7 +172,9 @@ class Config:
 
         for candidate in candidates:
             if (candidate / "dot.exe").exists():
-                os.environ["PATH"] = f"{candidate}{os.pathsep}{os.environ.get('PATH', '')}"
+                os.environ["PATH"] = (
+                    f"{candidate}{os.pathsep}{os.environ.get('PATH', '')}"
+                )
                 if hasattr(os, "add_dll_directory"):
                     os.add_dll_directory(str(candidate))
                 return
@@ -201,7 +203,9 @@ class Config:
 
         for candidate in candidates:
             if (candidate / "clang++.exe").exists():
-                os.environ["PATH"] = f"{candidate}{os.pathsep}{os.environ.get('PATH', '')}"
+                os.environ["PATH"] = (
+                    f"{candidate}{os.pathsep}{os.environ.get('PATH', '')}"
+                )
                 if hasattr(os, "add_dll_directory"):
                     os.add_dll_directory(str(candidate))
                 return
