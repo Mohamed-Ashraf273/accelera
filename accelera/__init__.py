@@ -13,6 +13,8 @@ from accelera.src.config import config
 
 # Make pybind11-built modules importable if they're present.
 config.ensure_bindings_on_syspath()
+config.ensure_graphviz_on_path()
+config.ensure_llvm_on_path()
 
 # Add everything in /api/ to the module search path.
 __path__.append(str(config.api_dir))  # noqa: F405

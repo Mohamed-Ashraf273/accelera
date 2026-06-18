@@ -106,12 +106,14 @@ set PYTHONPATH=%CD%;%PYTHONPATH%
 
 ```bash
 cmake -S . -B build
-cmake --build build -j"$(nproc)"
+cmake --build build --parallel
 ```
 
 Set `PYTHONPATH` again whenever you open a new terminal.
 If you skip it, imports such as `from accelera.src...` or the native `graph`
 binding may fail even when the package files exist locally.
+CMake also checks for Graphviz `dot` and installs it automatically on supported
+Windows and Debian/Ubuntu Linux systems so graph-rendering examples can run.
 
 ### Run Examples
 
@@ -135,6 +137,15 @@ To run all demo scripts in order, run:
 
 ```bash
 make -f examples/Makefile
+```
+
+On Windows, install `make` first:
+
+```powershell
+winget install MSYS2.MSYS2
+C:\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm make"
+$env:Path = "C:\msys64\usr\bin;$env:Path"
+make -f .\examples\Makefile
 ```
 
 ## Minimal Usage

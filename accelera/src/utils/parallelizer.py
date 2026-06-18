@@ -546,10 +546,24 @@ class Parallelizer:
             code, self._select_parallel_loops(loops_data)
         )
 
-    def parallelize(self, content: str, output_dir: str | Path | None = None) -> str:
-        if os.path.isfile(content):
-            return self._process_file(content, output_dir)
-        return self._process_code(content)
+    def parallelize(self, content, output_dir: str | Path | None = None) -> str:
+        from accelera.src.custom.transformer import CustomTransformer
+        from accelera.src.utils.accelera_utils import is_custom_function
+        from accelera.src.utils.source_backed_function import SourceBackedFunction
+
+        if isinstance(content, str):
+            if os.path.isfile(content):
+                return self._process_file(content, output_dir)
+            return self._process_code(content)
+        elif isinstance(content, CustomTransformer):
+            return self.optimize_pyinstance(content)
+        elif is_custom_function(content):
+            source_func = SourceBackedFunction(content)
+            source_func.set_runtime_func(parallelizer.optimize_pymethod(content))
+            return source_func
+        else:
+            return content
+
 
     def optimize_pymethod(self, func):
         import inspect

@@ -1,8 +1,23 @@
     cmake_minimum_required(VERSION 3.14)
+
+    if(POLICY CMP0091)
+        cmake_policy(SET CMP0091 NEW)
+    endif()
+
     project(ai_studio LANGUAGES C CXX)
 
     set(CMAKE_CXX_STANDARD 20)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+    if(MSVC)
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
+        foreach(_lang C CXX)
+            foreach(_config DEBUG RELWITHDEBINFO MINSIZEREL RELEASE)
+                string(REPLACE "/MDd" "/MD" CMAKE_${_lang}_FLAGS_${_config} "${CMAKE_${_lang}_FLAGS_${_config}}")
+            endforeach()
+        endforeach()
+        add_compile_definitions($<$<CONFIG:Debug>:_ITERATOR_DEBUG_LEVEL=0>)
+    endif()
 
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         add_compile_options(-Wno-deprecated-enum-enum-conversion)
@@ -11,6 +26,7 @@
     set(ACCELERA_LLVM_VERSION "18" CACHE STRING "LLVM/Clang major version used by the code parallelizer")
     set(ACCELERA_LLVM_RELEASE "18.1.8" CACHE STRING "LLVM/Clang release used for automatic Windows installation")
     option(ACCELERA_AUTO_INSTALL_LLVM "Automatically install LLVM/Clang on supported systems" ON)
+    option(ACCELERA_AUTO_INSTALL_GRAPHVIZ "Automatically install Graphviz/dot on supported systems" ON)
     set(ACCELERA_LLVM_WINDOWS_ROOT
         "${CMAKE_BINARY_DIR}/_deps/llvm-${ACCELERA_LLVM_RELEASE}-windows"
         CACHE PATH "Local LLVM/Clang install root used by the Windows code parallelizer build"
@@ -55,13 +71,119 @@
         endif()
     endfunction()
 
+    function(accelera_collect_llvm_dirs _root _result_var)
+        set(_dirs "")
+        file(GLOB _candidates "${_root}/clang+llvm-*")
+        foreach(_candidate ${_candidates})
+            if(IS_DIRECTORY "${_candidate}")
+                list(APPEND _dirs "${_candidate}")
+            endif()
+        endforeach()
+
+        set(${_result_var} ${_dirs} PARENT_SCOPE)
+    endfunction()
+
+    function(accelera_find_diaguids _result_var)
+        set(_diaguids_candidates "")
+
+        find_program(VSWHERE_EXECUTABLE vswhere
+            PATHS "$ENV{ProgramFiles\(x86\)}/Microsoft Visual Studio/Installer"
+            NO_DEFAULT_PATH
+        )
+
+        if(VSWHERE_EXECUTABLE)
+            execute_process(
+                COMMAND "${VSWHERE_EXECUTABLE}" -latest -products * -property installationPath
+                OUTPUT_VARIABLE _vs_install
+                ERROR_QUIET
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+            if(_vs_install)
+                list(APPEND _diaguids_candidates "${_vs_install}/DIA SDK/lib/amd64/diaguids.lib")
+            endif()
+        endif()
+
+        if(DEFINED ENV{VSINSTALLDIR})
+            list(APPEND _diaguids_candidates "$ENV{VSINSTALLDIR}/DIA SDK/lib/amd64/diaguids.lib")
+        endif()
+
+        file(GLOB _vs_diaguids
+            "$ENV{ProgramFiles\(x86\)}/Microsoft Visual Studio/2022/*/DIA SDK/lib/amd64/diaguids.lib"
+            "$ENV{ProgramFiles\(x86\)}/Microsoft Visual Studio/2019/*/DIA SDK/lib/amd64/diaguids.lib"
+        )
+        list(APPEND _diaguids_candidates ${_vs_diaguids})
+
+        foreach(_candidate ${_diaguids_candidates})
+            if(EXISTS "${_candidate}")
+                set(${_result_var} "${_candidate}" PARENT_SCOPE)
+                return()
+            endif()
+        endforeach()
+
+        set(${_result_var} "" PARENT_SCOPE)
+    endfunction()
+
+    function(accelera_replace_diaguids_in_target _target _diaguids_lib)
+        if(NOT TARGET "${_target}")
+            return()
+        endif()
+
+        set(_props
+            INTERFACE_LINK_LIBRARIES
+            IMPORTED_LINK_INTERFACE_LIBRARIES
+            IMPORTED_LINK_INTERFACE_LIBRARIES_DEBUG
+            IMPORTED_LINK_INTERFACE_LIBRARIES_RELEASE
+            IMPORTED_LINK_INTERFACE_LIBRARIES_RELWITHDEBINFO
+            IMPORTED_LINK_INTERFACE_LIBRARIES_MINSIZEREL
+        )
+
+        foreach(_prop ${_props})
+            get_target_property(_values "${_target}" ${_prop})
+            if(_values AND NOT _values STREQUAL "_values-NOTFOUND")
+                set(_new_values "")
+                set(_changed OFF)
+                foreach(_value ${_values})
+                    if(_value MATCHES "DIA SDK[/\\\\]lib[/\\\\]amd64[/\\\\]diaguids\\.lib$")
+                        list(APPEND _new_values "${_diaguids_lib}")
+                        set(_changed ON)
+                    else()
+                        list(APPEND _new_values "${_value}")
+                    endif()
+                endforeach()
+
+                if(_changed)
+                    set_target_properties("${_target}" PROPERTIES ${_prop} "${_new_values}")
+                endif()
+            endif()
+        endforeach()
+    endfunction()
+
+    function(accelera_fix_llvm_dia_sdk_links)
+        if(NOT WIN32)
+            return()
+        endif()
+
+        accelera_find_diaguids(_diaguids_lib)
+        if(NOT _diaguids_lib)
+            message(FATAL_ERROR
+                "LLVM requires diaguids.lib from the Visual Studio DIA SDK, but CMake could not find it. "
+                "Install the Visual Studio C++ profiling/tools component that includes the DIA SDK."
+            )
+        endif()
+
+        get_property(_imported_targets DIRECTORY PROPERTY IMPORTED_TARGETS)
+        foreach(_target ${_imported_targets})
+            accelera_replace_diaguids_in_target("${_target}" "${_diaguids_lib}")
+        endforeach()
+
+        message(STATUS "Using DIA SDK library: ${_diaguids_lib}")
+    endfunction()
+
     function(accelera_find_llvm_clang)
         set(_llvm_prefix "")
 
         if(WIN32)
-            file(GLOB _local_llvm_dirs
-                "${ACCELERA_LLVM_WINDOWS_ROOT}/clang+llvm-*"
-            )
+            accelera_collect_llvm_dirs("${ACCELERA_LLVM_WINDOWS_ROOT}" _local_llvm_dirs)
 
             set(_llvm_candidates
                 "${ACCELERA_LLVM_WINDOWS_ROOT}"
@@ -146,7 +268,6 @@
             message(STATUS "winget LLVM result: ${_winget_result}")
         endif()
 
-        # Search common LLVM install locations
         set(_llvm_candidates
             "${ACCELERA_LLVM_WINDOWS_ROOT}"
             "$ENV{ProgramFiles}/LLVM"
@@ -179,31 +300,44 @@
         set(_llvm_archive_marker "${_llvm_archive}.complete")
         set(_llvm_url "https://github.com/llvm/llvm-project/releases/download/llvmorg-${ACCELERA_LLVM_RELEASE}/clang+llvm-${ACCELERA_LLVM_RELEASE}-x86_64-pc-windows-msvc.tar.xz")
 
-        if(NOT EXISTS "${_llvm_archive}" OR NOT EXISTS "${_llvm_archive_marker}")
-            message(STATUS "Downloading LLVM/Clang development archive: ${_llvm_url}")
-            file(REMOVE "${_llvm_archive_tmp}")
-            file(DOWNLOAD
-                "${_llvm_url}"
-                "${_llvm_archive_tmp}"
-                STATUS _download_status
-                SHOW_PROGRESS
-            )
-            list(GET _download_status 0 _download_result)
-            list(GET _download_status 1 _download_message)
-            if(NOT _download_result EQUAL 0)
+        if(NOT EXISTS "${_llvm_archive_marker}")
+            find_program(CURL_EXECUTABLE curl)
+            if(CURL_EXECUTABLE)
+                message(STATUS "Downloading/resuming LLVM/Clang development archive with curl: ${_llvm_url}")
+                execute_process(
+                    COMMAND "${CURL_EXECUTABLE}" -L --fail --retry 5 --retry-delay 2 --continue-at - --output "${_llvm_archive}" "${_llvm_url}"
+                    RESULT_VARIABLE _download_result
+                )
+                if(NOT _download_result EQUAL 0)
+                    message(FATAL_ERROR "Failed to download LLVM/Clang development archive with curl. Rerun CMake to resume from the partial file: ${_llvm_archive}")
+                endif()
+            else()
+                message(STATUS "Downloading LLVM/Clang development archive: ${_llvm_url}")
                 file(REMOVE "${_llvm_archive_tmp}")
-                message(FATAL_ERROR "Failed to download LLVM/Clang development archive: ${_download_message}")
+                file(DOWNLOAD
+                    "${_llvm_url}"
+                    "${_llvm_archive_tmp}"
+                    STATUS _download_status
+                    SHOW_PROGRESS
+                )
+                list(GET _download_status 0 _download_result)
+                list(GET _download_status 1 _download_message)
+                if(NOT _download_result EQUAL 0)
+                    file(REMOVE "${_llvm_archive_tmp}")
+                    message(FATAL_ERROR "Failed to download LLVM/Clang development archive: ${_download_message}")
+                endif()
+
+                file(REMOVE "${_llvm_archive}")
+                file(RENAME "${_llvm_archive_tmp}" "${_llvm_archive}")
             endif()
 
-            file(REMOVE "${_llvm_archive}" "${_llvm_archive_marker}")
-            file(RENAME "${_llvm_archive_tmp}" "${_llvm_archive}")
+            file(REMOVE "${_llvm_archive_marker}")
             file(WRITE "${_llvm_archive_marker}" "complete\n")
+        else()
+            message(STATUS "Reusing existing LLVM/Clang development archive: ${_llvm_archive}")
         endif()
 
-        file(GLOB _existing_downloaded_llvm_dirs
-            "${ACCELERA_LLVM_WINDOWS_ROOT}/clang+llvm-*"
-        )
-
+        accelera_collect_llvm_dirs("${ACCELERA_LLVM_WINDOWS_ROOT}" _existing_downloaded_llvm_dirs)
         if(NOT _existing_downloaded_llvm_dirs)
             message(STATUS "Extracting LLVM/Clang development archive")
             execute_process(
@@ -216,10 +350,7 @@
             endif()
         endif()
 
-        file(GLOB _downloaded_llvm_dirs
-            "${ACCELERA_LLVM_WINDOWS_ROOT}/clang+llvm-*"
-        )
-
+        accelera_collect_llvm_dirs("${ACCELERA_LLVM_WINDOWS_ROOT}" _downloaded_llvm_dirs)
         foreach(_llvm_prefix ${_downloaded_llvm_dirs})
             accelera_llvm_prefix_is_usable("${_llvm_prefix}" _candidate_usable)
             if(_candidate_usable)
@@ -265,6 +396,95 @@
         endif()
     endfunction()
 
+    function(accelera_register_graphviz_path)
+        if(WIN32)
+            set(_graphviz_bin_candidates
+                "$ENV{ProgramFiles}/Graphviz/bin"
+                "$ENV{ProgramFiles\(x86\)}/Graphviz/bin"
+                "$ENV{LOCALAPPDATA}/Programs/Graphviz/bin"
+            )
+
+            foreach(_graphviz_bin ${_graphviz_bin_candidates})
+                if(EXISTS "${_graphviz_bin}/dot.exe")
+                    set(ENV{PATH} "${_graphviz_bin};$ENV{PATH}")
+                    return()
+                endif()
+            endforeach()
+        endif()
+    endfunction()
+
+    function(accelera_try_install_graphviz_windows)
+        find_program(WINGET_EXECUTABLE winget)
+        if(NOT WINGET_EXECUTABLE)
+            message(WARNING "Automatic Graphviz install skipped: winget was not found")
+            return()
+        endif()
+
+        message(STATUS "Graphviz/dot not found; installing Graphviz with winget")
+        execute_process(
+            COMMAND "${WINGET_EXECUTABLE}" install --id Graphviz.Graphviz --exact --silent
+                    --accept-package-agreements --accept-source-agreements
+            RESULT_VARIABLE _winget_result
+        )
+        message(STATUS "winget Graphviz result: ${_winget_result}")
+
+        accelera_register_graphviz_path()
+    endfunction()
+
+    function(accelera_try_install_graphviz_linux)
+        find_program(SUDO_EXECUTABLE sudo)
+        find_program(APT_GET_EXECUTABLE apt-get)
+
+        if(NOT APT_GET_EXECUTABLE)
+            message(WARNING "Automatic Graphviz install skipped: apt-get was not found")
+            return()
+        endif()
+
+        execute_process(COMMAND id -u OUTPUT_VARIABLE CURRENT_USER_ID ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+        if(CURRENT_USER_ID STREQUAL "0")
+            set(_install_command "${APT_GET_EXECUTABLE}" install -y graphviz)
+        elseif(SUDO_EXECUTABLE)
+            execute_process(COMMAND "${SUDO_EXECUTABLE}" -n true RESULT_VARIABLE _sudo_check OUTPUT_QUIET ERROR_QUIET)
+            if(_sudo_check EQUAL 0)
+                set(_install_command "${SUDO_EXECUTABLE}" "${APT_GET_EXECUTABLE}" install -y graphviz)
+            else()
+                message(WARNING "Automatic Graphviz install skipped: sudo requires a password")
+                return()
+            endif()
+        else()
+            message(WARNING "Automatic Graphviz install skipped: sudo was not found")
+            return()
+        endif()
+
+        message(STATUS "Graphviz/dot not found; installing Graphviz")
+        execute_process(COMMAND ${_install_command} RESULT_VARIABLE _install_result)
+        if(NOT _install_result EQUAL 0)
+            message(WARNING "Automatic Graphviz installation failed with exit code ${_install_result}")
+        endif()
+    endfunction()
+
+    function(accelera_ensure_graphviz)
+        accelera_register_graphviz_path()
+        find_program(ACCELERA_DOT_EXECUTABLE dot)
+
+        if(NOT ACCELERA_DOT_EXECUTABLE AND ACCELERA_AUTO_INSTALL_GRAPHVIZ)
+            if(WIN32)
+                accelera_try_install_graphviz_windows()
+            elseif(UNIX AND NOT APPLE)
+                accelera_try_install_graphviz_linux()
+            endif()
+
+            unset(ACCELERA_DOT_EXECUTABLE CACHE)
+            find_program(ACCELERA_DOT_EXECUTABLE dot)
+        endif()
+
+        if(ACCELERA_DOT_EXECUTABLE)
+            message(STATUS "Found Graphviz dot: ${ACCELERA_DOT_EXECUTABLE}")
+        else()
+            message(WARNING "Graphviz dot was not found; graph-rendering examples may fail")
+        endif()
+    endfunction()
+
     message(STATUS "Checking LLVM/Clang for code parallelizer")
     accelera_find_llvm_clang()
 
@@ -286,6 +506,8 @@
         else()
             message(WARNING "clang executable was not found; AST bindings can build, but command-line clang tools may be unavailable")
         endif()
+
+        accelera_fix_llvm_dia_sdk_links()
         
         add_definitions(${LLVM_DEFINITIONS})
         add_definitions(-DUSE_CLANG_AST)
@@ -310,7 +532,7 @@
         set(LLVM_AVAILABLE ON)
     else()
         if(WIN32)
-            message(FATAL_ERROR "Cannot continue without LLVM/Clang. Automatic Windows installation failed.")
+            message(FATAL_ERROR "Cannot continue without LLVM/Clang development files. Automatic Windows installation failed.")
         elseif(UNIX AND NOT APPLE)
             message(FATAL_ERROR "Cannot continue without LLVM/Clang. Install LLVM/Clang or enable non-interactive sudo for automatic installation.")
         else()
@@ -318,6 +540,9 @@
         endif()
         set(LLVM_AVAILABLE OFF)
     endif()
+
+    message(STATUS "Checking Graphviz/dot for graph-rendering examples")
+    accelera_ensure_graphviz()
 
     # ========== THIS IS A CRITICAL SECTION ==========
     if(DEFINED ENV{VIRTUAL_ENV})
