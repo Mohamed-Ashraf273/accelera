@@ -56,16 +56,35 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 pip install -r requirements.txt
+```
 
-# Add Accelera to Python's import path for this terminal session.
-# This is required before running examples, notebooks, or tests from the repo.
+Add Accelera to Python's import path for this terminal session. This is
+required before running examples, notebooks, or tests from the repo.
+
+Linux/macOS:
+
+```bash
 export PYTHONPATH="$PWD:${PYTHONPATH:-}"
+```
 
+Windows PowerShell:
+
+```powershell
+$env:PYTHONPATH = "$PWD;$env:PYTHONPATH"
+```
+
+Windows CMD:
+
+```cmd
+set PYTHONPATH=%CD%;%PYTHONPATH%
+```
+
+```bash
 cmake -S . -B build
 cmake --build build -j"$(nproc)"
 ```
 
-Run the `export PYTHONPATH=...` command again whenever you open a new terminal.
+Set `PYTHONPATH` again whenever you open a new terminal.
 If you skip it, imports such as `from accelera.src...` or the native `graph`
 binding may fail even when the package files exist locally.
 
