@@ -10,12 +10,21 @@ from accelera.src.utils.preprocessing import lower_data
 
 
 class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
-    def __init__(self, df, target_col, val_size, random_state, folder_path=None):
+    def __init__(
+        self,
+        df,
+        target_col,
+        val_size,
+        random_state,
+        folder_path=None,
+        problem_type="classification",
+    ):
         super().__init__(df, folder_path)
         self.target_col = target_col
         self.val_size = val_size
         self.random_state = random_state
         self.report_data = {}
+        self.problem_type = problem_type
 
         if self.target_col not in self.df.columns:
             raise ValueError("target_col must be one of the dataframe columns")
@@ -74,9 +83,22 @@ class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
 
     def split_data(self):
         X, y = self.df.drop(columns=[self.target_col]), self.df[self.target_col]
-        X_train, X_val, y_train, y_val = train_test_split(
-            X, y, test_size=self.val_size, random_state=self.random_state
-        )
+        if (
+            self.problem_type == "classification"
+            and y.isnull().sum() == 0
+            and y.nunique() > 1
+        ):
+            X_train, X_val, y_train, y_val = train_test_split(
+                X,
+                y,
+                test_size=self.val_size,
+                random_state=self.random_state,
+                stratify=y,
+            )
+        else:
+            X_train, X_val, y_train, y_val = train_test_split(
+                X, y, test_size=self.val_size, random_state=self.random_state
+            )
         self.report_data["split"] = {
             "val_size": self.val_size,
             "X_train_shape": X_train.shape,

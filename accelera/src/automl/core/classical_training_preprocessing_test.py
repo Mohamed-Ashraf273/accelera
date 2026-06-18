@@ -293,6 +293,7 @@ class TestClassicalTrainingPreprocessing:
             training_preprocessing.df["target"],
             test_size=0.2,
             random_state=42,
+            stratify=training_preprocessing.df["target"],
         )
         X_train, X_val, y_train, y_val = training_preprocessing.split_data()
         assert X_train.shape[0] == X_train_1.shape[0]
@@ -628,6 +629,7 @@ class TestClassicalTrainingPreprocessing:
             cardinality_threshold=6,
             max_unique_ordinal=8,
             columns_need_to_drop=["ID"],
+            feature_importance_threshold=0,
         )
         training_preprocessing.data_overview()
         X_train, X_val, y_train, y_val = training_preprocessing.split_data()
@@ -651,6 +653,10 @@ class TestClassicalTrainingPreprocessing:
                 frequency_cols,
                 ordinal_cols,
             )
+        )
+        X_train_processed, X_val_processed = (
+            X_train_processed.to_numpy(),
+            X_val_processed.to_numpy(),
         )
         imputer = SimpleImputer(strategy="most_frequent")
         frequency_encoder = FrequencyEncoderTransform()
