@@ -48,13 +48,38 @@ parallelization.
 
 ## Quick Start
 
+### Installation
+
 ```bash
 git clone https://github.com/Mohamed-Ashraf273/accelera.git
 cd accelera
 
-python3 -m venv .venv
-source .venv/bin/activate
+python -m venv .venv
+```
 
+### Activate Virtual Environment
+
+**Linux / macOS**
+
+```bash
+source .venv/bin/activate
+```
+
+**Windows (PowerShell)**
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+**Windows (Command Prompt)**
+
+```cmd
+.venv\Scripts\activate.bat
+```
+
+### Install Dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
