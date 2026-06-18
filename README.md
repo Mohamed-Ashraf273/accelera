@@ -55,7 +55,6 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 pip install -r requirements.txt
-pip install psutil requests gdown graphviz
 
 # Add Accelera to Python's import path for this terminal session.
 # This is required before running examples, notebooks, or tests from the repo.
@@ -79,20 +78,26 @@ binding may fail even when the package files exist locally.
 ### Run Examples
 
 ```bash
-# Parallel sklearn-vs-Accelera pipeline comparison
-python examples/sklearn_comp.py
+# Accelera Pipe graph pipeline demo
+python examples/accpipe_demo.py
 
-# Full branching pipeline demo with a custom PyTorch classifier and reports
-python examples/demo.py
+# Accelera Pipe with parallelized custom preprocessing
+python examples/parallel_accpipe.py
+
+# Code parallelizer benchmark on a hard loop example
+python examples/code_parallelizer_demo.py
+
+# Save and load pipeline or executed graph demo
+python examples/save_load.py
 
 # Run tests
 pytest accelera
 ```
+To run all demo scripts in order, run:
 
-For notebooks, open `examples/dataset_retriever_demo.ipynb`,
-`examples/code_optimizer_demo.ipynb`,
-`examples/autopreprocessing-classification-v3.ipynb`, or
-`examples/segmentation-training-gp.ipynb` after exporting `PYTHONPATH`.
+```bash
+make -f examples/Makefile
+```
 
 ## Minimal Usage
 
