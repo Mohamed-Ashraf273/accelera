@@ -431,6 +431,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 ("ordinal", ordinal_pipeline, ordinal_cols),
             ],
             remainder="drop",
+            n_jobs=-1
         )
         X_train_processed = preprocessor.fit_transform(X_train)
         X_val_processed = preprocessor.transform(X_val)

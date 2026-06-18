@@ -87,16 +87,17 @@ class ClassicalTestingPreprocessing(TestingTabularPreprocessingBase):
         if len(self.bool_type_col) == 0:
             return
         self.X_test[self.bool_type_col] = self.X_test[self.bool_type_col].astype(int)
-    
+
     def common_preprocessing(self):
         try:
             self.handel_bool_type()
             drop_columns(self.X_test, self.col_drop)
             self.X_test = self.training_preprocessor.transform(self.X_test)
             X_test_df=pd.DataFrame(self.X_test,columns=self.feature_names )
+        
             X_test_df=X_test_df[self.selected_features].to_numpy()
             if not self.features_only:
                 self.target_preprocessing()
-            return self.X_test, self.y_test
+            return X_test_df, self.y_test
         except Exception as e:
             raise ValueError(f"Error in common preprocessing: {e}")

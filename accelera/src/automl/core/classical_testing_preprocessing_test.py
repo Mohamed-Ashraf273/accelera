@@ -149,12 +149,15 @@ class TestClassicalTestingPreprocessing:
             {
                 "feature1": ["A", "b", "c","j","A","A","j"],
                 "feature2": [None, None, None,1,2,3,4],
+                "feature3":[1,1,2,1,2,1,2],
                 "target": ["A", "A", "C","A","C","A","C"],
             }
         )
         _,X_test,_,y_test=train_test_split(df.drop(columns="target"),df["target"],stratify=df["target"],random_state=42,test_size=0.2)
-        _, _, X_val_selected, y_val=ClassicalTrainingPreprocessing(df,target_col="target",folder_path=self.temp_dir,val_size=0.2,is_report=False,feature_importance_threshold=0).common_preprocessing()
+        _, _, X_val_selected, y_val=ClassicalTrainingPreprocessing(df,target_col="target",folder_path=self.temp_dir,val_size=0.2,is_report=False,feature_importance_threshold=0.01).common_preprocessing()
         X_test,y_test=ClassicalTestingPreprocessing(pd.concat([X_test,y_test], axis=1),folder_path=self.temp_dir).common_preprocessing()
+        print(X_val_selected)
+        print(X_test)
         assert np.allclose(X_val_selected,X_test)
         assert np.allclose(y_val,y_test)
         
