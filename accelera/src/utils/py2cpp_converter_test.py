@@ -20,7 +20,7 @@ class TestPy2CppConverter:
     def test_converts_power_operator(self):
         cpp = py2cpp_converter("norm = s**0.5")
         assert "#include <cmath>" in cpp
-        assert "auto norm = std::pow(s, 0.5);" in cpp
+        assert "double norm = std::pow(s, 0.5);" in cpp
 
     def test_converts_subscript_assignment(self):
         cpp = py2cpp_converter("X[i][j] = X[i][j] / norm")
