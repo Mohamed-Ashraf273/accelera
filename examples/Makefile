@@ -1,6 +1,7 @@
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 EXAMPLES := $(ROOT)/examples
 TOOLS := $(ROOT)/tools
+BENCHMARK := $(ROOT)/accelera/src/benchmark
 THIS_MAKEFILE := $(abspath $(lastword $(MAKEFILE_LIST)))
 PYTHON ?= python
 ifeq ($(OS),Windows_NT)
@@ -29,6 +30,8 @@ run:
 	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory code-parallelizer
 	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory clean-ram
 	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory save-load
+	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory auto-preprocessing
+	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory backend
 
 accpipe-demo:
 	@$(PYTHON) "$(EXAMPLES)/accpipe_demo.py"
@@ -44,3 +47,11 @@ save-load:
 
 clean-ram:
 	@$(PYTHON) "$(TOOLS)/clean_ram.py"
+auto-preprocessing:
+	@$(PYTHON) "$(EXAMPLES)/auto_preprocessing_demo.py"
+
+backend:
+	cd "$(BENCHMARK)/backend" && npm install && npm run dev
+
+frontend:
+	cd "$(BENCHMARK)/frontend" && npm install && npm run dev

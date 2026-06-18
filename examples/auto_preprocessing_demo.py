@@ -14,6 +14,15 @@ from accelera.src.automl.core.text_training_preprocessing import (
 )
 from accelera.src.utils.dataset_retriever import retriever
 
+# Demo 8
+print("=" * 80)
+print("===Accelera Auto Preprocessing Demo: For Tabular Data , Text and Image===")
+print(
+    "File running: examples/auto_preprocessing_demo.py\n"
+    "This file runs datasets are existing in examples/auto_preprocessing_ds\n"
+    "The goal is this demo to run auto preprocessing for each type of data and generate folder for each data has pkl files and report"
+)
+print("=" * 80)
 
 def get_data_set_info():
     with open("auto_preprocessing_ds.json", "r") as f:
