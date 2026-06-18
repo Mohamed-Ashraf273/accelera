@@ -1,0 +1,18 @@
+{
+  "models": {
+    "scaler_path": "/home/mazen/Desktop/deployment_module/models/scaler.pkl",
+    "model_path": "/home/mazen/Desktop/deployment_module/models/model.pkl"
+  },
+  "schema": {
+    "features": [
+      {"name": "sepal length (cm)", "type": "number", "min": 0},
+      {"name": "sepal width (cm)", "type": "number", "min": 0},
+      {"name": "petal length (cm)", "type": "number", "min": 0},
+      {"name": "petal width (cm)", "type": "number", "min": 0}
+    ]
+  },
+  "tracking": {
+    "enabled": true,
+    "path": "prediction_logs/predictions.jsonl"
+  }
+}

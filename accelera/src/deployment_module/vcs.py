@@ -36,6 +36,62 @@ def load_index():
         return json.load(f)
 
 
+def load_config():
+    with open(CONFIG_FILE, "r") as f:
+        return json.load(f)
+
+
+def get_configured_models(config):
+    models = config.get("models")
+    if not isinstance(models, dict) or not models:
+        print("config.json must contain a models object")
+        raise SystemExit(1)
+    return models
+
+
+def resolve_model_path(path):
+    if os.path.isabs(path):
+        return path
+    return os.path.join(PROJECT_ROOT, path)
+
+
+def model_snapshot_path(model_name, source_path, used_names):
+    file_name = os.path.basename(source_path)
+    if file_name not in used_names:
+        used_names.add(file_name)
+        return file_name
+
+    safe_name = "".join(
+        c if c.isalnum() or c in ("-", "_") else "_" for c in model_name
+    )
+    file_name = f"{safe_name}_{file_name}"
+    used_names.add(file_name)
+    return file_name
+
+
+def copy_configured_models(config, commit_dir):
+    models = get_configured_models(config)
+    dest_models = os.path.join(commit_dir, "models")
+    os.makedirs(dest_models, exist_ok=True)
+
+    saved_models = {}
+    used_names = set()
+
+    for name, path in models.items():
+        source = resolve_model_path(path)
+        if not os.path.isfile(source):
+            print(f"Model file not found for {name}: {source}")
+            raise SystemExit(1)
+
+        file_name = model_snapshot_path(name, source, used_names)
+        destination = os.path.join(dest_models, file_name)
+        shutil.copy2(source, destination)
+        saved_models[name] = os.path.join("models", file_name)
+
+    config["models"] = saved_models
+    return dest_models, saved_models
+
+
 ################### Commands
 def init(args):
     if os.path.exists(index_file):
@@ -100,9 +156,9 @@ def commit(args):
 
     print(f"{commit_hash} {message}")
 
-    model_files = os.listdir(dest_models)
+    model_files = sorted(os.listdir(dest_models))
     print(
-        {f"config.json + {len(model_files)} model files: {', '.join(model_files)} "}
+        {f"config.json + {len(saved_models)} model files: {', '.join(model_files)} "}
     )
 
 
