@@ -5,11 +5,30 @@ class _CppEmitError(ValueError):
     pass
 
 
-class _PythonToCpp(ast.NodeVisitor):
+class _WideIntAnalyzer(ast.NodeVisitor):
     def __init__(self):
+        self.wide_int_vars: set[str] = set()
+        self._loop_depth = 0
+
+    def visit_For(self, node: ast.For) -> None:
+        self._loop_depth += 1
+        self.generic_visit(node)
+        self._loop_depth -= 1
+
+    def visit_AugAssign(self, node: ast.AugAssign) -> None:
+        if self._loop_depth > 0 and isinstance(node.target, ast.Name):
+            if isinstance(node.op, (ast.Add, ast.Sub, ast.Mult)):
+                self.wide_int_vars.add(node.target.id)
+        self.generic_visit(node)
+
+
+class _PythonToCpp(ast.NodeVisitor):
+    def __init__(self, wide_int_vars: set[str] | None = None):
         self._lines: list[str] = []
         self._indent = 0
         self._declared: set[str] = set()
+        self._var_types: dict[str, str] = {}
+        self._wide_int_vars = wide_int_vars or set()
         self._includes: set[str] = {"#include <iostream>"}
 
     def emit(self, line: str = "") -> None:
@@ -41,7 +60,17 @@ class _PythonToCpp(ast.NodeVisitor):
             if isinstance(node.op, ast.Pow):
                 self._includes.add("#include <cmath>")
                 return f"std::pow({self.expr(node.left)}, {self.expr(node.right)})"
+
             op = self._binop(node.op)
+
+            if isinstance(node.op, ast.Mult):
+                result_type = self._infer_ctype(node)
+                if result_type == "long long":
+                    return (
+                        f"(static_cast<long long>({self.expr(node.left)}) "
+                        f"* {self.expr(node.right)})"
+                    )
+
             return f"({self.expr(node.left)} {op} {self.expr(node.right)})"
 
         if isinstance(node, ast.UnaryOp):
@@ -142,11 +171,14 @@ class _PythonToCpp(ast.NodeVisitor):
         self.emit("int main() {")
         self._indent += 1
         prev_declared = self._declared
+        prev_var_types = self._var_types
         self._declared = set()
+        self._var_types = {}
         for stmt in main_body:
             self.visit(stmt)
         self.emit("return 0;")
         self._declared = prev_declared
+        self._var_types = prev_var_types
         self._indent -= 1
         self.emit("}")
 
@@ -163,10 +195,16 @@ class _PythonToCpp(ast.NodeVisitor):
             return
         name = target.id
         if name not in self._declared:
-            ctype = self._infer_ctype(node.value)
+            ctype = (
+                "long long"
+                if name in self._wide_int_vars
+                else self._infer_ctype(node.value)
+            )
             self._declared.add(name)
+            self._var_types[name] = ctype
             self.emit(f"{ctype} {name} = {value};")
         else:
+            self._var_types[name] = self._infer_ctype(node.value)
             self.emit(f"{name} = {value};")
 
     def visit_AugAssign(self, node: ast.AugAssign) -> None:
@@ -206,6 +244,7 @@ class _PythonToCpp(ast.NodeVisitor):
         start, stop, step = self._parse_range_iter(node.iter)
         if var not in self._declared:
             self._declared.add(var)
+            self._var_types[var] = "int"
         cmp = "<" if step is None or not step.strip().startswith("-") else ">"
         step_expr = step if step is not None else "1"
         increment = f"{var}++" if step_expr == "1" else f"{var} += {step_expr}"
@@ -228,10 +267,13 @@ class _PythonToCpp(ast.NodeVisitor):
         self.emit(f"auto {node.name}({', '.join(args)}) {{")
         self._indent += 1
         prev_declared = self._declared
+        prev_var_types = self._var_types
         self._declared = set(a.arg for a in node.args.args)
+        self._var_types = {a.arg: "auto" for a in node.args.args}
         for s in node.body:
             self.visit(s)
         self._declared = prev_declared
+        self._var_types = prev_var_types
         self._indent -= 1
         self.emit("}")
         self.emit("")
@@ -244,12 +286,41 @@ class _PythonToCpp(ast.NodeVisitor):
             if isinstance(node.value, bool):
                 return "bool"
             if isinstance(node.value, int):
-                return "int"
+                if -(2**31) <= node.value <= 2**31 - 1:
+                    return "int"
+                return "long long"
             if isinstance(node.value, float):
                 return "double"
             if isinstance(node.value, str):
                 self._includes.add("#include <string>")
                 return "std::string"
+
+        if isinstance(node, ast.Name):
+            return self._var_types.get(node.id, "auto")
+
+        if isinstance(node, ast.BinOp):
+            left_type = self._infer_ctype(node.left)
+            right_type = self._infer_ctype(node.right)
+
+            if left_type == "double" or right_type == "double":
+                return "double"
+
+            if isinstance(node.op, ast.Div):
+                return "double"
+
+            if isinstance(node.op, ast.Mult):
+                if left_type in {"int", "long long"} and right_type in {
+                    "int",
+                    "long long",
+                }:
+                    return "long long"
+
+            if left_type == "long long" or right_type == "long long":
+                return "long long"
+
+            if left_type == "int" and right_type == "int":
+                return "int"
+
         return "auto"
 
     def _is_constant_one(self, node: ast.AST) -> bool:
@@ -287,7 +358,10 @@ def py2cpp_converter(python_code: str) -> str:
     except SyntaxError as e:
         raise ValueError(f"Invalid python code: {e}") from e
 
-    converter = _PythonToCpp()
+    analyzer = _WideIntAnalyzer()
+    analyzer.visit(tree)
+
+    converter = _PythonToCpp(analyzer.wide_int_vars)
     try:
         converter.visit(tree)
     except _CppEmitError as e:

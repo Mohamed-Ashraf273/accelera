@@ -77,8 +77,7 @@ print("==============Accelera Results==============")
 print(f"Accelera pipeline execution time: {acc_elapsed:.2f} seconds")
 
 print("==============Validation==============")
-# Validate that the results are the same
-if np.allclose(X_normalized, res):
+if np.allclose(X_normalized, res[0]):
     print("Validation successful: Accelera results match non-Accelera results.")
 else:
     print("Validation failed: Accelera results do not match non-Accelera results.")

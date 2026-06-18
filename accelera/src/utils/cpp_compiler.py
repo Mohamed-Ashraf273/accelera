@@ -13,14 +13,41 @@ from accelera.src.config import config
 
 
 @lru_cache(maxsize=1)
-def _python_include_flags() -> tuple[str, ...]:
+def python_include_flags() -> tuple[str, ...]:
     paths = sysconfig.get_paths()
     includes = [paths["include"], paths.get("platinclude")]
     return tuple(f"-I{path}" for path in includes if path)
 
 
 @lru_cache(maxsize=1)
-def _pybind11_include_flag() -> str:
+def python_library_flags() -> tuple[str, ...]:
+    if os.name != "nt":
+        return ()
+
+    flags = []
+    lib_dirs = [
+        sysconfig.get_config_var("LIBDIR"),
+        Path(sys.prefix) / "libs",
+        Path(sys.base_prefix) / "libs",
+        Path(sys.exec_prefix) / "libs",
+        Path(sys.base_exec_prefix) / "libs",
+    ]
+
+    library = sysconfig.get_config_var("LDLIBRARY")
+    if not library:
+        version = f"{sys.version_info.major}{sys.version_info.minor}"
+        library = f"python{version}.lib"
+
+    for libdir in lib_dirs:
+        if libdir and (Path(libdir) / library).exists():
+            flags.append(str(Path(libdir) / library))
+            break
+
+    return tuple(flags)
+
+
+@lru_cache(maxsize=1)
+def pybind11_include_flag() -> str:
     try:
         import pybind11
 
@@ -28,16 +55,23 @@ def _pybind11_include_flag() -> str:
     except ImportError:
         pass
 
-    include_dir = config.REPO_ROOT / "build" / "_deps" / "pybind11-src" / "include"
-    if not include_dir.exists():
-        raise RuntimeError(
-            "pybind11 headers were not found. Install pybind11 or build "
-            "Accelera first so build/_deps/pybind11-src/include exists."
-        )
-    return f"-I{include_dir}"
+    candidates = [
+        config.REPO_ROOT / "build" / "_deps" / "pybind11-src" / "include",
+        Path(sys.prefix) / "Lib" / "site-packages" / "pybind11" / "include",
+        Path(sys.prefix) / "lib" / "site-packages" / "pybind11" / "include",
+    ]
+
+    for include_dir in candidates:
+        if (include_dir / "pybind11" / "pybind11.h").exists():
+            return f"-I{include_dir}"
+
+    raise RuntimeError(
+        "pybind11 headers were not found. Install pybind11 with "
+        "`pip install pybind11` or run `pip install -r requirements.txt`."
+    )
 
 
-def _default_cxx() -> str:
+def default_cxx() -> str:
     if cxx := os.getenv("CXX"):
         return cxx
 
@@ -59,7 +93,7 @@ def _default_cxx() -> str:
     return "clang++"
 
 
-def _compiler_command(cxx: str) -> list[str]:
+def compiler_command(cxx: str) -> list[str]:
     if os.getenv("ACCELERA_USE_COMPILER_CACHE", "1") != "1":
         return [cxx]
 
@@ -70,7 +104,7 @@ def _compiler_command(cxx: str) -> list[str]:
     return [cxx]
 
 
-def _to_numpy_code_cpp(cpp_code: str, func_name: str, module_name: str) -> str:
+def to_numpy_code_cpp(cpp_code: str, func_name: str, module_name: str) -> str:
     code = cpp_code
     if "int main()" in code:
         code = code[: code.index("int main()")].rstrip()
@@ -92,7 +126,11 @@ def _to_numpy_code_cpp(cpp_code: str, func_name: str, module_name: str) -> str:
         r"x(\1, \2)",
         code,
     )
-    code = re.sub(r"\bint\s+s\s*=\s*0\s*;", "double s = 0.0;", code)
+    code = re.sub(
+        r"\b(?:int|long\s+long|auto)\s+s\s*=\s*0\s*;",
+        "double s = 0.0;",
+        code,
+    )
 
     return (
         "#include <cmath>\n"
@@ -106,15 +144,15 @@ def _to_numpy_code_cpp(cpp_code: str, func_name: str, module_name: str) -> str:
     )
 
 
-def _compile_opt_flag() -> str:
+def compile_opt_flag() -> str:
     return os.getenv("ACCELERA_CPP_OPT_LEVEL", "-O0")
 
 
-def _needs_openmp(cpp_code: str) -> bool:
+def needs_openmp(cpp_code: str) -> bool:
     return "#pragma omp" in cpp_code
 
 
-def _compiled_module_name(
+def compiled_module_name(
     cpp_code: str,
     func_name: str,
     extension_suffix: str,
@@ -123,7 +161,7 @@ def _compiled_module_name(
         [
             config.COMPILE_CACHE_VERSION,
             func_name,
-            _compile_opt_flag(),
+            compile_opt_flag(),
             extension_suffix,
             cpp_code,
         ]
@@ -134,7 +172,7 @@ def _compiled_module_name(
 
 def compile_parallelized_code(cpp_code: str, func_name: str):
     extension_suffix = sysconfig.get_config_var("EXT_SUFFIX") or ".so"
-    module_name = _compiled_module_name(cpp_code, func_name, extension_suffix)
+    module_name = compiled_module_name(cpp_code, func_name, extension_suffix)
     loaded_module = sys.modules.get(module_name)
     if loaded_module is not None:
         return getattr(loaded_module, func_name)
@@ -146,25 +184,26 @@ def compile_parallelized_code(cpp_code: str, func_name: str):
     module_path = build_dir / f"{module_name}{extension_suffix}"
 
     if not module_path.exists():
-        cpp_path.write_text(_to_numpy_code_cpp(cpp_code, func_name, module_name))
-        cxx = _default_cxx()
+        cpp_path.write_text(to_numpy_code_cpp(cpp_code, func_name, module_name))
+        cxx = default_cxx()
         compile_flags = [
-            _compile_opt_flag(),
+            compile_opt_flag(),
             "-shared",
             "-std=c++17",
             "-DNDEBUG",
         ]
-        if _needs_openmp(cpp_code):
+        if needs_openmp(cpp_code):
             compile_flags.append("-fopenmp")
         if os.name != "nt":
             compile_flags.extend(["-fPIC", "-pipe"])
 
         cmd = [
-            *_compiler_command(cxx),
+            *compiler_command(cxx),
             *compile_flags,
-            *_python_include_flags(),
-            _pybind11_include_flag(),
+            *python_include_flags(),
+            pybind11_include_flag(),
             str(cpp_path),
+            *python_library_flags(),
             "-o",
             str(module_path),
         ]

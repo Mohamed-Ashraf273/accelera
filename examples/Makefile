@@ -5,11 +5,17 @@ THIS_MAKEFILE := $(abspath $(lastword $(MAKEFILE_LIST)))
 PYTHON ?= python
 ifeq ($(OS),Windows_NT)
 PATH_SEP := ;
+EXEC_PATH_SEP := :
+GRAPHVIZ_BIN ?= /c/Program Files/Graphviz/bin
 else
 PATH_SEP := :
+EXEC_PATH_SEP := :
 endif
 
 export PYTHONPATH := $(ROOT)$(PATH_SEP)$(ROOT)/build/bindings$(PATH_SEP)$(PYTHONPATH)
+ifeq ($(OS),Windows_NT)
+export PATH := $(GRAPHVIZ_BIN)$(EXEC_PATH_SEP)$(PATH)
+endif
 
 .PHONY: all run accpipe-demo parallel-accpipe code-parallelizer save-load clean-ram
 

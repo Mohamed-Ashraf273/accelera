@@ -546,12 +546,7 @@ class Parallelizer:
             code, self._select_parallel_loops(loops_data)
         )
 
-    def parallelize(self, content: str, output_dir: str | Path | None = None) -> str:
-        if os.path.isfile(content):
-            return self._process_file(content, output_dir)
-        return self._process_code(content)
-
-    def optimize_pymethod(self, func):
+    def _optimize_pymethod(self, func):
         import inspect
         import textwrap
 
@@ -575,7 +570,7 @@ class Parallelizer:
             )
             return func
 
-    def optimize_pyinstance(self, instance):
+    def _optimize_pyinstance(self, instance):
         if "transform" not in instance.__class__.__dict__:
             return instance
 
@@ -583,11 +578,29 @@ class Parallelizer:
         if method is None:
             return instance
 
-        optimized_method = self.optimize_pymethod(method)
+        optimized_method = self._optimize_pymethod(method)
         if optimized_method is not method:
             setattr(instance, "transform", optimized_method)
 
         return instance
+
+    def parallelize(self, content, output_dir: str | Path | None = None) -> str:
+        from accelera.src.custom.transformer import CustomTransformer
+        from accelera.src.utils.accelera_utils import is_custom_function
+        from accelera.src.utils.source_backed_function import SourceBackedFunction
+
+        if isinstance(content, str):
+            if os.path.isfile(content):
+                return self._process_file(content, output_dir)
+            return self._process_code(content)
+        elif isinstance(content, CustomTransformer):
+            return self._optimize_pyinstance(content)
+        elif is_custom_function(content):
+            source_func = SourceBackedFunction(content)
+            source_func.set_runtime_func(self._optimize_pymethod(content))
+            return source_func
+        else:
+            return content
 
 
 parallelizer = Parallelizer()

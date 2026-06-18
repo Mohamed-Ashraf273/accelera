@@ -1,13 +1,10 @@
 from accelera.src.accelera_pipe.core.executed_graph import ExecutedGraph
 from accelera.src.accelera_pipe.core.node import Node
 from accelera.src.accelera_pipe.core.pipeline_base import PipelineBase
-from accelera.src.custom.transformer import CustomTransformer
 from accelera.src.utils.accelera_utils import execute_fit
 from accelera.src.utils.accelera_utils import get_correct_metric_class
 from accelera.src.utils.accelera_utils import get_metric_object
-from accelera.src.utils.accelera_utils import is_custom_function
 from accelera.src.utils.parallelizer import parallelizer
-from accelera.src.utils.source_backed_function import SourceBackedFunction
 
 
 class Pipeline(PipelineBase):
@@ -28,12 +25,7 @@ class Pipeline(PipelineBase):
         return predictions, executed_graph
 
     def preprocess(self, name, func, branch=False, cache=False):
-        if is_custom_function(func):
-            source_func = SourceBackedFunction(func)
-            source_func.set_runtime_func(parallelizer.optimize_pymethod(func))
-            func = source_func
-        elif isinstance(func, CustomTransformer):
-            func = parallelizer.optimize_pyinstance(func)
+        func = parallelizer.parallelize(func)
 
         func_params = {
             "func": func,

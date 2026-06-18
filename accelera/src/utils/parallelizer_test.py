@@ -274,7 +274,7 @@ class TestParallelizer:
         def unsupported_tuple_return(x):
             return x, x
 
-        result = parallelizer.optimize_pymethod(unsupported_tuple_return)
+        result = parallelizer._optimize_pymethod(unsupported_tuple_return)
 
         assert result is unsupported_tuple_return
 
@@ -282,7 +282,9 @@ class TestParallelizer:
         parallelizer = Parallelizer()
         X = np.array([[3.0, 4.0], [5.0, 12.0]], dtype=np.float64)
 
-        result = parallelizer.optimize_pymethod(normalize_rows_for_parallelizer_test)
+        result = parallelizer._optimize_pymethod(
+            normalize_rows_for_parallelizer_test
+        )
         normalized = result(X.copy())
 
         assert result is not normalize_rows_for_parallelizer_test
@@ -293,7 +295,7 @@ class TestParallelizer:
         instance = NormalizeRowsInstanceForParallelizerTest()
         X = np.array([[3.0, 4.0], [5.0, 12.0]], dtype=np.float64)
 
-        result = parallelizer.optimize_pyinstance(instance)
+        result = parallelizer._optimize_pyinstance(instance)
         normalized = result.transform(X.copy())
 
         assert result is instance

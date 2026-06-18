@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import sys
 from dataclasses import dataclass
 from dataclasses import field
@@ -152,6 +153,62 @@ class Config:
         bindings = str(self.bindings_dir)
         if bindings not in sys.path:
             sys.path.insert(0, bindings)
+
+    def ensure_graphviz_on_path(self) -> None:
+        if dot := shutil.which("dot"):
+            dot_dir = Path(dot).parent
+            if hasattr(os, "add_dll_directory"):
+                os.add_dll_directory(str(dot_dir))
+            return
+
+        if os.name != "nt":
+            return
+
+        candidates = [
+            Path(os.getenv("ProgramFiles", "")) / "Graphviz" / "bin",
+            Path(os.getenv("ProgramFiles(x86)", "")) / "Graphviz" / "bin",
+            Path(os.getenv("LOCALAPPDATA", "")) / "Programs" / "Graphviz" / "bin",
+        ]
+
+        for candidate in candidates:
+            if (candidate / "dot.exe").exists():
+                os.environ["PATH"] = (
+                    f"{candidate}{os.pathsep}{os.environ.get('PATH', '')}"
+                )
+                if hasattr(os, "add_dll_directory"):
+                    os.add_dll_directory(str(candidate))
+                return
+
+    def ensure_llvm_on_path(self) -> None:
+        if clangxx := shutil.which("clang++"):
+            clang_dir = Path(clangxx).parent
+            if hasattr(os, "add_dll_directory"):
+                os.add_dll_directory(str(clang_dir))
+            return
+
+        if os.name != "nt":
+            return
+
+        candidates = [
+            self.REPO_ROOT
+            / self.BUILD_DIR_NAME
+            / "_deps"
+            / "llvm-18.1.8-windows"
+            / "clang+llvm-18.1.8-x86_64-pc-windows-msvc"
+            / "bin",
+            Path(os.getenv("ProgramFiles", "")) / "LLVM" / "bin",
+            Path(os.getenv("ProgramFiles(x86)", "")) / "LLVM" / "bin",
+            Path(os.getenv("LOCALAPPDATA", "")) / "Programs" / "LLVM" / "bin",
+        ]
+
+        for candidate in candidates:
+            if (candidate / "clang++.exe").exists():
+                os.environ["PATH"] = (
+                    f"{candidate}{os.pathsep}{os.environ.get('PATH', '')}"
+                )
+                if hasattr(os, "add_dll_directory"):
+                    os.add_dll_directory(str(candidate))
+                return
 
 
 config = Config()
