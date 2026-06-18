@@ -218,7 +218,7 @@ class TestParallelizer:
         )
         monkeypatch.setattr(parallelizer, "_classify", lambda code: "parallel_for")
 
-        result = parallelizer.parallelize(code, file=False)
+        result = parallelizer.parallelize(code)
 
         assert "#pragma omp parallel for" in result
         assert not list(tmp_path.rglob("parallelized_*.c"))
@@ -264,7 +264,7 @@ class TestParallelizer:
             lambda code: (_ for _ in ()).throw(RuntimeError("offline")),
         )
 
-        result = parallelizer.parallelize(code, file=False)
+        result = parallelizer.parallelize(code)
 
         assert "#pragma omp parallel for collapse(2)" in result
 

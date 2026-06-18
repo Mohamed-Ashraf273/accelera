@@ -20,6 +20,7 @@ from accelera.src.utils.accelera_utils import serialize
 print("=" * 80)
 print("===Accelera Pipe Demo: Comparing against sklearn pipelines===")
 print(
+    "File running: examples/accpipe_demo.py\n"
     "Protocol: same train/val/test split, same 4 candidate pipelines, \n"
     "selection on val accuracy, report on test accuracy"
 )

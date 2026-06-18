@@ -8,34 +8,138 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-Wno-deprecated-enum-enum-conversion)
 endif()
 
-if(UNIX AND NOT APPLE)
-    message(STATUS "Linux detected - Setting up LLVM/Clang for code parallelizer")
-    
-    # Try to find LLVM 18 first
-    find_package(LLVM 18 QUIET CONFIG)
+set(ACCELERA_LLVM_VERSION "18" CACHE STRING "LLVM/Clang version used by the code parallelizer")
+option(ACCELERA_AUTO_INSTALL_LLVM "Automatically install LLVM/Clang on supported systems" ON)
+set(LLVM_AVAILABLE OFF)
+
+function(accelera_find_llvm_clang)
+    if(WIN32)
+        foreach(_llvm_prefix
+                "$ENV{ProgramFiles}/LLVM"
+                "$ENV{ProgramFiles\(x86\)}/LLVM"
+                "$ENV{LOCALAPPDATA}/Programs/LLVM")
+            if(EXISTS "${_llvm_prefix}/lib/cmake/llvm")
+                list(APPEND CMAKE_PREFIX_PATH
+                    "${_llvm_prefix}"
+                    "${_llvm_prefix}/lib/cmake/llvm"
+                    "${_llvm_prefix}/lib/cmake/clang")
+            endif()
+        endforeach()
+    endif()
+
+    find_package(LLVM ${ACCELERA_LLVM_VERSION} QUIET CONFIG)
     if(NOT LLVM_FOUND)
-        # Fallback to any LLVM version if 18 not found
         find_package(LLVM QUIET CONFIG)
     endif()
-    
+
     find_package(Clang QUIET CONFIG)
-    
-    if(NOT LLVM_FOUND OR NOT Clang_FOUND)
-        message(WARNING "LLVM/Clang not found!")
-        message(WARNING "")
-        message(WARNING "To install LLVM/Clang (default: version 18), run:")
-        message(WARNING "  sudo ${CMAKE_SOURCE_DIR}/shell/install_llvm.sh")
-        message(WARNING "Or for a specific version (e.g., 14):")
-        message(WARNING "  sudo ${CMAKE_SOURCE_DIR}/shell/install_llvm.sh 14")
-        message(WARNING "")
-        message(WARNING "Or install manually:")
-        message(WARNING "  sudo apt-get update")
-        message(WARNING "  sudo apt-get install -y llvm-18-dev libclang-18-dev clang-18")
-        message(FATAL_ERROR "Cannot continue without LLVM/Clang. Please install and re-run CMake.")
+    set(_clang_names clang-${ACCELERA_LLVM_VERSION} clang)
+    if(LLVM_PACKAGE_VERSION)
+        string(REGEX MATCH "^[0-9]+" _llvm_major "${LLVM_PACKAGE_VERSION}")
+        if(_llvm_major)
+            list(INSERT _clang_names 1 clang-${_llvm_major})
+        endif()
     endif()
-    
+    find_program(ACCELERA_CLANG_EXECUTABLE NAMES ${_clang_names})
+
+    if(LLVM_FOUND AND Clang_FOUND)
+        set(LLVM_AVAILABLE ON PARENT_SCOPE)
+        set(LLVM_PACKAGE_VERSION "${LLVM_PACKAGE_VERSION}" PARENT_SCOPE)
+        set(LLVM_DEFINITIONS "${LLVM_DEFINITIONS}" PARENT_SCOPE)
+        set(LLVM_INCLUDE_DIRS "${LLVM_INCLUDE_DIRS}" PARENT_SCOPE)
+        set(CLANG_INCLUDE_DIRS "${CLANG_INCLUDE_DIRS}" PARENT_SCOPE)
+        set(LLVM_LIBRARY_DIRS "${LLVM_LIBRARY_DIRS}" PARENT_SCOPE)
+        set(ACCELERA_CLANG_EXECUTABLE "${ACCELERA_CLANG_EXECUTABLE}" PARENT_SCOPE)
+    endif()
+endfunction()
+
+function(accelera_try_install_llvm_windows)
+    find_program(WINGET_EXECUTABLE winget)
+    if(WINGET_EXECUTABLE)
+        message(STATUS "LLVM/Clang not found; installing LLVM with winget")
+        execute_process(
+            COMMAND "${WINGET_EXECUTABLE}" install --id LLVM.LLVM --exact --silent
+                    --accept-package-agreements --accept-source-agreements
+            RESULT_VARIABLE _winget_result
+        )
+        if(_winget_result EQUAL 0)
+            return()
+        endif()
+        message(WARNING "winget LLVM installation failed with exit code ${_winget_result}")
+    endif()
+
+    find_program(CHOCO_EXECUTABLE choco)
+    if(CHOCO_EXECUTABLE)
+        message(STATUS "LLVM/Clang not found; installing LLVM with Chocolatey")
+        execute_process(
+            COMMAND "${CHOCO_EXECUTABLE}" install llvm -y --no-progress
+            RESULT_VARIABLE _choco_result
+        )
+        if(_choco_result EQUAL 0)
+            return()
+        endif()
+        message(WARNING "Chocolatey LLVM installation failed with exit code ${_choco_result}")
+    endif()
+
+    message(WARNING "Automatic LLVM install failed: neither winget nor Chocolatey completed successfully")
+endfunction()
+
+function(accelera_try_install_llvm_linux)
+    find_program(BASH_EXECUTABLE bash)
+    find_program(SUDO_EXECUTABLE sudo)
+    find_program(APT_GET_EXECUTABLE apt-get)
+
+    if(NOT BASH_EXECUTABLE OR NOT APT_GET_EXECUTABLE)
+        message(STATUS "Automatic LLVM install skipped: bash or apt-get was not found")
+        return()
+    endif()
+
+    execute_process(COMMAND id -u OUTPUT_VARIABLE CURRENT_USER_ID ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(CURRENT_USER_ID STREQUAL "0")
+        set(_install_command "${BASH_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/shell/install_llvm.sh" "${ACCELERA_LLVM_VERSION}")
+    elseif(SUDO_EXECUTABLE)
+        execute_process(COMMAND "${SUDO_EXECUTABLE}" -n true RESULT_VARIABLE _sudo_check OUTPUT_QUIET ERROR_QUIET)
+        if(_sudo_check EQUAL 0)
+            set(_install_command "${SUDO_EXECUTABLE}" "${BASH_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/shell/install_llvm.sh" "${ACCELERA_LLVM_VERSION}")
+        else()
+            message(STATUS "Automatic LLVM install skipped: sudo requires a password")
+            return()
+        endif()
+    else()
+        message(STATUS "Automatic LLVM install skipped: sudo was not found")
+        return()
+    endif()
+
+    message(STATUS "LLVM/Clang not found; installing LLVM ${ACCELERA_LLVM_VERSION}")
+    execute_process(COMMAND ${_install_command} RESULT_VARIABLE _install_result)
+    if(NOT _install_result EQUAL 0)
+        message(WARNING "Automatic LLVM/Clang installation failed with exit code ${_install_result}")
+    endif()
+endfunction()
+
+message(STATUS "Checking LLVM/Clang for code parallelizer")
+accelera_find_llvm_clang()
+
+if(NOT LLVM_AVAILABLE AND UNIX AND NOT APPLE AND ACCELERA_AUTO_INSTALL_LLVM)
+    accelera_try_install_llvm_linux()
+    unset(LLVM_DIR CACHE)
+    unset(Clang_DIR CACHE)
+    accelera_find_llvm_clang()
+elseif(NOT LLVM_AVAILABLE AND WIN32 AND ACCELERA_AUTO_INSTALL_LLVM)
+    accelera_try_install_llvm_windows()
+    unset(LLVM_DIR CACHE)
+    unset(Clang_DIR CACHE)
+    accelera_find_llvm_clang()
+endif()
+
+if(LLVM_AVAILABLE)
     message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
     message(STATUS "Found Clang")
+    if(ACCELERA_CLANG_EXECUTABLE)
+        message(STATUS "Found clang executable: ${ACCELERA_CLANG_EXECUTABLE}")
+    else()
+        message(WARNING "clang executable was not found; AST bindings can build, but command-line clang tools may be unavailable")
+    endif()
     
     add_definitions(${LLVM_DEFINITIONS})
     add_definitions(-DUSE_CLANG_AST)
@@ -58,11 +162,14 @@ if(UNIX AND NOT APPLE)
         clangRewrite
     )
     set(LLVM_AVAILABLE ON)
-elseif(WIN32)
-    message(STATUS "Windows detected - Code parallelizer will be disabled")
-    set(LLVM_AVAILABLE OFF)
 else()
-    message(STATUS "macOS detected - Code parallelizer will be disabled")
+    if(WIN32)
+        message(FATAL_ERROR "Cannot continue without LLVM/Clang. Automatic Windows installation failed.")
+    elseif(UNIX AND NOT APPLE)
+        message(FATAL_ERROR "Cannot continue without LLVM/Clang. Install LLVM/Clang or enable non-interactive sudo for automatic installation.")
+    else()
+        message(STATUS "LLVM/Clang not found - code parallelizer bindings will be disabled")
+    endif()
     set(LLVM_AVAILABLE OFF)
 endif()
 
@@ -91,6 +198,17 @@ message(STATUS "Python executable: ${Python_EXECUTABLE}")
 message(STATUS "Python include dir: ${Python_INCLUDE_DIRS}")
 message(STATUS "Python libraries: ${Python_LIBRARIES}")
 # =============== END OF THE SECTION ==============
+
+execute_process(
+    COMMAND ${Python_EXECUTABLE} -m pybind11 --cmakedir
+    RESULT_VARIABLE PYBIND11_CMAKEDIR_RESULT
+    OUTPUT_VARIABLE PYBIND11_CMAKEDIR
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+if(PYBIND11_CMAKEDIR_RESULT EQUAL 0 AND EXISTS "${PYBIND11_CMAKEDIR}")
+    list(APPEND CMAKE_PREFIX_PATH "${PYBIND11_CMAKEDIR}")
+endif()
 
 find_package(pybind11 QUIET)
 
