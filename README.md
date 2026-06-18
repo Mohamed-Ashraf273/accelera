@@ -309,7 +309,7 @@ int main() {
 }
 """
 
-parallelized_code = parallelizer.parallelize(code, file=False)
+parallelized_code = parallelizer.parallelize(code)
 print(parallelized_code)
 ```
 
@@ -326,6 +326,34 @@ print(total)
 
 parallelized_code = parallelizer.parallelize(code)
 print(parallelized_code)
+```
+
+For internal defined python methods:
+
+```python
+import numpy as np
+
+from accelera.src.utils.parallelizer import parallelizer
+
+
+def normalize_rows(X):
+    for i in range(len(X)):
+        s = 0
+        for j in range(len(X[i])):
+            s += X[i][j] * X[i][j]
+
+        norm = s**0.5
+
+        for j in range(len(X[i])):
+            X[i][j] = X[i][j] / norm
+
+    return X
+
+
+results = parallelizer.parallelize(normalize_rows)(
+    np.random.rand(500_000, 25).astype(np.float32)
+)
+print(results)
 ```
 
 The Python-to-C++ converter supports a restricted loop-friendly subset:
