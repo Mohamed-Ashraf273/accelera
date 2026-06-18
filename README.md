@@ -115,6 +115,20 @@ binding may fail even when the package files exist locally.
 CMake also checks for Graphviz `dot` and installs it automatically on supported
 Windows and Debian/Ubuntu Linux systems so graph-rendering examples can run.
 
+### Needed Datasets
+
+To run the AutoPreprocessing demo correctly, you need to download two Kaggle datasets used in this project:
+
+- https://www.kaggle.com/datasets/bhavikjikadara/dog-and-cat-classification-dataset  
+- https://www.kaggle.com/datasets/nikhilroxtomar/brain-tumor-segmentation/data  
+
+### Setup Instructions
+
+1. Download both datasets from Kaggle.
+2. Extract the downloaded Folders without renaming it.
+3. Place the extracted folders inside the `examples/` directory.
+
+The datasets are required for image classification and segmentation demos.
 ### Run Examples
 
 ```bash
