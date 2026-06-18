@@ -29,10 +29,16 @@ class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
         if self.target_col not in self.df.columns:
             raise ValueError("target_col must be one of the dataframe columns")
 
-        if (not (isinstance(self.val_size, float))) or (not (0 < self.val_size <= 0.5)):
-            raise ValueError("test size is invalid it must be less than or equal 0.5")
+        if (not (isinstance(self.val_size, float))) or (
+            not (0 < self.val_size <= 0.5)
+        ):
+            raise ValueError(
+                "test size is invalid it must be less than or equal 0.5"
+            )
 
-        if self.random_state is not None and not (isinstance(self.random_state, int)):
+        if self.random_state is not None and not (
+            isinstance(self.random_state, int)
+        ):
             raise ValueError("random state is invalid it must be integer or None")
 
         self.target_type = self.df[self.target_col].dtype
@@ -82,7 +88,6 @@ class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
             and y.isnull().sum() == 0
             and y.nunique() > 1
         ):
-            
             X_train, X_val, y_train, y_val = train_test_split(
                 X,
                 y,

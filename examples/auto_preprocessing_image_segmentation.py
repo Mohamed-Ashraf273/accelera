@@ -288,7 +288,7 @@ class SegmentationTraining:
         training_folder_masks,
         val_folder_masks,
         augment,
-        image_size
+        image_size,
     ):
         train_dataloader, val_dataloader = SegmentationImageTrainingPreprocessing(
             training_folder_images=train_folder_images,
@@ -330,16 +330,16 @@ def main():
         inferernce = info.get("inferernce", None)
         obj = SegmentationTraining(dataset, folder_path)
         image_size = (
-                        info["image_size"]["width"],
-                        info["image_size"]["height"],
-                    )
+            info["image_size"]["width"],
+            info["image_size"]["height"],
+        )
         train_loader, val_loader = obj.handle_data(
             train_folder_images,
             val_folder_images,
             train_folder_masks,
             val_folder_masks,
             augment,
-            image_size
+            image_size,
         )
         if is_train:
             obj.train(train_loader, val_loader, epochs=20)

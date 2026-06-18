@@ -15,7 +15,7 @@ class TabularPreprocessingReport(ReportBase):
         self.graphs = self.report_data["graphs"]
         self.preprocessing = self.report_data["preprocessing"]
         self.after_preprocessing = self.report_data["after_preprocessing"]
-        self.features_selections=self.report_data.get("features_selections",None)
+        self.features_selections = self.report_data.get("features_selections", None)
         self.text_based = text_based
 
     def show_data_heads(self, obj, field_name, name="dataset"):
@@ -166,19 +166,28 @@ class TabularPreprocessingReport(ReportBase):
             "Validation After Preprocessing Head",
         )
         self.content += "</div>\n"
+
     def show_features_importance(self):
         if self.features_selections:
             self.content += "<div>\n"
             self.content += "<h2>Features Mutual Information to the target</h2>\n"
-            self.content+=self.features_selections["features_importance"].to_html(index=False)
-            self.content+="</div>\n"
+            self.content += self.features_selections["features_importance"].to_html(
+                index=False
+            )
+            self.content += "</div>\n"
             self.content += "<div>\n"
             self.content += "<h2>Selected Features</h2>\n"
-            self.content+=f"Threshold :"
-            self.content+="<p>"+f'{self.features_selections["feature_importance_threshold"]}'+"</p>"
-            self.content+=self.features_selections["selected_features"].to_html(index=False)
-            self.content+="</div>\n"
-            
+            self.content += "Threshold :"
+            self.content += (
+                "<p>"
+                + f"{self.features_selections['feature_importance_threshold']}"
+                + "</p>"
+            )
+            self.content += self.features_selections["selected_features"].to_html(
+                index=False
+            )
+            self.content += "</div>\n"
+
     def execute(self):
         self.show_data_overview()
         self.show_drop_duplicates()

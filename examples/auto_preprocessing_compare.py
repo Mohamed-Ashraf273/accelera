@@ -4,19 +4,22 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from autocleanml import AutoCleanML
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import f1_score
+from sklearn.metrics import r2_score
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeRegressor
 
 from accelera.src.automl.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
 )
 from accelera.src.utils.dataset_retriever import retriever
-
-from autocleanml import AutoCleanML
-
-from sklearn.linear_model import LogisticRegression, LinearRegression
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
-from sklearn.metrics import f1_score, r2_score
 
 
 def get_data_set_info():
@@ -42,7 +45,9 @@ def get_compared_models(problem_type):
         }
 
 
-def models_evaluation(X_train, X_test, y_train, y_test, problem_type="classification"):
+def models_evaluation(
+    X_train, X_test, y_train, y_test, problem_type="classification"
+):
     models_score = {}
     for name, model in get_compared_models(problem_type).items():
         model.fit(X_train, y_train)
@@ -70,14 +75,13 @@ def handle_data_preprocessing_type(
     target_column,
     problem_type="classification",
     dataset_type="tabular_dataset",
-    report_path=None
+    report_path=None,
 ):
-
     if dataset_type == "tabular_dataset":
         X_train, y_train, X_test, y_test = ClassicalTrainingPreprocessing(
             df, target_column, problem_type, folder_path=report_path, is_report=False
         ).common_preprocessing()
- 
+
     return X_train, X_test, y_train, y_test
 
 
@@ -97,11 +101,16 @@ def accelera_preprocessing(
         report_path=report_path,
     )
 
-    evaluation = models_evaluation(X_train_df, X_test_df, y_train, y_test, problem_type)
+    evaluation = models_evaluation(
+        X_train_df, X_test_df, y_train, y_test, problem_type
+    )
     end_time = time.time()
     return evaluation, end_time - start_time
 
-def plot_comparison(results_df, problem_type, target_graph, ds_type="tabular_dataset"):
+
+def plot_comparison(
+    results_df, problem_type, target_graph, ds_type="tabular_dataset"
+):
     plt.figure(figsize=(20, 6))
     x = np.arange(len(results_df["dataset"]))
     bar_1 = plt.bar(
@@ -118,13 +127,14 @@ def plot_comparison(results_df, problem_type, target_graph, ds_type="tabular_dat
     )
     plt.bar_label(bar_1, fmt="%.2f", padding=3)
     plt.bar_label(bar_2, fmt="%.2f", padding=3)
-    plt.xticks(x, results_df["dataset"], rotation=45, ha='right')
+    plt.xticks(x, results_df["dataset"], rotation=45, ha="right")
     plt.xlabel("Dataset")
     plt.ylabel(target_graph)
     plt.title(f"{problem_type} - AutoClean vs Accelera")
     plt.legend()
     plt.tight_layout()
     plt.savefig(f"{ds_type}_comparison_{problem_type}_{target_graph}.png")
+
 
 def main():
     ds = get_data_set_info()

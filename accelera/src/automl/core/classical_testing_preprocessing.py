@@ -1,3 +1,5 @@
+import pandas as pd
+
 from accelera.src.automl.core.testing_tabular_preprocessing_base import (
     TestingTabularPreprocessingBase,
 )
@@ -6,7 +8,7 @@ from accelera.src.utils.preprocessing import drop_columns
 from accelera.src.utils.preprocessing import load_pickle
 from accelera.src.utils.preprocessing import lower_data
 
-import pandas as pd
+
 class ClassicalTestingPreprocessing(TestingTabularPreprocessingBase):
     def __init__(self, df, folder_path=None):
         super().__init__(df, folder_path=folder_path)
@@ -20,7 +22,9 @@ class ClassicalTestingPreprocessing(TestingTabularPreprocessingBase):
         self.col_drop = load_pickle(self.folder_path, "col_drop.pkl")
         self.target_info = load_pickle(self.folder_path, "target_info.pkl")
         self.bool_type_col = load_pickle(self.folder_path, "bool_type_col.pkl")
-        self.selected_features = load_pickle(self.folder_path, "selected_features.pkl")
+        self.selected_features = load_pickle(
+            self.folder_path, "selected_features.pkl"
+        )
         self.feature_names = load_pickle(self.folder_path, "feature_names.pkl")
 
         if self.target_info is None:
@@ -93,9 +97,9 @@ class ClassicalTestingPreprocessing(TestingTabularPreprocessingBase):
             self.handel_bool_type()
             drop_columns(self.X_test, self.col_drop)
             self.X_test = self.training_preprocessor.transform(self.X_test)
-            X_test_df=pd.DataFrame(self.X_test,columns=self.feature_names )
-        
-            X_test_df=X_test_df[self.selected_features].to_numpy()
+            X_test_df = pd.DataFrame(self.X_test, columns=self.feature_names)
+
+            X_test_df = X_test_df[self.selected_features].to_numpy()
             if not self.features_only:
                 self.target_preprocessing()
             return X_test_df, self.y_test

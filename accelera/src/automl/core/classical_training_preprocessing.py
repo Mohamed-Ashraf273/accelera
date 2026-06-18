@@ -2,13 +2,14 @@ import numpy as np
 import pandas as pd
 from category_encoders import BinaryEncoder
 from sklearn.compose import ColumnTransformer
+from sklearn.feature_selection import mutual_info_classif
+from sklearn.feature_selection import mutual_info_regression
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import StandardScaler
-from sklearn.feature_selection import mutual_info_classif, mutual_info_regression
 
 from accelera.src.automl.core.training_tabular_preprocessing_base import (
     TrainingTabularPreprocessingBase,
@@ -98,7 +99,10 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         ):
             raise ValueError("cardinality_threshold must be positive integer")
 
-        if not isinstance(self.max_unique_ordinal, int) or self.max_unique_ordinal < 0:
+        if (
+            not isinstance(self.max_unique_ordinal, int)
+            or self.max_unique_ordinal < 0
+        ):
             raise ValueError("max_unique_ordinal must be positive integer")
         if not isinstance(self.missing_threshold, (float, int)) or not (
             0 <= self.missing_threshold <= 1
@@ -316,7 +320,10 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 )
                 graph.build_graph()
                 self.report_data["graphs"]["images_name"].append(f"{col}")
-            if info[col]["col_type"] == "ordinal" and self.problem_type == "regression":
+            if (
+                info[col]["col_type"] == "ordinal"
+                and self.problem_type == "regression"
+            ):
                 graph = OrdinalRegression(
                     new_df,
                     col,
@@ -431,7 +438,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 ("ordinal", ordinal_pipeline, ordinal_cols),
             ],
             remainder="drop",
-            n_jobs=-1
+            n_jobs=-1,
         )
         X_train_processed = preprocessor.fit_transform(X_train)
         X_val_processed = preprocessor.transform(X_val)
@@ -525,7 +532,8 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         ]
         if len(selected_features_df) == 0:
             raise ValueError(
-                f"No feature is exist greatre than your given threshold {self.feature_importance_threshold}"
+                "No feature is exist greatre "
+                f"than your given threshold {self.feature_importance_threshold}"
             )
 
         self.report_data["features_selections"] = {

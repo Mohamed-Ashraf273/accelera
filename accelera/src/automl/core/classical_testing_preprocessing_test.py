@@ -1,9 +1,10 @@
 import shutil
 import tempfile
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import pytest
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 from accelera.src.automl.core.classical_testing_preprocessing import (
@@ -14,7 +15,7 @@ from accelera.src.automl.core.classical_training_preprocessing import (
 )
 from accelera.src.utils.preprocessing import drop_columns
 from accelera.src.utils.preprocessing import save_pickle
-from sklearn.model_selection import train_test_split
+
 
 class TestClassicalTestingPreprocessing:
     @pytest.fixture(autouse=True)
@@ -22,8 +23,8 @@ class TestClassicalTestingPreprocessing:
         self.temp_dir = tempfile.mkdtemp()
         data_columns = ["feature1", "feature2", "target"]
         col_drop = {"feature2": "high missing values"}
-        feature_names={"feature2"}
-        selected_features={"feature2"}
+        feature_names = {"feature2"}
+        selected_features = {"feature2"}
         target_info = {
             "col_name": "target",
             "problem_type": "classification",
@@ -144,23 +145,39 @@ class TestClassicalTestingPreprocessing:
         tp = ClassicalTestingPreprocessing(df=self.df, folder_path=self.temp_dir)
         assert tp.X_test["feature1"].tolist() == ["a", "b", "c"]
         assert tp.y_test.tolist() == ["a", None, "c"]
+
     def test_training_testing(self):
         df = pd.DataFrame(
             {
-                "feature1": ["A", "b", "c","j","A","A","j"],
-                "feature2": [None, None, None,1,2,3,4],
-                "feature3":[1,1,2,1,2,1,2],
-                "target": ["A", "A", "C","A","C","A","C"],
+                "feature1": ["A", "b", "c", "j", "A", "A", "j"],
+                "feature2": [None, None, None, 1, 2, 3, 4],
+                "feature3": [1, 1, 2, 1, 2, 1, 2],
+                "target": ["A", "A", "C", "A", "C", "A", "C"],
             }
         )
-        _,X_test,_,y_test=train_test_split(df.drop(columns="target"),df["target"],stratify=df["target"],random_state=42,test_size=0.2)
-        _, _, X_val_selected, y_val=ClassicalTrainingPreprocessing(df,target_col="target",folder_path=self.temp_dir,val_size=0.2,is_report=False,feature_importance_threshold=0.01).common_preprocessing()
-        X_test,y_test=ClassicalTestingPreprocessing(pd.concat([X_test,y_test], axis=1),folder_path=self.temp_dir).common_preprocessing()
+        _, X_test, _, y_test = train_test_split(
+            df.drop(columns="target"),
+            df["target"],
+            stratify=df["target"],
+            random_state=42,
+            test_size=0.2,
+        )
+        _, _, X_val_selected, y_val = ClassicalTrainingPreprocessing(
+            df,
+            target_col="target",
+            folder_path=self.temp_dir,
+            val_size=0.2,
+            is_report=False,
+            feature_importance_threshold=0.01,
+        ).common_preprocessing()
+        X_test, y_test = ClassicalTestingPreprocessing(
+            pd.concat([X_test, y_test], axis=1), folder_path=self.temp_dir
+        ).common_preprocessing()
         print(X_val_selected)
         print(X_test)
-        assert np.allclose(X_val_selected,X_test)
-        assert np.allclose(y_val,y_test)
-        
+        assert np.allclose(X_val_selected, X_test)
+        assert np.allclose(y_val, y_test)
+
     def test_classical_target_preprocessing_test(self):
         target_df = pd.DataFrame({"target": ["a", "b", "c"]})
         label_encoder = LabelEncoder()

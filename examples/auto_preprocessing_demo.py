@@ -3,16 +3,14 @@ import json
 from accelera.src.automl.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
 )
-from accelera.src.automl.core.text_training_preprocessing import (
-    TextTrainingPreprocessing,
-)
-
 from accelera.src.automl.core.classification_image_training_preprocessing import (  # noqa: E501
     ClassificationImageTrainingPreprocessing,
 )
-
 from accelera.src.automl.core.segmentation_image_training_preprocessing import (
     SegmentationImageTrainingPreprocessing,
+)
+from accelera.src.automl.core.text_training_preprocessing import (
+    TextTrainingPreprocessing,
 )
 from accelera.src.utils.dataset_retriever import retriever
 
@@ -49,7 +47,8 @@ def handle_data_preprocessing_tabular_text(
             df, target_column, text_column, folder_path=report_path
         ).common_preprocessing()
     print(
-        f"\nFinish Preprocessing find the report in {report_path} and return X_train, X_test, y_train, y_test"
+        f"\nFinish Preprocessing find the report in "
+        f"end={report_path} and return X_train, X_test, y_train, y_test"
     )
     return X_train, X_test, y_train, y_test
 
@@ -68,7 +67,8 @@ def classifcation_problem(training_folder_images, folder_path, augment, image_si
     )
     training_loader, validation_loader = training_preprocessor.common_preprocessing()
     print(
-        f"Finish Preprocessing find the report in {folder_path} training_loader, validation_loader"
+        f"Finish Preprocessing find the "
+        f"report in {folder_path} training_loader, validation_loader"
     )
     return training_loader, validation_loader
 
@@ -94,7 +94,8 @@ def segemenation_problem(
         images_size=image_size,
     ).common_preprocessing()
     print(
-        f"\nFinish Preprocessing find the report in {folder_path} and return training_loader, validation_loader\n"
+        f"\nFinish Preprocessing find the report in "
+        f"{folder_path} and return training_loader, validation_loader\n"
     )
     return training_loader, validation_loader
 
@@ -112,7 +113,6 @@ def main():
                         ds_info["image_size"]["height"],
                     )
                     if problem_type == "classification":
-
                         classifcation_problem(
                             ds_info["train_folder"],
                             ds_info["report_path"],
@@ -135,7 +135,9 @@ def main():
                     print(f"\ndataset name {dataset}")
                     retriever.connect()
                     link = info["link"]
-                    print("\nDownload dataset from google drive using the given link")
+                    print(
+                        "\nDownload dataset from google drive using the given link"
+                    )
                     df = retriever.retrieve_dataset(dataset, url=link, df=True)
                     label = info["target_column"]
                     report_path = info["report_path"]
