@@ -267,6 +267,104 @@ Notes:
 - Custom functions with closures are rejected because captured external
   variables cannot be reconstructed safely from source code alone.
 
+
+### C/C++ Loop Parallelization
+
+Use the parallelizer when you want to analyze loop-heavy C/C++ code and emit
+OpenMP pragmas. The module needs the C++ bindings, LLVM/Clang, and the
+classifier endpoint configured in `accelera/src/config.py`.
+
+```python
+from accelera.src.utils.parallelizer import parallelizer
+
+parallelizer.parallelize("examples/test_loops.c")
+# Writes parallelized_test_loops.c in the repo root by default
+```
+
+Pass `output_dir="some/path"` if you want the generated file written somewhere
+else.
+
+For in-memory C/C++ code:
+
+```python
+from accelera.src.utils.parallelizer import parallelizer
+
+code = """
+int main() {
+    int total = 0;
+    for (int i = 0; i < 1000; i++) {
+        total += i;
+    }
+}
+"""
+
+parallelized_code = parallelizer.parallelize(code, file=False)
+print(parallelized_code)
+```
+
+For supported Python code, the parallelizer first converts Python to C++ and
+then applies the same loop extraction and OpenMP insertion path:
+
+```python
+code = """
+total = 0
+for i in range(1000):
+    total += i
+print(total)
+"""
+
+parallelized_code = parallelizer.parallelize(code)
+print(parallelized_code)
+```
+
+The Python-to-C++ converter supports a restricted loop-friendly subset:
+
+- constants, variables, arithmetic, comparisons, boolean operations;
+- function calls and `print`;
+- attribute access and indexing, but not slices;
+- simple assignment and simple-name augmented assignment;
+- `if`/`else`, `return`;
+- `for i in range(...)` with one, two, or three arguments;
+- simple `def` functions without decorators.
+
+Unsupported Python syntax raises an error or falls back to the original Python
+function when used through automatic pipeline optimization.
+
+### Automatic Custom Preprocessing Acceleration in Accelera Pipe
+
+`Pipeline.preprocess()` automatically tries to optimize custom preprocessing
+functions through the Parallelizer when possible.
+
+```python
+from accelera.src.accelera_pipe.core.pipeline import Pipeline
+
+def normalize_rows(X):
+    for i in range(len(X)):
+        s = 0
+        for j in range(len(X[i])):
+            s += X[i][j] * X[i][j]
+        norm = s ** 0.5
+        for j in range(len(X[i])):
+            X[i][j] = X[i][j] / norm
+    return X
+
+pipe = Pipeline()
+pipe.preprocess("normalize", normalize_rows)
+```
+
+The automatic path is:
+
+```text
+Python custom function
+-> py2cpp_converter
+-> parallelizer OpenMP pragma insertion
+-> cpp_compiler.py / pybind11 native module
+-> Accelera Pipe preprocess node
+```
+
+If conversion, classification, OpenMP insertion, compilation, or import fails,
+Accelera keeps the original Python function so the pipeline remains correct.
+
 ### Dataset Retriever
 
 Use the dataset retriever when you want to pull one of the shared demo datasets
@@ -403,103 +501,6 @@ results = [
 report = ModelReport("model_report", results=results)
 report.execute()
 ```
-
-### C/C++ Loop Parallelization
-
-Use the parallelizer when you want to analyze loop-heavy C/C++ code and emit
-OpenMP pragmas. The module needs the C++ bindings, LLVM/Clang, and the
-classifier endpoint configured in `accelera/src/config.py`.
-
-```python
-from accelera.src.utils.parallelizer import parallelizer
-
-parallelizer.parallelize("examples/test_loops.c")
-# Writes parallelized_test_loops.c in the repo root by default
-```
-
-Pass `output_dir="some/path"` if you want the generated file written somewhere
-else.
-
-For in-memory C/C++ code:
-
-```python
-from accelera.src.utils.parallelizer import parallelizer
-
-code = """
-int main() {
-    int total = 0;
-    for (int i = 0; i < 1000; i++) {
-        total += i;
-    }
-}
-"""
-
-parallelized_code = parallelizer.parallelize(code, file=False)
-print(parallelized_code)
-```
-
-For supported Python code, the parallelizer first converts Python to C++ and
-then applies the same loop extraction and OpenMP insertion path:
-
-```python
-code = """
-total = 0
-for i in range(1000):
-    total += i
-print(total)
-"""
-
-parallelized_code = parallelizer.parallelize(code, file=False)
-print(parallelized_code)
-```
-
-The Python-to-C++ converter supports a restricted loop-friendly subset:
-
-- constants, variables, arithmetic, comparisons, boolean operations;
-- function calls and `print`;
-- attribute access and indexing, but not slices;
-- simple assignment and simple-name augmented assignment;
-- `if`/`else`, `return`;
-- `for i in range(...)` with one, two, or three arguments;
-- simple `def` functions without decorators.
-
-Unsupported Python syntax raises an error or falls back to the original Python
-function when used through automatic pipeline optimization.
-
-### Automatic Custom Preprocessing Acceleration in Accelera Pipe
-
-`Pipeline.preprocess()` automatically tries to optimize custom preprocessing
-functions through the Parallelizer when possible.
-
-```python
-from accelera.src.accelera_pipe.core.pipeline import Pipeline
-
-def normalize_rows(X):
-    for i in range(len(X)):
-        s = 0
-        for j in range(len(X[i])):
-            s += X[i][j] * X[i][j]
-        norm = s ** 0.5
-        for j in range(len(X[i])):
-            X[i][j] = X[i][j] / norm
-    return X
-
-pipe = Pipeline()
-pipe.preprocess("normalize", normalize_rows)
-```
-
-The automatic path is:
-
-```text
-Python custom function
--> py2cpp_converter
--> parallelizer OpenMP pragma insertion
--> cpp_compiler.py / pybind11 native module
--> Accelera Pipe preprocess node
-```
-
-If conversion, classification, OpenMP insertion, compilation, or import fails,
-Accelera keeps the original Python function so the pipeline remains correct.
 
 ### Runtime Requirements and Common Blockers
 
