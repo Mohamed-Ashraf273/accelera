@@ -1,5 +1,6 @@
-import numpy as np
 import time
+
+import numpy as np
 
 from accelera.src.utils.parallelizer import parallelizer
 
