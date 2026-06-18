@@ -9,6 +9,7 @@ from accelera.src.accelera_pipe.core.pipeline import Pipeline
 print("\n" * 2 + "=" * 80)
 print("===Parallelizer Demo: Parallelizing a Custom Preprocessing Function===")
 print(
+    "File running: examples/parallel_accpipe.py\n"
     "Protocol: Generate a large synthetic dataset, \n"
     "define a custom row-wise normalization function, \n"
     "execute it through an Accelera pipeline, and measure execution time."

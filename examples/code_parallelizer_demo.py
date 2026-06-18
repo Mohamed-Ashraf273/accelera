@@ -74,6 +74,7 @@ def print_result(title, result):
 
 
 print("\n" + "=" * 80)
+print("File running: examples/code_parallelizer_demo.py")
 print("=== Parallelizer Demo ===")
 print("=" * 80)
 

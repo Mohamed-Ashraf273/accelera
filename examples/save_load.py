@@ -15,6 +15,7 @@ from accelera.src.accelera_pipe.core.pipeline import Pipeline
 print("\n" * 2 + "=" * 80)
 print("===Save and Load Executed Pipeline Demo===")
 print(
+    "File running: examples/save_load.py\n"
     "Protocol: Generate a large synthetic dataset, \n"
     "define a pipeline with preprocessing and model training, \n"
     "execute it, save the executed pipeline, load it back, \n"

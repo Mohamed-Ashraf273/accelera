@@ -31,7 +31,7 @@ parallelization.
   cache with `accelera.src.utils.dataset_retriever.DatasetRetriever`.
 - **C/C++ code parallelizer**: extract loops with Clang AST, derive loop
   features, call an OpenMP classifier service, and inject OpenMP pragmas
-  into parallelizable `for` loops. This module is Linux-only.
+  into parallelizable `for` loops.
 - **Benchmark backend prototype**: Express/MongoDB backend scaffolding for
   benchmarks, users, metrics, and submissions.
 
@@ -42,8 +42,9 @@ parallelization.
 - The AutoML search agent API exists, but the default search algorithm is
   still a placeholder.
 - The benchmark backend is an early prototype.
-- The code parallelizer requires Linux, LLVM/Clang, built pybind bindings,
-  and the classifier endpoint configured in `accelera/src/config.py`.
+- The code parallelizer requires LLVM/Clang, built pybind bindings, and the
+  classifier endpoint configured in `accelera/src/config.py`. CMake attempts
+  to install LLVM/Clang automatically on Linux and Windows when possible.
 
 ## Quick Start
 
@@ -59,10 +60,6 @@ pip install -r requirements.txt
 # Add Accelera to Python's import path for this terminal session.
 # This is required before running examples, notebooks, or tests from the repo.
 export PYTHONPATH="$PWD:${PYTHONPATH:-}"
-
-# Linux only, required before CMake if you want to build code-parallelizer
-# bindings and also because the current Linux CMake config expects LLVM.
-sudo bash shell/install_llvm.sh 18
 
 cmake -S . -B build
 cmake --build build -j"$(nproc)"
@@ -373,15 +370,18 @@ report.execute()
 ### C/C++ Loop Parallelization
 
 Use the parallelizer when you want to analyze loop-heavy C/C++ code and emit
-OpenMP pragmas. The module is Linux-only and needs the C++ bindings, LLVM/Clang,
-and the classifier endpoint configured in `accelera/src/config.py`.
+OpenMP pragmas. The module needs the C++ bindings, LLVM/Clang, and the
+classifier endpoint configured in `accelera/src/config.py`.
 
 ```python
 from accelera.src.utils.parallelizer import parallelizer
 
 parallelizer.parallelize("examples/test_loops.c")
-# Writes examples/parallelized_test_loops.c
+# Writes parallelized_test_loops.c in the repo root by default
 ```
+
+Pass `output_dir="some/path"` if you want the generated file written somewhere
+else.
 
 For in-memory C/C++ code:
 
@@ -470,13 +470,13 @@ Things that can prevent these modules from running:
 
 - **Missing C++ bindings**: run `cmake --build build` and export
   `PYTHONPATH="$PWD:$PWD/build/bindings"`.
-- **Not on Linux**: the code parallelizer bindings are disabled on Windows and
-  macOS in the current CMake configuration.
-- **LLVM/Clang missing**: install LLVM/Clang before configuring CMake. The
-  project script is `sudo bash shell/install_llvm.sh 18`.
+- **LLVM/Clang missing**: on Debian/Ubuntu Linux, CMake attempts to install it
+  automatically when it can use root or non-interactive sudo. On Windows,
+  CMake attempts to install LLVM automatically with `winget` first, then
+  Chocolatey if available.
 - **OpenMP compiler support missing**: generated native code requires a compiler
   with OpenMP support. On Linux this usually means `g++`/`clang++` plus OpenMP
-  runtime libraries.
+  runtime libraries. On Windows, use a compiler/toolchain with OpenMP enabled.
 - **Classifier endpoint unavailable**: set
   `ACCELERA_CLASSIFIER_ENDPOINT` or ensure the default Hugging Face Space is
   reachable. Also check `ACCELERA_REQUEST_TIMEOUT_S` for slow networks.

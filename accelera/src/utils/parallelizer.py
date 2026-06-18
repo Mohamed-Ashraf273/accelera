@@ -546,12 +546,10 @@ class Parallelizer:
             code, self._select_parallel_loops(loops_data)
         )
 
-    def parallelize(
-        self, file_path: str, file: bool = True, output_dir: str | Path | None = None
-    ) -> str:
-        if file:
-            return self._process_file(file_path, output_dir)
-        return self._process_code(file_path)
+    def parallelize(self, content: str, output_dir: str | Path | None = None) -> str:
+        if os.path.isfile(content):
+            return self._process_file(content, output_dir)
+        return self._process_code(content)
 
     def optimize_pymethod(self, func):
         import inspect
@@ -561,7 +559,7 @@ class Parallelizer:
 
         try:
             code = textwrap.dedent(inspect.getsource(func))
-            cpp_code = self.parallelize(code, file=False)
+            cpp_code = self.parallelize(code)
             return compile_parallelized_code(cpp_code, func.__name__)
         except (
             OSError,

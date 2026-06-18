@@ -2,21 +2,24 @@ import hashlib
 import importlib.util
 import os
 import re
+import shutil
 import subprocess
 import sys
 import sysconfig
+from functools import lru_cache
+from pathlib import Path
 
 from accelera.src.config import config
 
-_COMPILE_CACHE_VERSION = "preprocess-v2"
 
-
-def _python_include_flags() -> list[str]:
+@lru_cache(maxsize=1)
+def _python_include_flags() -> tuple[str, ...]:
     paths = sysconfig.get_paths()
     includes = [paths["include"], paths.get("platinclude")]
-    return [f"-I{path}" for path in includes if path]
+    return tuple(f"-I{path}" for path in includes if path)
 
 
+@lru_cache(maxsize=1)
 def _pybind11_include_flag() -> str:
     try:
         import pybind11
@@ -32,6 +35,39 @@ def _pybind11_include_flag() -> str:
             "Accelera first so build/_deps/pybind11-src/include exists."
         )
     return f"-I{include_dir}"
+
+
+def _default_cxx() -> str:
+    if cxx := os.getenv("CXX"):
+        return cxx
+
+    if os.name != "nt":
+        return "c++"
+
+    for candidate in (
+        shutil.which("clang++"),
+        Path(os.getenv("ProgramFiles", "")) / "LLVM" / "bin" / "clang++.exe",
+        Path(os.getenv("LOCALAPPDATA", ""))
+        / "Programs"
+        / "LLVM"
+        / "bin"
+        / "clang++.exe",
+    ):
+        if candidate and Path(candidate).exists():
+            return str(candidate)
+
+    return "clang++"
+
+
+def _compiler_command(cxx: str) -> list[str]:
+    if os.getenv("ACCELERA_USE_COMPILER_CACHE", "1") != "1":
+        return [cxx]
+
+    for cache_tool in ("sccache", "ccache"):
+        if compiler_cache := shutil.which(cache_tool):
+            return [compiler_cache, cxx]
+
+    return [cxx]
 
 
 def _to_numpy_code_cpp(cpp_code: str, func_name: str, module_name: str) -> str:
@@ -74,6 +110,10 @@ def _compile_opt_flag() -> str:
     return os.getenv("ACCELERA_CPP_OPT_LEVEL", "-O0")
 
 
+def _needs_openmp(cpp_code: str) -> bool:
+    return "#pragma omp" in cpp_code
+
+
 def _compiled_module_name(
     cpp_code: str,
     func_name: str,
@@ -81,7 +121,7 @@ def _compiled_module_name(
 ) -> str:
     cache_key = "\n".join(
         [
-            _COMPILE_CACHE_VERSION,
+            config.COMPILE_CACHE_VERSION,
             func_name,
             _compile_opt_flag(),
             extension_suffix,
@@ -107,14 +147,21 @@ def compile_parallelized_code(cpp_code: str, func_name: str):
 
     if not module_path.exists():
         cpp_path.write_text(_to_numpy_code_cpp(cpp_code, func_name, module_name))
-        cxx = os.getenv("CXX", "c++")
-        cmd = [
-            cxx,
+        cxx = _default_cxx()
+        compile_flags = [
             _compile_opt_flag(),
             "-shared",
             "-std=c++17",
-            "-fPIC",
-            "-fopenmp",
+            "-DNDEBUG",
+        ]
+        if _needs_openmp(cpp_code):
+            compile_flags.append("-fopenmp")
+        if os.name != "nt":
+            compile_flags.extend(["-fPIC", "-pipe"])
+
+        cmd = [
+            *_compiler_command(cxx),
+            *compile_flags,
             *_python_include_flags(),
             _pybind11_include_flag(),
             str(cpp_path),
