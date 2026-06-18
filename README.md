@@ -63,9 +63,6 @@ export PYTHONPATH="$PWD:${PYTHONPATH:-}"
 
 cmake -S . -B build
 cmake --build build -j"$(nproc)"
-
-# After building the C++/pybind modules, also expose the generated bindings.
-export PYTHONPATH="$PWD:$PWD/build/bindings:${PYTHONPATH:-}"
 ```
 
 Run the `export PYTHONPATH=...` command again whenever you open a new terminal.
@@ -140,11 +137,7 @@ print(best_result)
 ## More Usage Examples
 
 The examples below assume you already ran the Quick Start setup and exported
-`PYTHONPATH`. For graph-backed pipeline examples, use:
-
-```bash
-export PYTHONPATH="$PWD:$PWD/build/bindings:${PYTHONPATH:-}"
-```
+`PYTHONPATH`.
 
 If the native graph import fails, rebuild the C++ bindings with
 `cmake --build build -j"$(nproc)"` and run the export command again.
@@ -468,8 +461,7 @@ Accelera keeps the original Python function so the pipeline remains correct.
 
 Things that can prevent these modules from running:
 
-- **Missing C++ bindings**: run `cmake --build build` and export
-  `PYTHONPATH="$PWD:$PWD/build/bindings"`.
+- **Missing C++ bindings**: run `cmake --build build`.
 - **LLVM/Clang missing**: on Debian/Ubuntu Linux, CMake attempts to install it
   automatically when it can use root or non-interactive sudo. On Windows,
   CMake attempts to install LLVM automatically with `winget` first, then
@@ -499,7 +491,6 @@ Things that can prevent these modules from running:
 Useful environment variables:
 
 ```bash
-export PYTHONPATH="$PWD:$PWD/build/bindings"
 export ACCELERA_CLASSIFIER_ENDPOINT="https://accelera-ai-open-mp-classifier.hf.space/predict"
 export ACCELERA_REQUEST_TIMEOUT_S=10
 export ACCELERA_ENABLE_CPP_FORMATTING=0  # optional
