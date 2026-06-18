@@ -277,7 +277,7 @@ classifier endpoint configured in `accelera/src/config.py`.
 ```python
 from accelera.src.utils.parallelizer import parallelizer
 
-parallelizer.parallelize("examples/test_loops.c")
+parallelizer.parallelize("examples/loop_example.py")
 # Writes parallelized_test_loops.c in the repo root by default
 ```
 
