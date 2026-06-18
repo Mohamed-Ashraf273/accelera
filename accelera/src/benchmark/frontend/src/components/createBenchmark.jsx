@@ -186,6 +186,7 @@ function CreateBenchmark() {
                 name="datasetLink"
                 onChange={handleChange}
                 value={form.datasetLink}
+                placeholder="Paste dataset Google Drive link"
               />
             </div>
             <div className="form-input">
@@ -194,6 +195,7 @@ function CreateBenchmark() {
                 name="testSetWithoutPredictionsLink"
                 onChange={handleChange}
                 value={form.testSetWithoutPredictionsLink}
+                placeholder="Paste test set Google Drive link"
               />
             </div>
             <div className="form-input">
@@ -202,6 +204,7 @@ function CreateBenchmark() {
                 name="predictedColumnLink"
                 onChange={handleChange}
                 value={form.predictedColumnLink}
+                placeholder="Paste predicted column Google Drive link"
               />
             </div>
             <div className="form-input">

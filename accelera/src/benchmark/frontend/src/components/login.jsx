@@ -43,7 +43,10 @@ function Login() {
     <div className="auth-page">
       <Navigation />
       <div className="auth-page-content">
-        <h2>Login</h2>
+        <div className="auth-head">
+          <p>Welcome back</p>
+          <h2>Login</h2>
+        </div>
 
         <form onSubmit={handleLogin} className="auth-form">
           <div className="auth-input">

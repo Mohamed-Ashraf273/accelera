@@ -1,25 +1,47 @@
 .auth-page {
   padding: 20px;
   font-family: Arial, sans-serif;
-  background: white;
+  background: var(--bg);
   min-height: 100vh;
-  color: #0f172a;
+  color: var(--text-dark);
   display: flex;
   flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
 }
 
 .auth-page-content {
-  margin-top: 120px;
+  margin-top: 105px;
   margin-left: auto;
   margin-right: auto;
-  background-color: #0f172a;
-  color: white;
-  padding: 25px;
-  border-radius: 20px;
-  min-width: 340px;
+  background-color: var(--card);
+  color: var(--text-dark);
+  padding: 28px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
+}
+
+.auth-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 4px;
+}
+
+.auth-head h2 {
+  font-size: 26px;
+  color: var(--text-dark);
+}
+
+.auth-head p {
+  color: var(--muted);
+  font-size: 14px;
 }
 
 .auth-form {
@@ -31,45 +53,64 @@
 .auth-input {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .auth-input p {
-  font-style: italic;
+  color: var(--text-dark);
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .auth-input input {
   border-radius: 10px;
-  padding: 8px 10px;
-  border: none;
 }
 
 .auth-button {
   padding: 10px 15px;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
-  background: white;
-  color: #0f172a;
+  background: var(--primary);
+  color: white;
   transition: 0.2s;
   font-weight: bold;
 }
 
 .auth-button:hover {
-  background: #1e293b;
+  background: var(--primary-light);
   color: white;
 }
 
 .auth-link {
-  color: #cbd5e1;
+  color: var(--accent);
   text-decoration: none;
+  font-weight: 600;
 }
 
 .auth-link:hover {
-  color: white;
+  color: var(--text-dark);
   text-decoration: underline;
 }
 
 .auth-message {
-  color: #cbd5e1;
+  color: var(--muted);
+  min-height: 18px;
+  font-size: 14px;
+}
+
+@media (max-width: 650px) {
+  .auth-page {
+    padding: 16px;
+    align-items: flex-start;
+  }
+
+  .auth-page-content {
+    margin-top: 110px;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 24px;
+    width: 358px;
+    max-width: 100%;
+  }
 }

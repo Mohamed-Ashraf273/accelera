@@ -43,7 +43,10 @@ function Signup() {
     <div className="auth-page">
       <Navigation />
       <div className="auth-page-content">
-        <h2>Signup</h2>
+        <div className="auth-head">
+          <p>Create account</p>
+          <h2>Signup</h2>
+        </div>
 
         <form onSubmit={handleSignup} className="auth-form">
           <div className="auth-input">

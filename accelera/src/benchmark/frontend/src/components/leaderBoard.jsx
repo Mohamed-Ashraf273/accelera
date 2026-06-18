@@ -149,7 +149,11 @@ function LeaderBoard() {
       {action === "display" && (
         <div className="leader-board-content">
           <div className="leader-board-header">
-            <h1>Submissions</h1>
+            <div>
+              <p className="leader-board-kicker">Competition results</p>
+              <h1>Submissions</h1>
+            </div>
+            <p className="leader-board-count">{submissions.length} submissions</p>
             {user && (
               <button className="add-button" onClick={() => setAction("Add")}>
                 Add Submission
@@ -157,8 +161,11 @@ function LeaderBoard() {
             )}
           </div>
           <div className="submissions">
+            {submissions.length === 0 && (
+              <p className="leader-board-empty">No submissions yet</p>
+            )}
             {submissions.map((submission) => (
-              <div className="submission-card">
+              <div className="submission-card" key={submission._id}>
                 <div className="submission">
                   <a
                     href={submission.repoLink}
@@ -175,14 +182,14 @@ function LeaderBoard() {
                   submission.submittedBy._id === user._id ||
                   user.role === "admin"
                 ) && (
-                  <>
+                  <div className="submission-actions">
                     <button onClick={() => deleteSubmission(submission._id)}>
                       ❌
                     </button>
                     <button onClick={() => handleUpdate(submission._id)}>
                       Update
                     </button>
-                  </>
+                  </div>
                 )}
               </div>
             ))}
