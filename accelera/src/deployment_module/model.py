@@ -109,9 +109,8 @@ def perform_hyperparameter_tuning(X_train, y_train, quick_search=True):
         return_train_score=True,
     )
 
-    search_message = (
-        f"\nSearching {len(param_grid)} parameters with "
-        f"{deployment_model_config['cv_folds']}-fold CV..."
+    print(
+        f"\nSearching {len(param_grid)} parameters with {CONFIG['cv_folds']}-fold CV..."
     )
     grid_search.fit(X_train, y_train)
 
