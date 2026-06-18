@@ -1,4 +1,4 @@
-\subsubsection{AutoPreprocessing Module}
+\subsubsection{Module Overview}
 
 In the data science lifecycle, data understanding, exploratory data analysis (EDA), and data preparation represent major stages that involve a large amount of repetitive work. In this module, the aim is to reduce this repetitive effort by introducing a rule-based system that automates these processes.
 
@@ -17,14 +17,18 @@ The system also generates a final report that provides the user with information
   \item Classification and Regression for tabular dataset
   \item Classification for text dataset
   \item Classification and Segmentation for image dataset
-
 \end{itemize}
+
 
 \subsubsection{Tabular Dataset}
 
 The meaning of The tabular dataset in this module is structured data organized in rows and columns, where features can be either categorical or numerical.
-
-
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\textwidth,trim=45pt 200pt 35pt 145pt,clip]{imgs/tabular.pdf}
+    \caption{Tabular data Preprocessing Digram}
+    \label{fig:Tabular_data}
+\end{figure}
 \Needspace{5\baselineskip}
 \noindent\textbf{Training Preprocessing Steps}\par
 \begin{enumerate}
@@ -39,10 +43,12 @@ The meaning of The tabular dataset in this module is structured data organized i
   \item Generate visualizations of the training data based on column types and task type.
   \item Apply feature preprocessing techniques for each column based on its detected type.
   \item Apply target preprocessing based on the selected task.
+  \item Feature Selection.
   \item Save all files required for preprocessing the test data.
   \item Generate Report if user enable report generation.
   \item Return \texttt{X\_train}, \texttt{y\_train}, \texttt{X\_val}, \texttt{y\_val}.
 \end{enumerate}
+\vspace{1cm}
 \Needspace{4\baselineskip}
 \noindent\textbf{Data Input and User Configuration Initialization:}\par
 The preprocessing pipeline is initialized through the class constructor. 
@@ -90,6 +96,7 @@ Threshold for dropping columns based on missing values ratio. \\
 
 columns\_need\_to\_drop &
 List of user-specified columns to remove. \\
+feature\_importance\_threshold & Threshold to select the most relevant features. \\
 is\_report &
 Enables or disables preprocessing report generation. \\
 
@@ -135,11 +142,11 @@ max\_unique\_ordinal &
 Integer $\geq 0$ \\
 
 missing\_threshold &
-Float: $0 \leq x \leq 1$ \\
+Float or Integer: $0 \leq x \leq 1$ \\
 
 columns\_need\_to\_drop &
 List of strings \\
-
+feature\_importance\_threshold & Float or Integer: $0 \leq x \leq 1$ \\
 is\_report &
 Boolean (True / False) \\
 
@@ -148,10 +155,10 @@ Boolean (True / False) \\
 }
 \end{table}
 \Needspace{4\baselineskip}
+\vspace{1cm}
 \noindent\textbf{Data Overview:}\par
 
-This step is responsible for generating a comprehensive statistical and structural summary of the dataset before preprocessing begins. It helps generate report.
-
+This step is responsible for generating a comprehensive statistical and structural summary of the dataset before preprocessing begins, helping to create a detailed report.
 \begin{enumerate}
     \item \textbf{Capture initial data snapshot:} The first five rows of the original dataset are stored to preserve the original structure before any modifications.
 
@@ -207,16 +214,21 @@ Output: Stored data overview in report object
 Duplicate rows are removed from the dataset to prevent the model from overfitting to repeated examples and to ensure a more reliable evaluation process.
 
 After performing this step, the system reports key statistics to the user, including the total number of duplicate rows detected, the percentage of duplicated data, and the resulting dataset shape after removal. This allows the user to verify that the dataset no longer contains redundant entries.
+\vspace{1cm}
 \Needspace{4\baselineskip}
 \noindent\textbf{Split data:}\par
 Split the data into \texttt{X\_train}, \texttt{X\_val},
 \texttt{y\_train}, and \texttt{y\_val} using the
 \texttt{train\_test\_split} function from Scikit-learn. The split follows the
 configured \texttt{test\_size} and \texttt{random\_state} values.
+\vspace{1cm}
 \Needspace{4\baselineskip}
 \noindent\textbf{Get training data information:}\par
-For each column, calculate the required information, such as the percentage of missing values,number of unique values, the mean and median for numerical columns, and the mode value.
+ For each column, calculate the required information,
+such as the percentage of missing values,number of unique values, the mean and median for
+numerical columns, and the mode value
 \Needspace{4\baselineskip}
+\vspace{1cm}
 \noindent\textbf{Specify Columns to Drop:}\par
 A column is dropped if:
 \begin{itemize}
@@ -226,10 +238,11 @@ A column is dropped if:
 \end{itemize}
 \Needspace{4\baselineskip}
 \noindent\textbf{Drop Selected Columns:}\par
-The specified columns are removed from both \texttt{X\_train} and \texttt{X\_val}.A preview of the updated datasets is saved to the preprocessing report. Additionally, the column names are serialized and saved as a pickle file to ensure consistency when applying the same preprocessing steps on future data.
+The specified columns are removed from both \texttt{X\_train} and \texttt{X\_val}.The dropped column names are serialized and saved as a pickle file to ensure consistency when applying the same preprocessing steps on future data.
 \Needspace{4\baselineskip}
+\vspace{1cm}
 \noindent\textbf{Detect the type of each column based on the training data:}\par
-Each feature is automatically assigned a column type based on its data type and the number of unique values. The detected type determines the preprocessing techniques that will be applied later in the pipeline.
+Each feature is automatically assigned a column type. The detected type determines the preprocessing techniques that will be applied later in the pipeline.
 \begin{table}[!htbp]
 \centering
 \caption{Detected column types.}
@@ -247,6 +260,29 @@ Each feature is automatically assigned a column type based on its data type and 
 \bottomrule
 \end{tabular}
 \end{table}
+\begin{itemize}
+    \item \textbf{Binary}: Columns containing exactly two unique values or boolean values.  
+    Examples: ``yes/no'', ``1/0'', ``True/False''.
+
+    \item \textbf{Ordinal}: Integer columns with a small number of unique values less than or equal \texttt{max\_ordinal\_unique}, where values have a meaningful order.  
+    Example: $1, 2, 3, 4$ (ratings, levels).
+
+    \item \textbf{Numerical}: Integer columns with a number of unique values greater than \texttt{max\_ordinal\_unique}, typically representing continuous or high-variance numeric data.  
+    Examples: age, number of transactions.
+
+    \item \textbf{Continuous}: Floating-point columns representing real-valued measurements.  
+    Examples: height = 175.5, price = 19.99, temperature = 36.6.
+
+    \item \textbf{Low-Cardinality Categorical}: Object (string) columns with a number of unique values less than or equal to \texttt{cardinality\_threshold}.  
+    Examples: product categories.
+
+    \item \textbf{High-Cardinality Categorical}: Object (string) columns with a number of unique values greater than \texttt{cardinality\_threshold}.  
+    Examples: product names, cities.
+
+    \item \textbf{Other}: Columns with unsupported or non-standard data types that are excluded from the preprocessing pipeline.  
+  
+\end{itemize}
+\vspace{1cm}
 \begin{lstlisting}[style=algostyle,caption={Column Type Detection and Preprocessing Assignment}]
 Input: Training features X_train
 Output: Column groups and assigned preprocessing rules
@@ -254,11 +290,11 @@ Output: Column groups and assigned preprocessing rules
 1:  for each column in X_train do
 2:      if column is binary then
 3:          assign type Binary
-4:          assign most-frequent imputation and ordinal encoding
+4:          assign most frequent imputation and ordinal encoding
 5:      else if column is integer then
 6:          if unique values <= maximum ordinal threshold then
 7:              assign type Ordinal
-8:              assign most-frequent imputation and robust scaling
+8:              assign most frequent imputation and robust scaling
 9:          else
 10:             assign type Numerical
 11:             assign median imputation and robust scaling
@@ -268,11 +304,11 @@ Output: Column groups and assigned preprocessing rules
 15:         assign median imputation and robust scaling
 16:     else if column is categorical then
 17:         if cardinality <= cardinality threshold then
-18:             assign type Low-Cardinality Categorical
-19:             assign most-frequent imputation and binary encoding
+18:             assign type Low Cardinality Categorical
+19:             assign most frequent imputation and binary encoding
 20:         else
-21:             assign type High-Cardinality Categorical
-22:             assign most-frequent imputation and frequency encoding
+21:             assign type High Cardinality Categorical
+22:             assign most frequent imputation and frequency encoding
 23:         end if
 24:     else
 25:         mark column as unsupported and schedule it for removal
@@ -284,19 +320,18 @@ Output: Column groups and assigned preprocessing rules
 
 \Needspace{4\baselineskip}
 \noindent\textbf{Generate visualizations of the training data based on column types and task type:}\par
-The tabular preprocessing report generates a set of graphs for each detected feature type and task type. 
-
+When the \texttt{is\_report} flag is enabled, the tabular preprocessing report produces a set of visualizations corresponding to each detected feature type and task type.
 \begin{itemize}
   \item \textbf{Binary / categorical features with classification targets:} The report produces these graphs
     \begin{itemize}
       \item a null-vs-non-null pie chart,
-      \item a category count plot (Top 5 Categories + Other),
-      \item a category vs target count plot (Top 5 Categories + Other).
+      \item a category count plot ,
+      \item a category vs target count plot .
     \end{itemize}
   \item \textbf{Binary / categorical features with regression targets:} The report produces these graphs
     \begin{itemize}
       \item a null-vs-non-null pie chart,
-      \item a category count plot (Top 5 Categories + Other),
+      \item a category count plot ,
       \item a box plot of the continuous target for each category.
     \end{itemize}
   \item \textbf{Ordinal features with classification targets:} The report produces these graphs
@@ -336,6 +371,33 @@ The tabular preprocessing report generates a set of graphs for each detected fea
     \end{itemize}
   \item \textbf{Numeric correlation matrix:} The report generates a heatmap of pairwise correlations across all numeric features.
 \end{itemize}
+\Needspace{2\baselineskip}
+\textbf{Interpretation of visualization types:}
+\begin{itemize}
+  \item \textbf{Null vs non-null pie chart:} shows the proportion of missing values in a feature, helping detect data quality issues.
+
+  \item \textbf{Category count plot:} shows the frequency distribution of categorical values and reveals imbalance or rare categories.
+
+  \item \textbf{Category vs target count plot:} shows how each category relates to the target variable,helps identify whether certain categories are strongly associated with specific target outcomes.
+
+  \item \textbf{Ordered count plot:} shows the frequency of ordinal values while preserving their order, helping visualize how samples are distributed across ordered levels.
+
+  \item \textbf{Ordered count plot split by class:} shows how different classes are distributed across ordered levels (e.g., 1 to 4), helping identify whether certain classes tend to appear more in specific ordinal levels.
+
+  \item \textbf{Box plot (category/ordinal vs target):} shows the distribution of a continuous target across groups, highlighting differences, variance, and outliers.
+
+  \item \textbf{Histogram + KDE:} shows the distribution shape of a feature or target, including skewness, modality, and spread.
+
+  \item \textbf{Scatter plot (feature vs target):} shows relationships or trends between numerical features and regression targets, including linear/non-linear patterns.
+
+  \item \textbf{Box plot grouped by class label:} shows how numerical features vary across classes and helps detect outliers.
+
+  \item \textbf{Correlation heatmap:} shows pairwise linear relationships between numerical features, helping detect multicollinearity and redundancy.
+
+  \item \textbf{Target frequency plot (classification):} shows class imbalance, which is critical for model selection and evaluation strategy.
+
+  \item \textbf{Target histogram (regression):} shows distribution of target values, helping detect skewness and outliers.
+\end{itemize}
 \Needspace{4\baselineskip}
 \noindent\textbf{Apply feature preprocessing techniques for each column based on its detected type:}\par
 
@@ -351,6 +413,38 @@ The tabular preprocessing report generates a set of graphs for each detected fea
 \textbf{Low-cardinality categorical} & Most-frequent imputation followed by binary encoding.\\
 \textbf{Frequency-encoded categorical} & Most-frequent imputation followed by a frequency encoding transform.\\
 \textbf{Ordinal} & Most-frequent imputation followed by robust scaling.\\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{table}[!htbp]
+\centering
+\caption{Justification of preprocessing techniques by feature type.}
+\begin{tabular}{p{0.30\linewidth}p{0.65\linewidth}}
+\toprule
+\textbf{Preprocessing choice} & \textbf{Justification} \\
+\midrule
+
+Median imputation &
+Robust to outliers compared to mean imputation, making it suitable for skewed numerical distributions. \\
+
+Robust scaling &
+Reduces the influence of outliers by scaling using the interquartile range instead of mean and variance. \\
+
+Most-frequent imputation &
+Preserves the natural distribution of categorical variables by replacing missing values with the dominant category. \\
+
+Binary encoding &
+Efficient representation for categorical variables, reducing dimensionality from $O(k)$ in one-hot encoding to $O(\log k)$ while preserving information. \\
+
+Frequency encoding &
+Captures category importance based on occurrence frequency, reducing sparsity and preserving distributional signals. \\
+
+Ordinal handling &
+Preserves inherent ordering information in the feature (e.g., 1 < 2 < 3 < 4), unlike nominal encodings. \\
+
+Unknown category mapping (-1) &
+Ensures robustness during inference by handling unseen categories without breaking the encoding schema. \\
+
 \bottomrule
 \end{tabular}
 \end{table}
@@ -384,11 +478,23 @@ Output: Processed targets and saved target metadata
 16: Return processed training and validation targets
 \end{lstlisting}
 
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Feature Selection:}\par
+Feature selection is performed using Mutual Information to measure the dependency between each feature and the target variable. 
+For classification tasks, Mutual Information Classification is used, while Mutual Information Regression is applied for regression problems.
+Each feature is assigned an importance score based on its Mutual Information value. 
+The features are then ranked in descending order according to their scores. 
+Only features whose scores exceed a predefined threshold feature\_importance\_threshold are selected for model training.
+If no feature satisfies the threshold condition, an exception is raised to ensure model validity. 
+The selected features are then used to filter both the training and validation sets. 
+Finally, the list of selected features is saved for reproducibility and later use during inference.
+\vspace{1cm}
 \Needspace{4\baselineskip}
 \noindent\textbf{Save all files required for preprocessing the test data:}\par
 The preprocessing pipeline persists the objects required for later inference and reuse:
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \caption{Saved preprocessing artifacts for test-time reuse.}
 \begin{tabular}{p{0.30\linewidth}p{0.65\linewidth}}
@@ -402,12 +508,15 @@ The preprocessing pipeline persists the objects required for later inference and
 \texttt{bool\_type\_col.pkl} & Boolean columns that are converted to integer values during preprocessing.\\
 \texttt{data\_columns.pkl} & The column names of the input DataFrame before preprocessing.\\
 \texttt{col\_drop.pkl} & The names of the dropped columns.\\
+\texttt{selected\_features.pkl} & The names of the final selected columns.\\
 \bottomrule
 \end{tabular}
 \end{table}
+\vspace{2cm}
 \Needspace{4\baselineskip}
 \noindent\textbf{Generate Report (Optional):}\par
 When \texttt{is\_report} is enabled, the \texttt{TabularPreprocessingReport} class generates an HTML report from the collected \texttt{report\_data}. The report documents the complete preprocessing workflow, including data overview statistics, missing values, duplicate analysis, train-validation split details, removed columns, generated graphs, preprocessing decisions for each feature, and previews of the transformed training and validation datasets. This allows users to inspect and understand all preprocessing steps applied before model training.
+\vspace{1cm}
 \Needspace{5\baselineskip}
 \noindent\textbf{Testing Preprocessing Steps}\par
 The testing preprocessing workflow is designed to reuse the exact training preprocessing artifacts and transformations.
@@ -416,23 +525,23 @@ The testing preprocessing workflow is designed to reuse the exact training prepr
   \item Verify that the required artifact files exist:
         target preprocessor, training preprocessor,
         \texttt{data\_columns.pkl}, \texttt{col\_drop.pkl},
-        \texttt{target\_info.pkl}, and \texttt{bool\_type\_col.pkl}.
+        \texttt{target\_info.pkl}, \texttt{selected\_features.pkl}, \texttt{feature\_names.pkl}and \texttt{bool\_type\_col.pkl}.
   \item Load the saved dataset columns, dropped columns, target information,
-        boolean-column list, training preprocessor, and target preprocessor.
+        boolean column list,selected features, training preprocessor, and target preprocessor.
   \item Confirm \texttt{target\_info} contains a valid \texttt{col\_name} and \texttt{problem\_type} (classification or regression).
   \item Confirm \texttt{target\_preprocessor} and \texttt{training\_preprocessor} is not none.
   \item Ensure that the test dataset column order matches the saved training columns. If the target column is missing, testing proceeds in \texttt{features\_only} mode.
   \item Normalize string values in the test dataset by lowercasing them, matching the same text normalization used during training preprocessing.
-  \item Separate the test DataFrame into \texttt{X\_test} and \texttt{y\_test} when the target column is present.
-  \item Convert boolean columns to integers using the list saved in \texttt{bool\_type\_col.pkl}.
-  \item Drop the same columns identified during training using \texttt{col\_drop.pkl}.
+  \item Separate the test DataFrame into \texttt{X\_test} and \texttt{y\_test} when \texttt{features\_only} mode is false.
+\item Convert the columns listed in \texttt{bool\_type\_col.pkl} to integer data type.  \item Drop the same columns identified during training using \texttt{col\_drop.pkl}.
   \item Apply the saved \texttt{training\_preprocessor.pkl} transformer to \texttt{X\_test}.
-  \item Apply target preprocessing when the target variable is present:
+\item Filter $X_{train}$ to keep only the selected features.
+  \item Apply target preprocessing when  when \texttt{features\_only} mode is false:
     \begin{itemize}
       \item For classification, fill missing labels with the training-mode value, then apply the saved label encoder.
       \item For regression, fill missing values with the training median, then apply the saved standard scaler.
     \end{itemize}
-  \item Return the preprocessed test features and labels.
+\item Return the preprocessed test features and labels when \texttt{features\_only} is set to \texttt{False}; otherwise, return the preprocessed test features and \texttt{None} for the labels.
 \end{enumerate}
 
 This ensures the test pipeline uses the same feature transformation and target encoding logic as training.
@@ -443,7 +552,8 @@ This ensures the test pipeline uses the same feature transformation and target e
 \label{tab:classicaltestingparams}
 
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{ll}
+\begin{tabular}{p{0.30\linewidth}p{0.65\linewidth}}
+
 \toprule
 \textbf{Parameter} & \textbf{Description} \\
 \midrule
@@ -459,93 +569,395 @@ folder\_path & Path to load saved preprocessing artifacts. \\
 
 \subsubsection{Text Dataset}
 
-The text dataset consists of unstructured data containing a single text column used for natural language processing tasks. Text preprocessing transforms the raw text column into numerical features suitable for machine learning models.
+The text dataset consists of unstructured data containing a single text column used for natural language processing tasks.
 
+\vspace{1cm}
 \Needspace{5\baselineskip}
 \noindent\textbf{Training Preprocessing Steps}\par
 
 \begin{enumerate}
-  \item Load data and user configuration.
-  \item Get data overview and compute text statistics.
-  \item Drop duplicates.
-  \item Split dataset.
-  \item Generate visualizations of the training data.
-  \item Normalize and clean text data.
-  \item Extract features from text using natural language processing techniques.
-  \item Apply target preprocessing based on the classification task.
-  \item Save all files required for preprocessing the test data.
-  \item Generate Report if user enable report generation.
-  \item Return \texttt{X\_train}, \texttt{y\_train}, \texttt{X\_val}, \texttt{y\_val}.
+  \item Constructor Initialization and Input Validation.
+  \item Initialize NLP dependencies.
+  \item Generate data overview and split dataset.
+  \item Generate optional graphs.
+  \item Handle missing text values.
+  \item Apply text preprocessing and tokenization.
+  \item Transform text using TF-IDF vectorization.
+  \item Encode target labels.
+  \item Save preprocessing artifacts.
+  \item Generate preprocessing report (optional).
+  \item Return processed datasets.
 \end{enumerate}
+\vspace{1cm}
+\vspace{0.5cm}
+\noindent\textbf{Constructor Initialization and Input Validation:}\par
 
-
-\Needspace{4\baselineskip}
-\noindent\textbf{Load data and user configuration:}\par
-The text preprocessing pipeline is initialized through the class constructor. During initialization, all user-defined parameters are assigned and validated to ensure consistency and correctness before executing any preprocessing steps.
+The constructor initializes all required parameters. During initialization, the method performs  validation checks to ensure that the text column is correctly defined, is different from the target column, and has the appropriate data type. It also verifies that the target variable is suitable for classification tasks. Additionally, unnecessary columns are removed, required NLP resources are downloaded, and all configuration parameters are stored for later use.
 
 \begin{table}[!htbp]
 \centering
+\caption{Text Training Data Preprocessing Parameters }
+\label{tab:text_constructor_params}
 
-\caption{Text Training Preprocessing Parameters}
-\label{tab:textrainingparams}
-
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{ll}
+\begin{tabular}{p{0.30\linewidth}p{0.65\linewidth}}
 \toprule
 \textbf{Parameter} & \textbf{Description} \\
 \midrule
 
-df & The input dataframe containing the dataset. \\
+\texttt{df} &
+Input pandas DataFrame containing the dataset. \\
 
-target\_col & The name of the target column in the dataset (for supervised classification tasks). \\
+\texttt{target\_col} &
+Name of the target column used for classification. \\
 
-text\_col & The name of the column containing raw text data. \\
+\texttt{text\_col} &
+Name of the column containing raw text data for NLP processing. \\
 
-folder\_path & Path to store reports, preprocessors, and serialized objects. Default: None. \\
+\texttt{folder\_path} &
+Directory path used to store preprocessing outputs and reports. \\
 
-val\_size & Fraction of data used for validation split (e.g., 0.2 for 20\%). Default: 0.2. \\
+\texttt{val\_size} &
+Fraction of data used for validation split (default: 0.2). \\
 
-random\_state & Random seed to ensure reproducible data splits. Default: 42. \\
+\texttt{random\_state} &
+Random seed for reproducible train-validation splitting (default: 42). \\
 
-tfidf\_max\_features & Maximum number of features (vocabulary size) for TF-IDF vectorizer. Default: 500. \\
+\texttt{tfidf\_max\_features} &
+Maximum vocabulary size for TF-IDF vectorization (default: 500). \\
 
-tfidf\_ngram & N-gram range for TF-IDF vectorizer as tuple (min\_n, max\_n). Default: (1, 2). \\
+\texttt{tfidf\_ngram} &
+N-gram range for TF-IDF vectorizer (default: (1,2)). \\
 
-tfidf\_max\_df & Maximum document frequency threshold for TF-IDF (0.0 to 1.0). Default: 0.85. \\
+\texttt{tfidf\_max\_df} &
+Maximum document frequency threshold for TF-IDF (default: 0.85). \\
 
-tfidf\_min\_df & Minimum document frequency threshold for TF-IDF (0.0 to 1.0 or integer count). Default: 3. \\
+\texttt{tfidf\_min\_df} &
+Minimum document frequency threshold for TF-IDF (default: 3). \\
 
-is\_report & Boolean flag to enable or disable preprocessing report generation. Default: True. \\
+\texttt{is\_report} &
+Boolean flag to enable or disable report generation. \\
 
 \bottomrule
-\end{tabular}%
-}
+\end{tabular}
 \end{table}
+\vspace{1cm}
 
+\Needspace{4\baselineskip}
+\noindent\textbf{Initialize NLP dependencies:}\par
+Required Natural Language Processing resources such as tokenizers and stopword lists are downloaded and initialized to enable text preprocessing operations.
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Generate data overview and split dataset:}\par
+A statistical overview of the dataset is generated, including missing values, duplicates, and descriptive statistics. After that, the dataset is split into training and validation sets using the configured split ratio.
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Generate optional graphs:}\par
+If enabled, the system generates visualizations such as text distribution plots and target distribution plots to better understand dataset characteristics.
+\vspace{0.5cm}
+
+\begin{table}[!htbp]
+\centering
+\caption{Optional Graph Generation in Text Preprocessing}
+\begin{tabular}{p{0.35\linewidth}p{0.60\linewidth}}
+\toprule
+\textbf{Graph Type} & \textbf{Purpose} \\
+\midrule
+
+Null vs Non-Null Distribution &
+Shows missing value ratio in text and target columns. \\
+
+Target Distribution Plot &
+Displays class frequency distribution for classification tasks. \\
+
+Top-K Word Frequency Plot &
+Shows the most frequent 7 words in the corpus.\\
+
+\bottomrule
+\end{tabular}
+\end{table}
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Handle missing text values:}\par
+All missing values in the text column are replaced with empty strings.
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Apply text preprocessing and tokenization:}\par
+Raw text is cleaned and transformed using a custom tokenizer. This includes lowercasing, removing noise characters, handling contractions, removing stopwords, and applying stemming to normalize tokens.
+\begin{lstlisting}[style=algostyle,caption={Custom Text Tokenizer},label={alg:custom_text_tokenizer}]
+Input: Raw text string
+Output: List of cleaned and stemmed tokens
+
+1:  Initialize English stopwords and remove {"not", "no"} from stopword list
+2:  Initialize PorterStemmer
+3:  Convert text to lowercase and strip whitespace
+4:  Normalize special apostrophes to signle qoute
+5:  Replace contractions:
+        "can't" to "can not"
+        "won't" to "will not"
+        "shan't" to "shall not"
+6:  Expand "n't" patterns into " not "
+7:  Insert space between digits and letters
+8:  Remove all characters except letters, digits, and apostrophes
+9:  Collapse multiple spaces into a single space
+10: Split text into tokens
+11: Remove surrounding quotes from each token
+12: Remove stopwords (except "not" and "no")
+13: Remove tokens with length less than ar equal 1
+14: Apply Porter stemming to remaining tokens
+15: Return final token list
+\end{lstlisting}
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Transform text using TF-IDF vectorization:}\par
+The cleaned text is converted into numerical feature vectors using a TF-IDF vectorizer, which captures the importance of words based on their frequency across documents.
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Encode target labels:}\par
+Categorical target labels are converted into numerical form using label encoding. Missing target values are filled using the most frequent class.
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Save preprocessing artifacts:}\par
+All fitted preprocessing objects such as the TF-IDF vectorizer and label encoder are saved to disk for reuse during inference.
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Generate preprocessing report (optional):}\par
+If enabled, a detailed report is generated containing preprocessing steps, dataset statistics, and visualizations for analysis and reproducibility.
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Return processed datasets:}\par
+The final processed training and validation datasets are returned, including transformed features and encoded labels, ready for model training.
+\vspace{2cm}
+\begin{lstlisting}[style=algostyle,caption={Common Preprocessing Pipeline},label={alg:common_preprocessing}]
+Input: Raw dataframe D
+Output: X_train, y_train, X_val, y_val
+
+1:  Compute data overview statistics
+2:  Remove duplicate rows from dataset
+3:  Split dataset into:
+        X_train, X_val, y_train, y_val
+4:  Generate exploratory graphs (if enabled)
+5:  Apply feature preprocessing on X_train and X_val
+6:  Apply target preprocessing on y_train and y_val
+7:  If is_report = True then
+8:     Execute report generation
+9: End if
+10: Return X_train, y_train, X_val, y_val
+\end{lstlisting}
+\vspace{1cm}
 \Needspace{4\baselineskip}
 \noindent\textbf{Testing Preprocessing Steps}\par
 
-The text testing preprocessing workflow is designed to reuse the exact training preprocessing artifacts, vocabulary, and feature extraction models.
+\begin{enumerate}
+  \item Load saved training metadata from \texttt{data\_info.pkl} and recover the original \texttt{text\_col} and \texttt{target\_col}.
+  \item Validate that the test DataFrame contains the text column. If the target column is absent, enable feature-only mode.
+  \item Normalize string values by lowercasing the entire DataFrame using \texttt{lower\_data}. 
+  \item Fill missing text values with the empty string and transform test text using the saved TF-IDF transformer.
+  \item If target labels exist, fill missing labels with the saved training mode and apply the saved label encoder.
+  \item Return preprocessed text features and labels (or \texttt{None} for labels when feature-only mode is enabled).
+\end{enumerate}
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Constructor Initialization and Artifact Loading:}\par
+
+The testing constructor loads \texttt{data\_info.pkl} from the saved folder path and recovers the original \texttt{text\_col}, \texttt{target\_col}, and \texttt{target\_mode}. It verifies that the text column exists in the test DataFrame and sets \texttt{features\_only=true} if the target column is missing.
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Text Testing Preprocessing Parameters:}\par
 
 \begin{table}[!htbp]
 \centering
-
 \caption{Text Testing Preprocessing Parameters}
-\label{tab:textestingparams}
-
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{ll}
+\label{tab:text_testing_params}
+\begin{tabular}{p{0.30\linewidth}p{0.65\linewidth}}
 \toprule
 \textbf{Parameter} & \textbf{Description} \\
 \midrule
 
-df & The input test dataframe containing the dataset. \\
+\texttt{df} & Input pandas DataFrame containing test examples.\\
 
-folder\_path & Path containing saved preprocessing artifacts from training (vocabulary, TF-IDF model, encoders). \\
+\texttt{folder\_path} & Directory path containing saved training artifacts and metadata.\\
 
 \bottomrule
-\end{tabular}%
-}
+\end{tabular}
 \end{table}
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Feature Preprocessing:}\par
 
-This ensures the test pipeline uses the same text normalization, tokenization, and feature extraction logic as training.
+The feature preprocessing method fills missing values in the text column with empty strings and applies the loaded TF-IDF transformer from \texttt{training\_preprocessor.pkl}. This yields the final sparse feature matrix for test time.
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Target Preprocessing:}\par
+
+If the test set contains the target column, missing targets are replaced with the saved training mode and then transformed with the loaded label encoder from \texttt{target\_preprocessor.pkl}. If the target column is missing, the method returns \texttt{None} for the labels.
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Common Preprocessing Flow:}\par
+
+The test pipeline first lowercases all string values in the DataFrame, then executes feature preprocessing and target preprocessing sequentially. It returns the transformed text features and encoded labels.
+\vspace{0.5cm}
+
+\begin{lstlisting}[style=algostyle,caption={Text Testing Preprocessing Pipeline},label={alg:text_testing_pipeline}]
+Input: test DataFrame D, saved folder path
+Output: X_test, y_test or None
+
+1:  Load data_info.pkl and recover text_col, target_col, target_mode
+2:  Validate that text_col exists in D
+3:  If target_col not in D then set features_only = True
+4:  Lowercase all string values in D
+5:  Fill missing values in D[text_col] with empty string
+6:  Apply saved TF-IDF transformer to D[text_col]
+7:  If features_only then
+8:      y_test = None
+9:  else
+10:     Fill missing values in D[target_col] with target_mode
+11:     Transform targets with the saved label encoder
+12: End if
+13: Return X_test, y_test
+\end{lstlisting}
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Saved artifacts used by text testing:}\par
+
+\begin{table}[!htbp]
+\centering
+\caption{Artifacts consumed by Text Testing Preprocessing}
+\begin{tabular}{p{0.30\linewidth}p{0.65\linewidth}}
+\toprule
+\textbf{Artifact} & \textbf{Purpose}\\
+\midrule
+\texttt{data\_info.pkl} & Contains saved metadata: \texttt{text\_col}, \texttt{target\_col}, and \texttt{target\_mode}.\\
+\texttt{training\_preprocessor.pkl} & Saved TF-IDF vectorizer used to transform test text.\\
+\texttt{target\_preprocessor.pkl} & Saved LabelEncoder used to transform test labels.\\
+\bottomrule
+\end{tabular}
+\end{table}
+\subsubsection{Image Dataset}
+The auto preprocessed image pipeline is designed to handle two types of vision tasks: image classification and binary segmentation.
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Expected Dataset Structure}
+The dataset is expected to follow the directory structure shown below. The validation folder is optional; if it exists.
+\begin{verbatim}
+Training/
+  Cats/
+  Dogs/
+
+Validation/
+  Cats/
+  Dogs/
+\end{verbatim}
+
+
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Classification image training preprocessing steps:}\par
+\begin{enumerate}
+\item Initialize the constructor and validate input parameters.
+  \item Generate class-label mappings.
+    \item Load and validate images.
+    \item Create dataset overview and summary statistics.
+    \item Split training data into training and validation sets (optional).
+    \item Apply image preprocessing and augmentation.
+    \item Construct training and validation datasets.
+    \item Create DataLoaders for batch processing.
+    \item Generate preprocessing visualizations and reports.
+    \item Return processed training and validation DataLoaders.
+\end{enumerate}
+
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Initialize the constructor and validate input parameters:}\par
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Parameter} & \textbf{Description} \\
+\hline
+
+training\_folder\_images & Path to training image folder (class-wise structure) \\
+validation\_folder\_images & Path to validation image folder (optional) \\
+folder\_path & Output directory for saving reports, mappings, and graphs \\
+split\_training & Whether to split training folder into train/validation sets \\
+val\_size & Validation split ratio in range (0, 0.5] \\
+random\_state & Random seed for reproducibility \\
+images\_size & Image resize dimensions (height, width) \\
+augment & Enable or disable data augmentation \\
+batch\_size & Batch size for DataLoader \\
+augmentation\_probability & Probability of applying augmentation in range [0,1] \\
+horizontal\_flip & Enable horizontal flip augmentation \\
+vertical\_flip & Enable vertical flip augmentation \\
+rotation & Enable rotation augmentation \\
+rotation\_angle & Maximum rotation angle in degrees \\
+brightness & Enable brightness augmentation \\
+brightness\_factors & Range for brightness adjustment \\
+contrast & Enable contrast augmentation \\
+contrast\_factors & Range for contrast adjustment \\
+
+\hline
+\end{tabular}
+\caption{Classification Image Training Preprocessing Parameters}
+\end{table}
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Parameter} & \textbf{Validation Rules} \\
+\hline
+
+training\_folder &
+Must not be None and must exist in filesystem \\
+folder\_path& Must be not None.\\
+validation\_folder &
+If provided, must exist and must be different from training\_folder \\
+
+split\_training &
+If validation\_folder is provided, must be False \\
+
+val\_size &
+Must be a float in range (0, 0.5] \\
+
+random\_state &
+Must be integer or None \\
+
+images\_size &
+Must be a tuple of two integers in range [32, 1024] \\
+
+batch\_size &
+Must be integer greater than 0 \\
+
+augment &
+Must be boolean \\
+
+horizontal\_flip &
+Must be boolean \\
+
+vertical\_flip &
+Must be boolean \\
+
+rotation &
+Must be boolean \\
+
+brightness &
+Must be boolean \\
+
+contrast &
+Must be boolean \\
+
+augmentation\_probability &
+Must be float in range [0, 1] \\
+
+rotation\_angle &
+Must be numeric (int/float) and greater than or equal 0 \\
+
+brightness\_factors &
+Must be a tuple of two numeric values (int/float) \\
+
+contrast\_factors &
+Must be a tuple of two numeric values (int/float) \\
+
+\hline
+\end{tabular}
+\caption{Validation Rules for Classification Image Training Preprocessing Parameters}
+\end{table}

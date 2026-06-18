@@ -11,43 +11,55 @@ changing the selected model or the measured predictive accuracy.
 
 \begin{table}[H]
 \centering
-\caption{Accelera Pipe latency and memory scaling}
-\label{tab:pipe-scale}
-\resizebox{\textwidth}{!}{
-\begin{tabular}{rrrrrrrrrr}
+\caption{Accelera Pipe latency scaling in seconds}
+\label{tab:pipe-latency-scale}
+\begin{tabular}{rrrr}
 \toprule
-Samples & Train & Val & Test &
-sklearn time & sklearn RSS &
-Pipeline time & Pipeline RSS &
-Accelera time & Accelera RSS \\
+Samples & sklearn & sklearn Pipeline & Accelera Pipe \\
 \midrule
-1,000 & 600 & 200 & 200 &
-0.06 & 1.62 & \bestcell 0.05 & \bestcell 0.16 & 0.34 & 19.32 \\
-5,000 & 3,000 & 1,000 & 1,000 &
-2.47 & 3.62 & 2.12 & \bestcell 1.09 & \bestcell 2.02 & 21.62 \\
-10,000 & 6,000 & 2,000 & 2,000 &
-2.64 & 11.25 & 2.67 & \bestcell 2.19 & \bestcell 2.10 & 28.43 \\
-50,000 & 30,000 & 10,000 & 10,000 &
-23.96 & 126.95 & 23.25 & \bestcell 9.75 & \bestcell 14.81 & 209.25 \\
-100,000 & 60,000 & 20,000 & 20,000 &
-77.79 & 139.70 & 77.10 & \bestcell 47.65 & \bestcell 67.04 & 300.93 \\
-250,000 & 150,000 & 50,000 & 50,000 &
-803.56 & 303.95 & 803.01 & \bestcell 28.52 & \bestcell 494.64 & 594.86 \\
+1,000 & 0.06 & \bestcell 0.05 & 0.34 \\
+5,000 & 2.47 & 2.12 & \bestcell 2.02 \\
+10,000 & 2.48 & 2.48 & \bestcell 1.79 \\
+50,000 & 23.96 & 23.25 & \bestcell 14.81 \\
+100,000 & 77.79 & 77.10 & \bestcell 67.04 \\
+250,000 & 803.56 & 803.01 & \bestcell 494.64 \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \end{table}
 
-Table~\ref{tab:pipe-scale} shows the main performance trend. At very small sizes, Accelera Pipe is
-slower because the native graph setup, branch creation, and Python/C++ boundary
-cost dominate the actual model computation. Once the dataset grows, those fixed
-costs become small compared with fitting multiple candidate branches. At
-50,000 samples, Accelera Pipe reduces runtime from 23.96 seconds to 14.81
-seconds. At 250,000 samples, it reduces runtime from about 803 seconds to about
-495 seconds, saving more than five minutes while selecting the same candidate.
-The table also shows the current cost of graph-level parallelism: Accelera Pipe
-uses more RSS memory because multiple branch states and intermediate arrays can
-exist at the same time. The memory optimizations in the methodology section
-target exactly this issue.
+Table~\ref{tab:pipe-latency-scale} shows the main performance trend without
+compressing the font. At very small sizes, Accelera Pipe is slower because the
+native graph setup, branch creation, and Python/C++ boundary cost dominate the
+actual model computation. Once the dataset grows, those fixed costs become
+small compared with fitting multiple candidate branches. At 50,000 samples,
+Accelera Pipe reduces runtime from 23.96 seconds to 14.81 seconds. At 250,000
+samples, it reduces runtime from about 803 seconds to about 495 seconds,
+saving more than five minutes while selecting the same candidate.
+
+\begin{table}[H]
+\centering
+\caption{Accelera Pipe RSS memory scaling in MB}
+\label{tab:pipe-memory-scale}
+\begin{tabular}{rrrr}
+\toprule
+Samples & sklearn & sklearn Pipeline & Accelera Pipe \\
+\midrule
+1,000 & 1.62 & \bestcell 0.16 & 19.32 \\
+5,000 & 3.62 & \bestcell 1.09 & 21.62 \\
+10,000 & 11.47 & \bestcell 2.19 & 7.25 \\
+50,000 & 126.95 & \bestcell 9.75 & 209.25 \\
+100,000 & 139.70 & \bestcell 47.65 & 300.93 \\
+250,000 & 303.95 & \bestcell 28.52 & 594.86 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:pipe-memory-scale} shows the current cost of graph-level
+parallelism. Accelera Pipe uses more RSS memory because multiple branch states
+and intermediate arrays can exist at the same time. The memory optimizations
+in the methodology section, especially consumer-count based release,
+duplicate first-node sharing, and guarded preprocessing copies, target exactly
+this issue.
 
 \begin{table}[H]
 \centering
@@ -162,31 +174,19 @@ obtained an average speedup of 5.578$\times$.
 
 \begin{table}[H]
 \centering
-<<<<<<< HEAD
 \caption{Linux parallelizer and Accelera Pipe integration benchmark}
-=======
-\caption{Parallelizer and Accelera Pipe integration benchmark}
->>>>>>> 544416c (update docs (#168))
 \label{tab:pipe-parallelizer-integration}
 \begin{tabular}{lrr}
 \toprule
 Mode & Samples & Time (s) \\
 \midrule
-<<<<<<< HEAD
 Python custom preprocessing function & 500,000 & 6.83 \\
 End-to-end optimized run, first measured process & 500,000 & 5.88 \\
 End-to-end optimized run, warmed method and module cache & 500,000 & \bestcell 0.08 \\
-=======
-Python custom preprocessing function & 500,000 & 6.95 \\
-Compiled OpenMP kernel only & 500,000 & \bestcell 0.07 \\
-End-to-end compiled run, cold cache & 500,000 & 4.45 \\
-End-to-end compiled run, cached module & 500,000 & \bestcell 2.59 \\
->>>>>>> 544416c (update docs (#168))
 \bottomrule
 \end{tabular}
 \end{table}
 
-<<<<<<< HEAD
 Table~\ref{tab:pipe-parallelizer-integration} reports the Linux direct
 \modulepath{examples/parallel\_accpipe.py} run after normalizing the example
 execution directory to the repository root. The Python implementation takes
@@ -303,13 +303,3 @@ benchmark has lower launch and linking overhead in the reported measurements,
 so executable runtime is closer to the timed main-body work. For this reason,
 Windows results should be interpreted as end-to-end toolchain latency results,
 not only as loop-kernel speed results.
-=======
-Table~\ref{tab:pipe-parallelizer-integration} separates kernel execution time from end-to-end pipeline time. The
-0.07 second measurement is the compiled preprocessing kernel alone and does not
-include compilation. The 4.45 second run includes conversion, OpenMP
-parallelization, C++ extension compilation, module loading, and execution. The
-2.59 second run benefits from the compiled-module cache, so it represents the
-more realistic repeated-run cost. This confirms that the integration is useful,
-but also shows why compilation caching is necessary: without caching, compile
-latency hides part of the kernel speedup.
->>>>>>> 544416c (update docs (#168))

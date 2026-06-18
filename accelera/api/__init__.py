@@ -9,6 +9,8 @@ from accelera.src.version import __version__ as __version__
 from accelera.src import accelera_automl as accelera_automl
 from accelera.src import accelera_pipe as accelera_pipe
 from accelera.src import auto_preprocessing as auto_preprocessing
+from accelera.src import automl as automl
+from accelera.src import benchmark as benchmark
 from accelera.src import custom as custom
 from accelera.src import deployment_module as deployment_module
 from accelera.src import utils as utils

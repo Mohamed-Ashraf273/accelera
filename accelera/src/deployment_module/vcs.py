@@ -5,11 +5,13 @@ import os
 import shutil
 from datetime import datetime
 
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-EXPERIMENTS_DIR = os.path.join(PROJECT_ROOT, "experiments")
-MODELS_DIR = os.path.join(PROJECT_ROOT, "models")
-CONFIG_FILE = os.path.join(PROJECT_ROOT, "config.json")
-INDEX_FILE = os.path.join(EXPERIMENTS_DIR, "experiments.json")
+from accelera.src.config import config
+
+project_root = str(config.deployment_root)
+experiments_dir = str(config.deployment_experiments_dir)
+models_dir = str(config.deployment_models_dir)
+config_file = str(config.deployment_config_file)
+index_file = str(config.deployment_index_file)
 
 
 def calculate_hash(t, message):
@@ -22,82 +24,26 @@ def resolve_hash(index, short_hash):
 
 
 def save_index(index):
-    with open(INDEX_FILE, "w") as f:
+    with open(index_file, "w") as f:
         json.dump(index, f)
 
 
 def load_index():
-    if not os.path.exists(INDEX_FILE):
-        print(f"Index file not found at {INDEX_FILE}")
+    if not os.path.exists(index_file):
+        print(f"Index file not found at {index_file}")
         raise SystemExit(1)
-    with open(INDEX_FILE, "r") as f:
+    with open(index_file, "r") as f:
         return json.load(f)
-
-
-def load_config():
-    with open(CONFIG_FILE, "r") as f:
-        return json.load(f)
-
-
-def get_configured_models(config):
-    models = config.get("models")
-    if not isinstance(models, dict) or not models:
-        print("config.json must contain a models object")
-        raise SystemExit(1)
-    return models
-
-
-def resolve_model_path(path):
-    if os.path.isabs(path):
-        return path
-    return os.path.join(PROJECT_ROOT, path)
-
-
-def model_snapshot_path(model_name, source_path, used_names):
-    file_name = os.path.basename(source_path)
-    if file_name not in used_names:
-        used_names.add(file_name)
-        return file_name
-
-    safe_name = "".join(
-        c if c.isalnum() or c in ("-", "_") else "_" for c in model_name
-    )
-    file_name = f"{safe_name}_{file_name}"
-    used_names.add(file_name)
-    return file_name
-
-
-def copy_configured_models(config, commit_dir):
-    models = get_configured_models(config)
-    dest_models = os.path.join(commit_dir, "models")
-    os.makedirs(dest_models, exist_ok=True)
-
-    saved_models = {}
-    used_names = set()
-
-    for name, path in models.items():
-        source = resolve_model_path(path)
-        if not os.path.isfile(source):
-            print(f"Model file not found for {name}: {source}")
-            raise SystemExit(1)
-
-        file_name = model_snapshot_path(name, source, used_names)
-        destination = os.path.join(dest_models, file_name)
-        shutil.copy2(source, destination)
-        saved_models[name] = os.path.join("models", file_name)
-
-    config["models"] = saved_models
-    return dest_models, saved_models
 
 
 ################### Commands
 def init(args):
-    if os.path.exists(INDEX_FILE):
+    if os.path.exists(index_file):
         print("Deployment module already initialized")
         return
-    os.makedirs(EXPERIMENTS_DIR, exist_ok=True)
+    os.makedirs(experiments_dir, exist_ok=True)
     save_index({"head": None, "deployed": None, "commits": []})
-    print(f"Deployment initialized at {EXPERIMENTS_DIR}")
+    print(f"Deployment initialized at {experiments_dir}")
 
 
 def commit(args):
@@ -106,8 +52,8 @@ def commit(args):
         print("Commit Message is required")
         raise SystemExit(1)
 
-    if not os.path.exists(CONFIG_FILE):
-        print(f"Config file not found at {CONFIG_FILE}")
+    if not os.path.exists(config_file):
+        print(f"Config file not found at {config_file}")
         raise SystemExit(1)
 
     if not os.path.isdir(models_dir):
@@ -122,7 +68,7 @@ def commit(args):
     while commit_hash in existing:
         commit_hash = calculate_hash(timestamp, message + commit_hash)
 
-    commit_dir = os.path.join(EXPERIMENTS_DIR, commit_hash)
+    commit_dir = os.path.join(experiments_dir, commit_hash)
     os.makedirs(commit_dir, exist_ok=True)
 
     shutil.copy2(config_file, os.path.join(commit_dir, "config.json"))
@@ -154,9 +100,9 @@ def commit(args):
 
     print(f"{commit_hash} {message}")
 
-    model_files = sorted(os.listdir(dest_models))
+    model_files = os.listdir(dest_models)
     print(
-        {f"config.json + {len(saved_models)} model files: {', '.join(model_files)} "}
+        {f"config.json + {len(model_files)} model files: {', '.join(model_files)} "}
     )
 
 
@@ -184,7 +130,7 @@ def log(args):
 def show(args):
     index = load_index()
     commit = resolve_hash(index, args.hash)
-    commit_dir = os.path.join(EXPERIMENTS_DIR, commit["hash"])
+    commit_dir = os.path.join(experiments_dir, commit["hash"])
 
     deployed = index.get("deployed")
     tag = ""
@@ -214,16 +160,16 @@ def show(args):
 def deploy(args):
     index = load_index()
     commit = resolve_hash(index, args.hash)
-    commit_dir = os.path.join(EXPERIMENTS_DIR, commit["hash"])
+    commit_dir = os.path.join(experiments_dir, commit["hash"])
 
     config = os.path.join(commit_dir, "config.json")
     models = os.path.join(commit_dir, "models")
 
-    shutil.copy2(config, CONFIG_FILE)
+    shutil.copy2(config, config_file)
 
-    if os.path.exists(MODELS_DIR):
-        shutil.rmtree(MODELS_DIR)
-    shutil.copytree(models, MODELS_DIR)
+    if os.path.exists(models_dir):
+        shutil.rmtree(models_dir)
+    shutil.copytree(models, models_dir)
 
     index["deployed"] = commit["hash"]
     save_index(index)

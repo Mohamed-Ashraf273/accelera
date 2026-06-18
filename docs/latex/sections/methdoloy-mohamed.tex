@@ -150,31 +150,6 @@ source inside a controlled namespace to recover the callable. Functions with
 closures are rejected because their external captured variables would not be
 available from source text alone.
 
-\subsubsection{How to Use Accelera Pipe}
-
-\begin{lstlisting}[language=Python,caption={Accelera Pipe example}]
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.svm import SVC
-from accelera.src.accelera_pipe.core.pipeline import Pipeline
-
-accpipe = Pipeline()
-results, executed = (
-    accpipe
-    .branch(
-        "preprocessing",
-        accpipe.preprocess("standard", StandardScaler(), branch=True),
-        accpipe.preprocess("minmax", MinMaxScaler(), branch=True),
-    )
-    .model("svc", SVC())
-    .predict("predict", test_data=X_val)
-    .metric("accuracy", "accuracy_score", y_true=y_val)
-)(X_train, y_train, select_strategy="max")
-
-test_results = executed(X_test, y_true=y_test)
-executed.save("pipeline.pkl")
-loaded = executed.load("pipeline.pkl")
-\end{lstlisting}
-
 \subsection{Code Parallelizer Module}
 
 \subsubsection{Module Responsibility}
@@ -288,31 +263,14 @@ into a Python-callable C++ extension.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.92\textwidth]{imgs/parallelizer_accelera_pipe_flow.png}
-\caption{Integration path from Python custom function to compiled Accelera Pipe preprocessing}
+\includegraphics[width=0.95\textwidth]{imgs/parallelizer_accelera_pipe_flow.pdf}
+\caption{Integration flow for compiled preprocessing inside Accelera Pipe}
 \end{figure}
 
-\subsubsection{How to Use the Parallelizer}
-
-\begin{lstlisting}[language=Python,caption={Parallelizer file and in-memory usage}]
-from accelera.src.utils.parallelizer import Parallelizer
-
-parallelizer = Parallelizer()
-
-# File mode
-cpp_code = parallelizer.parallelize("examples/loop_example.py")
-
-# In-memory code mode
-source = """
-def normalize_rows(X):
-    for i in range(len(X)):
-        s = 0
-        for j in range(len(X[i])):
-            s += X[i][j] * X[i][j]
-        norm = s ** 0.5
-        for j in range(len(X[i])):
-            X[i][j] = X[i][j] / norm
-    return X
-"""
-cpp_code = parallelizer.parallelize(source, file=False)
-\end{lstlisting}
+The integration is applied during graph construction rather than as a separate
+user-facing execution stage. A custom preprocessing method is inspected, lowered
+to the supported C++ subset, analyzed for loop-level parallelism, compiled into
+a Python-callable native module, and then stored back inside the preprocessing
+node. As a result, the graph still executes a normal preprocessing node, but the
+callable held by that node may be a compiled OpenMP implementation instead of
+the original Python loop.

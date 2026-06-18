@@ -6,6 +6,5 @@ since your modifications would be overwritten.
 
 from accelera.src.custom import classifier as classifier
 from accelera.src.custom import clusterer as clusterer
-from accelera.src.custom import custom_test as custom_test
 from accelera.src.custom import regressor as regressor
 from accelera.src.custom import transformer as transformer
