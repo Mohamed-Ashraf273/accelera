@@ -107,7 +107,7 @@ class ClassificationTraining:
         model.fc = nn.Linear(model.fc.in_features, self.num_classes)
         return model
 
-    def handle_data(self, train_folder, val_folder, augment):
+    def handle_data(self, train_folder, val_folder, augment,image_size):
         preprocessor = ClassificationImageTrainingPreprocessing(
             training_folder_images=train_folder,
             validation_folder_images=val_folder,
@@ -115,6 +115,7 @@ class ClassificationTraining:
             augment=augment,
             split_training=True,
             batch_size=32,
+            images_size=image_size
         )
         train_loader, val_loader = preprocessor.common_preprocessing()
         return train_loader, val_loader
@@ -135,10 +136,13 @@ def main():
         augment = info["augment"] == "True"
         is_train = info["train"] == "True"
         n_class = info.get("n_class", None)
-
+        image_size = (
+                        info["image_size"]["width"],
+                        info["image_size"]["height"],
+                    )
         inferernce = info.get("inferernce", None)
         obj = ClassificationTraining(dataset, folder_path, n_class)
-        train_loader, val_loader = obj.handle_data(train_folder, val_folder, augment)
+        train_loader, val_loader = obj.handle_data(train_folder, val_folder, augment,image_size)
         if is_train:
             model = obj.pretrained_model()
             obj.train(model, train_loader, val_loader, epochs=20)

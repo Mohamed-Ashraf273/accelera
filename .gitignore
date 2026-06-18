@@ -43,12 +43,14 @@ examples/Teen_Mental_Health_Dataset
 examples/ai_student_impact_dataset
 examples/gaming_addiction
 examples/DailyDialog
-examples/brain
+examples/images
+examples/masks
 examples/startup_founder_burnout_2026
 examples/healthy_diet_calorie_intake
 examples/healthy_diet_calorie_intake
 examples/Concrete_Data_Yeh
 examples/TestReviews
+examples/brain_tumer-1
 examples/CarPrice_Assignment
 examples/catboost_info
 .env

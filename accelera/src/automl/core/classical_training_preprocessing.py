@@ -8,6 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import StandardScaler
+from sklearn.feature_selection import mutual_info_classif, mutual_info_regression
 
 from accelera.src.automl.core.training_tabular_preprocessing_base import (
     TrainingTabularPreprocessingBase,
@@ -48,15 +49,24 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         max_unique_ordinal=10,
         missing_threshold=0.5,
         columns_need_to_drop=[],
+        feature_importance_threshold=0.005,
         is_report=True,
     ):
-        super().__init__(df, target_col, val_size, random_state, folder_path)
+        super().__init__(
+            df,
+            target_col,
+            val_size,
+            random_state,
+            folder_path,
+            problem_type=problem_type,
+        )
         self.problem_type = problem_type
         self.cardinality_threshold = cardinality_threshold
         self.max_unique_ordinal = max_unique_ordinal
         self.missing_threshold = missing_threshold
         self.is_report = is_report
         self.columns_need_to_drop = columns_need_to_drop
+        self.feature_importance_threshold = feature_importance_threshold
         if self.problem_type is None:
             raise ValueError("problem_type cannot be None")
         self.problem_type = problem_type.lower()
@@ -88,15 +98,18 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         ):
             raise ValueError("cardinality_threshold must be positive integer")
 
-        if (
-            not isinstance(self.max_unique_ordinal, int)
-            or self.max_unique_ordinal < 0
-        ):
+        if not isinstance(self.max_unique_ordinal, int) or self.max_unique_ordinal < 0:
             raise ValueError("max_unique_ordinal must be positive integer")
-        if not isinstance(self.missing_threshold, float) or not (
+        if not isinstance(self.missing_threshold, (float, int)) or not (
             0 <= self.missing_threshold <= 1
         ):
             raise ValueError("missing_threshold must be float between 0 and 1")
+        if not isinstance(self.feature_importance_threshold, (float, int)) or not (
+            0 <= self.feature_importance_threshold <= 1
+        ):
+            raise ValueError(
+                "feature_importance_threshold must be float between 0 and 1"
+            )
 
         save_pickle(self.folder_path, self.df.columns.tolist(), "data_columns.pkl")
 
@@ -303,10 +316,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 )
                 graph.build_graph()
                 self.report_data["graphs"]["images_name"].append(f"{col}")
-            if (
-                info[col]["col_type"] == "ordinal"
-                and self.problem_type == "regression"
-            ):
+            if info[col]["col_type"] == "ordinal" and self.problem_type == "regression":
                 graph = OrdinalRegression(
                     new_df,
                     col,
@@ -429,13 +439,11 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             x.split("__")[-1] for x in preprocessor.get_feature_names_out()
         ]
         save_pickle(self.folder_path, farures_names, "feature_names.pkl")
+        X_train_processed = pd.DataFrame(X_train_processed, columns=farures_names)
+        X_val_processed = pd.DataFrame(X_val_processed, columns=farures_names)
         self.report_data["after_preprocessing"] = {
-            "X_train_processed": pd.DataFrame(
-                X_train_processed, columns=farures_names
-            ).head(),
-            "X_val_processed": pd.DataFrame(
-                X_val_processed, columns=farures_names
-            ).head(),
+            "X_train_processed": X_train_processed.head(),
+            "X_val_processed": X_val_processed.head(),
         }
 
         return X_train_processed, X_val_processed
@@ -499,6 +507,40 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             return
         self.df[bool_type_col] = self.df[bool_type_col].astype(int)
 
+    def features_importance(self, X_train, y_train, X_val):
+        if self.problem_type == "classification":
+            score = mutual_info_classif(
+                X_train, y_train, random_state=self.random_state
+            )
+        else:
+            score = mutual_info_regression(
+                X_train, y_train, random_state=self.random_state
+            )
+        features_score = pd.DataFrame(
+            {"features_name": X_train.columns, "score": score}
+        ).sort_values(by="score", ascending=False)
+        selected_features_df = features_score[
+            features_score["score"] >= self.feature_importance_threshold
+        ]
+        if len(selected_features_df) == 0:
+            raise ValueError(
+                f"No feature is exist greatre than your given threshold {self.feature_importance_threshold}"
+            )
+
+        self.report_data["features_selections"] = {
+            "features_importance": features_score,
+            "selected_features": selected_features_df,
+            "feature_importance_threshold": self.feature_importance_threshold,
+        }
+        X_train_selected = X_train[selected_features_df["features_name"]]
+        X_val_selected = X_val[selected_features_df["features_name"]]
+        save_pickle(
+            self.folder_path,
+            selected_features_df["features_name"],
+            "selected_features.pkl",
+        )
+        return X_train_selected.to_numpy(), X_val_selected.to_numpy()
+
     def common_preprocessing(self):
         self.handel_bool_types()
         self.data_overview()
@@ -525,7 +567,10 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             ordinal_cols,
         )
         y_train, y_val = self.target_preprocessing(y_train, y_val, info)
+        X_train_selected, X_val_selected = self.features_importance(
+            X_train, y_train, X_val
+        )
         if self.is_report:
             report = TabularPreprocessingReport(self.folder_path, self.report_data)
             report.execute()
-        return X_train, y_train, X_val, y_val
+        return X_train_selected, y_train, X_val_selected, y_val
