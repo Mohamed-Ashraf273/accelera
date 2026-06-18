@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 from accelera.src.utils.parallelizer import parallelizer
 
@@ -17,7 +18,24 @@ def normalize_rows(X):
     return X
 
 
-results = parallelizer.parallelize(normalize_rows)(
-    np.random.rand(500_000, 25).astype(np.float32)
-)
-print(results)
+X = np.random.rand(500_000, 25).astype(np.float32)
+
+# Accelera parallelized version
+start_time = time.time()
+acc_results = parallelizer.parallelize(normalize_rows)(X)
+end_time = time.time()
+print(f"Execution time Accelera: {end_time - start_time} seconds")
+
+
+# Non-Accelera version for comparison
+start_time = time.time()
+results = normalize_rows(X)
+end_time = time.time()
+print(f"Execution time: {end_time - start_time} seconds")
+
+
+# Correctness check
+if np.allclose(results, acc_results):
+    print("Validation successful: Accelera results match non-Accelera results.")
+else:
+    print("Validation failed: Accelera results do not match non-Accelera results.")
