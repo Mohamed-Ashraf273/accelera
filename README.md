@@ -115,6 +115,28 @@ binding may fail even when the package files exist locally.
 CMake also checks for Graphviz `dot` and installs it automatically on supported
 Windows and Debian/Ubuntu Linux systems so graph-rendering examples can run.
 
+### Needed Datasets
+
+To run the AutoPreprocessing demo correctly, you need to download two Kaggle datasets used in this project:
+
+- https://www.kaggle.com/datasets/bhavikjikadara/dog-and-cat-classification-dataset  
+- https://www.kaggle.com/datasets/nikhilroxtomar/brain-tumor-segmentation/data  
+
+### Setup Instructions
+1. Download both datasets from Kaggle.
+2. Extract the downloaded archives.
+3. From the first dataset, locate the folder named `PetImages` that is created after extraction and copy it to the `examples/` directory in the project root.
+4. From the second dataset, locate the folders named `images` and `masks` that are created after extraction and copy both folders to the `examples/` directory in the project root.
+5. After completing these steps, the directory structure should look similar to:
+  ``` 
+accelera/
+├── examples/
+│   ├── PetImages/
+│   ├── images/
+│   └── masks/
+└── ...
+```
+The datasets are required for image classification and segmentation demos.
 ### Run Examples
 
 ```bash
@@ -129,6 +151,19 @@ python examples/code_parallelizer_demo.py
 
 # Save and load pipeline or executed graph demo
 python examples/save_load.py
+
+# Run auto preprocessing demo
+python examples/auto_preprocessing_demo.py
+
+# Run benchmark backend server
+cd accelera/src/benchmark/backend
+npm install
+npm run dev
+
+# Run benchmark frontend
+cd accelera/src/benchmark/frontend
+npm install
+npm run dev
 
 # Run tests
 pytest accelera
@@ -427,6 +462,7 @@ retriever.close()
 Tabular preprocessing prepares classical machine-learning datasets. It handles
 common cleaning, train/validation splitting, target handling, and report output
 under the folder you pass in `folder_path`.
+it returns X_train, y_train, X_val, y_val generated from this pipeline and also 
 
 ```python
 from accelera.src.automl.core.classical_training_preprocessing import (
@@ -435,17 +471,62 @@ from accelera.src.automl.core.classical_training_preprocessing import (
 from accelera.src.utils.dataset_retriever import retriever
 
 retriever.connect()
-df = retriever.retrieve_dataset("Titanic-Dataset", df=True)
-
-preprocessor = ClassicalTrainingPreprocessing(
-    df,
-    target_col="Survived",
-    problem_type="classification",
-    folder_path="./titanic_preprocessing_report",
-)
-X_train, y_train, X_val, y_val = preprocessor.common_preprocessing()
-
+df = retriever.retrieve_dataset(dataset_name, url=drive_link, df=True)
+X_train, y_train, X_test, y_test =ClassicalTrainingPreprocessing(
+df=df,
+target_col,
+problem_type,
+folder_path,
+val_size,
+random_state,
+cardinality_threshold,
+max_unique_ordinal,
+missing_threshold,
+columns_need_to_drop,
+feature_importance_threshold,
+).common_preprocessing()
 retriever.close()
+```
+parameters:
+- `df`: Input dataset as a pandas DataFrame.
+- `target_col`: Name of the target column.
+- `problem_type`: Either `"classification"` or `"regression"`.
+- `folder_path`: Directory where generated reports and files will be saved.
+- `val_size`: Proportion of the dataset used for validation.
+- `random_state`: Random seed for reproducibility.
+- `cardinality_threshold`: Threshold used to identify high-cardinality categorical features.
+- `max_unique_ordinal`: Maximum number of unique values for ordinal integers feature detection.
+- `missing_threshold`: Threshold for dropping columns with missing values.
+- `columns_need_to_drop`: List of columns to remove before preprocessing.
+- `feature_importance_threshold`: Minimum feature importance score required to keep a feature.
+`is_report`: Enable or disable generation of HTML reports and visualizations.
+#### Note
+You can deal with dataset in these two options
+- If you have dataset csv file locally use it 
+- You can use your own dataset by providing a Google Drive download link to the retriever.
+
+for the second option :
+
+1. Make sure the file is shared with **Anyone with the link** .
+2. Copy the file ID from the Google Drive sharing link.
+3. Create a dataset URL using the format:
+#### Example
+Given the Google Drive link:
+
+```text
+https://drive.google.com/file/d/1VMtLcWDcigwkimpf-eWVMZ7zJMUf7wxs/view?usp=sharing
+```
+
+The file ID is:
+
+```text
+1VMtLcWDcigwkimpf-eWVMZ7zJMUf7wxs
+```
+
+Create the dataset URL:
+
+```python
+drive_link = "https://drive.google.com/uc?id=1VMtLcWDcigwkimpf-eWVMZ7zJMUf7wxs"
 ```
 
 ### Text Auto Preprocessing
@@ -460,37 +541,62 @@ import pandas as pd
 from accelera.src.automl.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )
+from accelera.src.utils.dataset_retriever import retriever
 
-reviews_df = pd.DataFrame(
-    {
-        "review": ["Great product", "Very bad experience", "I like it"],
-        "class": [1, 0, 1],
-    }
-)
-
-text_preprocessor = TextTrainingPreprocessing(
-    reviews_df,
-    target_col="class",
-    text_col="review",
-    folder_path="./reviews_report",
+retriever.connect()
+df = retriever.retrieve_dataset(dataset_name, url=drive_link, df=True)
+TextTrainingPreprocessing(
+        df,
+        target_col,
+        text_col,
+        folder_path,
+        val_size,
+        random_state,
+        tfidf_max_features,
+        tfidf_ngram,
+        tfidf_max_df,
+        tfidf_min_df,
+        is_report,
 )
 X_train, y_train, X_val, y_val = text_preprocessor.common_preprocessing()
+retriever.close()
 ```
+Parameters
 
-### Image Auto Preprocessing
-
-Image preprocessing expects a folder structure that contains class folders.
+- `df`: Input dataset retrieved from Google Drive.
+- `target_col`: Name of the target column.
+- `text_col`: Name of the text column used for NLP processing.
+- `folder_path`: Directory where reports and outputs are saved.
+- `val_size`: Validation split ratio.
+- `random_state`: Random seed for reproducibility.
+- `tfidf_max_features`: Maximum number of TF-IDF features.
+- `tfidf_ngram`: N-gram range for TF-IDF (e.g., (1,2)).
+- `tfidf_max_df`: Ignore terms with document frequency higher than this threshold.
+- `tfidf_min_df`: Ignore terms with document frequency lower than this threshold.
+- `is_report`: Enable or disable HTML report generation.
+### Image Auto Preprocessing Classifcation
 When `split_training=True`, it creates a validation split from the training
 folder. Use `augment=True` when you want training-time augmentation.
+Expected Folder Structure
 
+```
+Training/
+├── Cats/
+└── Dogs/
+
+Validation/
+├── Cats/
+└── Dogs/
+```
 ```python
 from accelera.src.automl.core.classification_image_training_preprocessing import (
     ClassificationImageTrainingPreprocessing,
 )
 
 image_preprocessor = ClassificationImageTrainingPreprocessing(
-    training_folder_images="./PetImages",  # replace with your class folders
-    folder_path="./PetImagesReport",
+    training_folder_images=Training,  # replace with your Training folder
+    folder_path=report_folder_path,
+    validation_folder_images=Validation, # replace with your Validation folder if exist
     split_training=True,
     val_size=0.2,
     images_size=(224, 224),
@@ -498,7 +604,58 @@ image_preprocessor = ClassificationImageTrainingPreprocessing(
 )
 training_loader, validation_loader = image_preprocessor.common_preprocessing()
 ```
+### Image Auto Preprocessing Segmentation
+This for binary segmentation problem
+When `split_training=True`, it creates a validation split from the training
+folder. Use `augment=True` when you want training-time augmentation.
 
+Expected Folder Structure
+```
+Dataset/
+├── Training/
+│   ├── Images/
+│   │   ├── img1.jpg
+│   │   ├── img2.jpg
+│   │   └── img3.jpg
+│   │
+│   └── Masks/
+│       ├── img1.png
+│       ├── img2.png
+│       └── img3.png
+│
+└── Validation/
+    ├── Images/
+    │   ├── img1.jpg
+    │   ├── img2.jpg
+    │   └── img3.jpg
+    │
+    └── Masks/
+        ├── img1.png
+        ├── img2.png
+        └── img3.png
+```
+```python
+from accelera.src.automl.core.segmentation_image_training_preprocessing import (
+    SegmentationImageTrainingPreprocessing,
+)
+
+training_loader, validation_loader = SegmentationImageTrainingPreprocessing(
+        training_folder_images=Training_Images,# replace with your Training folder Images
+        training_folder_masks=training_folder_masks,# replace with your Training folder mask
+        folder_path=folder_path,
+        binary_mask_threshold=128,
+        validation_folder_images=None,# replace with your Validation folder Images (if exists)
+        ,
+        validation_folder_masks# replace with your Validation folder masks (if exists)
+        augment=True,
+        horizontal_flip=True,
+        vertical_flip=True,
+        rotation=True,
+        split_training=True,
+        val_size=0.2,
+        images_size=image_size,
+    ).common_preprocessing()
+```
 ### Pipeline Graph Report
 
 Graph reports visualize a serialized pipeline graph together with the pipeline

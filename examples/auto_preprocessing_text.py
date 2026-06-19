@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 from sklearn.metrics import f1_score
 from xgboost import XGBClassifier
@@ -8,9 +9,11 @@ from accelera.src.automl.core.text_training_preprocessing import (
 )
 from accelera.src.utils.dataset_retriever import retriever
 
+EXAMPLES_DIR = Path(__file__).resolve().parent
+
 
 def get_data_set_info():
-    with open("auto_preprocessing_full_ds.json", "r") as f:
+    with open(EXAMPLES_DIR / "auto_preprocessing_full_ds.json", "r") as f:
         ds = json.loads(f.read())
     return ds
 
