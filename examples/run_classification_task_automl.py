@@ -80,10 +80,7 @@ def run_accelera_automl(
     return result
 
 def main():
-    # custom_datasets = ['heart','PurchaseStatus','titanic_preprocessing']
     custom_datasets = ['titanic_preprocessing']
-    # custom_datasets = ['heart']
-    # custom_datasets = ['datascienceproject']
 
     for dataset in custom_datasets:
         dataset_dir = DATA_ROOT / dataset

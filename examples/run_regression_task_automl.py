@@ -7,8 +7,9 @@ from pathlib import Path
 from time import perf_counter
 
 import numpy as np
-import pandas as pd
+from sklearn.datasets import load_diabetes
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
 
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -16,19 +17,18 @@ if __package__ in (None, ""):
 from accelera.accelera_automl import AutoMLRegressor
 
 
-DATASET_NAME = "student_salary_regression"
-DATASET_DIR = (
+DATASET_NAME = "sklearn_diabetes"
+RESULTS_FILE = (
     Path(__file__).resolve().parents[1]
     / "data"
     / "accelera_automl"
-    / DATASET_NAME
+    / "automl_regression_results.csv"
 )
-RESULTS_FILE = DATASET_DIR / "automl_regression_results.csv"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Run Accelera AutoML regression on the student salary dataset."
+        description="Run Accelera AutoML regression on sklearn's diabetes dataset."
     )
     parser.add_argument("--time-budget", type=int, default=1200, help="Time budget in seconds.")
     parser.add_argument("--n-trials", type=int, default=10, help="Maximum number of trials.")
@@ -42,14 +42,9 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load_dataset_split(
-    dataset_dir: Path,
-) -> tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]:
-    X_train = pd.read_csv(dataset_dir / "X_train_processed.csv")
-    y_train = pd.read_csv(dataset_dir / "y_train_processed.csv").iloc[:, 0].astype(float)
-    X_val = pd.read_csv(dataset_dir / "X_val_processed.csv")
-    y_val = pd.read_csv(dataset_dir / "y_val_processed.csv").iloc[:, 0].astype(float)
-    return X_train, y_train, X_val, y_val
+def load_dataset_split() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    X, y = load_diabetes(return_X_y=True)
+    return train_test_split(X, y, test_size=0.2, random_state=42)
 
 
 def save_result(result: dict[str, object]) -> None:
@@ -63,6 +58,7 @@ def save_result(result: dict[str, object]) -> None:
         "n_trials",
         "cv",
     ]
+    RESULTS_FILE.parent.mkdir(parents=True, exist_ok=True)
     file_exists = RESULTS_FILE.exists()
     with RESULTS_FILE.open("a", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
@@ -73,7 +69,7 @@ def save_result(result: dict[str, object]) -> None:
 
 def main() -> None:
     args = parse_args()
-    X_train, y_train, X_val, y_val = load_dataset_split(DATASET_DIR)
+    X_train, X_val, y_train, y_val = load_dataset_split()
 
     model = AutoMLRegressor(
         time_budget=args.time_budget,

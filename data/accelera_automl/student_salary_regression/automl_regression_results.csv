@@ -1,2 +1,0 @@
-dataset,fit_time_sec,val_r2,val_rmse,val_mae,time_budget,n_trials,cv
-student_salary_regression,1807.522,0.7909251308985732,1.1867220496278874,0.9472034971170672,1200,60,3
