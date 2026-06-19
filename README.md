@@ -27,6 +27,9 @@ parallelization.
 - **Auto preprocessing**: tabular, text, and image-classification
   preprocessing utilities with saved preprocessors and visual
   summaries.
+- **AutoML model selection**: search classification and regression models
+  under time and trial budgets, warm-start searches from dataset
+  metafeatures, and optionally build voting or stacked ensembles.
 - **Dataset retriever**: list and download shared CSV datasets into a local
   cache with `accelera.src.utils.dataset_retriever.DatasetRetriever`.
 - **C/C++ code parallelizer**: extract loops with Clang AST, derive loop
@@ -39,8 +42,8 @@ parallelization.
 
 - The core DAG pipeline, custom estimator interfaces, reports, dataset
   retrieval, and preprocessing utilities are implemented in this repo.
-- The AutoML search agent API exists, but the default search algorithm is
-  still a placeholder.
+- AutoML classification and regression search, evaluation, meta-learning
+  warm starts, and ensemble construction are implemented.
 - The benchmark backend is an early prototype.
 - The code parallelizer requires LLVM/Clang, built pybind bindings, and the
   classifier endpoint configured in `accelera/src/config.py`. CMake attempts
@@ -81,10 +84,12 @@ source .venv/bin/activate
 
 ```bash
 pip install -r requirements.txt
+pip install -e .
 ```
 
-Add Accelera to Python's import path for this terminal session. This is
-required before running examples, notebooks, or tests from the repo.
+The editable install makes `accelera` importable and keeps it linked to your
+checkout while you develop. If you do not install the package, add Accelera to
+Python's import path for the current terminal session instead:
 
 Linux/macOS:
 
@@ -109,9 +114,9 @@ cmake -S . -B build
 cmake --build build --parallel
 ```
 
-Set `PYTHONPATH` again whenever you open a new terminal.
-If you skip it, imports such as `from accelera.src...` or the native `graph`
-binding may fail even when the package files exist locally.
+When using the `PYTHONPATH` alternative, set it again whenever you open a new
+terminal. Imports such as `from accelera.src...` or the native `graph` binding
+may otherwise fail even when the package files exist locally.
 CMake also checks for Graphviz `dot` and installs it automatically on supported
 Windows and Debian/Ubuntu Linux systems so graph-rendering examples can run.
 
@@ -120,19 +125,23 @@ Windows and Debian/Ubuntu Linux systems so graph-rendering examples can run.
 To run the AutoPreprocessing demo correctly, you need to download two Kaggle datasets used in this project:
 
 - https://www.kaggle.com/datasets/bhavikjikadara/dog-and-cat-classification-dataset  
+- https://www.kaggle.com/datasets/nikhilroxtomar/brain-tumor-segmentation/data  
 
 ### Setup Instructions
 1. Download both datasets from Kaggle.
 2. Extract the downloaded archives.
 3. From the first dataset, locate the folder named `PetImages` that is created after extraction and copy it to the `examples/` directory in the project root.
-4. After completing these steps, the directory structure should look similar to:
+4. From the second dataset, locate the folders named `images` and `masks` that are created after extraction and copy both folders to the `examples/` directory in the project root.
+5. After completing these steps, the directory structure should look similar to:
   ``` 
 accelera/
 ├── examples/
 │   ├── PetImages/
+│   ├── images/
+│   └── masks/
 └── ...
 ```
-The datasets are required for image classification demo.
+The datasets are required for image classification and segmentation demos.
 ### Colab Quick Start
 
 If you prefer to run the demo without setting everything up locally, you can use the provided Colab notebook. The notebook demonstrates the full setup flow, including preparing the datasets and running the project Makefile.
@@ -156,6 +165,10 @@ python examples/save_load.py
 
 # Run auto preprocessing demo
 python examples/auto_preprocessing_demo.py
+
+# Run AutoML classification and regression examples
+python examples/run_classification_task_automl.py
+python examples/run_regression_task_automl.py --time-budget 300 --n-trials 10
 
 # Run benchmark backend server
 cd accelera/src/benchmark/backend
@@ -228,11 +241,102 @@ print(best_result)
 
 ## More Usage Examples
 
-The examples below assume you already ran the Quick Start setup and exported
-`PYTHONPATH`.
+The examples below assume you already ran the Quick Start setup and either
+installed the package or exported `PYTHONPATH`.
 
 If the native graph import fails, rebuild the C++ bindings with
 `cmake --build build -j"$(nproc)"` and run the export command again.
+
+### AutoML Classification and Regression
+
+Accelera AutoML searches across supported scikit-learn, CatBoost, LightGBM,
+and XGBoost estimators. Cross-validation ranks candidate configurations within
+the supplied time and trial limits. Dataset metafeatures can warm-start the
+search, and the best candidates can be combined into voting or stacked
+ensembles.
+
+Install Accelera before using the public API:
+
+```bash
+pip install .
+```
+
+Classification example:
+
+```python
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+from accelera.accelera_automl import AutoMLClassifier
+
+X, y = make_classification(
+    n_samples=1000,
+    n_features=20,
+    n_informative=12,
+    random_state=42,
+)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+model = AutoMLClassifier(
+    time_budget=300,
+    n_trials=20,
+    cv=3,
+    random_state=42,
+    n_jobs=1,
+)
+model.fit(X_train, y_train)
+predictions = model.predict(X_test)
+
+print("accuracy", accuracy_score(y_test, predictions))
+print(model.return_leaderboard(top_n=3))
+```
+
+For regression, use the same estimator-style interface:
+
+```python
+from sklearn.datasets import make_regression
+from sklearn.metrics import r2_score
+from sklearn.model_selection import train_test_split
+
+from accelera.accelera_automl import AutoMLRegressor
+
+X, y = make_regression(
+    n_samples=1000,
+    n_features=20,
+    n_informative=12,
+    noise=5.0,
+    random_state=42,
+)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+model = AutoMLRegressor(
+    time_budget=300,
+    n_trials=20,
+    cv=3,
+    random_state=42,
+    n_jobs=1,
+)
+model.fit(X_train, y_train)
+predictions = model.predict(X_test)
+
+print("r2", r2_score(y_test, predictions))
+print(model.return_leaderboard(top_n=3))
+```
+
+The repository also contains complete CSV-based examples:
+
+```bash
+python examples/run_classification_task_automl.py
+python examples/run_regression_task_automl.py --time-budget 300 --n-trials 10
+```
+
+These scripts read prepared splits from `data/accelera_automl/`. The regression
+script accepts `--time-budget`, `--n-trials`, `--cv`, and `--n-jobs` options.
 
 ### Accelera Pipe Branch Selection
 
@@ -606,7 +710,58 @@ image_preprocessor = ClassificationImageTrainingPreprocessing(
 )
 training_loader, validation_loader = image_preprocessor.common_preprocessing()
 ```
+### Image Auto Preprocessing Segmentation
+This for binary segmentation problem
+When `split_training=True`, it creates a validation split from the training
+folder. Use `augment=True` when you want training-time augmentation.
 
+Expected Folder Structure
+```
+Dataset/
+├── Training/
+│   ├── Images/
+│   │   ├── img1.jpg
+│   │   ├── img2.jpg
+│   │   └── img3.jpg
+│   │
+│   └── Masks/
+│       ├── img1.png
+│       ├── img2.png
+│       └── img3.png
+│
+└── Validation/
+    ├── Images/
+    │   ├── img1.jpg
+    │   ├── img2.jpg
+    │   └── img3.jpg
+    │
+    └── Masks/
+        ├── img1.png
+        ├── img2.png
+        └── img3.png
+```
+```python
+from accelera.src.automl.core.segmentation_image_training_preprocessing import (
+    SegmentationImageTrainingPreprocessing,
+)
+
+training_loader, validation_loader = SegmentationImageTrainingPreprocessing(
+        training_folder_images=Training_Images,# replace with your Training folder Images
+        training_folder_masks=training_folder_masks,# replace with your Training folder mask
+        folder_path=folder_path,
+        binary_mask_threshold=128,
+        validation_folder_images=None,# replace with your Validation folder Images (if exists)
+        ,
+        validation_folder_masks# replace with your Validation folder masks (if exists)
+        augment=True,
+        horizontal_flip=True,
+        vertical_flip=True,
+        rotation=True,
+        split_training=True,
+        val_size=0.2,
+        images_size=image_size,
+    ).common_preprocessing()
+```
 ### Pipeline Graph Report
 
 Graph reports visualize a serialized pipeline graph together with the pipeline

@@ -10,6 +10,12 @@ regex
 build
 
 # ML/DL Libraries & Tools
+catboost
+ConfigSpace
+joblib
+lightgbm
+scipy
+xgboost
 torch==2.12.0+cpu
 torchvision==0.27.0+cpu
 dm-tree
