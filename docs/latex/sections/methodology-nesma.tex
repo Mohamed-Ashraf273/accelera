@@ -17,14 +17,19 @@ The system also generates a final report that provides the user with information
   \item Classification and Regression for tabular dataset
   \item Classification for text dataset
   \item Classification and Segmentation for image dataset
-
 \end{itemize}
+
 
 \subsubsection{Tabular Dataset}
 
 The meaning of The tabular dataset in this module is structured data organized in rows and columns, where features can be either categorical or numerical.
 \vspace{1cm}
-
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{imgs/tabular.pdf}
+    \caption{Tabular data Preprocessing Digram}
+    \label{fig:Tabular_data}
+\end{figure}
 \Needspace{5\baselineskip}
 \noindent\textbf{Training Preprocessing Steps}\par
 \begin{enumerate}
@@ -39,6 +44,7 @@ The meaning of The tabular dataset in this module is structured data organized i
   \item Generate visualizations of the training data based on column types and task type.
   \item Apply feature preprocessing techniques for each column based on its detected type.
   \item Apply target preprocessing based on the selected task.
+  \item Feature Selection.
   \item Save all files required for preprocessing the test data.
   \item Generate Report if user enable report generation.
   \item Return \texttt{X\_train}, \texttt{y\_train}, \texttt{X\_val}, \texttt{y\_val}.
@@ -91,7 +97,7 @@ Threshold for dropping columns based on missing values ratio. \\
 
 columns\_need\_to\_drop &
 List of user-specified columns to remove. \\
-
+feature\_importance\_threshold & Threshold to select the most relevant features. \\
 is\_report &
 Enables or disables preprocessing report generation. \\
 
@@ -137,11 +143,11 @@ max\_unique\_ordinal &
 Integer $\geq 0$ \\
 
 missing\_threshold &
-Float: $0 \leq x \leq 1$ \\
+Float or Integer: $0 \leq x \leq 1$ \\
 
 columns\_need\_to\_drop &
 List of strings \\
-
+feature\_importance\_threshold & Float or Integer: $0 \leq x \leq 1$ \\
 is\_report &
 Boolean (True / False) \\
 
@@ -285,11 +291,11 @@ Output: Column groups and assigned preprocessing rules
 1:  for each column in X_train do
 2:      if column is binary then
 3:          assign type Binary
-4:          assign most-frequent imputation and ordinal encoding
+4:          assign most frequent imputation and ordinal encoding
 5:      else if column is integer then
 6:          if unique values <= maximum ordinal threshold then
 7:              assign type Ordinal
-8:              assign most-frequent imputation and robust scaling
+8:              assign most frequent imputation and robust scaling
 9:          else
 10:             assign type Numerical
 11:             assign median imputation and robust scaling
@@ -299,11 +305,11 @@ Output: Column groups and assigned preprocessing rules
 15:         assign median imputation and robust scaling
 16:     else if column is categorical then
 17:         if cardinality <= cardinality threshold then
-18:             assign type Low-Cardinality Categorical
-19:             assign most-frequent imputation and binary encoding
+18:             assign type Low Cardinality Categorical
+19:             assign most frequent imputation and binary encoding
 20:         else
-21:             assign type High-Cardinality Categorical
-22:             assign most-frequent imputation and frequency encoding
+21:             assign type High Cardinality Categorical
+22:             assign most frequent imputation and frequency encoding
 23:         end if
 24:     else
 25:         mark column as unsupported and schedule it for removal
@@ -475,10 +481,21 @@ Output: Processed targets and saved target metadata
 
 \vspace{1cm}
 \Needspace{4\baselineskip}
+\noindent\textbf{Feature Selection:}\par
+Feature selection is performed using Mutual Information to measure the dependency between each feature and the target variable. 
+For classification tasks, Mutual Information Classification is used, while Mutual Information Regression is applied for regression problems.
+Each feature is assigned an importance score based on its Mutual Information value. 
+The features are then ranked in descending order according to their scores. 
+Only features whose scores exceed a predefined threshold feature\_importance\_threshold are selected for model training.
+If no feature satisfies the threshold condition, an exception is raised to ensure model validity. 
+The selected features are then used to filter both the training and validation sets. 
+Finally, the list of selected features is saved for reproducibility and later use during inference.
+\vspace{1cm}
+\Needspace{4\baselineskip}
 \noindent\textbf{Save all files required for preprocessing the test data:}\par
 The preprocessing pipeline persists the objects required for later inference and reuse:
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \caption{Saved preprocessing artifacts for test-time reuse.}
 \begin{tabular}{p{0.30\linewidth}p{0.65\linewidth}}
@@ -492,10 +509,11 @@ The preprocessing pipeline persists the objects required for later inference and
 \texttt{bool\_type\_col.pkl} & Boolean columns that are converted to integer values during preprocessing.\\
 \texttt{data\_columns.pkl} & The column names of the input DataFrame before preprocessing.\\
 \texttt{col\_drop.pkl} & The names of the dropped columns.\\
+\texttt{selected\_features.pkl} & The names of the final selected columns.\\
 \bottomrule
 \end{tabular}
 \end{table}
-\vspace{1cm}
+\vspace{2cm}
 \Needspace{4\baselineskip}
 \noindent\textbf{Generate Report (Optional):}\par
 When \texttt{is\_report} is enabled, the \texttt{TabularPreprocessingReport} class generates an HTML report from the collected \texttt{report\_data}. The report documents the complete preprocessing workflow, including data overview statistics, missing values, duplicate analysis, train-validation split details, removed columns, generated graphs, preprocessing decisions for each feature, and previews of the transformed training and validation datasets. This allows users to inspect and understand all preprocessing steps applied before model training.
@@ -508,9 +526,9 @@ The testing preprocessing workflow is designed to reuse the exact training prepr
   \item Verify that the required artifact files exist:
         target preprocessor, training preprocessor,
         \texttt{data\_columns.pkl}, \texttt{col\_drop.pkl},
-        \texttt{target\_info.pkl}, and \texttt{bool\_type\_col.pkl}.
+        \texttt{target\_info.pkl}, \texttt{selected\_features.pkl}, \texttt{feature\_names.pkl}and \texttt{bool\_type\_col.pkl}.
   \item Load the saved dataset columns, dropped columns, target information,
-        boolean-column list, training preprocessor, and target preprocessor.
+        boolean column list,selected features, training preprocessor, and target preprocessor.
   \item Confirm \texttt{target\_info} contains a valid \texttt{col\_name} and \texttt{problem\_type} (classification or regression).
   \item Confirm \texttt{target\_preprocessor} and \texttt{training\_preprocessor} is not none.
   \item Ensure that the test dataset column order matches the saved training columns. If the target column is missing, testing proceeds in \texttt{features\_only} mode.
@@ -518,6 +536,7 @@ The testing preprocessing workflow is designed to reuse the exact training prepr
   \item Separate the test DataFrame into \texttt{X\_test} and \texttt{y\_test} when \texttt{features\_only} mode is false.
 \item Convert the columns listed in \texttt{bool\_type\_col.pkl} to integer data type.  \item Drop the same columns identified during training using \texttt{col\_drop.pkl}.
   \item Apply the saved \texttt{training\_preprocessor.pkl} transformer to \texttt{X\_test}.
+\item Filter $X_{train}$ to keep only the selected features.
   \item Apply target preprocessing when  when \texttt{features\_only} mode is false:
     \begin{itemize}
       \item For classification, fill missing labels with the training-mode value, then apply the saved label encoder.
@@ -674,9 +693,9 @@ Output: List of cleaned and stemmed tokens
 3:  Convert text to lowercase and strip whitespace
 4:  Normalize special apostrophes to signle qoute
 5:  Replace contractions:
-        "can't" --> "can not"
-        "won't" --> "will not"
-        "shan't" --> "shall not"
+        "can't" to "can not"
+        "won't" to "will not"
+        "shan't" to "shall not"
 6:  Expand "n't" patterns into " not "
 7:  Insert space between digits and letters
 8:  Remove all characters except letters, digits, and apostrophes
@@ -815,304 +834,131 @@ Output: X_test, y_test or None
 \end{tabular}
 \end{table}
 \subsubsection{Image Dataset}
+The auto preprocessed image pipeline is designed to handle two types of vision tasks: image classification and binary segmentation.
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Expected Dataset Structure}
+The dataset is expected to follow the directory structure shown below. The validation folder is optional; if it exists.
+\begin{verbatim}
+Training/
+  Cats/
+  Dogs/
 
-The image dataset includes classification tasks that operate on folder-structured image data. The classification image preprocessing pipeline is implemented in `ClassificationImageTrainingPreprocessing` and inherits common image preprocessing logic from `ImageTrainingPreprocessing`, which itself inherits from `PreprocessingBase`.
+Validation/
+  Cats/
+  Dogs/
+\end{verbatim}
+
 
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Classification image training preprocessing parameters:}\par
-\begin{table}[!htbp]
+\noindent\textbf{Classification image training preprocessing steps:}\par
+\begin{enumerate}
+\item Initialize the constructor and validate input parameters.
+  \item Generate class-label mappings.
+    \item Load and validate images.
+    \item Create dataset overview and summary statistics.
+    \item Split training data into training and validation sets (optional).
+    \item Apply image preprocessing and augmentation.
+    \item Construct training and validation datasets.
+    \item Create DataLoaders for batch processing.
+    \item Generate preprocessing visualizations and reports.
+    \item Return processed training and validation DataLoaders.
+\end{enumerate}
+
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\noindent\textbf{Initialize the constructor and validate input parameters:}\par
+
+\begin{table}[h!]
 \centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Parameter} & \textbf{Description} \\
+\hline
+
+training\_folder\_images & Path to training image folder (class-wise structure) \\
+validation\_folder\_images & Path to validation image folder (optional) \\
+folder\_path & Output directory for saving reports, mappings, and graphs \\
+split\_training & Whether to split training folder into train/validation sets \\
+val\_size & Validation split ratio in range (0, 0.5] \\
+random\_state & Random seed for reproducibility \\
+images\_size & Image resize dimensions (height, width) \\
+augment & Enable or disable data augmentation \\
+batch\_size & Batch size for DataLoader \\
+augmentation\_probability & Probability of applying augmentation in range [0,1] \\
+horizontal\_flip & Enable horizontal flip augmentation \\
+vertical\_flip & Enable vertical flip augmentation \\
+rotation & Enable rotation augmentation \\
+rotation\_angle & Maximum rotation angle in degrees \\
+brightness & Enable brightness augmentation \\
+brightness\_factors & Range for brightness adjustment \\
+contrast & Enable contrast augmentation \\
+contrast\_factors & Range for contrast adjustment \\
+
+\hline
+\end{tabular}
 \caption{Classification Image Training Preprocessing Parameters}
-\label{tab:classification_image_training_params}
-\begin{tabular}{p{0.30\linewidth}p{0.65\linewidth}}
-\toprule
-\textbf{Parameter} & \textbf{Description} \\
-\midrule
-
-\texttt{training\_folder\_images} & Path to the folder containing training image class subdirectories. \\
-
-\texttt{folder\_path} & Directory path used to save report artifacts and metadata. \\
-
-\texttt{validation\_folder\_images} & Optional path to a separate validation folder with the same class subdirectories. \\
-
-\texttt{split\_training} & Boolean flag to split training images into training/validation when no validation folder is provided. \\
-
-\texttt{val\_size} & Validation split fraction when splitting the training data (default: 0.2). \\
-
-\texttt{random\_state} & Random seed for data splitting, shuffling, and report reproducibility (default: 42). \\
-
-\texttt{images\_size} & Output image size tuple, e.g. (224, 224). \\
-
-\texttt{augment} & Enable image augmentation during training data loading. \\
-
-\texttt{batch\_size} & Batch size used by the PyTorch DataLoader (default: 16). \\
-
-\texttt{augmentation\_probability} & Probability of applying augmentation to each training image (default: 0.5). \\
-
-\texttt{horizontal\_flip} & Enable random horizontal flip augmentation. \\
-
-\texttt{vertical\_flip} & Enable random vertical flip augmentation. \\
-
-\texttt{rotation} & Enable random rotation augmentation. \\
-
-\texttt{rotation\_angle} & Maximum rotation angle in degrees (default: 30). \\
-
-\texttt{brightness} & Enable brightness augmentation. \\
-
-\texttt{brightness\_factors} & Brightness factor range tuple (default: (0.8, 1.2)). \\
-
-\texttt{contrast} & Enable contrast augmentation. \\
-
-\texttt{contrast\_factors} & Contrast factor range tuple (default: (0.8, 1.2)). \\
-
-\bottomrule
-\end{tabular}
 \end{table}
-
-\vspace{1cm}
-\Needspace{4\baselineskip}
-\noindent\textbf{Image preprocessing validation rules:}\par
-The classification image preprocessing pipeline validates all configuration parameters and input folders before proceeding.
-\begin{itemize}
-  \item `training\_folder\_images` must not be null and must exist.
-  \item If `validation\_folder\_images` is provided, it must exist, be different from the training folder, and `split\_training` must be false.
-  \item Training folder must contain at least one class subdirectory.
-  \item If a validation folder is provided, it must contain at least one class subdirectory.
-  \item All validation classes must also exist in the training classes.
-  \item `val\_size` must be float in $(0,0.5]$.
-  \item `random\_state` must be integer or None.
-  \item `images\_size` must be a tuple of two integers between 32 and 1024.
-  \item `batch\_size` must be a positive integer.
-  \item `augment`, `horizontal\_flip`, `vertical\_flip`, `rotation`, `brightness`, and `contrast` must each be boolean.
-  \item `augmentation\_probability` must be between 0 and 1.
-  \item `rotation\_angle` must be a non-negative number.
-  \item `brightness\_factors` and `contrast\_factors` must each be tuples of two numeric values.
-  \item The class-to-label and label-to-class mappings are saved as `class2label\_mapping.pkl` and `label2class\_mapping.pkl`.
-  \item Image size metadata is saved as `data\_info.pkl`.
-\end{itemize}
-
-\vspace{1cm}
-\Needspace{4\baselineskip}
-\noindent\textbf{Classification image preprocessing flow:}\par
-\begin{enumerate}
-  \item Enumerate class subdirectories from the training folder and store the class list.
-  \item Build class-label mappings and persist them.
-  \item For each image path in training and optional validation folders, validate the file is a supported image.
-  \item Collect valid image paths and labels, and record invalid image paths for reporting.
-  \item Generate a data overview summary with class counts, sample file paths, and invalid image information.
-  \item Split training data into training and validation sets if `split\_training=True`, otherwise use the provided validation folder.
-  \item Build PyTorch `DataLoader` objects for training and validation data using `ClassificationImageDataset`.
-  \item Apply augmentation to training images when `augment=True` with probability `augmentation\_probability`. The augmentation pipeline may include:
-  \begin{itemize}
-    \item random horizontal flip
-    \item random vertical flip
-    \item random rotation within `rotation\_angle`
-    \item brightness adjustment using `brightness\_factors`
-    \item contrast adjustment using `contrast\_factors`
-  \end{itemize}
-  \item Generate graphs that describe the prepared dataset and batch behavior:
-  \begin{itemize}
-    \item label distribution graph showing the count of images per class,
-    \item sample images graph showing example images from each class,
-    \item example batch graph showing a batch of images after loader creation and augmentation.
-  \end{itemize}
-  \item Execute `ImagePreprocessingReport` to render the saved report artifacts.
-\end{enumerate}
-
-\vspace{1cm}
-\Needspace{4\baselineskip}
-\noindent\textbf{Saved artifacts for classification image preprocessing:}\par
-\begin{itemize}
-  \item \texttt{data\_info.pkl}: saved image size metadata.
-  \item \texttt{class2label\_mapping.pkl}: mapping from class name to integer label.
-  \item \texttt{label2class\_mapping.pkl}: mapping from integer label back to class name.
-\end{itemize}
-
-\vspace{1cm}
-\Needspace{4\baselineskip}
-\noindent\textbf{End-to-end pipeline summary:}\par
-The `common\_preprocessing()` method in `ClassificationImageTrainingPreprocessing` performs class mapping, data preparation, overview generation, train/validation splitting, loader creation, graph generation, and finally report execution.
-
-\vspace{1cm}
-\Needspace{4\baselineskip}
-\subsubsection{Classification Image Testing}
-The testing preprocessing pipeline is implemented in `ClassificationImageTestingPreprocessing` and is used after training is complete to prepare new image paths for model inference.
-
-\vspace{1cm}
-\Needspace{4\baselineskip}
-\noindent\textbf{Classification image testing preprocessing overview:}\par
-The testing pipeline accepts a list of image paths and optional class names, validates each image path, loads saved training metadata, and returns a `DataLoader` for inference.
-
-\begin{lstlisting}[style=algostyle,caption={Classification Image Testing Preprocessing Pipeline},label={alg:classification_image_testing_pipeline}]
-Input: image paths list P, optional class names list C, saved folder path
-Output: testing DataLoader, invalid image paths
-
-1:  Validate P is a non-empty list of image paths
-2:  If C is provided, validate it is a list with length equal to P
-3:  For each path in P:
-4:      If path is a valid image, add to valid image list
-5:      Else add to invalid image list
-6:  If no valid images remain, raise an error
-7:  Load `data_info.pkl` from folder path and recover `image_size`
-8:  Load `class2label_mapping.pkl` from folder path
-9:  If C is provided then
-10:     Convert each provided class name to its integer label
-11: End if
-12:  Build `ClassificationImageDataset` with `augment=False`
-13:  Create a PyTorch `DataLoader` with `shuffle=False` and `collect_function`
-14:  Return the testing loader and invalid image paths
-\end{lstlisting}
-
-\vspace{1cm}
-\Needspace{4\baselineskip}
-\noindent\textbf{Testing artifacts consumed:}\par
-\begin{itemize}
-  \item \texttt{data\_info.pkl}: used to restore `image\_size` for test images.
-  \item \texttt{class2label\_mapping.pkl}: used to convert class names to label integers when provided.
-\end{itemize}
-
-\vspace{1cm}
-\Needspace{4\baselineskip}
-\subsubsection{Segmentation Image Training}
-The segmentation image training preprocessing class is implemented in `SegmentationImageTrainingPreprocessing` and extends the base image preprocessing pipeline with paired mask handling.
-
-\vspace{1cm}
-\Needspace{4\baselineskip}
-\noindent\textbf{Segmentation image training preprocessing parameters:}\par
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
-\caption{Segmentation Image Training Preprocessing Parameters}
-\label{tab:segmentation_image_training_params}
-\begin{tabular}{p{0.30\linewidth}p{0.65\linewidth}}
-\toprule
-\textbf{Parameter} & \textbf{Description} \\
-\midrule
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Parameter} & \textbf{Validation Rules} \\
+\hline
 
-\texttt{training\_folder\_images} & Path to the folder containing training images. \\
+training\_folder &
+Must not be None and must exist in filesystem \\
+folder\_path& Must be not None.\\
+validation\_folder &
+If provided, must exist and must be different from training\_folder \\
 
-\texttt{training\_folder\_masks} & Path to the folder containing training masks paired with the training images. \\
+split\_training &
+If validation\_folder is provided, must be False \\
 
-\texttt{folder\_path} & Directory path used to save report artifacts and metadata. \\
+val\_size &
+Must be a float in range (0, 0.5] \\
 
-\texttt{validation\_folder\_images} & Optional path to a separate validation image folder. \\
+random\_state &
+Must be integer or None \\
 
-\texttt{validation\_folder\_masks} & Optional path to the corresponding validation mask folder. \\
+images\_size &
+Must be a tuple of two integers in range [32, 1024] \\
 
-\texttt{split\_training} & Boolean flag to split training images into training/validation when no validation folder is provided. \\
+batch\_size &
+Must be integer greater than 0 \\
 
-\texttt{val\_size} & Validation split fraction when splitting the training data (default: 0.2). \\
+augment &
+Must be boolean \\
 
-\texttt{random\_state} & Random seed for data splitting, shuffling, and report reproducibility (default: 42). \\
+horizontal\_flip &
+Must be boolean \\
 
-\texttt{images\_size} & Output image and mask size tuple, e.g. (224, 224). \\
+vertical\_flip &
+Must be boolean \\
 
-\texttt{augment} & Enable image augmentation during training data loading. \\
+rotation &
+Must be boolean \\
 
-\texttt{batch\_size} & Batch size used by the PyTorch DataLoader (default: 16). \\
+brightness &
+Must be boolean \\
 
-\texttt{augmentation\_probability} & Probability of applying augmentation to each training image/mask pair (default: 0.5). \\
+contrast &
+Must be boolean \\
 
-\texttt{horizontal\_flip} & Enable random horizontal flip augmentation. \\
+augmentation\_probability &
+Must be float in range [0, 1] \\
 
-\texttt{vertical\_flip} & Enable random vertical flip augmentation. \\
+rotation\_angle &
+Must be numeric (int/float) and greater than or equal 0 \\
 
-\texttt{rotation} & Enable random rotation augmentation. \\
+brightness\_factors &
+Must be a tuple of two numeric values (int/float) \\
 
-\texttt{rotation\_angle} & Maximum rotation angle in degrees (default: 30). \\
+contrast\_factors &
+Must be a tuple of two numeric values (int/float) \\
 
-\texttt{brightness} & Enable brightness augmentation. \\
-
-\texttt{brightness\_factors} & Brightness factor range tuple (default: (0.8, 1.2)). \\
-
-\texttt{contrast} & Enable contrast augmentation. \\
-
-\texttt{contrast\_factors} & Contrast factor range tuple (default: (0.8, 1.2)). \\
-
-\texttt{binary\_mask\_threshold} & Threshold used to binarize mask pixel values (default: 128). \\
-
-\bottomrule
+\hline
 \end{tabular}
+\caption{Validation Rules for Classification Image Training Preprocessing Parameters}
 \end{table}
-
-\vspace{1cm}
-\Needspace{4\baselineskip}
-\noindent\textbf{Segmentation preprocessing validation rules:}\par
-The segmentation training pipeline validates all folder paths, paired masks, and augmentation parameters before proceeding.
-\begin{itemize}
-  \item `training\_folder\_images` and `training\_folder\_masks` must not be null, must exist, and must be different folders.
-  \item `binary\_mask\_threshold` must be an integer between 0 and 255.
-  \item If `validation\_folder\_images` is provided, `validation\_folder\_masks` must also be provided, and both folders must exist and be different.
-  \item `training\_folder\_images` and `training\_folder\_masks` must contain matching filenames for valid image/mask pairs.
-  \item `val\_size` must be float in $(0,0.5]$.
-  \item `random\_state` must be integer or None.
-  \item `images\_size` must be a tuple of two integers between 32 and 1024.
-  \item `batch\_size` must be a positive integer.
-  \item `augment`, `horizontal\_flip`, `vertical\_flip`, `rotation`, `brightness`, and `contrast` must each be boolean.
-  \item `augmentation\_probability` must be between 0 and 1.
-  \item `rotation\_angle` must be a non-negative number.
-  \item `brightness\_factors` and `contrast\_factors` must each be tuples of two numeric values.
-\end{itemize}
-
-\vspace{1cm}
-\Needspace{4\baselineskip}
-\noindent\textbf{Segmentation image preprocessing flow:}\par
-\begin{enumerate}
-  \item Validate training image and mask folder paths and optional validation folder pairs.
-  \item Verify mask folders are distinct from the corresponding image folders.
-  \item Save `data\_info.pkl` containing `image\_size` and `binary\_mask\_threshold`.
-  \item Match image and mask filenames in each folder pair, keeping only valid pairs and recording invalid image or mask paths.
-  \item Generate an overview summary of training and optional validation data, including sample file pairs and invalid path counts.
-  \item Split the training pairs into training and validation sets if `split\_training=True`, otherwise use the provided validation folder pairs.
-  \item Build PyTorch `DataLoader` objects with `SegmentationImageDataset` for training and validation; training loader uses augmentation while validation loader does not.
-  \item Apply augmentation to training image/mask pairs when `augment=True` with probability `augmentation\_probability`. The augmentation pipeline may include:
-  \begin{itemize}
-    \item random horizontal flip,
-    \item random vertical flip,
-    \item random rotation within `rotation\_angle`,
-    \item brightness adjustment using `brightness\_factors`,
-    \item contrast adjustment using `contrast\_factors`.
-  \end{itemize}
-  \item Generate graphs that describe dataset structure and loader batches, including folder summaries, sampled image/mask pairs, and loader batch examples.
-  \item Execute `ImagePreprocessingReport` to render the segmentation training report artifacts.
-\end{enumerate}
-
-\vspace{1cm}
-\Needspace{4\baselineskip}
-\noindent\textbf{Saved artifacts for segmentation image preprocessing:}\par
-\begin{itemize}
-  \item \texttt{data\_info.pkl}: saved image size metadata and `binary\_mask\_threshold`.
-\end{itemize}
-
-\vspace{1cm}
-\Needspace{4\baselineskip}
-\subsubsection{Segmentation Image Testing}
-The testing preprocessing pipeline is implemented in `SegmentationImageTestingPreprocessing` and is used after training is complete to prepare new image and mask paths for inference or evaluation.
-
-\vspace{1cm}
-\Needspace{4\baselineskip}
-\noindent\textbf{Segmentation image testing preprocessing overview:}\par
-The testing pipeline accepts a list of image paths and optional mask paths, validates each path pair, loads saved training metadata, and returns a `DataLoader` for inference.
-
-\begin{lstlisting}[style=algostyle,caption={Segmentation Image Testing Preprocessing Pipeline},label={alg:segmentation_image_testing_pipeline}]
-Input: image paths list P, optional mask paths list M, saved folder path
-Output: testing DataLoader, invalid image paths
-
-1:  Validate P is a non-empty list of image paths
-2:  If M is provided, validate it is a list with length equal to P
-3:  For each path in P:
-4:      If path is a valid image and corresponding mask path is valid (when provided), add to valid pairs
-5:      Else add the image path to invalid image list
-6:  If no valid images remain, raise an error
-7:  Load `data_info.pkl` from folder path and recover `image_size` and `binary\_mask\_threshold`
-8:  Build `SegmentationImageDataset` with `augment=False`
-9:  Create a PyTorch `DataLoader` with `shuffle=False` and `collect_function_segmentation`
-10: Return the testing loader and invalid image paths
-\end{lstlisting}
-
-\vspace{1cm}
-\Needspace{4\baselineskip}
-\noindent\textbf{Segmentation testing artifacts consumed:}\par
-\begin{itemize}
-  \item \texttt{data\_info.pkl}: used to restore `image\_size` and `binary\_mask\_threshold` for test images.
-\end{itemize}
