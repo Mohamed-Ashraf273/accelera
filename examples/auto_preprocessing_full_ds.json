@@ -109,8 +109,8 @@
   "image_dataset": {
     "classification": {
       "PetImages-1": {
-        "train_folder": "./PetImages",
-        "report_path": "./PetImages-1",
+        "train_folder": "PetImages",
+        "report_path": "PetImages-1",
         "augment": "True",
         "n_class": 2,
         "kaggle_link": "https://www.kaggle.com/datasets/bhavikjikadara/dog-and-cat-classification-dataset",
@@ -121,8 +121,8 @@
         },
         "inferernce": {
           "images": [
-            "./PetImages/Cat/8.jpg",
-            "./PetImages/Dog/8.jpg"
+            "PetImages/Cat/8.jpg",
+            "PetImages/Dog/8.jpg"
           ],
           "image_class_names": ["Cat", "Dog"]
         }
@@ -130,8 +130,8 @@
     },
     "segmentation": {
       "brain_tumer-1": {
-        "train_folder_images": "./images",
-        "train_folder_masks": "./masks",
+        "train_folder_images": "images",
+        "train_folder_masks": "masks",
         "augment": "True",
         "train": "True",
         "image_size": {
@@ -140,8 +140,8 @@
         },
         "report_path": "brain_tumer-1",
         "inferernce": {
-          "images": ["./images/1.png", "./images/10.png"],
-          "image_class_names": ["./masks/1.png", "./masks/10.png"]
+          "images": ["images/1.png", "images/10.png"],
+          "image_class_names": ["masks/1.png", "masks/10.png"]
         }
       }
     }

@@ -1,8 +1,10 @@
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 EXAMPLES := $(ROOT)/examples
 TOOLS := $(ROOT)/tools
+BENCHMARK := $(ROOT)/accelera/src/benchmark
 THIS_MAKEFILE := $(abspath $(lastword $(MAKEFILE_LIST)))
 PYTHON ?= python
+
 ifeq ($(OS),Windows_NT)
 PATH_SEP := ;
 EXEC_PATH_SEP := :
@@ -13,11 +15,12 @@ EXEC_PATH_SEP := :
 endif
 
 export PYTHONPATH := $(ROOT)$(PATH_SEP)$(ROOT)/build/bindings$(PATH_SEP)$(PYTHONPATH)
+
 ifeq ($(OS),Windows_NT)
 export PATH := $(GRAPHVIZ_BIN)$(EXEC_PATH_SEP)$(PATH)
 endif
 
-.PHONY: all run accpipe-demo parallel-accpipe code-parallelizer save-load clean-ram
+.PHONY: all run accpipe-demo parallel-accpipe code-parallelizer save-load auto-preprocessing backend frontend clean-ram
 
 all: run
 
@@ -29,18 +32,31 @@ run:
 	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory code-parallelizer
 	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory clean-ram
 	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory save-load
+	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory clean-ram
+	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory auto-preprocessing
+	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory clean-ram
+	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory backend
 
 accpipe-demo:
-	@$(PYTHON) "$(EXAMPLES)/accpipe_demo.py"
+	@cd "$(ROOT)" && $(PYTHON) "$(EXAMPLES)/accpipe_demo.py"
 
 parallel-accpipe:
-	@$(PYTHON) "$(EXAMPLES)/parallel_accpipe.py"
+	@cd "$(ROOT)" && $(PYTHON) "$(EXAMPLES)/parallel_accpipe.py"
 
 code-parallelizer:
-	@$(PYTHON) "$(EXAMPLES)/code_parallelizer_demo.py"
+	@cd "$(ROOT)" && $(PYTHON) "$(EXAMPLES)/code_parallelizer_demo.py"
 
 save-load:
-	@$(PYTHON) "$(EXAMPLES)/save_load.py"
+	@cd "$(ROOT)" && $(PYTHON) "$(EXAMPLES)/save_load.py"
+
+auto-preprocessing:
+	@cd "$(ROOT)" && $(PYTHON) "$(EXAMPLES)/auto_preprocessing_demo.py"
+
+backend:
+	cd "$(BENCHMARK)/backend" && npm install && npm run dev
+
+frontend:
+	cd "$(BENCHMARK)/frontend" && npm install && npm run dev
 
 clean-ram:
 	@$(PYTHON) "$(TOOLS)/clean_ram.py"

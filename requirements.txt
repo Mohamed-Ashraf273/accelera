@@ -14,6 +14,7 @@ torch==2.12.0+cpu
 torchvision==0.27.0+cpu
 dm-tree
 category-encoders
+kagglehub
 
 # Dev & Testing Tools
 graphviz

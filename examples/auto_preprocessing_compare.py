@@ -1,5 +1,6 @@
 import json
 import time
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,9 +22,11 @@ from accelera.src.automl.core.classical_training_preprocessing import (
 )
 from accelera.src.utils.dataset_retriever import retriever
 
+EXAMPLES_DIR = Path(__file__).resolve().parent
+
 
 def get_data_set_info():
-    with open("auto_preprocessing_full_ds.json", "r") as f:
+    with open(EXAMPLES_DIR / "auto_preprocessing_full_ds.json", "r") as f:
         ds = json.loads(f.read())
     return ds
 
@@ -133,7 +136,9 @@ def plot_comparison(
     plt.title(f"{problem_type} - AutoClean vs Accelera")
     plt.legend()
     plt.tight_layout()
-    plt.savefig(f"{ds_type}_comparison_{problem_type}_{target_graph}.png")
+    plt.savefig(
+        EXAMPLES_DIR / f"{ds_type}_comparison_{problem_type}_{target_graph}.png"
+    )
 
 
 def main():
@@ -181,7 +186,9 @@ def main():
             plot_comparison(results_df, problem_type, "time", dataset_type)
 
     total_results_df = pd.DataFrame(total_results)
-    total_results_df.to_csv("preprocessing_comparison_autoclean.csv", index=False)
+    total_results_df.to_csv(
+        EXAMPLES_DIR / "preprocessing_comparison_autoclean.csv", index=False
+    )
 
 
 if __name__ == "__main__":
