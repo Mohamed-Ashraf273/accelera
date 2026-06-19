@@ -32,7 +32,6 @@ class BaseAutoML(BaseEstimator, ABC):
         candidate_pool_size=256,
         n_initial_points=5,
     ):
-
         self.time_budget = time_budget
         self.per_run_time_limit = per_run_time_limit
         self.n_trials = n_trials

@@ -18,7 +18,6 @@ def get_meta_learning_warmstarts(
     top_configs_per_dataset=3,
     max_warmstarts=10,
 ):
-
     metadata_directory = "json" if task == "classification" else "json_regression"
     data_path = resolve_path(
         task=task,

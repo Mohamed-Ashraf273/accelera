@@ -4,7 +4,7 @@ from pathlib import Path
 from sklearn.metrics import f1_score
 from xgboost import XGBClassifier
 
-from accelera.src.automatic_preprocessing.core.text_training_preprocessing import (
+from accelera.src.auto_preprocessing.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )
 from accelera.src.utils.dataset_retriever import retriever

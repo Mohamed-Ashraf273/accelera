@@ -7,10 +7,10 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision.models as models
 
-from accelera.src.automatic_preprocessing.core.classification_image_testing_preprocessing import (  # noqa: E501
+from accelera.src.auto_preprocessing.core.classification_image_testing_preprocessing import (  # noqa: E501
     ClassificationImageTestingPreprocessing,
 )
-from accelera.src.automatic_preprocessing.core.classification_image_training_preprocessing import (  # noqa: E501
+from accelera.src.auto_preprocessing.core.classification_image_training_preprocessing import (  # noqa: E501
     ClassificationImageTrainingPreprocessing,
 )
 

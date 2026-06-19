@@ -111,7 +111,6 @@ class AutoMLEngine:
         self.n_initial_points = n_initial_points
 
     def search(self, X, y):
-
         models = self.resolve_allowed_models(X)
         configspace = self.build_configspace(models)
         warmstart_configs = self.get_meta_learning_warmstarts(configspace, X, y)
@@ -627,7 +626,6 @@ class AutoMLEngine:
         return reranked
 
     def resolve_allowed_models(self, X):
-
         candidate_models = self.allowed_models
         disabled_models = []
         n_samples = len(X)

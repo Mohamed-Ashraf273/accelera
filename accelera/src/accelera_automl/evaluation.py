@@ -58,7 +58,6 @@ class BaseModelEvaluator:
         self.per_run_time_limit = per_run_time_limit
 
     def evaluate(self, config, X, y, evaluation_level=None):
-
         started_at = perf_counter()
         config_dict = configuration_space_to_dict(config)
         model_name = config_dict["model_name"]
@@ -183,7 +182,6 @@ class BaseModelEvaluator:
         raise ValueError(f"Unsupported preprocessing strategy `{name}`.")
 
     def normalize_evaluation_level(self, evaluation_level=None):
-
         if evaluation_level is None:  # try at max level.
             return TrialSpecs(
                 stage=0, sample_fraction=1.0, cv_folds=self.cv, model_budget=1.0
@@ -366,7 +364,6 @@ class ClassificationEvaluator(BaseModelEvaluator):
         return 0.0
 
     def resolve_cv_folds(self, y, requested_folds):
-
         values = np.asarray(y)
         _, counts = np.unique(values, return_counts=True)
         if counts.size == 0:

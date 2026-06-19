@@ -406,7 +406,6 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
         X,
         prediction_blocks,
     ):
-
         prediction_matrix = np.hstack(prediction_blocks)
         if not self.include_original_features_in_meta:
             return prediction_matrix

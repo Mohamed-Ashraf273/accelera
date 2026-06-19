@@ -1,13 +1,13 @@
 import json
 from pathlib import Path
 
-from accelera.src.automatic_preprocessing.core.classical_training_preprocessing import (
+from accelera.src.auto_preprocessing.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
 )
-from accelera.src.automatic_preprocessing.core.classification_image_training_preprocessing import (  # noqa: E501
+from accelera.src.auto_preprocessing.core.classification_image_training_preprocessing import (  # noqa: E501
     ClassificationImageTrainingPreprocessing,
 )
-from accelera.src.automatic_preprocessing.core.text_training_preprocessing import (
+from accelera.src.auto_preprocessing.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )
 from accelera.src.utils.dataset_retriever import retriever

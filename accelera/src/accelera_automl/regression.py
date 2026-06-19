@@ -69,7 +69,6 @@ class AutoMLRegressor(BaseAutoML):
         return "r2"
 
     def build_engine(self):
-
         return AutoMLEngine(
             task="regression",
             time_budget=self.time_budget,

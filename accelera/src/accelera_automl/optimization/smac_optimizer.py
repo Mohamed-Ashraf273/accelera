@@ -103,7 +103,6 @@ class Optimizer:
             self.configspace.seed(random_state)
 
     def optimize(self):
-
         started_at = perf_counter()
         trial_id = 0
 
@@ -337,7 +336,6 @@ class Optimizer:
         return next_trials
 
     def evaluate_batch_with_processes(self, trials):
-
         processes = []
         queues = []  # to collect results from processes
         results = [None] * len(trials)

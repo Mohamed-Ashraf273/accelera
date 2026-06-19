@@ -71,7 +71,6 @@ class AutoMLClassifier(BaseAutoML):
         return "accuracy"
 
     def build_engine(self):
-
         return AutoMLEngine(
             task="classification",
             time_budget=self.time_budget,
