@@ -26,7 +26,7 @@ Accelera time & Accelera RSS \\
 5,000 & 3,000 & 1,000 & 1,000 &
 2.47 & 3.62 & 2.12 & \bestcell 1.09 & \bestcell 2.02 & 21.62 \\
 10,000 & 6,000 & 2,000 & 2,000 &
-2.64 & 11.25 & 2.67 & \bestcell 2.19 & \bestcell 2.10 & 28.43 \\
+2.48 & 11.47 & 2.48 & \bestcell 2.19 & \bestcell 1.79 & 7.25 \\
 50,000 & 30,000 & 10,000 & 10,000 &
 23.96 & 126.95 & 23.25 & \bestcell 9.75 & \bestcell 14.81 & 209.25 \\
 100,000 & 60,000 & 20,000 & 20,000 &
@@ -162,25 +162,108 @@ obtained an average speedup of 5.578$\times$.
 
 \begin{table}[H]
 \centering
-\caption{Parallelizer and Accelera Pipe integration benchmark}
+\caption{Linux parallelizer and Accelera Pipe integration benchmark}
 \label{tab:pipe-parallelizer-integration}
 \begin{tabular}{lrr}
 \toprule
 Mode & Samples & Time (s) \\
 \midrule
-Python custom preprocessing function & 500,000 & 6.95 \\
-Compiled OpenMP kernel only & 500,000 & \bestcell 0.07 \\
-End-to-end compiled run, cold cache & 500,000 & 4.45 \\
-End-to-end compiled run, cached module & 500,000 & \bestcell 2.59 \\
+Python custom preprocessing function & 500,000 & 6.83 \\
+End-to-end optimized run, first measured process & 500,000 & 5.88 \\
+End-to-end optimized run, warmed method and module cache & 500,000 & \bestcell 0.08 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:pipe-parallelizer-integration} separates kernel execution time from end-to-end pipeline time. The
-0.07 second measurement is the compiled preprocessing kernel alone and does not
-include compilation. The 4.45 second run includes conversion, OpenMP
-parallelization, C++ extension compilation, module loading, and execution. The
-2.59 second run benefits from the compiled-module cache, so it represents the
-more realistic repeated-run cost. This confirms that the integration is useful,
-but also shows why compilation caching is necessary: without caching, compile
-latency hides part of the kernel speedup.
+Table~\ref{tab:pipe-parallelizer-integration} reports the Linux direct
+\modulepath{examples/parallel\_accpipe.py} run after normalizing the example
+execution directory to the repository root. The Python implementation takes
+6.83 seconds on 500,000 samples. The first optimized process in the measurement
+sequence takes 5.88 seconds because it still pays process-local setup and cache
+lookup costs. The immediate repeated run takes 0.08 seconds after the
+Python-method cache and compiled-module cache are both warm. The validation in
+the example confirmed that the optimized output matched the Python output. This
+result shows why the integration needs two cache layers: one layer avoids
+repeating Python-to-C++ conversion and OpenMP insertion, while the lower
+compiled-module cache avoids recompiling the pybind extension.
+
+\begin{table}[H]
+\centering
+\caption{Linux direct example-script verification runs}
+\label{tab:direct-example-runs}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lrrr}
+\toprule
+Example & Baseline time (s) & Optimized time (s) & Validation \\
+\midrule
+\modulepath{accpipe\_demo.py} & 2.48 & \bestcell 1.79 & same test accuracy, 0.9260 \\
+\modulepath{parallel\_accpipe.py}, run 1 & 6.83 & \bestcell 5.88 & outputs match \\
+\modulepath{parallel\_accpipe.py}, run 2 & 6.83 & \bestcell 0.08 & outputs match \\
+\modulepath{code\_parallelizer\_demo.py}, run 1 & 5.81 & \bestcell 0.014 & outputs match \\
+\modulepath{code\_parallelizer\_demo.py}, run 2 & 6.05 & \bestcell 0.015 & outputs match \\
+\modulepath{save\_load.py}, run 1 & 1.89 & 2.69 / 2.65 & same accuracy, 0.268 \\
+\modulepath{save\_load.py}, run 2 & 2.53 & \bestcell 2.20 / 2.14 & same accuracy, 0.268 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+Table~\ref{tab:direct-example-runs} summarizes the Linux examples invoked by
+\modulepath{examples/Makefile}, but each file was run directly rather than
+through Make. Cache-sensitive files were repeated. The standalone
+\modulepath{code\_parallelizer\_demo.py} result measures Python script execution
+against the generated OpenMP executable for \modulepath{hard\_eval\_002.py}; the
+C path also reported about 0.26--0.27 seconds of compilation time, outside the
+listed executable runtime. The save/load example verifies persistence rather
+than pure acceleration: both sklearn and Accelera load persisted state and
+produce the same accuracy, while the second Accelera run is slightly faster
+than the sklearn baseline.
+
+\begin{table}[H]
+\centering
+\caption{Windows direct example-script verification runs}
+\label{tab:direct-example-runs-windows}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llrrrrl}
+\toprule
+Example & Run/cache state & Baseline time (s) & Accelera/C path time (s) &
+Compile/link time (s) & Process wall time (s) & Validation \\
+\midrule
+\modulepath{accpipe\_demo.py} & normal & 1.75 / 1.78 & \bestcell 1.03 &
+-- & 6.53 & same test accuracy, 0.9260 \\
+\modulepath{parallel\_accpipe.py} & isolated cache, run 1 & 6.66 &
+\bestcell 6.00 & included & 14.37 & outputs match \\
+\modulepath{parallel\_accpipe.py} & isolated cache, run 2 & 6.58 &
+\bestcell 0.09 & cached & 8.33 & outputs match \\
+\modulepath{code\_parallelizer\_demo.py} & isolated cache, run 1 & 5.59 &
+\bestcell 1.04 & 0.87 & 8.74 & outputs match \\
+\modulepath{code\_parallelizer\_demo.py} & isolated cache, run 2 & 5.61 &
+\bestcell 1.05 & 1.04 & 9.00 & outputs match \\
+\modulepath{save\_load.py} & normal & 0.57 & \bestcell 0.51 / 0.53 &
+-- & 2.71 & same accuracy, 0.268 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+Table~\ref{tab:direct-example-runs-windows} reports the same Makefile example
+set on Windows. The examples were run one by one in Makefile order. The
+cache-sensitive examples were then repeated under an isolated Accelera cache so
+that the first run represents cold cache behavior and the second run represents
+warm cache behavior. The strongest cache effect appears in
+\modulepath{parallel\_accpipe.py}: the cold end-to-end Accelera path takes
+6.00 seconds because it must convert the function, select loops, compile a
+pybind extension, link it, and load it into Python. The immediate warm-cache
+run takes 0.09 seconds because the processed-code cache, method cache, and
+compiled-module cache avoid repeating those setup stages.
+
+The Windows \modulepath{code\_parallelizer\_demo.py} runs show a different
+limitation. The generated C/OpenMP executable is compiled into a temporary
+directory on every run, so the second run does not reuse the final linked
+program. The measured C executable subprocess takes about 1.04 seconds, while
+the instrumented main-body timer inside the generated program reports only
+about 0.024--0.025 seconds. This gap is Windows process startup, OpenMP runtime
+initialization, dynamic library loading, and executable loading overhead. The
+compile/link step itself adds about 0.87--1.04 seconds. On Linux, the same
+benchmark has lower launch and linking overhead in the reported measurements,
+so executable runtime is closer to the timed main-body work. For this reason,
+Windows results should be interpreted as end-to-end toolchain latency results,
+not only as loop-kernel speed results.
