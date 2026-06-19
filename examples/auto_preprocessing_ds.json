@@ -37,7 +37,7 @@
         "augment": "True",
         "n_class": 2,
         "kaggle_link": "https://www.kaggle.com/datasets/bhavikjikadara/dog-and-cat-classification-dataset",
-        "train": "True",
+        "train": "False",
         "image_size":{
           "width":224,
           "height":224

@@ -1,10 +1,10 @@
 import json
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import torch
 import torch.nn as nn
-from pathlib import Path
 
 from accelera.src.automl.core.segmentation_image_testing_preprocessing import (  # noqa: E501
     SegmentationImageTestingPreprocessing,
@@ -14,6 +14,7 @@ from accelera.src.automl.core.segmentation_image_training_preprocessing import (
 )
 
 EXAMPLES_DIR = Path(__file__).resolve().parent
+
 
 class UnetModel(nn.Module):
     class _TwoConvLayers(nn.Module):
@@ -277,7 +278,7 @@ class SegmentationTraining:
                         "optimizer_state": optimizer.state_dict(),
                         "best_dice": best_dice,
                     },
-                    F"{self.folder_path}/best_model.tar",
+                    f"{self.folder_path}/best_model.tar",
                 )
 
                 print(f"best model saved (dice = {best_dice:.4f})")
@@ -313,7 +314,7 @@ class SegmentationTraining:
 
 
 def get_data_set_info():
-    with open(EXAMPLES_DIR/"auto_preprocessing_ds.json", "r") as f:
+    with open(EXAMPLES_DIR / "auto_preprocessing_ds.json", "r") as f:
         ds = json.loads(f.read())["image_dataset"]["segmentation"]
     return ds
 
@@ -321,16 +322,16 @@ def get_data_set_info():
 def main():
     ds = get_data_set_info()
     for dataset, info in ds.items():
-        train_folder_images = EXAMPLES_DIR/info["train_folder_images"]
+        train_folder_images = EXAMPLES_DIR / info["train_folder_images"]
 
-        train_folder_masks = EXAMPLES_DIR/info["train_folder_masks"]
+        train_folder_masks = EXAMPLES_DIR / info["train_folder_masks"]
         val_folder_images = info.get("val_folder_images", None)
         val_folder_masks = info.get("val_folder_masks", None)
         if val_folder_images:
-            val_folder_images=EXAMPLES_DIR/val_folder_images
-        if val_folder_masks :
-            val_folder_masks=EXAMPLES_DIR/val_folder_masks
-        folder_path = EXAMPLES_DIR/info["report_path"]
+            val_folder_images = EXAMPLES_DIR / val_folder_images
+        if val_folder_masks:
+            val_folder_masks = EXAMPLES_DIR / val_folder_masks
+        folder_path = EXAMPLES_DIR / info["report_path"]
         augment = info["augment"] == "True"
         is_train = info["train"] == "True"
         inferernce = info.get("inferernce", None)
@@ -362,7 +363,9 @@ def main():
                 inferernce["images"], inferernce["masks", folder_path]
             ).common_preprocessing()
             obj.inference(testing_loader)
-        pd.DataFrame(obj.logs).to_csv(f"{EXAMPLES_DIR}/{folder_path}/logs.csv", index=False)
+        pd.DataFrame(obj.logs).to_csv(
+            f"{EXAMPLES_DIR}/{folder_path}/logs.csv", index=False
+        )
 
 
 if __name__ == "__main__":

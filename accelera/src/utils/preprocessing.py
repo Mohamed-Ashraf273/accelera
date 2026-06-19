@@ -1,5 +1,6 @@
 import os
 import pickle
+from pathlib import Path
 
 import torch
 from PIL import Image
@@ -47,17 +48,21 @@ def drop_columns(X, col_drop):
 
 
 def is_valid_image(image_path):
-    valid_extension = (".jpg", ".png", ".jpeg")
+    valid_extensions = (".jpg", ".png", ".jpeg")
 
-    if not os.path.isfile(image_path):
+    image_path = Path(image_path)
+
+    if not image_path.is_file():
         return False
-    if image_path.endswith(valid_extension):
+
+    if image_path.suffix.lower() in valid_extensions:
         try:
             with Image.open(image_path) as img:
                 img.verify()
             return True
         except Exception:
             return False
+
     return False
 
 

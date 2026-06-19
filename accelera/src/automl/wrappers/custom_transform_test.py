@@ -86,5 +86,3 @@ class TestCustomTransform:
         )
         transformed_data = transformer.fit_transform(df)
         assert np.array_equal(transformed_data, expected_output.values)
-
-   
