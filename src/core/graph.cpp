@@ -1,5 +1,7 @@
 #include <algorithm>
+#include <atomic>
 #include <chrono>
+#include <cstdlib>
 #include <exception>
 #include <fstream>
 #include <future>
@@ -10,9 +12,6 @@
 #include <stdexcept>
 #include <thread>
 #include <unordered_map>
-#include <atomic>
-#include <cstdlib>
-#include <iostream>
 
 #include "core/graph.hpp"
 #include "core/node_factory.hpp"
@@ -772,26 +771,18 @@ void Graph::runParallel() {
 
   unsigned int cpu_threads;
 
-  // Important:
-  // On small machines like Colab, hardware_concurrency is often 2.
-  // Using num_cores - 1 would leave only 1 worker, making execution almost sequential.
   if (num_cores <= 2) {
     cpu_threads = num_cores;
   } else {
     cpu_threads = num_cores - 1;
   }
 
-  // Optional manual override:
-  // ACCELERA_NUM_THREADS=2 python examples/accpipe_demo.py
-  if (const char* env_threads = std::getenv("ACCELERA_NUM_THREADS")) {
+  if (const char *env_threads = std::getenv("ACCELERA_NUM_THREADS")) {
     int requested_threads = std::atoi(env_threads);
     if (requested_threads > 0) {
       cpu_threads = static_cast<unsigned int>(requested_threads);
     }
   }
-
-  std::cout << "[accelera] hardware_concurrency=" << num_cores
-            << ", cpu_threads=" << cpu_threads << std::endl;
 
   std::counting_semaphore<1024> available_cpu_threads(cpu_threads);
   std::binary_semaphore available_gpu_thread(1);
@@ -803,7 +794,7 @@ void Graph::runParallel() {
   std::mutex data_mutex;
   std::mutex gpu_mutex;
 
-  for (const auto& node : m_execution_order) {
+  for (const auto &node : m_execution_order) {
     finished_executing[node] = false;
     started_executing[node] = false;
   }
@@ -814,7 +805,7 @@ void Graph::runParallel() {
     available_nodes.acquire();
 
     for (size_t i = 0; i < m_execution_order.size(); ++i) {
-      const auto& node = m_execution_order[i];
+      const auto &node = m_execution_order[i];
 
       if (started_executing[node]) {
         continue;
@@ -825,7 +816,7 @@ void Graph::runParallel() {
       if (node->getSourceNode() != nullptr) {
         std::lock_guard<std::mutex> lock(data_mutex);
 
-        for (const auto& source : node->getSourceNodes()) {
+        for (const auto &source : node->getSourceNodes()) {
           if (!finished_executing[source]) {
             parents_finished = false;
             break;
@@ -883,7 +874,7 @@ void Graph::runParallel() {
     }
   }
 
-  for (auto& f : futures) {
+  for (auto &f : futures) {
     f.wait();
   }
 
@@ -897,10 +888,10 @@ void Graph::runParallel() {
 
     try {
       std::rethrow_exception(exceptions[i]);
-    } catch (const std::exception& e) {
-      throw std::runtime_error(
-          "Error executing " + node_type + " node '" +
-          failed_node->name + "': " + std::string(e.what()));
+    } catch (const std::exception &e) {
+      throw std::runtime_error("Error executing " + node_type + " node '" +
+                               failed_node->name +
+                               "': " + std::string(e.what()));
     }
   }
 }
