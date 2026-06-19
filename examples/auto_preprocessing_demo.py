@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 from accelera.src.automl.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
@@ -14,6 +15,8 @@ from accelera.src.automl.core.text_training_preprocessing import (
 )
 from accelera.src.utils.dataset_retriever import retriever
 
+EXAMPLES_DIR = Path(__file__).resolve().parent
+
 # Demo 8
 print("=" * 80)
 print("===Accelera Auto Preprocessing Demo: For Tabular Data , Text and Image===")
@@ -25,7 +28,7 @@ print(
 print("=" * 80)
 
 def get_data_set_info():
-    with open("auto_preprocessing_ds.json", "r") as f:
+    with open(EXAMPLES_DIR / "auto_preprocessing_ds.json", "r") as f:
         ds = json.loads(f.read())
         print("Load Datasets from auto_preproceesing_ds json file")
     return ds
