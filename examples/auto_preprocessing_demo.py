@@ -7,9 +7,7 @@ from accelera.src.automl.core.classical_training_preprocessing import (
 from accelera.src.automl.core.classification_image_training_preprocessing import (  # noqa: E501
     ClassificationImageTrainingPreprocessing,
 )
-from accelera.src.automl.core.segmentation_image_training_preprocessing import (
-    SegmentationImageTrainingPreprocessing,
-)
+
 from accelera.src.automl.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )
@@ -62,7 +60,7 @@ def handle_data_preprocessing_tabular_text(
         ).common_preprocessing()
     print(
         f"\nFinish Preprocessing find the report in "
-        f"{EXAMPLES_DIR}/{report_path} and return X_train, X_test, y_train, y_test"
+        f"{report_path} and return X_train, X_test, y_train, y_test"
     )
     return X_train, X_test, y_train, y_test
 
@@ -82,35 +80,7 @@ def classifcation_problem(training_folder_images, folder_path, augment, image_si
     training_loader, validation_loader = training_preprocessor.common_preprocessing()
     print(
         f"Finish Preprocessing find the "
-        f"report in {EXAMPLES_DIR}/{folder_path} training_loader, validation_loader"
-    )
-    return training_loader, validation_loader
-
-
-def segemenation_problem(
-    training_folder_images, training_folder_masks, folder_path, augment, image_size
-):
-    print("\nStarting Segmentation Image Preprocessing")
-
-    augment = augment == "True"
-    training_loader, validation_loader = SegmentationImageTrainingPreprocessing(
-        training_folder_images=training_folder_images,
-        training_folder_masks=training_folder_masks,
-        folder_path=folder_path,
-        binary_mask_threshold=128,
-        validation_folder_images=None,
-        augment=True,
-        horizontal_flip=True,
-        vertical_flip=True,
-        rotation=True,
-        split_training=True,
-        val_size=0.2,
-        images_size=image_size,
-    ).common_preprocessing()
-    print(
-        "\nFinish Preprocessing find the report in "
-        f"{EXAMPLES_DIR}/{folder_path} and "
-        f"return training_loader, validation_loader\n"
+        f"report in {folder_path} training_loader, validation_loader"
     )
     return training_loader, validation_loader
 
@@ -134,14 +104,7 @@ def main():
                             ds_info["augment"],
                             image_size=image_size,
                         )
-                    else:
-                        segemenation_problem(
-                            EXAMPLES_DIR / ds_info["train_folder_images"],
-                            EXAMPLES_DIR / ds_info["train_folder_masks"],
-                            EXAMPLES_DIR / ds_info["report_path"],
-                            ds_info["augment"],
-                            image_size=image_size,
-                        )
+                   
 
         else:
             datasets_problem = datasets_obj["problemType"]
@@ -155,7 +118,7 @@ def main():
                     )
                     df = retriever.retrieve_dataset(dataset, url=link, df=True)
                     label = info["target_column"]
-                    report_path = info["report_path"]
+                    report_path = EXAMPLES_DIR/info["report_path"]
                     text_column = info.get("text_column", None)
                     columns_need_to_drop = info.get("columns_need_to_drop", [])
 
