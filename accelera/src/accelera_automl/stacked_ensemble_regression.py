@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import numpy as np
 from joblib import Parallel, delayed
 from scipy import sparse
@@ -70,6 +72,7 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
         self.meta_model = clone(meta_estimator)
         self.meta_model.fit(stack_train_X, y)
 
+        self.forward_selection_ = SimpleNamespace(score=float(self.score_result))
         self.log_ensemble_structure()
         return self
 
