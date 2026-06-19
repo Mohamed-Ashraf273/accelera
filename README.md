@@ -23,7 +23,7 @@ parallelization.
   `CustomClassifier`, `CustomRegressor`, `CustomClusterer`, and
   `CustomTransformer`.
 - **Reporting**: generate graph visualizations and HTML metric reports through
-  `GraphReport`, `ModelReport`, and AutoML preprocessing reports.
+  `GraphReport`, `ModelReport`, and autopreprocessing reports.
 - **Auto preprocessing**: tabular, text, and image-classification
   preprocessing utilities with saved preprocessors and visual
   summaries.
@@ -467,7 +467,7 @@ under the folder you pass in `folder_path`.
 it returns X_train, y_train, X_val, y_val generated from this pipeline and also 
 
 ```python
-from accelera.src.automl.core.classical_training_preprocessing import (
+from accelera.src.autopreprocessing.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
 )
 from accelera.src.utils.dataset_retriever import retriever
@@ -540,7 +540,7 @@ use the returned train/validation arrays in your model code.
 ```python
 import pandas as pd
 
-from accelera.src.automl.core.text_training_preprocessing import (
+from accelera.src.autopreprocessing.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )
 from accelera.src.utils.dataset_retriever import retriever
@@ -591,7 +591,7 @@ Validation/
 └── Dogs/
 ```
 ```python
-from accelera.src.automl.core.classification_image_training_preprocessing import (
+from accelera.src.autopreprocessing.core.classification_image_training_preprocessing import (
     ClassificationImageTrainingPreprocessing,
 )
 
@@ -708,7 +708,7 @@ accelera/
 │   ├── bindings/            # pybind11 bindings
 │   └── src/
 │       ├── accelera_pipe/   # DAG pipeline, execution graph
-│       ├── automl/          # preprocessing, reports, AutoML agent scaffold
+│       ├── autopreprocessing/          # preprocessing, reports 
 │       ├── benchmark/       # Node.js backend prototype
 │       ├── custom/          # estimator base classes
 │       ├── utils/           # dataset retriever, parallelizer and code utilities

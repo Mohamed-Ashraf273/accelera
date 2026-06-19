@@ -59,5 +59,6 @@ examples/TestReviews
 examples/brain_tumer-1
 examples/CarPrice_Assignment
 examples/catboost_info
+examples/global_ai_jobs
 .env
 /models
