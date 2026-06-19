@@ -11,43 +11,55 @@ changing the selected model or the measured predictive accuracy.
 
 \begin{table}[H]
 \centering
-\caption{Accelera Pipe latency and memory scaling}
-\label{tab:pipe-scale}
-\resizebox{\textwidth}{!}{
-\begin{tabular}{rrrrrrrrrr}
+\caption{Accelera Pipe latency scaling in seconds}
+\label{tab:pipe-latency-scale}
+\begin{tabular}{rrrr}
 \toprule
-Samples & Train & Val & Test &
-sklearn time & sklearn RSS &
-Pipeline time & Pipeline RSS &
-Accelera time & Accelera RSS \\
+Samples & sklearn & sklearn Pipeline & Accelera Pipe \\
 \midrule
-1,000 & 600 & 200 & 200 &
-0.06 & 1.62 & \bestcell 0.05 & \bestcell 0.16 & 0.34 & 19.32 \\
-5,000 & 3,000 & 1,000 & 1,000 &
-2.47 & 3.62 & 2.12 & \bestcell 1.09 & \bestcell 2.02 & 21.62 \\
-10,000 & 6,000 & 2,000 & 2,000 &
-2.48 & 11.47 & 2.48 & \bestcell 2.19 & \bestcell 1.79 & 7.25 \\
-50,000 & 30,000 & 10,000 & 10,000 &
-23.96 & 126.95 & 23.25 & \bestcell 9.75 & \bestcell 14.81 & 209.25 \\
-100,000 & 60,000 & 20,000 & 20,000 &
-77.79 & 139.70 & 77.10 & \bestcell 47.65 & \bestcell 67.04 & 300.93 \\
-250,000 & 150,000 & 50,000 & 50,000 &
-803.56 & 303.95 & 803.01 & \bestcell 28.52 & \bestcell 494.64 & 594.86 \\
+1,000 & 0.06 & \bestcell 0.05 & 0.34 \\
+5,000 & 2.47 & 2.12 & \bestcell 2.02 \\
+10,000 & 2.48 & 2.48 & \bestcell 1.79 \\
+50,000 & 23.96 & 23.25 & \bestcell 14.81 \\
+100,000 & 77.79 & 77.10 & \bestcell 67.04 \\
+250,000 & 803.56 & 803.01 & \bestcell 494.64 \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \end{table}
 
-Table~\ref{tab:pipe-scale} shows the main performance trend. At very small sizes, Accelera Pipe is
-slower because the native graph setup, branch creation, and Python/C++ boundary
-cost dominate the actual model computation. Once the dataset grows, those fixed
-costs become small compared with fitting multiple candidate branches. At
-50,000 samples, Accelera Pipe reduces runtime from 23.96 seconds to 14.81
-seconds. At 250,000 samples, it reduces runtime from about 803 seconds to about
-495 seconds, saving more than five minutes while selecting the same candidate.
-The table also shows the current cost of graph-level parallelism: Accelera Pipe
-uses more RSS memory because multiple branch states and intermediate arrays can
-exist at the same time. The memory optimizations in the methodology section
-target exactly this issue.
+Table~\ref{tab:pipe-latency-scale} shows the main performance trend without
+compressing the font. At very small sizes, Accelera Pipe is slower because the
+native graph setup, branch creation, and Python/C++ boundary cost dominate the
+actual model computation. Once the dataset grows, those fixed costs become
+small compared with fitting multiple candidate branches. At 50,000 samples,
+Accelera Pipe reduces runtime from 23.96 seconds to 14.81 seconds. At 250,000
+samples, it reduces runtime from about 803 seconds to about 495 seconds,
+saving more than five minutes while selecting the same candidate.
+
+\begin{table}[H]
+\centering
+\caption{Accelera Pipe RSS memory scaling in MB}
+\label{tab:pipe-memory-scale}
+\begin{tabular}{rrrr}
+\toprule
+Samples & sklearn & sklearn Pipeline & Accelera Pipe \\
+\midrule
+1,000 & 1.62 & \bestcell 0.16 & 19.32 \\
+5,000 & 3.62 & \bestcell 1.09 & 21.62 \\
+10,000 & 11.47 & \bestcell 2.19 & 7.25 \\
+50,000 & 126.95 & \bestcell 9.75 & 209.25 \\
+100,000 & 139.70 & \bestcell 47.65 & 300.93 \\
+250,000 & 303.95 & \bestcell 28.52 & 594.86 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:pipe-memory-scale} shows the current cost of graph-level
+parallelism. Accelera Pipe uses more RSS memory because multiple branch states
+and intermediate arrays can exist at the same time. The memory optimizations
+in the methodology section, especially consumer-count based release,
+duplicate first-node sharing, and guarded preprocessing copies, target exactly
+this issue.
 
 \begin{table}[H]
 \centering
@@ -191,20 +203,20 @@ compiled-module cache avoids recompiling the pybind extension.
 \centering
 \caption{Linux direct example-script verification runs}
 \label{tab:direct-example-runs}
-\resizebox{\textwidth}{!}{
+\footnotesize
 \begin{tabular}{lrrr}
 \toprule
 Example & Baseline time (s) & Optimized time (s) & Validation \\
 \midrule
-\modulepath{accpipe\_demo.py} & 2.48 & \bestcell 1.79 & same test accuracy, 0.9260 \\
-\modulepath{parallel\_accpipe.py}, run 1 & 6.83 & \bestcell 5.88 & outputs match \\
-\modulepath{parallel\_accpipe.py}, run 2 & 6.83 & \bestcell 0.08 & outputs match \\
-\modulepath{code\_parallelizer\_demo.py}, run 1 & 5.81 & \bestcell 0.014 & outputs match \\
-\modulepath{code\_parallelizer\_demo.py}, run 2 & 6.05 & \bestcell 0.015 & outputs match \\
-\modulepath{save\_load.py}, run 1 & 1.89 & 2.69 / 2.65 & same accuracy, 0.268 \\
-\modulepath{save\_load.py}, run 2 & 2.53 & \bestcell 2.20 / 2.14 & same accuracy, 0.268 \\
+\texttt{accpipe\_demo} & 2.48 & \bestcell 1.79 & same accuracy, 0.9260 \\
+\texttt{parallel\_accpipe}, run 1 & 6.83 & \bestcell 5.88 & outputs match \\
+\texttt{parallel\_accpipe}, run 2 & 6.83 & \bestcell 0.08 & outputs match \\
+\texttt{code\_parallelizer}, run 1 & 5.81 & \bestcell 0.014 & outputs match \\
+\texttt{code\_parallelizer}, run 2 & 6.05 & \bestcell 0.015 & outputs match \\
+\texttt{save\_load}, run 1 & 1.89 & 2.69 / 2.65 & same accuracy, 0.268 \\
+\texttt{save\_load}, run 2 & 2.53 & \bestcell 2.20 / 2.14 & same accuracy, 0.268 \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \end{table}
 
 Table~\ref{tab:direct-example-runs} summarizes the Linux examples invoked by
@@ -220,32 +232,56 @@ than the sklearn baseline.
 
 \begin{table}[H]
 \centering
-\caption{Windows direct example-script verification runs}
+\caption{Windows direct example correctness and path timing}
 \label{tab:direct-example-runs-windows}
-\resizebox{\textwidth}{!}{
-\begin{tabular}{llrrrrl}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llrrl}
 \toprule
-Example & Run/cache state & Baseline time (s) & Accelera/C path time (s) &
-Compile/link time (s) & Process wall time (s) & Validation \\
+Example & Run/cache state & Baseline (s) & Accelera/C path (s) & Validation \\
 \midrule
-\modulepath{accpipe\_demo.py} & normal & 1.75 / 1.78 & \bestcell 1.03 &
--- & 6.53 & same test accuracy, 0.9260 \\
-\modulepath{parallel\_accpipe.py} & isolated cache, run 1 & 6.66 &
-\bestcell 6.00 & included & 14.37 & outputs match \\
-\modulepath{parallel\_accpipe.py} & isolated cache, run 2 & 6.58 &
-\bestcell 0.09 & cached & 8.33 & outputs match \\
-\modulepath{code\_parallelizer\_demo.py} & isolated cache, run 1 & 5.59 &
-\bestcell 1.04 & 0.87 & 8.74 & outputs match \\
-\modulepath{code\_parallelizer\_demo.py} & isolated cache, run 2 & 5.61 &
-\bestcell 1.05 & 1.04 & 9.00 & outputs match \\
-\modulepath{save\_load.py} & normal & 0.57 & \bestcell 0.51 / 0.53 &
--- & 2.71 & same accuracy, 0.268 \\
+\texttt{accpipe\_demo} & normal & 1.75 / 1.78 & \bestcell 1.03 &
+same test accuracy, 0.9260 \\
+\texttt{parallel\_accpipe} & isolated cache, run 1 & 6.66 &
+\bestcell 6.00 & outputs match \\
+\texttt{parallel\_accpipe} & isolated cache, run 2 & 6.58 &
+\bestcell 0.09 & outputs match \\
+\texttt{code\_parallelizer} & isolated cache, run 1 & 5.59 &
+\bestcell 1.04 & outputs match \\
+\texttt{code\_parallelizer} & isolated cache, run 2 & 5.61 &
+\bestcell 1.05 & outputs match \\
+\texttt{save\_load} & normal & 0.57 & \bestcell 0.51 / 0.53 &
+same accuracy, 0.268 \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
+\setlength{\tabcolsep}{6pt}
 \end{table}
 
-Table~\ref{tab:direct-example-runs-windows} reports the same Makefile example
-set on Windows. The examples were run one by one in Makefile order. The
+\begin{table}[H]
+\centering
+\caption{Windows compilation and process overhead}
+\label{tab:direct-example-runs-windows-overhead}
+\footnotesize
+\begin{tabular}{llrrl}
+\toprule
+Example & Run/cache state & Compile/link (s) & Wall time (s) & Interpretation \\
+\midrule
+\texttt{accpipe\_demo} & normal & -- & 6.53 & graph example startup \\
+\texttt{parallel\_accpipe} & isolated cache, run 1 & included & 14.37 & cold compile path \\
+\texttt{parallel\_accpipe} & isolated cache, run 2 & cached & 8.33 & warm cache path \\
+\texttt{code\_parallelizer} & isolated cache, run 1 & 0.87 & 8.74 & temporary executable \\
+\texttt{code\_parallelizer} & isolated cache, run 2 & 1.04 & 9.00 & temporary executable \\
+\texttt{save\_load} & normal & -- & 2.71 & persistence example \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Tables~\ref{tab:direct-example-runs-windows}
+and~\ref{tab:direct-example-runs-windows-overhead} report the same Makefile
+example set on Windows. The first table keeps the user-visible comparison:
+baseline runtime, optimized path runtime, and validation result. The second
+table separates compilation and process-level overhead so the timing table
+remains readable. The examples were run one by one in Makefile order. The
 cache-sensitive examples were then repeated under an isolated Accelera cache so
 that the first run represents cold cache behavior and the second run represents
 warm cache behavior. The strongest cache effect appears in
