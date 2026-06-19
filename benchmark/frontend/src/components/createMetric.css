@@ -1,0 +1,75 @@
+.metric-page {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background: white;
+  min-height: 100vh;
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+}
+.metric-page-content {
+  min-height: 100vh;
+  margin-top: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.form {
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 300px;
+  background-color: #0f172a;
+  color: white;
+  padding: 20px;
+  border-radius: 20px;
+}
+.input-div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.input-div p {
+  font-style: italic;
+}
+.input-div input {
+  border-radius: 10px;
+  padding: 5px 10px;
+}
+.input-div select {
+  border-radius: 10px;
+  padding: 5px 10px;
+}
+.paramter {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.param-button {
+  width: auto;
+  padding: 5px 5px;
+  border-radius: 10px;
+}
+.show-paramter {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.show-paramter-value {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.param-card {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+}
+.param-card button {
+  width: 30px;
+  border: none;
+}
