@@ -6,10 +6,10 @@ import pandas as pd
 import torch
 import torch.nn as nn
 
-from accelera.src.automl.core.segmentation_image_testing_preprocessing import (  # noqa: E501
+from accelera.src.automatic_preprocessing.core.segmentation_image_testing_preprocessing import (  # noqa: E501
     SegmentationImageTestingPreprocessing,
 )
-from accelera.src.automl.core.segmentation_image_training_preprocessing import (  # noqa: E501
+from accelera.src.automatic_preprocessing.core.segmentation_image_training_preprocessing import (  # noqa: E501
     SegmentationImageTrainingPreprocessing,
 )
 

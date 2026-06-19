@@ -1,16 +1,16 @@
 import json
 from pathlib import Path
 
-from accelera.src.automl.core.classical_training_preprocessing import (
+from accelera.src.automatic_preprocessing.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
 )
-from accelera.src.automl.core.classification_image_training_preprocessing import (  # noqa: E501
+from accelera.src.automatic_preprocessing.core.classification_image_training_preprocessing import (  # noqa: E501
     ClassificationImageTrainingPreprocessing,
 )
-from accelera.src.automl.core.segmentation_image_training_preprocessing import (
+from accelera.src.automatic_preprocessing.core.segmentation_image_training_preprocessing import (
     SegmentationImageTrainingPreprocessing,
 )
-from accelera.src.automl.core.text_training_preprocessing import (
+from accelera.src.automatic_preprocessing.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )
 from accelera.src.utils.dataset_retriever import retriever

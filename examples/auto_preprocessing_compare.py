@@ -17,7 +17,7 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import DecisionTreeRegressor
 
-from accelera.src.automl.core.classical_training_preprocessing import (
+from accelera.src.automatic_preprocessing.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
 )
 from accelera.src.utils.dataset_retriever import retriever

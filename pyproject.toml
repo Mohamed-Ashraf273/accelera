@@ -9,7 +9,7 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.9"
-license = "Apache-2.0"
+license = {text = "Apache-2.0"}
 dynamic = ["version"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -26,11 +26,19 @@ classifiers = [
 ]
 dependencies = [
     "absl-py",
+    "catboost",
+    "ConfigSpace",
+    "joblib",
+    "lightgbm",
     "numpy",
     "packaging",
+    "pandas",
     "pybind11",
     "regex",
     "rich",
+    "scikit-learn",
+    "scipy",
+    "xgboost",
 ]
 
 [project.urls]
@@ -42,6 +50,12 @@ version = {attr = "accelera.src.version.__version__"}
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["accelera*"]
+
+[tool.setuptools.package-data]
+"accelera.src.accelera_automl" = [
+    "meta_learning_data/json/*.json",
+    "meta_learning_data/json_regression/*.json",
+]
 
 [tool.ruff]
 line-length = 85
