@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import pandas as pd
 import torch
@@ -13,7 +14,7 @@ from accelera.src.automl.core.classification_image_training_preprocessing import
     ClassificationImageTrainingPreprocessing,
 )
 
-
+EXAMPLES_DIR = Path(__file__).resolve().parent
 class ClassificationTraining:
     def __init__(self, dataset_name, folder_path, num_classes):
         self.logs = [dataset_name]
@@ -122,7 +123,7 @@ class ClassificationTraining:
 
 
 def get_data_set_info():
-    with open("auto_preproceesing_ds.json", "r") as f:
+    with open(EXAMPLES_DIR/"auto_preprocessing_ds.json", "r") as f:
         ds = json.loads(f.read())["image_dataset"]["classification"]
     return ds
 
@@ -130,9 +131,13 @@ def get_data_set_info():
 def main():
     ds = get_data_set_info()
     for dataset, info in ds.items():
-        train_folder = info["train_folder"]
+        train_folder = EXAMPLES_DIR/info["train_folder"]
         val_folder = info.get("val_folder", None)
-        folder_path = info["report_path"]
+        if val_folder:
+            val_folder=EXAMPLES_DIR/val_folder
+        
+        folder_path = EXAMPLES_DIR/info["report_path"]
+        print(folder_path)
         augment = info["augment"] == "True"
         is_train = info["train"] == "True"
         n_class = info.get("n_class", None)
@@ -149,10 +154,13 @@ def main():
             model = obj.pretrained_model()
             obj.train(model, train_loader, val_loader, epochs=20)
         if inferernce is not None:
+            inferernce["images"] = [
+                EXAMPLES_DIR / imgage for imgage in inferernce["images"]
+            ]
             images = inferernce["images"]
             image_class_names = inferernce["image_class_names"]
             obj.inference(images, image_class_names)
-        pd.DataFrame(obj.logs).to_csv(f"{folder_path}/logs.csv", index=False)
+        pd.DataFrame(obj.logs).to_csv(f"{EXAMPLES_DIR}/{folder_path}/logs.csv", index=False)
 
 
 if __name__ == "__main__":

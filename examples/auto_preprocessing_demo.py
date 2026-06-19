@@ -21,8 +21,8 @@ EXAMPLES_DIR = Path(__file__).resolve().parent
 print("=" * 80)
 print("===Accelera Auto Preprocessing Demo: For Tabular Data , Text and Image===")
 print(
-    "File running: examples/auto_preprocessing_demo.py\n"
-    "This file runs datasets are existing in examples/auto_preprocessing_ds\n"
+    f"File running: {EXAMPLES_DIR}/auto_preprocessing_demo.py\n"
+    f"This file runs datasets are existing in {EXAMPLES_DIR}/auto_preprocessing_ds\n"
     "The goal is this demo to run auto preprocessing for each type of data and generate folder for each data has pkl files and report"
 )
 print("=" * 80)
@@ -30,7 +30,7 @@ print("=" * 80)
 def get_data_set_info():
     with open(EXAMPLES_DIR / "auto_preprocessing_ds.json", "r") as f:
         ds = json.loads(f.read())
-        print("Load Datasets from auto_preproceesing_ds json file")
+        print(f"Load Datasets from {EXAMPLES_DIR}/auto_preproceesing_ds json file")
     return ds
 
 
@@ -60,7 +60,7 @@ def handle_data_preprocessing_tabular_text(
         ).common_preprocessing()
     print(
         f"\nFinish Preprocessing find the report in "
-        f"end={report_path} and return X_train, X_test, y_train, y_test"
+        f"{EXAMPLES_DIR}/{report_path} and return X_train, X_test, y_train, y_test"
     )
     return X_train, X_test, y_train, y_test
 
@@ -80,7 +80,7 @@ def classifcation_problem(training_folder_images, folder_path, augment, image_si
     training_loader, validation_loader = training_preprocessor.common_preprocessing()
     print(
         f"Finish Preprocessing find the "
-        f"report in {folder_path} training_loader, validation_loader"
+        f"report in {EXAMPLES_DIR}/{folder_path} training_loader, validation_loader"
     )
     return training_loader, validation_loader
 
@@ -107,7 +107,7 @@ def segemenation_problem(
     ).common_preprocessing()
     print(
         f"\nFinish Preprocessing find the report in "
-        f"{folder_path} and return training_loader, validation_loader\n"
+        f"{EXAMPLES_DIR}/{folder_path} and return training_loader, validation_loader\n"
     )
     return training_loader, validation_loader
 
@@ -126,16 +126,16 @@ def main():
                     )
                     if problem_type == "classification":
                         classifcation_problem(
-                            ds_info["train_folder"],
-                            ds_info["report_path"],
+                            EXAMPLES_DIR/ds_info["train_folder"],
+                            EXAMPLES_DIR/ds_info["report_path"],
                             ds_info["augment"],
                             image_size=image_size,
                         )
                     else:
                         segemenation_problem(
-                            ds_info["train_folder_images"],
-                            ds_info["train_folder_masks"],
-                            ds_info["report_path"],
+                            EXAMPLES_DIR/ds_info["train_folder_images"],
+                            EXAMPLES_DIR/ds_info["train_folder_masks"],
+                            EXAMPLES_DIR/ds_info["report_path"],
                             ds_info["augment"],
                             image_size=image_size,
                         )
