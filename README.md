@@ -137,6 +137,12 @@ accelera/
 └── ...
 ```
 The datasets are required for image classification and segmentation demos.
+### Colab Quick Start
+
+If you prefer to run the demo without setting everything up locally, you can use the provided Colab notebook. The notebook demonstrates the full setup flow, including preparing the datasets and running the project Makefile.
+
+Colab notebook: [Demo](https://colab.research.google.com/drive/1J-22PPwm26Hs_OPI_L_ovZlffwl9HP4N?usp=sharing)
+
 ### Run Examples
 
 ```bash
