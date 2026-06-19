@@ -10,6 +10,9 @@
 #include <stdexcept>
 #include <thread>
 #include <unordered_map>
+#include <atomic>
+#include <cstdlib>
+#include <iostream>
 
 #include "core/graph.hpp"
 #include "core/node_factory.hpp"
@@ -755,110 +758,132 @@ void Graph::setGPUUsage() {
 
 void Graph::runParallel() {
   py::gil_scoped_release release;
+
   auto remaining_consumers = buildRemainingConsumerCounts(m_execution_order);
+
   std::map<Node::Ptr, bool> finished_executing;
   std::map<Node::Ptr, bool> started_executing;
+
   unsigned int num_cores = std::thread::hardware_concurrency();
   unsigned int cpu_threads = (num_cores > 1) ? num_cores - 1 : 1;
+
+  if (const char* env_threads = std::getenv("ACCELERA_NUM_THREADS")) {
+    int requested_threads = std::atoi(env_threads);
+    if (requested_threads > 0) {
+      cpu_threads = static_cast<unsigned int>(requested_threads);
+    }
+  }
+
+  std::cout << "[accelera] hardware_concurrency=" << num_cores
+            << ", cpu_threads=" << cpu_threads << std::endl;
+
   std::counting_semaphore<1024> available_cpu_threads(cpu_threads);
   std::binary_semaphore available_gpu_thread(1);
   std::binary_semaphore available_nodes(1);
+
   std::vector<std::exception_ptr> exceptions(m_execution_order.size());
   std::vector<std::future<void>> futures;
+
   std::mutex data_mutex;
   std::mutex gpu_mutex;
 
-  for (auto node : m_execution_order) {
+  for (const auto& node : m_execution_order) {
     finished_executing[node] = false;
     started_executing[node] = false;
   }
-  int i = 0;
-  int rem_nodes = m_execution_order.size();
-  while (rem_nodes != 0) {
+
+  std::atomic<int> rem_nodes(static_cast<int>(m_execution_order.size()));
+
+  while (rem_nodes.load() != 0) {
     available_nodes.acquire();
-    i = 0;
-    while (i < m_execution_order.size()) {
-      const auto &node = m_execution_order[i];
+
+    for (size_t i = 0; i < m_execution_order.size(); ++i) {
+      const auto& node = m_execution_order[i];
+
       if (started_executing[node]) {
-        i++;
         continue;
       }
+
       bool parents_finished = true;
-      if (!(node.get()->getSourceNode() == nullptr)) {
-        {
-          std::lock_guard<std::mutex> lock(data_mutex);
-          for (auto source : node->getSourceNodes()) {
-            if (!finished_executing[source]) {
-              parents_finished = false;
-              break;
-            }
+
+      if (node->getSourceNode() != nullptr) {
+        std::lock_guard<std::mutex> lock(data_mutex);
+
+        for (const auto& source : node->getSourceNodes()) {
+          if (!finished_executing[source]) {
+            parents_finished = false;
+            break;
           }
         }
       }
-      if (parents_finished) {
-        if (node->getUsesGPU()) {
-          available_gpu_thread.acquire();
-        } else {
-          available_cpu_threads.acquire();
-        }
-        started_executing[node] = true;
-        futures.emplace_back(std::async(
-            std::launch::async,
-            [node, this, &finished_executing, &available_nodes, &data_mutex,
-             &available_cpu_threads, &available_gpu_thread, &exceptions, i,
-             &rem_nodes, &gpu_mutex, &remaining_consumers]() {
-              py::gil_scoped_acquire acquire;
-              try {
-                if (node->getUsesGPU()) {
-                  std::lock_guard<std::mutex> gpu_lock(gpu_mutex);
-                  node->execute();
-                } else {
-                  node->execute();
-                }
-              } catch (...) {
-                exceptions[i] = std::current_exception();
-              }
-              {
-                std::lock_guard<std::mutex> lock(data_mutex);
-                releaseConsumedSources(node, remaining_consumers);
-                finished_executing[node] = true;
-                rem_nodes--;
-              }
-              if (node->getUsesGPU()) {
-                available_gpu_thread.release();
-              } else {
-                available_cpu_threads.release();
-              }
-              available_nodes.release();
-            }));
+
+      if (!parents_finished) {
+        continue;
       }
-      i++;
+
+      if (node->getUsesGPU()) {
+        available_gpu_thread.acquire();
+      } else {
+        available_cpu_threads.acquire();
+      }
+
+      started_executing[node] = true;
+      size_t node_index = i;
+
+      futures.emplace_back(std::async(
+          std::launch::async,
+          [node, this, &finished_executing, &available_nodes, &data_mutex,
+           &available_cpu_threads, &available_gpu_thread, &exceptions,
+           node_index, &rem_nodes, &gpu_mutex, &remaining_consumers]() {
+            py::gil_scoped_acquire acquire;
+
+            try {
+              if (node->getUsesGPU()) {
+                std::lock_guard<std::mutex> gpu_lock(gpu_mutex);
+                node->execute();
+              } else {
+                node->execute();
+              }
+            } catch (...) {
+              exceptions[node_index] = std::current_exception();
+            }
+
+            {
+              std::lock_guard<std::mutex> lock(data_mutex);
+              releaseConsumedSources(node, remaining_consumers);
+              finished_executing[node] = true;
+              rem_nodes.fetch_sub(1);
+            }
+
+            if (node->getUsesGPU()) {
+              available_gpu_thread.release();
+            } else {
+              available_cpu_threads.release();
+            }
+
+            available_nodes.release();
+          }));
     }
   }
-  for (auto &f : futures) {
+
+  for (auto& f : futures) {
     f.wait();
   }
 
   for (size_t i = 0; i < exceptions.size(); ++i) {
-    if (exceptions[i]) {
-      Node::Ptr failed_node;
-      std::string node_type;
+    if (!exceptions[i]) {
+      continue;
+    }
 
-      if (i < m_execution_order.size()) {
-        failed_node = m_execution_order[i];
-        node_type = failed_node->getUsesGPU() ? "GPU" : "CPU";
-      } else {
-        failed_node = m_execution_order[i];
-        node_type = "unknown";
-      }
+    Node::Ptr failed_node = m_execution_order[i];
+    std::string node_type = failed_node->getUsesGPU() ? "GPU" : "CPU";
 
-      try {
-        std::rethrow_exception(exceptions[i]);
-      } catch (const std::exception &e) {
-        throw std::runtime_error("Error executing " + node_type + " node '" +
-                                 failed_node->name +
-                                 "': " + std::string(e.what()));
-      }
+    try {
+      std::rethrow_exception(exceptions[i]);
+    } catch (const std::exception& e) {
+      throw std::runtime_error(
+          "Error executing " + node_type + " node '" +
+          failed_node->name + "': " + std::string(e.what()));
     }
   }
 }
