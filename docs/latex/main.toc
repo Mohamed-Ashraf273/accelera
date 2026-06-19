@@ -1,0 +1,31 @@
+\contentsline {section}{\numberline {1}Introduction}{2}{section.1}%
+\contentsline {section}{\numberline {2}Literature Review}{2}{section.2}%
+\contentsline {section}{\numberline {3}Methodology}{2}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Accelera Pipe Module}{2}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Module Responsibility}{2}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}Graph Execution Model}{2}{subsubsection.3.1.2}%
+\contentsline {subsubsection}{\numberline {3.1.3}Branching and Node Sharing}{3}{subsubsection.3.1.3}%
+\contentsline {subsubsection}{\numberline {3.1.4}Memory-Lifetime Optimizations}{4}{subsubsection.3.1.4}%
+\contentsline {subsubsection}{\numberline {3.1.5}Saving and Loading Pipelines}{5}{subsubsection.3.1.5}%
+\contentsline {subsection}{\numberline {3.2}Code Parallelizer Module}{5}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Module Responsibility}{5}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Loop Analysis and Pragma Selection}{5}{subsubsection.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.3}Classifier Model and Rule-Based Decision}{6}{subsubsection.3.2.3}%
+\contentsline {subsubsection}{\numberline {3.2.4}Python-to-C++ Converter Support}{6}{subsubsection.3.2.4}%
+\contentsline {subsubsection}{\numberline {3.2.5}Integration with Accelera Pipe}{7}{subsubsection.3.2.5}%
+\contentsline {subsection}{\numberline {3.3}AutoPreprocessing Module}{8}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Module Overview}{8}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Supported Dataset Types}{9}{subsubsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.3}Supported Tasks }{9}{subsubsection.3.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.4}Tabular Dataset}{9}{subsubsection.3.3.4}%
+\contentsline {subsubsection}{\numberline {3.3.5}Text Dataset}{19}{subsubsection.3.3.5}%
+\contentsline {subsubsection}{\numberline {3.3.6}Image Dataset}{24}{subsubsection.3.3.6}%
+\contentsline {subsection}{\numberline {3.4}Deployment Module}{26}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Benchmark Platform Module}{26}{subsection.3.5}%
+\contentsline {section}{\numberline {4}Results and Experiments}{26}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Accelera Pipe Results}{26}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Code Parallelizer Results}{28}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}AutoML Results}{30}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Deployment Results}{30}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Benchmark Platform Results}{30}{subsection.4.5}%
+\contentsline {section}{\numberline {5}Conclusion}{30}{section.5}%
