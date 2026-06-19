@@ -31,16 +31,16 @@ run:
 	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory save-load
 
 accpipe-demo:
-	@$(PYTHON) "$(EXAMPLES)/accpipe_demo.py"
+	@cd "$(ROOT)" && $(PYTHON) "$(EXAMPLES)/accpipe_demo.py"
 
 parallel-accpipe:
-	@$(PYTHON) "$(EXAMPLES)/parallel_accpipe.py"
+	@cd "$(ROOT)" && $(PYTHON) "$(EXAMPLES)/parallel_accpipe.py"
 
 code-parallelizer:
-	@$(PYTHON) "$(EXAMPLES)/code_parallelizer_demo.py"
+	@cd "$(ROOT)" && $(PYTHON) "$(EXAMPLES)/code_parallelizer_demo.py"
 
 save-load:
-	@$(PYTHON) "$(EXAMPLES)/save_load.py"
+	@cd "$(ROOT)" && $(PYTHON) "$(EXAMPLES)/save_load.py"
 
 clean-ram:
-	@$(PYTHON) "$(TOOLS)/clean_ram.py"
+	@cd "$(ROOT)" && $(PYTHON) "$(TOOLS)/clean_ram.py"

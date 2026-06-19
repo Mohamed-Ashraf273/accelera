@@ -1,10 +1,13 @@
 import ast
 import hashlib
+import importlib.util
 import json
 import os
 import re
 import shutil
 import subprocess
+import sys
+import sysconfig
 from pathlib import Path
 
 import numpy as np
@@ -30,6 +33,67 @@ def extract_loops(code: str, clang_args: list | None = None) -> list:
 
 def write_loops_to_json(loops: list, output_json: str) -> bool:
     return _write_loops_to_json(loops, output_json)
+
+
+def _compiled_extension_suffix() -> str:
+    return sysconfig.get_config_var("EXT_SUFFIX") or ".so"
+
+
+def _pymethod_cache_path(code: str, func_name: str) -> Path:
+    from accelera.src.utils.cpp_compiler import compile_opt_flag
+
+    cache_key = "\n".join(
+        [
+            config.COMPILE_CACHE_VERSION,
+            func_name,
+            compile_opt_flag(),
+            _compiled_extension_suffix(),
+            code,
+        ]
+    )
+    source_hash = hashlib.md5(cache_key.encode()).hexdigest()
+    return config.cache_dir / "compiled" / f"pymethod_{source_hash}.json"
+
+
+def _load_cached_pymethod(cache_path: Path, func_name: str):
+    if not cache_path.exists():
+        return None
+
+    try:
+        module_name = json.loads(cache_path.read_text())["module_name"]
+        module_path = (
+            config.cache_dir
+            / "compiled"
+            / f"{module_name}{_compiled_extension_suffix()}"
+        )
+        if not module_path.exists():
+            return None
+
+        loaded_module = sys.modules.get(module_name)
+        if loaded_module is not None:
+            return getattr(loaded_module, func_name)
+
+        spec = importlib.util.spec_from_file_location(module_name, module_path)
+        if spec is None or spec.loader is None:
+            return None
+
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        sys.modules[module_name] = module
+        return getattr(module, func_name)
+    except (OSError, KeyError, json.JSONDecodeError, AttributeError, ImportError):
+        return None
+
+
+def _write_pymethod_cache(cache_path: Path, module_name: str) -> None:
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    cache_path.write_text(json.dumps({"module_name": module_name}, indent=2))
+
+
+def _processed_code_cache_path(code: str) -> Path:
+    cache_key = "\n".join([config.COMPILE_CACHE_VERSION, code])
+    source_hash = hashlib.md5(cache_key.encode()).hexdigest()
+    return config.cache_dir / "processed_code" / f"{source_hash}.cpp"
 
 
 def _loop_to_dict(loop) -> dict:
@@ -534,6 +598,10 @@ class Parallelizer:
             subprocess.run([clang_format, "-i", str(final_output_path)], check=True)
 
     def _process_code(self, code: str) -> str:
+        cache_path = _processed_code_cache_path(code)
+        if cache_path.exists():
+            return cache_path.read_text()
+
         try:
             ast.parse(code)
         except SyntaxError:
@@ -542,20 +610,36 @@ class Parallelizer:
             code = py2cpp_converter(code)
 
         loops_data = [_loop_to_dict(loop) for loop in extract_loops(code)]
-        return self._apply_parallel_loops(
+        parallelized_code = self._apply_parallel_loops(
             code, self._select_parallel_loops(loops_data)
         )
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        cache_path.write_text(parallelized_code)
+        return parallelized_code
 
     def _optimize_pymethod(self, func):
         import inspect
         import textwrap
 
         from accelera.src.utils.cpp_compiler import compile_parallelized_code
+        from accelera.src.utils.cpp_compiler import compiled_module_name
 
         try:
             code = textwrap.dedent(inspect.getsource(func))
+            cache_path = _pymethod_cache_path(code, func.__name__)
+            cached_func = _load_cached_pymethod(cache_path, func.__name__)
+            if cached_func is not None:
+                return cached_func
+
             cpp_code = self.parallelize(code)
-            return compile_parallelized_code(cpp_code, func.__name__)
+            module_name = compiled_module_name(
+                cpp_code,
+                func.__name__,
+                _compiled_extension_suffix(),
+            )
+            optimized_func = compile_parallelized_code(cpp_code, func.__name__)
+            _write_pymethod_cache(cache_path, module_name)
+            return optimized_func
         except (
             OSError,
             RuntimeError,
