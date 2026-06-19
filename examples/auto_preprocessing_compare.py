@@ -16,9 +16,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import DecisionTreeRegressor
-from accelera.src.utils.preprocessing import load_pickle
 
-from accelera.src.autopreprocessing.core.classical_training_preprocessing import (
+from accelera.src.auto_preprocessing.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
 )
 from accelera.src.utils.dataset_retriever import retriever
@@ -50,7 +49,13 @@ def get_compared_models(problem_type):
 
 
 def models_evaluation(
-    X_train, X_test, y_train, y_test, problem_type="classification",is_accelera=False,folder_path=None
+    X_train,
+    X_test,
+    y_train,
+    y_test,
+    problem_type="classification",
+    is_accelera=False,
+    folder_path=None,
 ):
     models_score = {}
     for name, model in get_compared_models(problem_type).items():
@@ -111,7 +116,13 @@ def accelera_preprocessing(
     )
 
     evaluation = models_evaluation(
-        X_train_df, X_test_df, y_train, y_test, problem_type,is_accelera=True,folder_path=report_path
+        X_train_df,
+        X_test_df,
+        y_train,
+        y_test,
+        problem_type,
+        is_accelera=True,
+        folder_path=report_path,
     )
     end_time = time.time()
     return evaluation, end_time - start_time
