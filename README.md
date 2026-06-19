@@ -123,11 +123,19 @@ To run the AutoPreprocessing demo correctly, you need to download two Kaggle dat
 - https://www.kaggle.com/datasets/nikhilroxtomar/brain-tumor-segmentation/data  
 
 ### Setup Instructions
-
 1. Download both datasets from Kaggle.
-2. Extract the downloaded Folders without renaming it.
-3. Place the extracted folders inside the `examples/` directory.
-
+2. Extract the downloaded archives.
+3. From the first dataset, locate the folder named `PetImages` that is created after extraction and copy it to the `examples/` directory in the project root.
+4. From the second dataset, locate the folders named `images` and `masks` that are created after extraction and copy both folders to the `examples/` directory in the project root.
+5. After completing these steps, the directory structure should look similar to:
+  ``` 
+accelera/
+├── examples/
+│   ├── PetImages/
+│   ├── images/
+│   └── masks/
+└── ...
+```
 The datasets are required for image classification and segmentation demos.
 ### Run Examples
 
