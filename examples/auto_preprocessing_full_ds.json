@@ -5,85 +5,85 @@
         "startup_founder_burnout_2026": {
           "link": "https://drive.google.com/uc?id=1d_3vf6NdEY9-H-jzfMq4BYP3WycNSBgQ",
           "target_column": "Startup_Failure_Flag",
-          "report_path": "./startup_founder_burnout_2026"
+          "report_path": "startup_founder_burnout_2026"
         },
         "healthy_diet_calorie_intake": {
           "link": "https://drive.google.com/uc?id=1JkPaIuBmc7MIjF1k7_sBtYPe69K2s_5X",
           "target_column": "Health_Status",
-          "report_path": "./healthy_diet_calorie_intake",
+          "report_path": "healthy_diet_calorie_intake",
           "columns_need_to_drop": ["Person_ID"]
         },
         "ai_student": {
           "link": "https://drive.google.com/uc?id=1RLeMoVvEUe_PsnEZfGH7PI5q_F0jOzBY",
           "target_column": "Burnout_Risk_Level",
-          "report_path": "./ai_student_impact_dataset",
+          "report_path": "ai_student_impact_dataset",
           "columns_need_to_drop": ["Student_ID"]
         },
         "gaming_addiction": {
           "link": "https://drive.google.com/uc?id=1Cr0UzQszWJ_B8zlepWjLngOuBwMHRAXY",
           "target_column": "addiction_binary",
-          "report_path": "./gaming_addiction",
+          "report_path": "gaming_addiction",
           "columns_need_to_drop": ["user_id"]
         },
         "Teen_Mental_Health_Dataset": {
           "link": "https://drive.google.com/uc?id=10X0yimXSfqzA5XiJ4mASkSTDk-FI83Zw",
           "target_column": "depression_label",
-          "report_path": "./Teen_Mental_Health_Dataset"
+          "report_path": "Teen_Mental_Health_Dataset"
         },
         "student_exam_performance_dataset": {
           "link": "https://drive.google.com/uc?id=19mH4wgsK2-zcttdTFl6jk_BR83lrKIS7",
           "target_column": "pass_fail",
-          "report_path": "./student_exam_performance_dataset",
+          "report_path": "student_exam_performance_dataset",
           "columns_need_to_drop": ["student_id"]
         },
         "heart": {
           "link": "https://drive.google.com/uc?id=1HG9BPIS-PFHzzXBnKrohMCrmr7W9oxJY",
           "target_column": "target",
-          "report_path": "./heart"
+          "report_path": "heart"
         },
         "Dataset_spine": {
           "link": "https://drive.google.com/uc?id=1RmaNadcroXrqodMq1APBQBhIKBIZLbvJ",
           "target_column": "Class_att",
-          "report_path": "./Dataset_spine"
+          "report_path": "Dataset_spine"
         },
         "diabetes_dataset": {
           "link": "https://drive.google.com/uc?id=1n0lDQbi662-Kabrq5KJrjs2_uFQ1hBpS",
           "target_column": "diagnosed_diabetes",
-          "report_path": "./diabetes_dataset"
+          "report_path": "diabetes_dataset"
         },
         "student_placement_synthetic": {
           "link": "https://drive.google.com/uc?id=1l3YRaiPNA4EowBFuj6cm0v4yS2DQOY1M",
           "target_column": "placement_status",
-          "report_path": "./student_placement_synthetic"
+          "report_path": "student_placement_synthetic"
         },
         "Titanic-Dataset": {
           "link": "https://drive.google.com/uc?id=1VWRzvPDcFOo7YByJtKKupH3H0czFAHCx",
           "target_column": "Survived",
-          "report_path": "./Titanic-Dataset",
+          "report_path": "Titanic-Dataset",
           "columns_need_to_drop": ["PassengerId"]
         },
         "customer_purchase_data": {
           "link": "https://drive.google.com/uc?id=1OCe4X8mVFEwWz0cfQyAJKNiZMbiUGbB2",
           "target_column": "PurchaseStatus",
-          "report_path": "./customer_purchase_data"
+          "report_path": "customer_purchase_data"
         }
       },
       "regression": {
         "CarPrice_Assignment": {
           "link": "https://drive.google.com/uc?id=1fHodFSYNZyX-XmkFb0Yn8crb9CqpVG4v",
           "target_column": "price",
-          "report_path": "./CarPrice_Assignment",
+          "report_path": "CarPrice_Assignment",
           "columns_need_to_drop": ["car_ID"]
         },
         "Concrete_Data_Yeh": {
           "link": "https://drive.google.com/uc?id=11AYSyIHdlnby4DkgvmwHBYI6uNPo7NND",
           "target_column": "csMPa",
-          "report_path": "./Concrete_Data_Yeh"
+          "report_path": "Concrete_Data_Yeh"
         },
         "Housing": {
           "link": "https://drive.google.com/uc?id=1VMtLcWDcigwkimpf-eWVMZ7zJMUf7wxs",
           "target_column": "price",
-          "report_path": "./Housing"
+          "report_path": "Housing"
         }
       }
     }
@@ -94,13 +94,13 @@
         "TestReviews": {
           "link": "https://drive.google.com/uc?id=1pBNGL9NuScgUb16Yh8W6gFzhXanCWa9q",
           "target_column": "class",
-          "report_path": "./TestReviews",
+          "report_path": "TestReviews",
           "text_column": "review"
         },
         "DailyDialog": {
           "link": "https://drive.google.com/uc?id=1oWgWAZpvVAgnxK3P-0sqElWDWMozdK4P",
           "target_column": "sentiment",
-          "report_path": "./DailyDialog",
+          "report_path": "DailyDialog",
           "text_column": "text"
         }
       }
@@ -125,23 +125,6 @@
             "PetImages/Dog/8.jpg"
           ],
           "image_class_names": ["Cat", "Dog"]
-        }
-      }
-    },
-    "segmentation": {
-      "brain_tumer-1": {
-        "train_folder_images": "images",
-        "train_folder_masks": "masks",
-        "augment": "True",
-        "train": "True",
-        "image_size": {
-          "width": 224,
-          "height": 224
-        },
-        "report_path": "brain_tumer-1",
-        "inferernce": {
-          "images": ["images/1.png", "images/10.png"],
-          "image_class_names": ["masks/1.png", "masks/10.png"]
         }
       }
     }
