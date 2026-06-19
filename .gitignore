@@ -30,6 +30,12 @@ examples/job_salary_prediction_dataset
 examples/student_exam_performance_dataset
 examples/student_placement_synthetic
 examples/Titanic-Dataset
+examples/*.png
+examples/*.jpg
+examples/*.jpeg
+examples/*.csv
+examples/*.json
+examples/*.zip
 bin/
 lib/
 lib64/

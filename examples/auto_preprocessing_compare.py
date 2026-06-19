@@ -136,7 +136,9 @@ def plot_comparison(
     plt.title(f"{problem_type} - AutoClean vs Accelera")
     plt.legend()
     plt.tight_layout()
-    plt.savefig(f"{ds_type}_comparison_{problem_type}_{target_graph}.png")
+    plt.savefig(
+        EXAMPLES_DIR / f"{ds_type}_comparison_{problem_type}_{target_graph}.png"
+    )
 
 
 def main():
@@ -184,7 +186,9 @@ def main():
             plot_comparison(results_df, problem_type, "time", dataset_type)
 
     total_results_df = pd.DataFrame(total_results)
-    total_results_df.to_csv("preprocessing_comparison_autoclean.csv", index=False)
+    total_results_df.to_csv(
+        EXAMPLES_DIR / "preprocessing_comparison_autoclean.csv", index=False
+    )
 
 
 if __name__ == "__main__":
