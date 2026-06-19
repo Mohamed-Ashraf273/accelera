@@ -7,10 +7,7 @@ from accelera.src.accelera_automl.meta_learning.warmstart import resolve_path
 
 def test_resolve_path_finds_packaged_classification_metadata():
     meta_learning_root = (
-        Path(__file__).resolve().parents[2]
-        / "accelera"
-        / "src"
-        / "accelera_automl"
+        Path(__file__).resolve().parents[1]
         / "meta_learning_data"
         / "json"
     )
