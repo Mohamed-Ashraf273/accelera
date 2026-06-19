@@ -7,7 +7,6 @@ from accelera.src.automl.core.classical_training_preprocessing import (
 from accelera.src.automl.core.classification_image_training_preprocessing import (  # noqa: E501
     ClassificationImageTrainingPreprocessing,
 )
-
 from accelera.src.automl.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )
@@ -104,7 +103,6 @@ def main():
                             ds_info["augment"],
                             image_size=image_size,
                         )
-                   
 
         else:
             datasets_problem = datasets_obj["problemType"]
@@ -118,7 +116,7 @@ def main():
                     )
                     df = retriever.retrieve_dataset(dataset, url=link, df=True)
                     label = info["target_column"]
-                    report_path = EXAMPLES_DIR/info["report_path"]
+                    report_path = EXAMPLES_DIR / info["report_path"]
                     text_column = info.get("text_column", None)
                     columns_need_to_drop = info.get("columns_need_to_drop", [])
 
