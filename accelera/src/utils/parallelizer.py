@@ -432,10 +432,10 @@ def _consecutive_for_depth(code: str) -> int:
 def _is_independent_array_write_loop(loop_code: str) -> bool:
     features = extract_features(loop_code)
     return bool(
-        features["array_writes"]
-        and not features["has_loop_carried_dep"]
-        and not features["has_indirect_access"]
-        and not features["has_early_exit"]
+        features.get("array_writes")
+        and not features.get("has_loop_carried_dep")
+        and not features.get("has_indirect_access")
+        and not features.get("has_early_exit")
     )
 
 
@@ -516,6 +516,11 @@ class Parallelizer:
         for loop in loops_data:
             loop_code = loop["code"]
             if loop["type"] != "for":
+                continue
+
+            loop_class = _resolve_loop_class(loop_code, "none")
+            if loop_class != "none":
+                selected_loops.append((loop, loop_class))
                 continue
 
             try:
