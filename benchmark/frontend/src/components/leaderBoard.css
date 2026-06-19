@@ -1,0 +1,75 @@
+.leader-board-page {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background: white;
+  min-height: 100vh;
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+  font-style: italic;
+  font-size: medium;
+}
+.leader-board-content {
+  margin-top: 100px;
+  display: flex;
+  flex-direction: column;
+}
+.submissions {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.submission-card {
+  background-color: #0f172a;
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.submission {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.submission a {
+  color: white;
+  text-decoration: none;
+}
+.leader-board-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.add-button {
+  text-decoration: none;
+  background-color: #0f172a;
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+}
+.add-form {
+  width: 50%;
+  margin-top: 100px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #0f172a;
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.add-form div{
+    display: flex;
+    flex-direction: column;
+    gap:10px;
+}
+.add-form input{
+    width: 100%;
+}
