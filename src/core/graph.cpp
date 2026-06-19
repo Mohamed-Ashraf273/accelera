@@ -765,8 +765,24 @@ void Graph::runParallel() {
   std::map<Node::Ptr, bool> started_executing;
 
   unsigned int num_cores = std::thread::hardware_concurrency();
-  unsigned int cpu_threads = (num_cores > 1) ? num_cores - 1 : 1;
 
+  if (num_cores == 0) {
+    num_cores = 1;
+  }
+
+  unsigned int cpu_threads;
+
+  // Important:
+  // On small machines like Colab, hardware_concurrency is often 2.
+  // Using num_cores - 1 would leave only 1 worker, making execution almost sequential.
+  if (num_cores <= 2) {
+    cpu_threads = num_cores;
+  } else {
+    cpu_threads = num_cores - 1;
+  }
+
+  // Optional manual override:
+  // ACCELERA_NUM_THREADS=2 python examples/accpipe_demo.py
   if (const char* env_threads = std::getenv("ACCELERA_NUM_THREADS")) {
     int requested_threads = std::atoi(env_threads);
     if (requested_threads > 0) {
@@ -850,6 +866,7 @@ void Graph::runParallel() {
 
             {
               std::lock_guard<std::mutex> lock(data_mutex);
+
               releaseConsumedSources(node, remaining_consumers);
               finished_executing[node] = true;
               rem_nodes.fetch_sub(1);
