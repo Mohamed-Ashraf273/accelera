@@ -32,10 +32,6 @@ def generate_init_for_dir(src_dir, api_dir, src_package_prefix, is_root=False):
     src_rel = os.path.relpath(src_dir, "accelera/src")
     can_import_from_dir = src_rel == "." or is_importable_path(src_rel)
 
-    # Preserve public symbols explicitly exported by the source package.
-    if os.path.isfile(os.path.join(src_dir, "__init__.py")):
-        lines.append(f"from {src_package_prefix} import *  # noqa: F403\n")
-
     for entry in sorted(os.listdir(src_dir)):
         if entry in skip_names:
             continue
@@ -86,18 +82,10 @@ def sync_api_with_src(src_root, api_root):
     src_dirs = get_structure(src_root)
     api_dirs = get_structure(api_root)
 
-    # Delete children before parents so nested stale API directories remain
-    # safe to remove regardless of set iteration order.
-    extra_dirs = sorted(
-        api_dirs - src_dirs,
-        key=lambda path: path.count(os.sep),
-        reverse=True,
-    )
-    for extra in extra_dirs:
+    for extra in api_dirs - src_dirs:
         full_path = os.path.join(api_root, extra)
         print(f"[remove] {full_path}")
-        if os.path.isdir(full_path):
-            shutil.rmtree(full_path)
+        shutil.rmtree(full_path)
 
     # Generate __init__.py for all src dirs including root
     for dir_rel in src_dirs | {""}:
