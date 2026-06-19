@@ -154,7 +154,7 @@ def main():
                 retriever.connect()
                 df = retriever.retrieve_dataset(dataset, url=info["link"], df=True)
                 label = info["target_column"]
-                report_path = info["report_path"]
+                report_path = EXAMPLES_DIR / info["report_path"]
                 autoclean_score, autoclean_time = auto_clean_preprocessing(
                     df,
                     label,

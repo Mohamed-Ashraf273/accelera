@@ -24,8 +24,8 @@ parallelization.
   `CustomTransformer`.
 - **Reporting**: generate graph visualizations and HTML metric reports through
   `GraphReport`, `ModelReport`, and AutoML preprocessing reports.
-- **Auto preprocessing**: tabular, text, image-classification, and
-  segmentation preprocessing utilities with saved preprocessors and visual
+- **Auto preprocessing**: tabular, text, and image-classification
+  preprocessing utilities with saved preprocessors and visual
   summaries.
 - **Dataset retriever**: list and download shared CSV datasets into a local
   cache with `accelera.src.utils.dataset_retriever.DatasetRetriever`.
@@ -120,23 +120,19 @@ Windows and Debian/Ubuntu Linux systems so graph-rendering examples can run.
 To run the AutoPreprocessing demo correctly, you need to download two Kaggle datasets used in this project:
 
 - https://www.kaggle.com/datasets/bhavikjikadara/dog-and-cat-classification-dataset  
-- https://www.kaggle.com/datasets/nikhilroxtomar/brain-tumor-segmentation/data  
 
 ### Setup Instructions
 1. Download both datasets from Kaggle.
 2. Extract the downloaded archives.
 3. From the first dataset, locate the folder named `PetImages` that is created after extraction and copy it to the `examples/` directory in the project root.
-4. From the second dataset, locate the folders named `images` and `masks` that are created after extraction and copy both folders to the `examples/` directory in the project root.
-5. After completing these steps, the directory structure should look similar to:
+4. After completing these steps, the directory structure should look similar to:
   ``` 
 accelera/
 ├── examples/
 │   ├── PetImages/
-│   ├── images/
-│   └── masks/
 └── ...
 ```
-The datasets are required for image classification and segmentation demos.
+The datasets are required for image classification demo.
 ### Colab Quick Start
 
 If you prefer to run the demo without setting everything up locally, you can use the provided Colab notebook. The notebook demonstrates the full setup flow, including preparing the datasets and running the project Makefile.
@@ -610,58 +606,7 @@ image_preprocessor = ClassificationImageTrainingPreprocessing(
 )
 training_loader, validation_loader = image_preprocessor.common_preprocessing()
 ```
-### Image Auto Preprocessing Segmentation
-This for binary segmentation problem
-When `split_training=True`, it creates a validation split from the training
-folder. Use `augment=True` when you want training-time augmentation.
 
-Expected Folder Structure
-```
-Dataset/
-├── Training/
-│   ├── Images/
-│   │   ├── img1.jpg
-│   │   ├── img2.jpg
-│   │   └── img3.jpg
-│   │
-│   └── Masks/
-│       ├── img1.png
-│       ├── img2.png
-│       └── img3.png
-│
-└── Validation/
-    ├── Images/
-    │   ├── img1.jpg
-    │   ├── img2.jpg
-    │   └── img3.jpg
-    │
-    └── Masks/
-        ├── img1.png
-        ├── img2.png
-        └── img3.png
-```
-```python
-from accelera.src.automl.core.segmentation_image_training_preprocessing import (
-    SegmentationImageTrainingPreprocessing,
-)
-
-training_loader, validation_loader = SegmentationImageTrainingPreprocessing(
-        training_folder_images=Training_Images,# replace with your Training folder Images
-        training_folder_masks=training_folder_masks,# replace with your Training folder mask
-        folder_path=folder_path,
-        binary_mask_threshold=128,
-        validation_folder_images=None,# replace with your Validation folder Images (if exists)
-        ,
-        validation_folder_masks# replace with your Validation folder masks (if exists)
-        augment=True,
-        horizontal_flip=True,
-        vertical_flip=True,
-        rotation=True,
-        split_training=True,
-        val_size=0.2,
-        images_size=image_size,
-    ).common_preprocessing()
-```
 ### Pipeline Graph Report
 
 Graph reports visualize a serialized pipeline graph together with the pipeline

@@ -21,9 +21,6 @@ from accelera.src.automl.wrappers import (
     display_sample_images_classification as display_sample_images_classification,
 )
 from accelera.src.automl.wrappers import (
-    display_sample_images_segmentation as display_sample_images_segmentation,
-)
-from accelera.src.automl.wrappers import (
     frequency_encoder_transform as frequency_encoder_transform,
 )
 from accelera.src.automl.wrappers import graph_base as graph_base
@@ -41,12 +38,6 @@ from accelera.src.automl.wrappers import (
     ordinal_classification as ordinal_classification,
 )
 from accelera.src.automl.wrappers import ordinal_regression as ordinal_regression
-from accelera.src.automl.wrappers import (
-    segmentation_data_summary as segmentation_data_summary,
-)
-from accelera.src.automl.wrappers import (
-    segmentation_images_after_loader as segmentation_images_after_loader,
-)
 from accelera.src.automl.wrappers import tabular_graph_base as tabular_graph_base
 from accelera.src.automl.wrappers import (
     tabular_preprocessing_report as tabular_preprocessing_report,
