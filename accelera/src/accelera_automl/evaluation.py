@@ -2,11 +2,18 @@ from dataclasses import dataclass
 from time import perf_counter
 
 import numpy as np
-from sklearn.model_selection import KFold, ShuffleSplit, StratifiedKFold, StratifiedShuffleSplit, cross_val_score
+from sklearn.model_selection import KFold
+from sklearn.model_selection import ShuffleSplit
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import StandardScaler
 
-from .components import get_classification_components, get_regression_components
+from .components import get_classification_components
+from .components import get_regression_components
 from .configspace_search_space import configuration_space_to_dict
 
 
@@ -38,11 +45,11 @@ class BaseModelEvaluator:
     def __init__(
         self,
         *,
-        cv = 5,
-        scoring = "accuracy",
-        random_state = None,
-        n_jobs = None,
-        per_run_time_limit = None,
+        cv=5,
+        scoring="accuracy",
+        random_state=None,
+        n_jobs=None,
+        per_run_time_limit=None,
     ):
         self.cv = cv
         self.scoring = scoring
@@ -50,18 +57,27 @@ class BaseModelEvaluator:
         self.n_jobs = n_jobs
         self.per_run_time_limit = per_run_time_limit
 
-    def evaluate(self,config,X,y,evaluation_level=None):
-        
+    def evaluate(self, config, X, y, evaluation_level=None):
+
         started_at = perf_counter()
         config_dict = configuration_space_to_dict(config)
         model_name = config_dict["model_name"]
         params = config_dict["params"]
-        effective_evaluation_level = self.normalize_evaluation_level(evaluation_level)
-        X_eval, y_eval = self.get_sample( X, y, effective_evaluation_level.sample_fraction)
+        effective_evaluation_level = self.normalize_evaluation_level(
+            evaluation_level
+        )
+        X_eval, y_eval = self.get_sample(
+            X, y, effective_evaluation_level.sample_fraction
+        )
 
         try:
-
-            preprocessing_name, score = self.evaluate_different_preprocessing( model_name, params, X_eval, y_eval,effective_evaluation_level=effective_evaluation_level)
+            preprocessing_name, score = self.evaluate_different_preprocessing(
+                model_name,
+                params,
+                X_eval,
+                y_eval,
+                effective_evaluation_level=effective_evaluation_level,
+            )
             status = "success"
             error = None
 
@@ -100,10 +116,12 @@ class BaseModelEvaluator:
         self,
         model_name,
         params,
-        preprocessing = "none",
+        preprocessing="none",
         evaluation_level=None,
     ):
-        estimator = self.build_estimator(model_name, params, evaluation_level=evaluation_level)
+        estimator = self.build_estimator(
+            model_name, params, evaluation_level=evaluation_level
+        )
         transformer = self.build_preprocessor(preprocessing)
         if transformer is None:
             return estimator
@@ -114,7 +132,8 @@ class BaseModelEvaluator:
             ]
         )
 
-    def evaluate_different_preprocessing( # try different preprocessing based on model.
+    # Try different preprocessing based on the model.
+    def evaluate_different_preprocessing(
         self,
         model_name,
         params,
@@ -122,8 +141,10 @@ class BaseModelEvaluator:
         y,
         effective_evaluation_level,
     ):
-        n_splits = self.resolve_cv_folds(y, effective_evaluation_level.cv_folds or self.cv)
-        splitter = self.make_cv_splitter( n_splits)
+        n_splits = self.resolve_cv_folds(
+            y, effective_evaluation_level.cv_folds or self.cv
+        )
+        splitter = self.make_cv_splitter(n_splits)
 
         best_preprocessing = "none"
         best_score = float("-inf")
@@ -150,7 +171,6 @@ class BaseModelEvaluator:
 
         return best_preprocessing, best_score
 
-
     def build_preprocessor(self, name):
         if name == "none":
             return None
@@ -164,16 +184,17 @@ class BaseModelEvaluator:
 
     def normalize_evaluation_level(self, evaluation_level=None):
 
-        if evaluation_level is None: # try at max level.
-            return TrialSpecs(stage=0, sample_fraction=1.0, cv_folds=self.cv, model_budget=1.0)
-       
-        return TrialSpecs( # try at specified level.
+        if evaluation_level is None:  # try at max level.
+            return TrialSpecs(
+                stage=0, sample_fraction=1.0, cv_folds=self.cv, model_budget=1.0
+            )
+
+        return TrialSpecs(  # try at specified level.
             stage=int(evaluation_level.stage),
             sample_fraction=float(evaluation_level.sample_fraction),
             cv_folds=int(evaluation_level.cv_folds or self.cv),
             model_budget=float(evaluation_level.model_budget),
         )
-    
 
     def get_sample(
         self,
@@ -202,7 +223,7 @@ class BaseModelEvaluator:
             return
 
         budget = {
-            "random_forest": ("n_estimators", 16), # (param,min value)
+            "random_forest": ("n_estimators", 16),  # (param,min value)
             "extra_trees": ("n_estimators", 16),
             "gradient_boosting": ("n_estimators", 16),
             "lightgbm": ("n_estimators", 16),
@@ -223,7 +244,9 @@ class BaseModelEvaluator:
         if base_value is None:
             return
 
-        scaled_value = max(minimum, int(round(float(base_value) * evaluation_level.model_budget)))
+        scaled_value = max(
+            minimum, int(round(float(base_value) * evaluation_level.model_budget))
+        )
         if hasattr(estimator, "set_params"):
             try:
                 estimator.set_params(**{param: scaled_value})
@@ -231,7 +254,7 @@ class BaseModelEvaluator:
                 pass
 
     def make_cv_splitter(self, n_splits):
-            raise NotImplementedError
+        raise NotImplementedError
 
     def make_subsample_splitter(self, target_size):
         raise NotImplementedError
@@ -247,21 +270,21 @@ class BaseModelEvaluator:
 
     def convert_score_to_cost(self, score):
         raise NotImplementedError
-    
+
     def return_failure_score(self):
         raise NotImplementedError
-    
+
 
 class ClassificationEvaluator(BaseModelEvaluator):
     def __init__(
         self,
         *,
-        cv = 5,
-        scoring = "accuracy",
-        random_state = None,
-        n_jobs = None,
-        balance_classes = False,
-        per_run_time_limit = None,
+        cv=5,
+        scoring="accuracy",
+        random_state=None,
+        n_jobs=None,
+        balance_classes=False,
+        per_run_time_limit=None,
     ):
         super().__init__(
             cv=cv,
@@ -288,13 +311,16 @@ class ClassificationEvaluator(BaseModelEvaluator):
             self.n_jobs,
             self.balance_classes,
         )
-        self.apply_model_budget(estimator, model_name, params, self.normalize_evaluation_level(evaluation_level))
+        self.apply_model_budget(
+            estimator,
+            model_name,
+            params,
+            self.normalize_evaluation_level(evaluation_level),
+        )
         return estimator
 
-
     def get_candidate_preprocessors(
-        self
-        ,
+        self,
         model_name,
         params,
     ):
@@ -327,27 +353,30 @@ class ClassificationEvaluator(BaseModelEvaluator):
         return float(-score)
 
     def make_cv_splitter(self, n_splits):
-        return StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=self.random_state)
+        return StratifiedKFold(
+            n_splits=n_splits, shuffle=True, random_state=self.random_state
+        )
 
     def make_subsample_splitter(self, target_size):
-        return StratifiedShuffleSplit(n_splits=1, train_size=target_size, random_state=self.random_state)
+        return StratifiedShuffleSplit(
+            n_splits=1, train_size=target_size, random_state=self.random_state
+        )
 
     def return_failure_score(self):
         return 0.0
-    
 
     def resolve_cv_folds(self, y, requested_folds):
-
 
         values = np.asarray(y)
         _, counts = np.unique(values, return_counts=True)
         if counts.size == 0:
             return 2
-        max_supported = int(np.min(counts)) # get min class count to support each fold has at least one sample from each class.
+        # Each fold must contain at least one sample from every class.
+        max_supported = int(np.min(counts))
         return max(2, min(int(requested_folds), max_supported))
-    
-class RegressionEvaluator(BaseModelEvaluator):
 
+
+class RegressionEvaluator(BaseModelEvaluator):
     def __init__(
         self,
         *,
@@ -371,7 +400,12 @@ class RegressionEvaluator(BaseModelEvaluator):
             raise ValueError(f"unsupported regression model `{model_name}`.")
         component = components[model_name]
         estimator = component.build_estimator(params, self.random_state, self.n_jobs)
-        self.apply_model_budget(estimator, model_name, params, self.normalize_evaluation_level(evaluation_level))
+        self.apply_model_budget(
+            estimator,
+            model_name,
+            params,
+            self.normalize_evaluation_level(evaluation_level),
+        )
         return estimator
 
     def get_candidate_preprocessors(self, model_name, params):
@@ -398,7 +432,9 @@ class RegressionEvaluator(BaseModelEvaluator):
         return KFold(n_splits=n_splits, shuffle=True, random_state=self.random_state)
 
     def make_subsample_splitter(self, target_size):
-        return ShuffleSplit(n_splits=1, train_size=target_size, random_state=self.random_state)
+        return ShuffleSplit(
+            n_splits=1, train_size=target_size, random_state=self.random_state
+        )
 
     def resolve_cv_folds(self, y, requested_folds) -> int:
         sample_count = len(np.asarray(y).reshape(-1))

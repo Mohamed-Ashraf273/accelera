@@ -1,12 +1,16 @@
-
 from math import ceil
-from multiprocessing import Process, Queue
+from multiprocessing import Process
+from multiprocessing import Queue
 from statistics import NormalDist
-from time import perf_counter, sleep
+from time import perf_counter
+from time import sleep
 
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
-from ..evaluation import EvaluationResult, TrialSpecs
+
+from ..evaluation import EvaluationResult
+from ..evaluation import TrialSpecs
+
 
 class OptimizationResult:
     def __init__(self, best_config, best_cost, runhistory, best_config_result):
@@ -14,6 +18,7 @@ class OptimizationResult:
         self.best_cost = best_cost
         self.runhistory = runhistory
         self.best_config_result = best_config_result
+
 
 class Trial:
     def __init__(self, config, evaluation_level, priority=float("inf")):
@@ -23,15 +28,26 @@ class Trial:
 
 
 class ConfigState:
-    def __init__(self, config, signature, successful_stages=None, stages_this_config_get_promoted_to=None):
+    def __init__(
+        self,
+        config,
+        signature,
+        successful_stages=None,
+        stages_this_config_get_promoted_to=None,
+    ):
         self.config = config
         self.signature = signature
-        self.successful_stages = {} if successful_stages is None else successful_stages
-        self.stages_this_config_get_promoted_to = set() if stages_this_config_get_promoted_to is None else stages_this_config_get_promoted_to
+        self.successful_stages = (
+            {} if successful_stages is None else successful_stages
+        )
+        self.stages_this_config_get_promoted_to = (
+            set()
+            if stages_this_config_get_promoted_to is None
+            else stages_this_config_get_promoted_to
+        )
 
 
 class Optimizer:
-
     def __init__(
         self,
         *,
@@ -39,16 +55,16 @@ class Optimizer:
         evaluator,
         X,
         y,
-        n_trials = 50,
-        time_budget = None,
-        random_state = None,
-        per_run_time_limit = None,
-        initial_configurations = None,
-        n_initial_points = 5,
-        candidate_pool_size = 256,
-        verbose = 1,
-        n_parallel = 3,
-        evaluation_level = None,
+        n_trials=50,
+        time_budget=None,
+        random_state=None,
+        per_run_time_limit=None,
+        initial_configurations=None,
+        n_initial_points=5,
+        candidate_pool_size=256,
+        verbose=1,
+        n_parallel=3,
+        evaluation_level=None,
     ):
         self.configspace = configspace
         self.evaluator = evaluator
@@ -65,7 +81,11 @@ class Optimizer:
         self.n_parallel = max(1, n_parallel)
         self.evaluation_level = list(
             evaluation_level
-            or [TrialSpecs(stage=0, sample_fraction=1.0, cv_folds=None, model_budget=1.0)]
+            or [
+                TrialSpecs(
+                    stage=0, sample_fraction=1.0, cv_folds=None, model_budget=1.0
+                )
+            ]
         )
 
         self.rng = np.random.default_rng(random_state)
@@ -88,7 +108,6 @@ class Optimizer:
         trial_id = 0
 
         while trial_id < self.n_trials:
-
             if self.time_budget_exceeded(started_at):
                 break
 
@@ -97,7 +116,10 @@ class Optimizer:
             trials = self.suggest_batch(batch_size)
 
             if self.verbose:
-                print(f"starting batch of {batch_size} trials ({trial_id + 1}/{self.n_trials})")
+                print(
+                    f"starting batch of {batch_size} trials "
+                    f"({trial_id + 1}/{self.n_trials})"
+                )
 
             if batch_size > 1:
                 batch_results = self.evaluate_batch_with_processes(trials)
@@ -111,12 +133,16 @@ class Optimizer:
                 if self.verbose:
                     model_name = self.safe_model_name(config)
                     print(
-                        f"Trial {current_trial_id + 1}/{self.n_trials} - {model_name}: "
-                        f"score={result.score:.6f} cost={result.cost:.6f} status={result.status} "
+                        f"Trial {current_trial_id + 1}/{self.n_trials} - "
+                        f"{model_name}: score={result.score:.6f} "
+                        f"cost={result.cost:.6f} status={result.status} "
                         f"stage={result.evaluation_level_stage}"
                     )
                     if result.error and self.verbose > 1:
-                        print(f"Trial {current_trial_id + 1}/{self.n_trials} - error: {result.error}")
+                        print(
+                            f"Trial {current_trial_id + 1}/{self.n_trials} - "
+                            f"error: {result.error}"
+                        )
 
                 row = {
                     "trial_id": current_trial_id,
@@ -137,20 +163,26 @@ class Optimizer:
                 self.observations.append(row)
                 self.record_observation(config, result)
 
-                if self.is_full_fidelity(result) and result.cost < self.best_config_cost:
+                if (
+                    self.is_full_fidelity(result)
+                    and result.cost < self.best_config_cost
+                ):
                     self.best_config = config
                     self.best_config_cost = float(result.cost)
                     self.best_config_result = result
                     if self.verbose:
                         print(
                             f"New best_config - model={result.model_name} "
-                            f"preprocessing={result.preprocessing} score={result.score:.6f}"
+                            f"preprocessing={result.preprocessing} "
+                            f"score={result.score:.6f}"
                         )
 
             trial_id += batch_size
 
         if self.best_config is None and self.observations:
-            finite_rows = [row for row in self.observations if np.isfinite(row["cost"])]
+            finite_rows = [
+                row for row in self.observations if np.isfinite(row["cost"])
+            ]
             if finite_rows:
                 best_row = min(finite_rows, key=lambda item: item["cost"])
                 self.best_config = best_row["config"]
@@ -166,7 +198,9 @@ class Optimizer:
                     error=best_row["error"],
                     evaluation_level_stage=best_row.get("evaluation_level_stage", 0),
                     sample_fraction=best_row.get("sample_fraction", 1.0),
-                    cv_folds=best_row.get("cv_folds", self.evaluation_level[-1].cv_folds or 1),
+                    cv_folds=best_row.get(
+                        "cv_folds", self.evaluation_level[-1].cv_folds or 1
+                    ),
                     model_budget=best_row.get("model_budget", 1.0),
                 )
 
@@ -174,7 +208,7 @@ class Optimizer:
             best_config=self.best_config,
             best_cost=self.best_config_cost,
             runhistory=list(self.observations),
-            best_config_result=self.best_config_result
+            best_config_result=self.best_config_result,
         )
 
     def suggest_batch(self, batch_size):
@@ -239,7 +273,7 @@ class Optimizer:
                     Trial(
                         config=config,
                         evaluation_level=self.evaluation_level[0],
-                        priority=1.0, # placeholder
+                        priority=1.0,  # placeholder
                     )
                 )
                 self.register_scheduled_trial(next_trials[-1])
@@ -249,7 +283,7 @@ class Optimizer:
         surrogate = RandomForestRegressor(
             n_estimators=100,
             bootstrap=True,
-            max_features=5/6,
+            max_features=5 / 6,
             min_samples_split=3,
             min_samples_leaf=3,
             max_depth=20,
@@ -260,10 +294,17 @@ class Optimizer:
 
         candidate_configs = self.sample_candidate_pool()
         candidate_vectors = np.vstack(
-            [self.augment_vector(self.config_to_vector(config), self.evaluation_level[0]) for config in candidate_configs]
+            [
+                self.augment_vector(
+                    self.config_to_vector(config), self.evaluation_level[0]
+                )
+                for config in candidate_configs
+            ]
         )
         mean, std = self.predict_with_uncertainty(surrogate, candidate_vectors)
-        acquisition = self.expected_improvement(mean, std, best=self.best_observed_cost())
+        acquisition = self.expected_improvement(
+            mean, std, best=self.best_observed_cost()
+        )
         ranked_indices = np.argsort(acquisition)[::-1]
 
         # select top N
@@ -288,7 +329,7 @@ class Optimizer:
                 Trial(
                     config=config,
                     evaluation_level=self.evaluation_level[0],
-                    priority=1.0, # placeholder
+                    priority=1.0,  # placeholder
                 )
             )
             self.register_scheduled_trial(next_trials[-1])
@@ -298,9 +339,9 @@ class Optimizer:
     def evaluate_batch_with_processes(self, trials):
 
         processes = []
-        queues = [] # to collect results from processes
+        queues = []  # to collect results from processes
         results = [None] * len(trials)
-        start_times = {} 
+        start_times = {}
 
         for i, trial in enumerate(trials):
             queue = Queue()
@@ -309,12 +350,11 @@ class Optimizer:
             process = Process(
                 target=self.evaluate_worker,
                 args=(queue, trial.config, trial.evaluation_level),
-                daemon=True
+                daemon=True,
             )
             processes.append(process)
-            start_times[i] = perf_counter() 
+            start_times[i] = perf_counter()
             process.start()
-
 
         # handle timeout and collect results
         num_of_completed_processes = 0
@@ -332,7 +372,7 @@ class Optimizer:
                         results[idx] = result
                         num_of_completed_processes += 1
                         processes[idx].join()  # clean up
-                    except:
+                    except Exception:
                         pass
                 else:
                     still_running.append(idx)
@@ -342,14 +382,20 @@ class Optimizer:
             # Kill timed-out processes
             if self.per_run_time_limit is not None:
                 for idx in remaining_indices:
-                    time_out = current_time - start_times[idx]  # Individual process time_out time
+                    time_out = (
+                        current_time - start_times[idx]
+                    )  # Individual process time_out time
                     if time_out >= self.per_run_time_limit:
                         if processes[idx].is_alive():
                             if self.verbose > 1:
                                 config_dict = dict(trials[idx].config)
-                                print(f"[AutoML] Killing process for {config_dict.get('model_name', 'unknown')} (timeout)")
+                                model_name = config_dict.get("model_name", "unknown")
+                                print(
+                                    f"[AutoML] Killing process for {model_name} "
+                                    "(timeout)"
+                                )
                             processes[idx].terminate()
-                            processes[idx].join(timeout=1.0) 
+                            processes[idx].join(timeout=1.0)
                             if processes[idx].is_alive():
                                 processes[idx].kill()  # force kill
 
@@ -362,11 +408,20 @@ class Optimizer:
                                 cost=1.0,
                                 duration=time_out,
                                 status="timeout",
-                                error=f"per_run_time_limit exceeded ({self.per_run_time_limit:.2f}s)",
-                                evaluation_level_stage=trials[idx].evaluation_level.stage,
-                                sample_fraction=trials[idx].evaluation_level.sample_fraction,
+                                error=(
+                                    "per_run_time_limit exceeded "
+                                    f"({self.per_run_time_limit:.2f}s)"
+                                ),
+                                evaluation_level_stage=trials[
+                                    idx
+                                ].evaluation_level.stage,
+                                sample_fraction=trials[
+                                    idx
+                                ].evaluation_level.sample_fraction,
                                 cv_folds=trials[idx].evaluation_level.cv_folds or 0,
-                                model_budget=trials[idx].evaluation_level.model_budget,
+                                model_budget=trials[
+                                    idx
+                                ].evaluation_level.model_budget,
                             )
                             num_of_completed_processes += 1
 
@@ -391,23 +446,27 @@ class Optimizer:
             queue.put(result)
         except Exception as e:
             config_dict = dict(config)
-            queue.put(EvaluationResult(
-                model_name=config_dict.get("model_name", "unknown"),
-                params=config_dict,
-                preprocessing="none",
-                score=0.0,
-                cost=1.0,
-                duration=0.0,
-                status="error",
-                error=str(e),
-                evaluation_level_stage=evaluation_level.stage,
-                sample_fraction=evaluation_level.sample_fraction,
-                cv_folds=evaluation_level.cv_folds or 0,
-                model_budget=evaluation_level.model_budget,
-            ))
+            queue.put(
+                EvaluationResult(
+                    model_name=config_dict.get("model_name", "unknown"),
+                    params=config_dict,
+                    preprocessing="none",
+                    score=0.0,
+                    cost=1.0,
+                    duration=0.0,
+                    status="error",
+                    error=str(e),
+                    evaluation_level_stage=evaluation_level.stage,
+                    sample_fraction=evaluation_level.sample_fraction,
+                    cv_folds=evaluation_level.cv_folds or 0,
+                    model_budget=evaluation_level.model_budget,
+                )
+            )
 
     def evaluate_single_inline(self, config, evaluation_level):
-        return self.evaluator.evaluate(config, self.X, self.y, evaluation_level=evaluation_level)
+        return self.evaluator.evaluate(
+            config, self.X, self.y, evaluation_level=evaluation_level
+        )
 
     def vectorized_observations(self):
         rows = []
@@ -419,9 +478,15 @@ class Optimizer:
             augmented_vector = row.get("augmented_vector")
             if augmented_vector is None:
                 evaluation_level = TrialSpecs(
-                    stage=int(row.get("evaluation_level_stage", row.get("evaluation_level", 0))),
+                    stage=int(
+                        row.get(
+                            "evaluation_level_stage", row.get("evaluation_level", 0)
+                        )
+                    ),
                     sample_fraction=float(row.get("sample_fraction", 1.0)),
-                    cv_folds=int(row.get("cv_folds", self.evaluation_level[-1].cv_folds or 1)),
+                    cv_folds=int(
+                        row.get("cv_folds", self.evaluation_level[-1].cv_folds or 1)
+                    ),
                     model_budget=float(row.get("model_budget", 1.0)),
                 )
                 augmented_vector = self.augment_vector(vector, evaluation_level)
@@ -472,7 +537,11 @@ class Optimizer:
         return candidates
 
     def best_observed_cost(self):
-        finite_costs = [row["cost"] for row in self.observations if np.isfinite(row.get("cost", np.nan))]
+        finite_costs = [
+            row["cost"]
+            for row in self.observations
+            if np.isfinite(row.get("cost", np.nan))
+        ]
         if not finite_costs:
             return float("inf")
         return float(min(finite_costs))
@@ -482,7 +551,9 @@ class Optimizer:
         surrogate,
         X,
     ):
-        tree_predictions = np.vstack([tree.predict(X) for tree in surrogate.estimators_])
+        tree_predictions = np.vstack(
+            [tree.predict(X) for tree in surrogate.estimators_]
+        )
         mean = tree_predictions.mean(axis=0)
         std = tree_predictions.std(axis=0)
         std = np.maximum(std, 1e-9)
@@ -494,7 +565,7 @@ class Optimizer:
         std,
         *,
         best,
-        xi = 0.01,
+        xi=0.01,
     ):
         improvement = best - mean - xi
         z = improvement / std
@@ -519,7 +590,11 @@ class Optimizer:
 
     @staticmethod
     def augment_vector(config_vector, evaluation_level):
-        cv_component = 0.0 if evaluation_level.cv_folds is None else float(evaluation_level.cv_folds)
+        cv_component = (
+            0.0
+            if evaluation_level.cv_folds is None
+            else float(evaluation_level.cv_folds)
+        )
         evaluation_level_vector = np.asarray(
             [
                 float(evaluation_level.stage),
@@ -568,16 +643,19 @@ class Optimizer:
             evaluation_level=self.evaluation_level[next_stage],
             priority=float(result.cost),
         )
-        
+
         self.promotion_queue.append(promoted_trial)
-        self.promotion_queue.sort(key=lambda trial: (trial.evaluation_level.stage, trial.priority))
+        self.promotion_queue.sort(
+            key=lambda trial: (trial.evaluation_level.stage, trial.priority)
+        )
         state.stages_this_config_get_promoted_to.add(next_stage)
 
     def should_promote(self, candidate_state, stage):
         if stage not in candidate_state.successful_stages:
             return False
         eligible_states = [
-            state for state in self.candidate_states.values()
+            state
+            for state in self.candidate_states.values()
             if stage in state.successful_stages
         ]
         if not eligible_states:
@@ -587,14 +665,18 @@ class Optimizer:
 
         ranked_states = sorted(
             eligible_states,
-            key=lambda state: (state.successful_stages[stage]),
+            key=lambda state: state.successful_stages[stage],
         )
         promotion_count = max(1, ceil(len(ranked_states) * self.promotion_quantile))
-        promoted_signatures = {state.signature for state in ranked_states[:promotion_count]}
+        promoted_signatures = {
+            state.signature for state in ranked_states[:promotion_count]
+        }
         return candidate_state.signature in promoted_signatures
 
     def is_full_fidelity(self, result):
-        stage = getattr(result, "evaluation_level_stage", getattr(result, "fidelity_stage", 0))
+        stage = getattr(
+            result, "evaluation_level_stage", getattr(result, "fidelity_stage", 0)
+        )
         return int(stage) >= (len(self.evaluation_level) - 1)
 
     def register_scheduled_trial(self, trial):
@@ -610,7 +692,7 @@ class Optimizer:
     def return_promotions(self, limit):
         if limit <= 0 or not self.promotion_queue:
             return []
-        
+
         taken = self.promotion_queue[:limit]
         self.promotion_queue = self.promotion_queue[limit:]
 
@@ -622,10 +704,12 @@ class Optimizer:
     def return_num_of_promoted_trials(self, batch_size):
         if not self.promotion_queue:
             return 0
-        
-        if len(self.observations) < self.n_initial_points: # don't promote during initial exploration phase
+
+        if (
+            len(self.observations) < self.n_initial_points
+        ):  # don't promote during initial exploration phase
             return 0
-        
+
         num = len(self.promotion_queue)
         if self.best_config_result is None:
             return min(num, max(1, batch_size // 2))

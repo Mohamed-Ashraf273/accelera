@@ -1,8 +1,9 @@
 import json
-from ..configspace_search_space import dict_to_configuration_space
 from pathlib import Path
+
 import numpy as np
 
+from ..configspace_search_space import dict_to_configuration_space
 
 
 def get_meta_learning_warmstarts(
@@ -17,7 +18,7 @@ def get_meta_learning_warmstarts(
     top_configs_per_dataset=3,
     max_warmstarts=10,
 ):
-    
+
     metadata_directory = "json" if task == "classification" else "json_regression"
     data_path = resolve_path(
         task=task,
@@ -116,7 +117,10 @@ def normalize_candidate_params(model_name, params, configspace):
             value = min(max(value, hyperparameter.lower), hyperparameter.upper)
             if isinstance(hyperparameter.lower, int):
                 value = int(value)
-        elif hasattr(hyperparameter, "choices") and value not in hyperparameter.choices:
+        elif (
+            hasattr(hyperparameter, "choices")
+            and value not in hyperparameter.choices
+        ):
             continue
 
         normalized[name] = value

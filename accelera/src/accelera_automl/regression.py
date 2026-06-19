@@ -1,7 +1,7 @@
-from .base import BaseAutoML
 import numpy as np
 from sklearn.metrics import r2_score
 
+from .base import BaseAutoML
 from .core.automl import AutoMLEngine
 
 
@@ -32,8 +32,8 @@ class AutoMLRegressor(BaseAutoML):
         meta_learning_top_datasets=5,
         meta_learning_top_configs_per_dataset=3,
         max_meta_learning_warmstarts=10,
-        candidate_pool_size = 256,
-        n_initial_points = 5,
+        candidate_pool_size=256,
+        n_initial_points=5,
     ):
         super().__init__(
             time_budget=time_budget,
@@ -60,7 +60,9 @@ class AutoMLRegressor(BaseAutoML):
         self.allowed_models = allowed_models
         self.use_meta_learning = use_meta_learning
         self.meta_learning_top_datasets = meta_learning_top_datasets
-        self.meta_learning_top_configs_per_dataset = meta_learning_top_configs_per_dataset
+        self.meta_learning_top_configs_per_dataset = (
+            meta_learning_top_configs_per_dataset
+        )
         self.max_meta_learning_warmstarts = max_meta_learning_warmstarts
 
     def get_default_scoring(self):
@@ -98,7 +100,9 @@ class AutoMLRegressor(BaseAutoML):
         )
 
     def fit(self, X, y):
-        self.n_outputs = 1 if np.asarray(y).ndim == 1 else int(np.asarray(y).shape[1])
+        self.n_outputs = (
+            1 if np.asarray(y).ndim == 1 else int(np.asarray(y).shape[1])
+        )
         return super().fit(X, y)
 
     def score(self, X, y):

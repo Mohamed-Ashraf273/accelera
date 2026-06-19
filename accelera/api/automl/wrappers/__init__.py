@@ -13,7 +13,9 @@ from accelera.src.automatic_preprocessing.wrappers import (
 from accelera.src.automatic_preprocessing.wrappers import (
     classification_images_after_loader as classification_images_after_loader,
 )
-from accelera.src.automatic_preprocessing.wrappers import correlation_graph as correlation_graph
+from accelera.src.automatic_preprocessing.wrappers import (
+    correlation_graph as correlation_graph,
+)
 from accelera.src.automatic_preprocessing.wrappers import (
     custom_transform_test as custom_transform_test,
 )
@@ -36,23 +38,31 @@ from accelera.src.automatic_preprocessing.wrappers import (
 from accelera.src.automatic_preprocessing.wrappers import (
     numerical_classification as numerical_classification,
 )
-from accelera.src.automatic_preprocessing.wrappers import numerical_regression as numerical_regression
+from accelera.src.automatic_preprocessing.wrappers import (
+    numerical_regression as numerical_regression,
+)
 from accelera.src.automatic_preprocessing.wrappers import (
     ordinal_classification as ordinal_classification,
 )
-from accelera.src.automatic_preprocessing.wrappers import ordinal_regression as ordinal_regression
+from accelera.src.automatic_preprocessing.wrappers import (
+    ordinal_regression as ordinal_regression,
+)
 from accelera.src.automatic_preprocessing.wrappers import (
     segmentation_data_summary as segmentation_data_summary,
 )
 from accelera.src.automatic_preprocessing.wrappers import (
     segmentation_images_after_loader as segmentation_images_after_loader,
 )
-from accelera.src.automatic_preprocessing.wrappers import tabular_graph_base as tabular_graph_base
+from accelera.src.automatic_preprocessing.wrappers import (
+    tabular_graph_base as tabular_graph_base,
+)
 from accelera.src.automatic_preprocessing.wrappers import (
     tabular_preprocessing_report as tabular_preprocessing_report,
 )
 from accelera.src.automatic_preprocessing.wrappers import (
     target_classification as target_classification,
 )
-from accelera.src.automatic_preprocessing.wrappers import target_regression as target_regression
+from accelera.src.automatic_preprocessing.wrappers import (
+    target_regression as target_regression,
+)
 from accelera.src.automatic_preprocessing.wrappers import text_graph as text_graph

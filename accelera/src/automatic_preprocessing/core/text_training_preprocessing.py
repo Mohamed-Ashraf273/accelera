@@ -14,7 +14,9 @@ from accelera.src.automatic_preprocessing.core.training_tabular_preprocessing_ba
 from accelera.src.automatic_preprocessing.wrappers.tabular_preprocessing_report import (
     TabularPreprocessingReport,
 )
-from accelera.src.automatic_preprocessing.wrappers.target_classification import TargetClassification
+from accelera.src.automatic_preprocessing.wrappers.target_classification import (
+    TargetClassification,
+)
 from accelera.src.automatic_preprocessing.wrappers.text_graph import TextGraph
 from accelera.src.utils.preprocessing import save_pickle
 

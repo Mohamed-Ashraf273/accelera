@@ -1,13 +1,20 @@
 from types import SimpleNamespace
 
 import numpy as np
-from joblib import Parallel, delayed
+from joblib import Parallel
+from joblib import delayed
 from scipy import sparse
-from sklearn.base import BaseEstimator, RegressorMixin, clone
-from sklearn.ensemble import BaggingRegressor, VotingRegressor
+from sklearn.base import BaseEstimator
+from sklearn.base import RegressorMixin
+from sklearn.base import clone
+from sklearn.ensemble import BaggingRegressor
+from sklearn.ensemble import VotingRegressor
 from sklearn.linear_model import Ridge
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.model_selection import KFold, cross_val_predict
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_predict
 
 
 class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
@@ -41,15 +48,22 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
         self.selection_tolerance = float(selection_tolerance)
 
     def fit(self, X, y):
-        splitter = KFold(n_splits=self.cv, shuffle=True, random_state=self.random_state)
+        splitter = KFold(
+            n_splits=self.cv, shuffle=True, random_state=self.random_state
+        )
         base_results = Parallel(n_jobs=self.n_jobs)(
             delayed(self.fit_base_model)(base_name, base_estimator, X, y, splitter)
             for base_name, base_estimator in self.base_estimators
         )
         if not base_results:
-            raise RuntimeError("At least one base estimator is required to fit the stacked ensemble.")
-    
-        self.selected_names, self.score_result = self.forward_select_base_models(X, np.asarray(y), base_results)
+            raise RuntimeError(
+                "At least one base estimator is required to fit "
+                "the stacked ensemble."
+            )
+
+        self.selected_names, self.score_result = self.forward_select_base_models(
+            X, np.asarray(y), base_results
+        )
         selected_names = set(self.selected_names)
         selected_results = [
             (base_name, fitted_model, oof_pred)
@@ -57,9 +71,15 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
             if base_name in selected_names
         ]
         if len(selected_results) < self.min_base_models:
-            raise RuntimeError("Forward selection did not produce the minimum number of base models.")
+            raise RuntimeError(
+                "Forward selection did not produce the minimum number "
+                "of base models."
+            )
 
-        self.base_models = [(base_name, fitted_model) for base_name, fitted_model, _ in selected_results]
+        self.base_models = [
+            (base_name, fitted_model)
+            for base_name, fitted_model, _ in selected_results
+        ]
         self.base_model_names = [base_name for base_name, _, _ in selected_results]
         base_prediction_blocks = [
             np.asarray(oof_pred, dtype=float).reshape(-1, 1)
@@ -67,7 +87,10 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
         ]
         stack_train_X = self.combine_meta_features(X, base_prediction_blocks)
 
-        meta_name, meta_estimator = "meta_ridge_regressor", Ridge(random_state=self.random_state, alpha=1.0)
+        meta_name, meta_estimator = (
+            "meta_ridge_regressor",
+            Ridge(random_state=self.random_state, alpha=1.0),
+        )
         self.meta_model_name = meta_name
         self.meta_model = clone(meta_estimator)
         self.meta_model.fit(stack_train_X, y)
@@ -81,7 +104,9 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
         return np.asarray(self.meta_model.predict(stack_features), dtype=float)
 
     def fit_base_model(self, base_name, base_estimator, X, y, splitter):
-        bagged_model = self.make_bagged_model(base_estimator, n_jobs=self.inner_n_jobs)
+        bagged_model = self.make_bagged_model(
+            base_estimator, n_jobs=self.inner_n_jobs
+        )
         oof_pred = cross_val_predict(
             bagged_model,
             X,
@@ -90,7 +115,9 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
             method="predict",
             n_jobs=self.inner_n_jobs,
         )
-        fitted_bagged_model = self.make_bagged_model(base_estimator, n_jobs=self.inner_n_jobs)
+        fitted_bagged_model = self.make_bagged_model(
+            base_estimator, n_jobs=self.inner_n_jobs
+        )
         fitted_bagged_model.fit(X, y)
         return base_name, fitted_bagged_model, np.asarray(oof_pred, dtype=float)
 
@@ -101,7 +128,9 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
         base_results,
     ):
         remaining = list(base_results)
-        best_single = max(remaining, key=lambda item: self.score_predictions(y, item[2]))
+        best_single = max(
+            remaining, key=lambda item: self.score_predictions(y, item[2])
+        )
         selected = [best_single]
         remaining.remove(best_single)
         current_score = self.evaluate_meta_subset(X, y, selected)
@@ -126,7 +155,10 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
                 break
 
             improvement = best_candidate_score - current_score
-            if len(selected) >= self.min_base_models and improvement <= self.selection_tolerance:
+            if (
+                len(selected) >= self.min_base_models
+                and improvement <= self.selection_tolerance
+            ):
                 break
 
             selected.append(best_candidate)
@@ -146,10 +178,15 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
         y,
         selected_results,
     ):
-        blocks = [np.asarray(oof_pred, dtype=float).reshape(-1, 1) for _, _, oof_pred in selected_results]
+        blocks = [
+            np.asarray(oof_pred, dtype=float).reshape(-1, 1)
+            for _, _, oof_pred in selected_results
+        ]
         stack_train_X = self.combine_meta_features(X, blocks)
-        splitter = KFold(n_splits=self.cv, shuffle=True, random_state=self.random_state)
-        meta_estimator = Ridge(random_state=self.random_state,alpha=1.0)
+        splitter = KFold(
+            n_splits=self.cv, shuffle=True, random_state=self.random_state
+        )
+        meta_estimator = Ridge(random_state=self.random_state, alpha=1.0)
         meta_oof_pred = cross_val_predict(
             clone(meta_estimator),
             stack_train_X,
@@ -167,12 +204,19 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
             "n_jobs": n_jobs if n_jobs is not None else self.n_jobs,
         }
         try:
-            return BaggingRegressor(estimator=clone(base_estimator), **bagging_kwargs)
+            return BaggingRegressor(
+                estimator=clone(base_estimator), **bagging_kwargs
+            )
         except TypeError:
-            return BaggingRegressor(base_estimator=clone(base_estimator), **bagging_kwargs)
+            return BaggingRegressor(
+                base_estimator=clone(base_estimator), **bagging_kwargs
+            )
 
     def build_stack_features(self, X):
-        blocks = [np.asarray(model.predict(X), dtype=float).reshape(-1, 1) for _, model in self.base_models]
+        blocks = [
+            np.asarray(model.predict(X), dtype=float).reshape(-1, 1)
+            for _, model in self.base_models
+        ]
         return self.combine_meta_features(X, blocks)
 
     def log_ensemble_structure(self):
@@ -204,17 +248,25 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
             return
         print(
             f"[AutoML] Forward selection step {step}: "
-            f"added {selected_names[-1]} score={score:.6f} improvement={improvement:.6f}"
+            f"added {selected_names[-1]} score={score:.6f} "
+            f"improvement={improvement:.6f}"
         )
 
     def score_predictions(self, y_true, prediction):
         if self.scoring in {"r2", None}:
             return float(r2_score(y_true, prediction))
-        if self.scoring in {"neg_root_mean_squared_error", "root_mean_squared_error"}:
+        if self.scoring in {
+            "neg_root_mean_squared_error",
+            "root_mean_squared_error",
+        }:
             return float(-np.sqrt(mean_squared_error(y_true, prediction)))
         if self.scoring in {"neg_mean_squared_error", "mean_squared_error"}:
             return float(-mean_squared_error(y_true, prediction))
-        if self.scoring in {"neg_mean_absolute_error", "mean_absolute_error", "median_absolute_error"}:
+        if self.scoring in {
+            "neg_mean_absolute_error",
+            "mean_absolute_error",
+            "median_absolute_error",
+        }:
             return float(-mean_absolute_error(y_true, prediction))
         return float(r2_score(y_true, prediction))
 
@@ -223,9 +275,10 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
         if not self.include_original_features_in_meta:
             return prediction_matrix
         if sparse.issparse(X):
-            return sparse.hstack([X, sparse.csr_matrix(prediction_matrix)], format="csr")
+            return sparse.hstack(
+                [X, sparse.csr_matrix(prediction_matrix)], format="csr"
+            )
         return np.hstack([np.asarray(X), prediction_matrix])
-
 
 
 def make_voting_regressor(estimators):

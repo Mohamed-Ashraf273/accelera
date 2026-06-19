@@ -1,8 +1,10 @@
-from abc import ABC, abstractmethod
-from sklearn.utils.validation import check_X_y, check_array
+from abc import ABC
+from abc import abstractmethod
 from typing import Mapping
-from sklearn.base import BaseEstimator
 
+from sklearn.base import BaseEstimator
+from sklearn.utils.validation import check_array
+from sklearn.utils.validation import check_X_y
 
 
 class BaseAutoML(BaseEstimator, ABC):
@@ -30,7 +32,7 @@ class BaseAutoML(BaseEstimator, ABC):
         candidate_pool_size=256,
         n_initial_points=5,
     ):
-        
+
         self.time_budget = time_budget
         self.per_run_time_limit = per_run_time_limit
         self.n_trials = n_trials
@@ -42,7 +44,9 @@ class BaseAutoML(BaseEstimator, ABC):
         self.ensemble_strategy = ensemble_strategy
         self.stacked_base_size = stacked_base_size
         self.stacked_bagging_n_estimators = stacked_bagging_n_estimators
-        self.stacked_include_original_features_in_meta = stacked_include_original_features_in_meta
+        self.stacked_include_original_features_in_meta = (
+            stacked_include_original_features_in_meta
+        )
         self.n_jobs = n_jobs
         self.search_n_parallel = search_n_parallel
         self.stack_n_jobs = stack_n_jobs
@@ -92,15 +96,15 @@ class BaseAutoML(BaseEstimator, ABC):
         final_model = self.read_result_value(result, "final_model")
 
         if final_model is None:
-            final_model = self.ensemble if self.ensemble is not None else self.best_model
+            final_model = (
+                self.ensemble if self.ensemble is not None else self.best_model
+            )
 
         self.final_model = final_model
         self.is_fitted = self.final_model is not None
 
         if not self.is_fitted:
-            raise RuntimeError(
-                "no valid fitted model found"
-            )
+            raise RuntimeError("no valid fitted model found")
 
     @staticmethod
     def read_result_value(result, name):
@@ -115,12 +119,10 @@ class BaseAutoML(BaseEstimator, ABC):
 
         return None
 
-
-
     def get_final_model(self):
         if not self.is_fitted:
             raise RuntimeError("call fit(X,y) before using this estimator.")
-        
+
         return self.final_model
 
     def fit(self, X, y):
@@ -139,7 +141,9 @@ class BaseAutoML(BaseEstimator, ABC):
     def predict_proba(self, X):
         model = self.get_final_model()
         if not hasattr(model, "predict_proba"):
-            raise AttributeError("The final model does not implement `predict_proba`.")
+            raise AttributeError(
+                "The final model does not implement `predict_proba`."
+            )
         X_valid = self.validate_predict_input(X)
         return model.predict_proba(X_valid)
 
@@ -155,5 +159,5 @@ class BaseAutoML(BaseEstimator, ABC):
     def get_runhistory(self):
         if not self.is_fitted:
             raise RuntimeError("call fit(X,y) before using this estimator.")
-        
+
         return self.runhistory

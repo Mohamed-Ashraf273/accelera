@@ -4,7 +4,9 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from accelera.src.automatic_preprocessing.wrappers.tabular_graph_base import TabularGraphBase
+from accelera.src.automatic_preprocessing.wrappers.tabular_graph_base import (
+    TabularGraphBase,
+)
 
 
 class TextGraph(TabularGraphBase):

@@ -17,22 +17,36 @@ from accelera.src.automatic_preprocessing.core.training_tabular_preprocessing_ba
 from accelera.src.automatic_preprocessing.wrappers.categorical_classification import (
     CategoricalClassification,
 )
-from accelera.src.automatic_preprocessing.wrappers.categorical_regression import CategoricalRegression
-from accelera.src.automatic_preprocessing.wrappers.correlation_graph import CorrelationGraph
+from accelera.src.automatic_preprocessing.wrappers.categorical_regression import (
+    CategoricalRegression,
+)
+from accelera.src.automatic_preprocessing.wrappers.correlation_graph import (
+    CorrelationGraph,
+)
 from accelera.src.automatic_preprocessing.wrappers.frequency_encoder_transform import (
     FrequencyEncoderTransform,
 )
 from accelera.src.automatic_preprocessing.wrappers.numerical_classification import (
     NumericalClassification,
 )
-from accelera.src.automatic_preprocessing.wrappers.numerical_regression import NumericalRegression
-from accelera.src.automatic_preprocessing.wrappers.ordinal_classification import OrdinalClassification
-from accelera.src.automatic_preprocessing.wrappers.ordinal_regression import OrdinalRegression
+from accelera.src.automatic_preprocessing.wrappers.numerical_regression import (
+    NumericalRegression,
+)
+from accelera.src.automatic_preprocessing.wrappers.ordinal_classification import (
+    OrdinalClassification,
+)
+from accelera.src.automatic_preprocessing.wrappers.ordinal_regression import (
+    OrdinalRegression,
+)
 from accelera.src.automatic_preprocessing.wrappers.tabular_preprocessing_report import (
     TabularPreprocessingReport,
 )
-from accelera.src.automatic_preprocessing.wrappers.target_classification import TargetClassification
-from accelera.src.automatic_preprocessing.wrappers.target_regression import TargetRegression
+from accelera.src.automatic_preprocessing.wrappers.target_classification import (
+    TargetClassification,
+)
+from accelera.src.automatic_preprocessing.wrappers.target_regression import (
+    TargetRegression,
+)
 from accelera.src.utils.preprocessing import drop_columns
 from accelera.src.utils.preprocessing import save_pickle
 

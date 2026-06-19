@@ -1,6 +1,8 @@
 from torch.utils.data import DataLoader
 
-from accelera.src.automatic_preprocessing.core.preprocessing_base import PreprocessingBase
+from accelera.src.automatic_preprocessing.core.preprocessing_base import (
+    PreprocessingBase,
+)
 from accelera.src.automatic_preprocessing.core.segmentation_image_dataset import (
     SegmentationImageDataset,
 )

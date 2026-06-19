@@ -1,32 +1,39 @@
-from ConfigSpace.conditions import AndConjunction, EqualsCondition, InCondition
-from ConfigSpace.hyperparameters import (
-    CategoricalHyperparameter,
-    UniformFloatHyperparameter,
-    UniformIntegerHyperparameter,
-)
 from catboost import CatBoostClassifier
+from ConfigSpace.conditions import AndConjunction
+from ConfigSpace.conditions import EqualsCondition
+from ConfigSpace.conditions import InCondition
+from ConfigSpace.hyperparameters import CategoricalHyperparameter
+from ConfigSpace.hyperparameters import UniformFloatHyperparameter
+from ConfigSpace.hyperparameters import UniformIntegerHyperparameter
 from lightgbm import LGBMClassifier
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
-from sklearn.ensemble import (
-    AdaBoostClassifier,
-    ExtraTreesClassifier,
-    GradientBoostingClassifier,
-    HistGradientBoostingClassifier,
-    RandomForestClassifier,
-)
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
-from sklearn.linear_model import LogisticRegression, PassiveAggressiveClassifier, RidgeClassifier, SGDClassifier
-from sklearn.neural_network import MLPClassifier
-from sklearn.naive_bayes import BernoulliNB, GaussianNB, MultinomialNB
+from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import PassiveAggressiveClassifier
+from sklearn.linear_model import RidgeClassifier
+from sklearn.linear_model import SGDClassifier
+from sklearn.naive_bayes import BernoulliNB
+from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import LinearSVC, SVC
+from sklearn.neural_network import MLPClassifier
+from sklearn.svm import SVC
+from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 
 
 class ClassificationComponent:
-    def __init__(self, name, build_hyperparameters, build_conditions, build_estimator):
+    def __init__(
+        self, name, build_hyperparameters, build_conditions, build_estimator
+    ):
         self.name = name
         self.build_hyperparameters = build_hyperparameters
         self.build_conditions = build_conditions
@@ -42,11 +49,21 @@ def create_conditions(model_of_hyperparamerter, model_name, params):
 
 def create_logistic_regression_hyperparameters():
     return [
-        UniformFloatHyperparameter("logistic_regression:C", lower=1e-4, upper=1e4, log=True),
-        CategoricalHyperparameter("logistic_regression:solver", choices=["lbfgs", "liblinear", "saga"]),
-        CategoricalHyperparameter("logistic_regression:penalty", choices=["l2", "l1"]),
-        UniformIntegerHyperparameter("logistic_regression:max_iter", lower=100, upper=2000),
-        CategoricalHyperparameter("logistic_regression:class_weight", choices=["none", "balanced"]),
+        UniformFloatHyperparameter(
+            "logistic_regression:C", lower=1e-4, upper=1e4, log=True
+        ),
+        CategoricalHyperparameter(
+            "logistic_regression:solver", choices=["lbfgs", "liblinear", "saga"]
+        ),
+        CategoricalHyperparameter(
+            "logistic_regression:penalty", choices=["l2", "l1"]
+        ),
+        UniformIntegerHyperparameter(
+            "logistic_regression:max_iter", lower=100, upper=2000
+        ),
+        CategoricalHyperparameter(
+            "logistic_regression:class_weight", choices=["none", "balanced"]
+        ),
     ]
 
 
@@ -95,15 +112,29 @@ def build_logistic_regression(params, random_state, n_jobs, balance_classes):
 
 def create_random_forest_hyperparameters():
     return [
-        UniformIntegerHyperparameter("random_forest:n_estimators", lower=100, upper=1000),
+        UniformIntegerHyperparameter(
+            "random_forest:n_estimators", lower=100, upper=1000
+        ),
         UniformIntegerHyperparameter("random_forest:max_depth", lower=2, upper=64),
-        UniformIntegerHyperparameter("random_forest:min_samples_split", lower=2, upper=20),
-        UniformIntegerHyperparameter("random_forest:min_samples_leaf", lower=1, upper=20),
-        CategoricalHyperparameter("random_forest:criterion", choices=["gini", "entropy"]),
-        CategoricalHyperparameter("random_forest:max_features", choices=["sqrt", "log2", None]),
+        UniformIntegerHyperparameter(
+            "random_forest:min_samples_split", lower=2, upper=20
+        ),
+        UniformIntegerHyperparameter(
+            "random_forest:min_samples_leaf", lower=1, upper=20
+        ),
+        CategoricalHyperparameter(
+            "random_forest:criterion", choices=["gini", "entropy"]
+        ),
+        CategoricalHyperparameter(
+            "random_forest:max_features", choices=["sqrt", "log2", None]
+        ),
         CategoricalHyperparameter("random_forest:bootstrap", choices=[True, False]),
-        UniformIntegerHyperparameter("random_forest:max_leaf_nodes", lower=2, upper=512),
-        CategoricalHyperparameter("random_forest:class_weight", choices=["none", "balanced"]),
+        UniformIntegerHyperparameter(
+            "random_forest:max_leaf_nodes", lower=2, upper=512
+        ),
+        CategoricalHyperparameter(
+            "random_forest:class_weight", choices=["none", "balanced"]
+        ),
     ]
 
 
@@ -134,14 +165,28 @@ def build_random_forest(params, random_state, n_jobs, balance_classes):
 
 def create_extra_trees_hyperparameters():
     return [
-        UniformIntegerHyperparameter("extra_trees:n_estimators", lower=100, upper=1000),
+        UniformIntegerHyperparameter(
+            "extra_trees:n_estimators", lower=100, upper=1000
+        ),
         UniformIntegerHyperparameter("extra_trees:max_depth", lower=2, upper=64),
-        UniformIntegerHyperparameter("extra_trees:min_samples_split", lower=2, upper=20),
-        UniformIntegerHyperparameter("extra_trees:min_samples_leaf", lower=1, upper=20),
-        CategoricalHyperparameter("extra_trees:criterion", choices=["gini", "entropy"]),
-        CategoricalHyperparameter("extra_trees:max_features", choices=["sqrt", "log2", None]),
-        UniformIntegerHyperparameter("extra_trees:max_leaf_nodes", lower=2, upper=512),
-        CategoricalHyperparameter("extra_trees:class_weight", choices=["none", "balanced"]),
+        UniformIntegerHyperparameter(
+            "extra_trees:min_samples_split", lower=2, upper=20
+        ),
+        UniformIntegerHyperparameter(
+            "extra_trees:min_samples_leaf", lower=1, upper=20
+        ),
+        CategoricalHyperparameter(
+            "extra_trees:criterion", choices=["gini", "entropy"]
+        ),
+        CategoricalHyperparameter(
+            "extra_trees:max_features", choices=["sqrt", "log2", None]
+        ),
+        UniformIntegerHyperparameter(
+            "extra_trees:max_leaf_nodes", lower=2, upper=512
+        ),
+        CategoricalHyperparameter(
+            "extra_trees:class_weight", choices=["none", "balanced"]
+        ),
     ]
 
 
@@ -196,7 +241,9 @@ def create_svc_conditions(data):
             ),
             AndConjunction(
                 EqualsCondition(params["svc:coef0"], data["model_name"], "svc"),
-                InCondition(params["svc:coef0"], params["svc:kernel"], ["poly", "sigmoid"]),
+                InCondition(
+                    params["svc:coef0"], params["svc:kernel"], ["poly", "sigmoid"]
+                ),
             ),
         ]
     )
@@ -226,7 +273,9 @@ def create_knn_hyperparameters():
         UniformIntegerHyperparameter("knn:n_neighbors", lower=1, upper=50),
         CategoricalHyperparameter("knn:weights", choices=["uniform", "distance"]),
         CategoricalHyperparameter("knn:p", choices=[1, 2]),
-        CategoricalHyperparameter("knn:algorithm", choices=["auto", "ball_tree", "kd_tree", "brute"]),
+        CategoricalHyperparameter(
+            "knn:algorithm", choices=["auto", "ball_tree", "kd_tree", "brute"]
+        ),
         UniformIntegerHyperparameter("knn:leaf_size", lower=10, upper=100),
     ]
 
@@ -247,11 +296,21 @@ def build_knn(params, random_state, n_jobs, balance_classes):
 
 def create_gradient_boosting_hyperparameters():
     return [
-        UniformIntegerHyperparameter("gradient_boosting:n_estimators", lower=50, upper=500),
-        UniformFloatHyperparameter("gradient_boosting:learning_rate", lower=1e-3, upper=0.5, log=True),
-        UniformIntegerHyperparameter("gradient_boosting:max_depth", lower=1, upper=10),
-        UniformFloatHyperparameter("gradient_boosting:subsample", lower=0.5, upper=1.0),
-        UniformIntegerHyperparameter("gradient_boosting:max_leaf_nodes", lower=2, upper=128),
+        UniformIntegerHyperparameter(
+            "gradient_boosting:n_estimators", lower=50, upper=500
+        ),
+        UniformFloatHyperparameter(
+            "gradient_boosting:learning_rate", lower=1e-3, upper=0.5, log=True
+        ),
+        UniformIntegerHyperparameter(
+            "gradient_boosting:max_depth", lower=1, upper=10
+        ),
+        UniformFloatHyperparameter(
+            "gradient_boosting:subsample", lower=0.5, upper=1.0
+        ),
+        UniformIntegerHyperparameter(
+            "gradient_boosting:max_leaf_nodes", lower=2, upper=128
+        ),
     ]
 
 
@@ -273,14 +332,24 @@ def build_gradient_boosting(params, random_state, n_jobs, balance_classes):
 def create_lightgbm_hyperparameters():
     return [
         UniformIntegerHyperparameter("lightgbm:n_estimators", lower=100, upper=1200),
-        UniformFloatHyperparameter("lightgbm:learning_rate", lower=1e-3, upper=0.3, log=True),
+        UniformFloatHyperparameter(
+            "lightgbm:learning_rate", lower=1e-3, upper=0.3, log=True
+        ),
         UniformIntegerHyperparameter("lightgbm:num_leaves", lower=15, upper=255),
         UniformIntegerHyperparameter("lightgbm:max_depth", lower=-1, upper=16),
-        UniformIntegerHyperparameter("lightgbm:min_child_samples", lower=5, upper=100),
+        UniformIntegerHyperparameter(
+            "lightgbm:min_child_samples", lower=5, upper=100
+        ),
         UniformFloatHyperparameter("lightgbm:subsample", lower=0.5, upper=1.0),
-        UniformFloatHyperparameter("lightgbm:colsample_bytree", lower=0.5, upper=1.0),
-        UniformFloatHyperparameter("lightgbm:reg_alpha", lower=1e-8, upper=10.0, log=True),
-        UniformFloatHyperparameter("lightgbm:reg_lambda", lower=1e-8, upper=10.0, log=True),
+        UniformFloatHyperparameter(
+            "lightgbm:colsample_bytree", lower=0.5, upper=1.0
+        ),
+        UniformFloatHyperparameter(
+            "lightgbm:reg_alpha", lower=1e-8, upper=10.0, log=True
+        ),
+        UniformFloatHyperparameter(
+            "lightgbm:reg_lambda", lower=1e-8, upper=10.0, log=True
+        ),
     ]
 
 
@@ -311,14 +380,24 @@ def build_lightgbm(params, random_state, n_jobs, balance_classes):
 def create_xgboost_hyperparameters():
     return [
         UniformIntegerHyperparameter("xgboost:n_estimators", lower=100, upper=1200),
-        UniformFloatHyperparameter("xgboost:learning_rate", lower=1e-3, upper=0.3, log=True),
+        UniformFloatHyperparameter(
+            "xgboost:learning_rate", lower=1e-3, upper=0.3, log=True
+        ),
         UniformIntegerHyperparameter("xgboost:max_depth", lower=2, upper=12),
-        UniformFloatHyperparameter("xgboost:min_child_weight", lower=1e-2, upper=32.0, log=True),
+        UniformFloatHyperparameter(
+            "xgboost:min_child_weight", lower=1e-2, upper=32.0, log=True
+        ),
         UniformFloatHyperparameter("xgboost:subsample", lower=0.5, upper=1.0),
         UniformFloatHyperparameter("xgboost:colsample_bytree", lower=0.5, upper=1.0),
-        UniformFloatHyperparameter("xgboost:reg_alpha", lower=1e-8, upper=10.0, log=True),
-        UniformFloatHyperparameter("xgboost:reg_lambda", lower=1e-8, upper=10.0, log=True),
-        UniformFloatHyperparameter("xgboost:gamma", lower=1e-8, upper=10.0, log=True),
+        UniformFloatHyperparameter(
+            "xgboost:reg_alpha", lower=1e-8, upper=10.0, log=True
+        ),
+        UniformFloatHyperparameter(
+            "xgboost:reg_lambda", lower=1e-8, upper=10.0, log=True
+        ),
+        UniformFloatHyperparameter(
+            "xgboost:gamma", lower=1e-8, upper=10.0, log=True
+        ),
     ]
 
 
@@ -350,11 +429,19 @@ def build_xgboost(params, random_state, n_jobs, balance_classes):
 def create_catboost_hyperparameters():
     return [
         UniformIntegerHyperparameter("catboost:iterations", lower=100, upper=1200),
-        UniformFloatHyperparameter("catboost:learning_rate", lower=1e-3, upper=0.3, log=True),
+        UniformFloatHyperparameter(
+            "catboost:learning_rate", lower=1e-3, upper=0.3, log=True
+        ),
         UniformIntegerHyperparameter("catboost:depth", lower=4, upper=10),
-        UniformFloatHyperparameter("catboost:l2_leaf_reg", lower=1e-3, upper=30.0, log=True),
-        UniformFloatHyperparameter("catboost:random_strength", lower=1e-3, upper=10.0, log=True),
-        UniformFloatHyperparameter("catboost:bagging_temperature", lower=0.0, upper=10.0),
+        UniformFloatHyperparameter(
+            "catboost:l2_leaf_reg", lower=1e-3, upper=30.0, log=True
+        ),
+        UniformFloatHyperparameter(
+            "catboost:random_strength", lower=1e-3, upper=10.0, log=True
+        ),
+        UniformFloatHyperparameter(
+            "catboost:bagging_temperature", lower=0.0, upper=10.0
+        ),
     ]
 
 
@@ -383,18 +470,37 @@ def build_catboost(params, random_state, n_jobs, balance_classes):
 
 def create_hist_gradient_boosting_hyperparameters():
     return [
-        UniformFloatHyperparameter("hist_gradient_boosting:learning_rate", lower=1e-3, upper=0.5, log=True),
-        UniformIntegerHyperparameter("hist_gradient_boosting:max_iter", lower=50, upper=500),
-        UniformIntegerHyperparameter("hist_gradient_boosting:max_depth", lower=2, upper=32),
-        UniformIntegerHyperparameter("hist_gradient_boosting:min_samples_leaf", lower=10, upper=100),
-        UniformFloatHyperparameter("hist_gradient_boosting:l2_regularization", lower=1e-10, upper=1.0, log=True),
-        UniformIntegerHyperparameter("hist_gradient_boosting:max_bins", lower=32, upper=255),
-        CategoricalHyperparameter("hist_gradient_boosting:early_stopping", choices=[False, True]),
+        UniformFloatHyperparameter(
+            "hist_gradient_boosting:learning_rate", lower=1e-3, upper=0.5, log=True
+        ),
+        UniformIntegerHyperparameter(
+            "hist_gradient_boosting:max_iter", lower=50, upper=500
+        ),
+        UniformIntegerHyperparameter(
+            "hist_gradient_boosting:max_depth", lower=2, upper=32
+        ),
+        UniformIntegerHyperparameter(
+            "hist_gradient_boosting:min_samples_leaf", lower=10, upper=100
+        ),
+        UniformFloatHyperparameter(
+            "hist_gradient_boosting:l2_regularization",
+            lower=1e-10,
+            upper=1.0,
+            log=True,
+        ),
+        UniformIntegerHyperparameter(
+            "hist_gradient_boosting:max_bins", lower=32, upper=255
+        ),
+        CategoricalHyperparameter(
+            "hist_gradient_boosting:early_stopping", choices=[False, True]
+        ),
     ]
 
 
 def create_hist_gradient_boosting_conditions(data):
-    return create_conditions(data["model_name"], "hist_gradient_boosting", data["params"])
+    return create_conditions(
+        data["model_name"], "hist_gradient_boosting", data["params"]
+    )
 
 
 def build_hist_gradient_boosting(params, random_state, n_jobs, balance_classes):
@@ -413,7 +519,9 @@ def build_hist_gradient_boosting(params, random_state, n_jobs, balance_classes):
 def create_adaboost_hyperparameters():
     return [
         UniformIntegerHyperparameter("adaboost:n_estimators", lower=25, upper=500),
-        UniformFloatHyperparameter("adaboost:learning_rate", lower=1e-3, upper=2.0, log=True),
+        UniformFloatHyperparameter(
+            "adaboost:learning_rate", lower=1e-3, upper=2.0, log=True
+        ),
     ]
 
 
@@ -431,7 +539,9 @@ def build_adaboost(params, random_state, n_jobs, balance_classes):
 
 def create_gaussian_nb_hyperparameters():
     return [
-        UniformFloatHyperparameter("gaussian_nb:var_smoothing", lower=1e-12, upper=1e-6, log=True),
+        UniformFloatHyperparameter(
+            "gaussian_nb:var_smoothing", lower=1e-12, upper=1e-6, log=True
+        ),
     ]
 
 
@@ -453,15 +563,13 @@ def create_lda_hyperparameters():
 def create_lda_conditions(data):
     params = data["params"]
     conditions = create_conditions(data["model_name"], "lda", params)
-    conditions = [
-        cond
-        for cond in conditions
-        if cond.child.name != "lda:shrinkage"
-    ]
+    conditions = [cond for cond in conditions if cond.child.name != "lda:shrinkage"]
     conditions.append(
         AndConjunction(
             EqualsCondition(params["lda:shrinkage"], data["model_name"], "lda"),
-            InCondition(params["lda:shrinkage"], params["lda:solver"], ["lsqr", "eigen"]),
+            InCondition(
+                params["lda:shrinkage"], params["lda:solver"], ["lsqr", "eigen"]
+            ),
         )
     )
     return conditions
@@ -476,12 +584,22 @@ def build_lda(params, random_state, n_jobs, balance_classes):
 
 def create_decision_tree_hyperparameters():
     return [
-        CategoricalHyperparameter("decision_tree:criterion", choices=["gini", "entropy"]),
+        CategoricalHyperparameter(
+            "decision_tree:criterion", choices=["gini", "entropy"]
+        ),
         UniformIntegerHyperparameter("decision_tree:max_depth", lower=1, upper=64),
-        UniformIntegerHyperparameter("decision_tree:min_samples_split", lower=2, upper=20),
-        UniformIntegerHyperparameter("decision_tree:min_samples_leaf", lower=1, upper=20),
-        CategoricalHyperparameter("decision_tree:max_features", choices=["sqrt", "log2", None]),
-        CategoricalHyperparameter("decision_tree:class_weight", choices=["none", "balanced"]),
+        UniformIntegerHyperparameter(
+            "decision_tree:min_samples_split", lower=2, upper=20
+        ),
+        UniformIntegerHyperparameter(
+            "decision_tree:min_samples_leaf", lower=1, upper=20
+        ),
+        CategoricalHyperparameter(
+            "decision_tree:max_features", choices=["sqrt", "log2", None]
+        ),
+        CategoricalHyperparameter(
+            "decision_tree:class_weight", choices=["none", "balanced"]
+        ),
     ]
 
 
@@ -508,10 +626,14 @@ def build_decision_tree(params, random_state, n_jobs, balance_classes):
 
 def create_sgd_hyperparameters():
     return [
-        CategoricalHyperparameter("sgd:loss", choices=["hinge", "log_loss", "modified_huber"]),
+        CategoricalHyperparameter(
+            "sgd:loss", choices=["hinge", "log_loss", "modified_huber"]
+        ),
         CategoricalHyperparameter("sgd:penalty", choices=["l2", "l1", "elasticnet"]),
         UniformFloatHyperparameter("sgd:alpha", lower=1e-6, upper=1e-1, log=True),
-        CategoricalHyperparameter("sgd:learning_rate", choices=["optimal", "invscaling", "adaptive"]),
+        CategoricalHyperparameter(
+            "sgd:learning_rate", choices=["optimal", "invscaling", "adaptive"]
+        ),
         UniformFloatHyperparameter("sgd:eta0", lower=1e-4, upper=1e-1, log=True),
         CategoricalHyperparameter("sgd:average", choices=[False, True]),
         CategoricalHyperparameter("sgd:class_weight", choices=["none", "balanced"]),
@@ -542,14 +664,22 @@ def build_sgd(params, random_state, n_jobs, balance_classes):
 
 def create_passive_aggressive_hyperparameters():
     return [
-        UniformFloatHyperparameter("passive_aggressive:C", lower=1e-4, upper=10.0, log=True),
-        CategoricalHyperparameter("passive_aggressive:loss", choices=["hinge", "squared_hinge"]),
-        CategoricalHyperparameter("passive_aggressive:average", choices=[False, True]),
+        UniformFloatHyperparameter(
+            "passive_aggressive:C", lower=1e-4, upper=10.0, log=True
+        ),
+        CategoricalHyperparameter(
+            "passive_aggressive:loss", choices=["hinge", "squared_hinge"]
+        ),
+        CategoricalHyperparameter(
+            "passive_aggressive:average", choices=[False, True]
+        ),
     ]
 
 
 def create_passive_aggressive_conditions(data):
-    return create_conditions(data["model_name"], "passive_aggressive", data["params"])
+    return create_conditions(
+        data["model_name"], "passive_aggressive", data["params"]
+    )
 
 
 def build_passive_aggressive(params, random_state, n_jobs, balance_classes):
@@ -578,9 +708,15 @@ def build_qda(params, random_state, n_jobs, balance_classes):
 
 def create_liblinear_svc_hyperparameters():
     return [
-        UniformFloatHyperparameter("liblinear_svc:C", lower=1e-4, upper=1e4, log=True),
-        CategoricalHyperparameter("liblinear_svc:loss", choices=["hinge", "squared_hinge"]),
-        CategoricalHyperparameter("liblinear_svc:class_weight", choices=["none", "balanced"]),
+        UniformFloatHyperparameter(
+            "liblinear_svc:C", lower=1e-4, upper=1e4, log=True
+        ),
+        CategoricalHyperparameter(
+            "liblinear_svc:loss", choices=["hinge", "squared_hinge"]
+        ),
+        CategoricalHyperparameter(
+            "liblinear_svc:class_weight", choices=["none", "balanced"]
+        ),
     ]
 
 
@@ -604,7 +740,9 @@ def build_liblinear_svc(params, random_state, n_jobs, balance_classes):
 
 def create_bernoulli_nb_hyperparameters():
     return [
-        UniformFloatHyperparameter("bernoulli_nb:alpha", lower=1e-3, upper=100.0, log=True),
+        UniformFloatHyperparameter(
+            "bernoulli_nb:alpha", lower=1e-3, upper=100.0, log=True
+        ),
         CategoricalHyperparameter("bernoulli_nb:fit_prior", choices=[False, True]),
     ]
 
@@ -622,7 +760,9 @@ def build_bernoulli_nb(params, random_state, n_jobs, balance_classes):
 
 def create_multinomial_nb_hyperparameters():
     return [
-        UniformFloatHyperparameter("multinomial_nb:alpha", lower=1e-3, upper=100.0, log=True),
+        UniformFloatHyperparameter(
+            "multinomial_nb:alpha", lower=1e-3, upper=100.0, log=True
+        ),
         CategoricalHyperparameter("multinomial_nb:fit_prior", choices=[False, True]),
     ]
 
@@ -642,8 +782,12 @@ def create_mlp_hyperparameters():
     return [
         UniformIntegerHyperparameter("mlp:hidden_layer_sizes", lower=32, upper=256),
         UniformFloatHyperparameter("mlp:alpha", lower=1e-6, upper=1e-1, log=True),
-        UniformFloatHyperparameter("mlp:learning_rate_init", lower=1e-4, upper=1e-1, log=True),
-        CategoricalHyperparameter("mlp:activation", choices=["relu", "tanh", "logistic"]),
+        UniformFloatHyperparameter(
+            "mlp:learning_rate_init", lower=1e-4, upper=1e-1, log=True
+        ),
+        CategoricalHyperparameter(
+            "mlp:activation", choices=["relu", "tanh", "logistic"]
+        ),
         CategoricalHyperparameter("mlp:solver", choices=["adam", "sgd"]),
     ]
 
@@ -667,8 +811,12 @@ def build_mlp(params, random_state, n_jobs, balance_classes):
 
 def create_gaussian_process_hyperparameters():
     return [
-        UniformFloatHyperparameter("gaussian_process:length_scale", lower=1e-2, upper=1e2, log=True),
-        UniformIntegerHyperparameter("gaussian_process:max_iter_predict", lower=20, upper=200),
+        UniformFloatHyperparameter(
+            "gaussian_process:length_scale", lower=1e-2, upper=1e2, log=True
+        ),
+        UniformIntegerHyperparameter(
+            "gaussian_process:max_iter_predict", lower=20, upper=200
+        ),
     ]
 
 
@@ -686,9 +834,16 @@ def build_gaussian_process(params, random_state, n_jobs, balance_classes):
 
 def create_ridge_classifier_hyperparameters():
     return [
-        UniformFloatHyperparameter("ridge_classifier:alpha", lower=1e-4, upper=1e3, log=True),
-        CategoricalHyperparameter("ridge_classifier:class_weight", choices=["none", "balanced"]),
-        CategoricalHyperparameter("ridge_classifier:solver", choices=["auto", "svd", "cholesky", "lsqr", "sag"]),
+        UniformFloatHyperparameter(
+            "ridge_classifier:alpha", lower=1e-4, upper=1e3, log=True
+        ),
+        CategoricalHyperparameter(
+            "ridge_classifier:class_weight", choices=["none", "balanced"]
+        ),
+        CategoricalHyperparameter(
+            "ridge_classifier:solver",
+            choices=["auto", "svd", "cholesky", "lsqr", "sag"],
+        ),
     ]
 
 
@@ -711,29 +866,126 @@ def build_ridge_classifier(params, random_state, n_jobs, balance_classes):
 
 
 CLASSIFICATION_COMPONENTS = {
-    "adaboost": ClassificationComponent("adaboost", create_adaboost_hyperparameters, create_adaboost_conditions, build_adaboost),
-    "bernoulli_nb": ClassificationComponent("bernoulli_nb", create_bernoulli_nb_hyperparameters, create_bernoulli_nb_conditions, build_bernoulli_nb),
-    "catboost": ClassificationComponent("catboost", create_catboost_hyperparameters, create_catboost_conditions, build_catboost),
-    "decision_tree": ClassificationComponent("decision_tree", create_decision_tree_hyperparameters, create_decision_tree_conditions, build_decision_tree),
-    "extra_trees": ClassificationComponent("extra_trees", create_extra_trees_hyperparameters, create_extra_trees_conditions, build_extra_trees),
-    "gaussian_nb": ClassificationComponent("gaussian_nb", create_gaussian_nb_hyperparameters, create_gaussian_nb_conditions, build_gaussian_nb),
-    "gradient_boosting": ClassificationComponent("gradient_boosting", create_gradient_boosting_hyperparameters, create_gradient_boosting_conditions, build_gradient_boosting),
-    "hist_gradient_boosting": ClassificationComponent("hist_gradient_boosting", create_hist_gradient_boosting_hyperparameters, create_hist_gradient_boosting_conditions, build_hist_gradient_boosting),
-    "knn": ClassificationComponent("knn", create_knn_hyperparameters, create_knn_conditions, build_knn),
-    "lda": ClassificationComponent("lda", create_lda_hyperparameters, create_lda_conditions, build_lda),
-    "lightgbm": ClassificationComponent("lightgbm", create_lightgbm_hyperparameters, create_lightgbm_conditions, build_lightgbm),
-    "liblinear_svc": ClassificationComponent("liblinear_svc", create_liblinear_svc_hyperparameters, create_liblinear_svc_conditions, build_liblinear_svc),
-    "logistic_regression": ClassificationComponent("logistic_regression", create_logistic_regression_hyperparameters, create_logistic_regression_conditions, build_logistic_regression),
-    "multinomial_nb": ClassificationComponent("multinomial_nb", create_multinomial_nb_hyperparameters, create_multinomial_nb_conditions, build_multinomial_nb),
-    "mlp": ClassificationComponent("mlp", create_mlp_hyperparameters, create_mlp_conditions, build_mlp),
-    "passive_aggressive": ClassificationComponent("passive_aggressive", create_passive_aggressive_hyperparameters, create_passive_aggressive_conditions, build_passive_aggressive),
-    "qda": ClassificationComponent("qda", create_qda_hyperparameters, create_qda_conditions, build_qda),
-    "gaussian_process": ClassificationComponent("gaussian_process", create_gaussian_process_hyperparameters, create_gaussian_process_conditions, build_gaussian_process),
-    "random_forest": ClassificationComponent("random_forest", create_random_forest_hyperparameters, create_random_forest_conditions, build_random_forest),
-    "ridge_classifier": ClassificationComponent("ridge_classifier", create_ridge_classifier_hyperparameters, create_ridge_classifier_conditions, build_ridge_classifier),
-    "sgd": ClassificationComponent("sgd", create_sgd_hyperparameters, create_sgd_conditions, build_sgd),
-    "svc": ClassificationComponent("svc", create_svc_hyperparameters, create_svc_conditions, build_svc),
-    "xgboost": ClassificationComponent("xgboost", create_xgboost_hyperparameters, create_xgboost_conditions, build_xgboost),
+    "adaboost": ClassificationComponent(
+        "adaboost",
+        create_adaboost_hyperparameters,
+        create_adaboost_conditions,
+        build_adaboost,
+    ),
+    "bernoulli_nb": ClassificationComponent(
+        "bernoulli_nb",
+        create_bernoulli_nb_hyperparameters,
+        create_bernoulli_nb_conditions,
+        build_bernoulli_nb,
+    ),
+    "catboost": ClassificationComponent(
+        "catboost",
+        create_catboost_hyperparameters,
+        create_catboost_conditions,
+        build_catboost,
+    ),
+    "decision_tree": ClassificationComponent(
+        "decision_tree",
+        create_decision_tree_hyperparameters,
+        create_decision_tree_conditions,
+        build_decision_tree,
+    ),
+    "extra_trees": ClassificationComponent(
+        "extra_trees",
+        create_extra_trees_hyperparameters,
+        create_extra_trees_conditions,
+        build_extra_trees,
+    ),
+    "gaussian_nb": ClassificationComponent(
+        "gaussian_nb",
+        create_gaussian_nb_hyperparameters,
+        create_gaussian_nb_conditions,
+        build_gaussian_nb,
+    ),
+    "gradient_boosting": ClassificationComponent(
+        "gradient_boosting",
+        create_gradient_boosting_hyperparameters,
+        create_gradient_boosting_conditions,
+        build_gradient_boosting,
+    ),
+    "hist_gradient_boosting": ClassificationComponent(
+        "hist_gradient_boosting",
+        create_hist_gradient_boosting_hyperparameters,
+        create_hist_gradient_boosting_conditions,
+        build_hist_gradient_boosting,
+    ),
+    "knn": ClassificationComponent(
+        "knn", create_knn_hyperparameters, create_knn_conditions, build_knn
+    ),
+    "lda": ClassificationComponent(
+        "lda", create_lda_hyperparameters, create_lda_conditions, build_lda
+    ),
+    "lightgbm": ClassificationComponent(
+        "lightgbm",
+        create_lightgbm_hyperparameters,
+        create_lightgbm_conditions,
+        build_lightgbm,
+    ),
+    "liblinear_svc": ClassificationComponent(
+        "liblinear_svc",
+        create_liblinear_svc_hyperparameters,
+        create_liblinear_svc_conditions,
+        build_liblinear_svc,
+    ),
+    "logistic_regression": ClassificationComponent(
+        "logistic_regression",
+        create_logistic_regression_hyperparameters,
+        create_logistic_regression_conditions,
+        build_logistic_regression,
+    ),
+    "multinomial_nb": ClassificationComponent(
+        "multinomial_nb",
+        create_multinomial_nb_hyperparameters,
+        create_multinomial_nb_conditions,
+        build_multinomial_nb,
+    ),
+    "mlp": ClassificationComponent(
+        "mlp", create_mlp_hyperparameters, create_mlp_conditions, build_mlp
+    ),
+    "passive_aggressive": ClassificationComponent(
+        "passive_aggressive",
+        create_passive_aggressive_hyperparameters,
+        create_passive_aggressive_conditions,
+        build_passive_aggressive,
+    ),
+    "qda": ClassificationComponent(
+        "qda", create_qda_hyperparameters, create_qda_conditions, build_qda
+    ),
+    "gaussian_process": ClassificationComponent(
+        "gaussian_process",
+        create_gaussian_process_hyperparameters,
+        create_gaussian_process_conditions,
+        build_gaussian_process,
+    ),
+    "random_forest": ClassificationComponent(
+        "random_forest",
+        create_random_forest_hyperparameters,
+        create_random_forest_conditions,
+        build_random_forest,
+    ),
+    "ridge_classifier": ClassificationComponent(
+        "ridge_classifier",
+        create_ridge_classifier_hyperparameters,
+        create_ridge_classifier_conditions,
+        build_ridge_classifier,
+    ),
+    "sgd": ClassificationComponent(
+        "sgd", create_sgd_hyperparameters, create_sgd_conditions, build_sgd
+    ),
+    "svc": ClassificationComponent(
+        "svc", create_svc_hyperparameters, create_svc_conditions, build_svc
+    ),
+    "xgboost": ClassificationComponent(
+        "xgboost",
+        create_xgboost_hyperparameters,
+        create_xgboost_conditions,
+        build_xgboost,
+    ),
 }
 
 
@@ -745,8 +997,8 @@ def get_classification_components(allowed_models=None):
     unknown = sorted(set(selected_models) - set(CLASSIFICATION_COMPONENTS))
     if unknown:
         raise ValueError(f"unknown classification models requested: {unknown}")
-    
+
     if not selected_models:
         raise ValueError("at least one classification model must be selected.")
-    
+
     return {name: CLASSIFICATION_COMPONENTS[name] for name in selected_models}

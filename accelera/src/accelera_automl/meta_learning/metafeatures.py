@@ -19,7 +19,11 @@ def compute_basic_classification_metafeatures(X, y):
         class_entropy = float(-(probs * np.log2(probs + 1e-12)).sum())
 
     numeric_df, categorical_df = split_feature_types(X_df)
-    numeric_arr = numeric_df.to_numpy(dtype=float) if not numeric_df.empty else np.empty((n_instances, 0), dtype=float)
+    numeric_arr = (
+        numeric_df.to_numpy(dtype=float)
+        if not numeric_df.empty
+        else np.empty((n_instances, 0), dtype=float)
+    )
 
     if numeric_arr.shape[1] > 0:
         means = np.nanmean(numeric_arr, axis=0)
@@ -34,8 +38,12 @@ def compute_basic_classification_metafeatures(X, y):
 
     missing_mask = X_df.isna().to_numpy()
     n_missing_values = float(missing_mask.sum())
-    n_instances_with_missing = float(np.any(missing_mask, axis=1).sum()) if n_instances else 0.0
-    n_features_with_missing = float(np.any(missing_mask, axis=0).sum()) if n_features else 0.0
+    n_instances_with_missing = (
+        float(np.any(missing_mask, axis=1).sum()) if n_instances else 0.0
+    )
+    n_features_with_missing = (
+        float(np.any(missing_mask, axis=0).sum()) if n_features else 0.0
+    )
 
     dataset_ratio = float(n_features / max(n_instances, 1))
     inverse_dataset_ratio = float(n_instances / max(n_features, 1))
@@ -67,9 +75,15 @@ def compute_basic_classification_metafeatures(X, y):
         "NumberOfInstancesWithMissingValues": n_instances_with_missing,
         "NumberOfMissingValues": n_missing_values,
         "NumberOfNumericFeatures": n_numeric,
-        "PercentageOfFeaturesWithMissingValues": float(n_features_with_missing / max(n_features, 1)),
-        "PercentageOfInstancesWithMissingValues": float(n_instances_with_missing / max(n_instances, 1)),
-        "PercentageOfMissingValues": float(n_missing_values / max(n_instances * n_features, 1)),
+        "PercentageOfFeaturesWithMissingValues": float(
+            n_features_with_missing / max(n_features, 1)
+        ),
+        "PercentageOfInstancesWithMissingValues": float(
+            n_instances_with_missing / max(n_instances, 1)
+        ),
+        "PercentageOfMissingValues": float(
+            n_missing_values / max(n_instances * n_features, 1)
+        ),
         "RatioNominalToNumerical": float(n_categorical / max(n_numeric, 1.0)),
         "RatioNumericalToNominal": float(n_numeric / max(n_categorical, 1.0)),
         "SkewnessMax": float(np.nanmax(skew)),
@@ -93,7 +107,11 @@ def compute_basic_regression_metafeatures(X, y):
 
     n_instances, n_features = X_df.shape
     numeric_df, categorical_df = split_feature_types(X_df)
-    numeric_arr = numeric_df.to_numpy(dtype=float) if not numeric_df.empty else np.empty((n_instances, 0), dtype=float)
+    numeric_arr = (
+        numeric_df.to_numpy(dtype=float)
+        if not numeric_df.empty
+        else np.empty((n_instances, 0), dtype=float)
+    )
 
     if numeric_arr.shape[1] > 0:
         means = np.nanmean(numeric_arr, axis=0)
@@ -110,13 +128,25 @@ def compute_basic_regression_metafeatures(X, y):
     target_std = float(np.nanstd(y_arr)) if y_arr.size else 0.0
     centered_y = y_arr - target_mean
     with np.errstate(divide="ignore", invalid="ignore"):
-        target_skew = float(np.nanmean((centered_y / (target_std + 1e-12)) ** 3)) if y_arr.size else 0.0
-        target_kurtosis = float(np.nanmean((centered_y / (target_std + 1e-12)) ** 4) - 3.0) if y_arr.size else 0.0
+        target_skew = (
+            float(np.nanmean((centered_y / (target_std + 1e-12)) ** 3))
+            if y_arr.size
+            else 0.0
+        )
+        target_kurtosis = (
+            float(np.nanmean((centered_y / (target_std + 1e-12)) ** 4) - 3.0)
+            if y_arr.size
+            else 0.0
+        )
 
     missing_mask = X_df.isna().to_numpy()
     n_missing_values = float(missing_mask.sum())
-    n_instances_with_missing = float(np.any(missing_mask, axis=1).sum()) if n_instances else 0.0
-    n_features_with_missing = float(np.any(missing_mask, axis=0).sum()) if n_features else 0.0
+    n_instances_with_missing = (
+        float(np.any(missing_mask, axis=1).sum()) if n_instances else 0.0
+    )
+    n_features_with_missing = (
+        float(np.any(missing_mask, axis=0).sum()) if n_features else 0.0
+    )
 
     dataset_ratio = float(n_features / max(n_instances, 1))
     inverse_dataset_ratio = float(n_instances / max(n_features, 1))
@@ -142,9 +172,15 @@ def compute_basic_regression_metafeatures(X, y):
         "NumberOfInstancesWithMissingValues": n_instances_with_missing,
         "NumberOfMissingValues": n_missing_values,
         "NumberOfNumericFeatures": n_numeric,
-        "PercentageOfFeaturesWithMissingValues": float(n_features_with_missing / max(n_features, 1)),
-        "PercentageOfInstancesWithMissingValues": float(n_instances_with_missing / max(n_instances, 1)),
-        "PercentageOfMissingValues": float(n_missing_values / max(n_instances * n_features, 1)),
+        "PercentageOfFeaturesWithMissingValues": float(
+            n_features_with_missing / max(n_features, 1)
+        ),
+        "PercentageOfInstancesWithMissingValues": float(
+            n_instances_with_missing / max(n_instances, 1)
+        ),
+        "PercentageOfMissingValues": float(
+            n_missing_values / max(n_instances * n_features, 1)
+        ),
         "RatioNominalToNumerical": float(n_categorical / max(n_numeric, 1.0)),
         "RatioNumericalToNominal": float(n_numeric / max(n_categorical, 1.0)),
         "SkewnessMax": float(np.nanmax(skew)),
@@ -194,8 +230,16 @@ def split_feature_types(X_df):
         else:
             categorical_columns.append(column)
 
-    numeric_df = X_df[numeric_columns].apply(pd.to_numeric, errors="coerce") if numeric_columns else pd.DataFrame(index=X_df.index)
-    categorical_df = X_df[categorical_columns] if categorical_columns else pd.DataFrame(index=X_df.index)
+    numeric_df = (
+        X_df[numeric_columns].apply(pd.to_numeric, errors="coerce")
+        if numeric_columns
+        else pd.DataFrame(index=X_df.index)
+    )
+    categorical_df = (
+        X_df[categorical_columns]
+        if categorical_columns
+        else pd.DataFrame(index=X_df.index)
+    )
     return numeric_df, categorical_df
 
 
@@ -208,4 +252,3 @@ def categorical_symbol_counts(categorical_df):
         series = categorical_df[column]
         counts.append(float(series.dropna().nunique()))
     return np.asarray(counts, dtype=float)
-

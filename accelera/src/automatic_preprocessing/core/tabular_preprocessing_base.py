@@ -1,6 +1,8 @@
 import pandas as pd
 
-from accelera.src.automatic_preprocessing.core.preprocessing_base import PreprocessingBase
+from accelera.src.automatic_preprocessing.core.preprocessing_base import (
+    PreprocessingBase,
+)
 
 
 class TabularPreprocessingBase(PreprocessingBase):

@@ -3,7 +3,9 @@ from torch.utils.data import DataLoader
 from accelera.src.automatic_preprocessing.core.classification_image_dataset import (
     ClassificationImageDataset,
 )
-from accelera.src.automatic_preprocessing.core.preprocessing_base import PreprocessingBase
+from accelera.src.automatic_preprocessing.core.preprocessing_base import (
+    PreprocessingBase,
+)
 from accelera.src.utils.preprocessing import check_path_exists
 from accelera.src.utils.preprocessing import collect_function
 from accelera.src.utils.preprocessing import is_valid_image

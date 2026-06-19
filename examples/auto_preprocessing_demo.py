@@ -7,9 +7,6 @@ from accelera.src.automatic_preprocessing.core.classical_training_preprocessing 
 from accelera.src.automatic_preprocessing.core.classification_image_training_preprocessing import (  # noqa: E501
     ClassificationImageTrainingPreprocessing,
 )
-from accelera.src.automatic_preprocessing.core.segmentation_image_training_preprocessing import (
-    SegmentationImageTrainingPreprocessing,
-)
 from accelera.src.automatic_preprocessing.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )

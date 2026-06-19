@@ -8,14 +8,15 @@ from time import perf_counter
 
 import numpy as np
 from sklearn.datasets import load_diabetes
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from accelera.accelera_automl import AutoMLRegressor
-
 
 DATASET_NAME = "sklearn_diabetes"
 RESULTS_FILE = (
@@ -30,10 +31,16 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run Accelera AutoML regression on sklearn's diabetes dataset."
     )
-    parser.add_argument("--time-budget", type=int, default=1200, help="Time budget in seconds.")
-    parser.add_argument("--n-trials", type=int, default=10, help="Maximum number of trials.")
+    parser.add_argument(
+        "--time-budget", type=int, default=1200, help="Time budget in seconds."
+    )
+    parser.add_argument(
+        "--n-trials", type=int, default=10, help="Maximum number of trials."
+    )
     parser.add_argument("--cv", type=int, default=3, help="Cross-validation folds.")
-    parser.add_argument("--n-jobs", type=int, default=1, help="Parallel jobs for model training.")
+    parser.add_argument(
+        "--n-jobs", type=int, default=1, help="Parallel jobs for model training."
+    )
     parser.add_argument(
         "--disable-evaluation-timeout",
         action="store_true",

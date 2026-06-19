@@ -1,7 +1,7 @@
-from pathlib import Path
-from time import perf_counter
 import csv
 import sys
+from pathlib import Path
+from time import perf_counter
 
 import pandas as pd
 from sklearn.metrics import accuracy_score
@@ -10,7 +10,6 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from accelera.accelera_automl import AutoMLClassifier
-
 
 DATA_ROOT = Path(__file__).resolve().parents[1] / "data" / "accelera_automl"
 RESULTS_FILE = DATA_ROOT / "run_local_data_results.csv"
@@ -79,8 +78,9 @@ def run_accelera_automl(
     save_result(result)
     return result
 
+
 def main():
-    custom_datasets = ['titanic_preprocessing']
+    custom_datasets = ["titanic_preprocessing"]
 
     for dataset in custom_datasets:
         dataset_dir = DATA_ROOT / dataset
@@ -89,7 +89,6 @@ def main():
             print(f"######## {dataset} ########")
             X_train, y_train, X_val, y_val = load_dataset_split(dataset_dir)
             run_accelera_automl(dataset, X_train, y_train, X_val, y_val)
-
 
 
 if __name__ == "__main__":

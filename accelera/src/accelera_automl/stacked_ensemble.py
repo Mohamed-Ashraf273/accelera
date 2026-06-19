@@ -1,22 +1,24 @@
 from types import SimpleNamespace
 
 import numpy as np
-from joblib import Parallel, delayed
+from joblib import Parallel
+from joblib import delayed
 from scipy import sparse
-from sklearn.base import BaseEstimator, ClassifierMixin, clone
+from sklearn.base import BaseEstimator
+from sklearn.base import ClassifierMixin
+from sklearn.base import clone
 from sklearn.ensemble import BaggingClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import (
-    accuracy_score,
-    average_precision_score,
-    balanced_accuracy_score,
-    f1_score,
-    log_loss,
-    precision_score,
-    recall_score,
-    roc_auc_score,
-)
-from sklearn.model_selection import StratifiedKFold, cross_val_predict
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import average_precision_score
+from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import f1_score
+from sklearn.metrics import log_loss
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import cross_val_predict
 
 
 def softmax(logits):
@@ -32,7 +34,11 @@ class ClassifierAdapter(BaseEstimator, ClassifierMixin):
     def fit(self, X, y):
         self.estimator = clone(self.model)
         self.estimator.fit(X, y)
-        self.classes_ = getattr(self.estimator, "classes_", getattr(self.estimator, "classes", np.unique(y)))
+        self.classes_ = getattr(
+            self.estimator,
+            "classes_",
+            getattr(self.estimator, "classes", np.unique(y)),
+        )
         self.classes = self.classes_
         return self
 
@@ -44,9 +50,9 @@ class ClassifierAdapter(BaseEstimator, ClassifierMixin):
         if hasattr(self.estimator, "decision_function"):
             decision = np.asarray(self.estimator.decision_function(X), dtype=float)
             if decision.ndim == 1:
-                positive = 1.0 / (1.0 + np.exp(-decision)) # sigmoid
+                positive = 1.0 / (1.0 + np.exp(-decision))  # sigmoid
                 return np.column_stack([1.0 - positive, positive])
-            
+
             return softmax(decision)
 
         predictions = np.asarray(self.estimator.predict(X))
@@ -104,8 +110,10 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
         )
         if not base_results:
             raise RuntimeError("No base result exist.")
-        
-        self.selected_names, self.score_result = self.forward_select_base_models(X, np.asarray(y), base_results)
+
+        self.selected_names, self.score_result = self.forward_select_base_models(
+            X, np.asarray(y), base_results
+        )
 
         selected_names = set(self.selected_names)
         selected_results = [
@@ -114,9 +122,15 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
             if base_name in selected_names
         ]
         if len(selected_results) < self.min_base_models:
-            raise RuntimeError("Forward selection did not produce the minimum number of base models.")
+            raise RuntimeError(
+                "Forward selection did not produce the minimum number "
+                "of base models."
+            )
 
-        self.base_models = [(base_name, fitted_model) for base_name, fitted_model, _ in selected_results]
+        self.base_models = [
+            (base_name, fitted_model)
+            for base_name, fitted_model, _ in selected_results
+        ]
         self.base_model_names_ = [base_name for base_name, _, _ in selected_results]
         base_feature_blocks = [
             self.stack_features_from_proba(oof_proba)
@@ -167,7 +181,9 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
             method="predict_proba",
             n_jobs=inner_n_jobs,
         )
-        fitted_bagged_model = self.make_bagged_model(base_estimator, n_jobs=inner_n_jobs)
+        fitted_bagged_model = self.make_bagged_model(
+            base_estimator, n_jobs=inner_n_jobs
+        )
         fitted_bagged_model.fit(X, y)
         return base_name, fitted_bagged_model, np.asarray(oof_proba, dtype=float)
 
@@ -179,10 +195,14 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
     ):
         remaining = list(base_results)
         if not remaining:
-            raise RuntimeError("No base model results available for forward selection.")
+            raise RuntimeError(
+                "No base model results available for forward selection."
+            )
 
         selected = []
-        best_single = max(remaining, key=lambda item: self.score_predictions(y, item[2]))
+        best_single = max(
+            remaining, key=lambda item: self.score_predictions(y, item[2])
+        )
         selected.append(best_single)
         remaining.remove(best_single)
         current_score = self.evaluate_meta_subset(X, y, selected)
@@ -208,7 +228,10 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
                 break
 
             improvement = best_candidate_score - current_score
-            if len(selected) >= self.min_base_models and improvement <= self.selection_tolerance:
+            if (
+                len(selected) >= self.min_base_models
+                and improvement <= self.selection_tolerance
+            ):
                 break
 
             selected.append(best_candidate)
@@ -256,7 +279,6 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
         )
         return self.score_predictions(y, np.asarray(meta_oof_proba, dtype=float))
 
-
     def make_bagged_model(self, base_estimator, n_jobs=None):
         adapted_estimator = ClassifierAdapter(base_estimator)
         bagging_kwargs = {
@@ -267,7 +289,9 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
         try:
             return BaggingClassifier(estimator=adapted_estimator, **bagging_kwargs)
         except TypeError:
-            return BaggingClassifier(base_estimator=adapted_estimator, **bagging_kwargs)
+            return BaggingClassifier(
+                base_estimator=adapted_estimator, **bagging_kwargs
+            )
 
     def build_stack_features(self, X):
         blocks = []
@@ -305,7 +329,8 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
             return
         print(
             f"[AutoML] Forward selection step {step}: "
-            f"added {selected_names[-1]} score={score:.6f} improvement={improvement:.6f}"
+            f"added {selected_names[-1]} score={score:.6f} "
+            f"improvement={improvement:.6f}"
         )
 
     def score_predictions(self, y_true, proba):
@@ -327,22 +352,38 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
             return float(f1_score(y_true, y_pred, average="weighted"))
         if scoring == "precision":
             average = "binary" if len(self.classes) == 2 else "macro"
-            return float(precision_score(y_true, y_pred, average=average, zero_division=0))
+            return float(
+                precision_score(y_true, y_pred, average=average, zero_division=0)
+            )
         if scoring == "precision_macro":
-            return float(precision_score(y_true, y_pred, average="macro", zero_division=0))
+            return float(
+                precision_score(y_true, y_pred, average="macro", zero_division=0)
+            )
         if scoring == "precision_micro":
-            return float(precision_score(y_true, y_pred, average="micro", zero_division=0))
+            return float(
+                precision_score(y_true, y_pred, average="micro", zero_division=0)
+            )
         if scoring == "precision_weighted":
-            return float(precision_score(y_true, y_pred, average="weighted", zero_division=0))
+            return float(
+                precision_score(y_true, y_pred, average="weighted", zero_division=0)
+            )
         if scoring == "recall":
             average = "binary" if len(self.classes) == 2 else "macro"
-            return float(recall_score(y_true, y_pred, average=average, zero_division=0))
+            return float(
+                recall_score(y_true, y_pred, average=average, zero_division=0)
+            )
         if scoring == "recall_macro":
-            return float(recall_score(y_true, y_pred, average="macro", zero_division=0))
+            return float(
+                recall_score(y_true, y_pred, average="macro", zero_division=0)
+            )
         if scoring == "recall_micro":
-            return float(recall_score(y_true, y_pred, average="micro", zero_division=0))
+            return float(
+                recall_score(y_true, y_pred, average="micro", zero_division=0)
+            )
         if scoring == "recall_weighted":
-            return float(recall_score(y_true, y_pred, average="weighted", zero_division=0))
+            return float(
+                recall_score(y_true, y_pred, average="weighted", zero_division=0)
+            )
         if scoring == "roc_auc" and proba.shape[1] == 2:
             return float(roc_auc_score(y_true, proba[:, 1]))
         if scoring == "average_precision" and proba.shape[1] == 2:
@@ -371,8 +412,9 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
             return prediction_matrix
 
         if sparse.issparse(X):
-            return sparse.hstack([X, sparse.csr_matrix(prediction_matrix)], format="csr")
+            return sparse.hstack(
+                [X, sparse.csr_matrix(prediction_matrix)], format="csr"
+            )
 
         original_matrix = np.asarray(X)
         return np.hstack([original_matrix, prediction_matrix])
-

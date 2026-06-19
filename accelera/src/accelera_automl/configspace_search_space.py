@@ -1,15 +1,19 @@
-from ConfigSpace.configuration_space import Configuration, ConfigurationSpace
+from ConfigSpace.configuration_space import Configuration
+from ConfigSpace.configuration_space import ConfigurationSpace
 from ConfigSpace.hyperparameters import CategoricalHyperparameter
 
-from .components import get_classification_components, get_regression_components
+from .components import get_classification_components
+from .components import get_regression_components
 
 
 def return_classification_config_space(allowed_models=None):
     config_space = ConfigurationSpace()
-    components = get_classification_components(allowed_models=allowed_models) 
-    chosen_models = sorted(components) # sort by model_name
+    components = get_classification_components(allowed_models=allowed_models)
+    chosen_models = sorted(components)  # sort by model_name
 
-    model_name = CategoricalHyperparameter("model_name", choices=chosen_models) # model_name as hyperparameter with models choices
+    model_name = CategoricalHyperparameter(
+        "model_name", choices=chosen_models
+    )  # model_name as hyperparameter with models choices
     config_space.add(model_name)
 
     for name in chosen_models:
@@ -24,12 +28,16 @@ def return_classification_config_space(allowed_models=None):
             config_space.add(conditions)
 
     return config_space
+
+
 def return_regression_config_space(allowed_models=None):
     config_space = ConfigurationSpace()
-    components = get_regression_components(allowed_models=allowed_models) 
-    chosen_models = sorted(components) # sort by model_name
+    components = get_regression_components(allowed_models=allowed_models)
+    chosen_models = sorted(components)  # sort by model_name
 
-    model_name = CategoricalHyperparameter("model_name", choices=chosen_models) # model_name as hyperparameter with models choices
+    model_name = CategoricalHyperparameter(
+        "model_name", choices=chosen_models
+    )  # model_name as hyperparameter with models choices
     config_space.add(model_name)
 
     for name in chosen_models:
@@ -47,7 +55,9 @@ def return_regression_config_space(allowed_models=None):
 
 
 def sample_classification_config(configspace):
-    return configspace.sample_configuration() # sample randomly one model with its hyperparameters
+    return (
+        configspace.sample_configuration()
+    )  # sample randomly one model with its hyperparameters
 
 
 def configuration_space_to_dict(config):
@@ -56,9 +66,7 @@ def configuration_space_to_dict(config):
     pref = f"{model_name}:"
 
     params = {
-        key[len(pref) :]: value
-        for key, value in raw.items()
-        if key.startswith(pref)
+        key[len(pref) :]: value for key, value in raw.items() if key.startswith(pref)
     }
     return {
         "model_name": model_name,
@@ -75,4 +83,3 @@ def dict_to_configuration_space(config_dict, config_space):
         config[f"{name}:{key}"] = value
 
     return Configuration(config_space, values=config)
-

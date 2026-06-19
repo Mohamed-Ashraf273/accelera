@@ -35,14 +35,18 @@ from accelera.src.automatic_preprocessing.core import (
     classification_image_training_preprocessing_test as classification_image_training_preprocessing_test,
 )
 from accelera.src.automatic_preprocessing.core import image_dataset as image_dataset
-from accelera.src.automatic_preprocessing.core import image_dataset_test as image_dataset_test
+from accelera.src.automatic_preprocessing.core import (
+    image_dataset_test as image_dataset_test,
+)
 from accelera.src.automatic_preprocessing.core import (
     image_training_preprocessing as image_training_preprocessing,
 )
 from accelera.src.automatic_preprocessing.core import (
     image_training_preprocessing_test as image_training_preprocessing_test,
 )
-from accelera.src.automatic_preprocessing.core import preprocessing_base as preprocessing_base
+from accelera.src.automatic_preprocessing.core import (
+    preprocessing_base as preprocessing_base,
+)
 from accelera.src.automatic_preprocessing.core import (
     segmentation_image_dataset as segmentation_image_dataset,
 )
