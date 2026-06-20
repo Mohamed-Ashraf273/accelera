@@ -1,4 +1,4 @@
-from accelera.src.utils.py2cpp_converter import py2cpp_converter
+from accelera.src.parallelizer.py2cpp_converter import py2cpp_converter
 
 
 class TestPy2CppConverter:

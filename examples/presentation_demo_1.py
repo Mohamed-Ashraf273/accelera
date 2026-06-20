@@ -2,7 +2,7 @@ import time
 
 import numpy as np
 
-from accelera.src.utils.parallelizer import parallelizer
+from accelera.src.parallelizer.parallelizer import parallelizer
 
 
 def normalize_rows(X):

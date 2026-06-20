@@ -7,10 +7,10 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from accelera.src.utils.parallelizer import Parallelizer
-from accelera.src.utils.parallelizer import _resolve_loop_class
-from accelera.src.utils.parallelizer import extract_loops
-from accelera.src.utils.parallelizer import write_loops_to_json
+from accelera.src.parallelizer.parallelizer import Parallelizer
+from accelera.src.parallelizer.parallelizer import _resolve_loop_class
+from accelera.src.parallelizer.parallelizer import extract_loops
+from accelera.src.parallelizer.parallelizer import write_loops_to_json
 
 
 def normalize_rows_for_parallelizer_test(X):
