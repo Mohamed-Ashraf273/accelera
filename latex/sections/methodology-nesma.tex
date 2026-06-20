@@ -16,11 +16,11 @@ The system also generates a final report that provides the user with information
 \begin{itemize}
   \item Classification and Regression for tabular dataset
   \item Classification for text dataset
-  \item Classification and Segmentation for image dataset
+  \item Classification image dataset
 \end{itemize}
 
 
-\subsubsection{Tabular Dataset}
+\subsubsection{Tabular Dataset Training}
 
 The meaning of The tabular dataset in this module is structured data organized in rows and columns, where features can be either categorical or numerical.
 \begin{figure}[H]
@@ -30,7 +30,7 @@ The meaning of The tabular dataset in this module is structured data organized i
     \label{fig:Tabular_data}
 \end{figure}
 \Needspace{5\baselineskip}
-\noindent\textbf{Training Preprocessing Steps}\par
+\paragraph{Training Preprocessing Steps}\par
 \begin{enumerate}
   \item Data Input and User Configuration Initialization.
   \item Get data overview.
@@ -50,7 +50,7 @@ The meaning of The tabular dataset in this module is structured data organized i
 \end{enumerate}
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Data Input and User Configuration Initialization:}\par
+\paragraph{Data Input and User Configuration Initialization:}\par
 The preprocessing pipeline is initialized through the class constructor. 
 During initialization, all user-defined parameters are assigned and validated to ensure consistency and correctness before executing any preprocessing steps. 
 These validations help prevent invalid configurations such as incorrect problem types, wrong target column name, or invalid parameter values, which could otherwise lead to runtime errors or incorrect model behavior.
@@ -156,7 +156,7 @@ Boolean (True / False) \\
 \end{table}
 \Needspace{4\baselineskip}
 \vspace{1cm}
-\noindent\textbf{Data Overview:}\par
+\paragraph{Data Overview:}\par
 
 This step is responsible for generating a comprehensive statistical and structural summary of the dataset before preprocessing begins, helping to create a detailed report.
 \begin{enumerate}
@@ -209,27 +209,27 @@ Output: Stored data overview in report object
 15: Return the updated report object
 \end{lstlisting}
 \Needspace{4\baselineskip}
-\noindent\textbf{Drop duplicates:}\par
+\paragraph{Drop duplicates:}\par
 
 Duplicate rows are removed from the dataset to prevent the model from overfitting to repeated examples and to ensure a more reliable evaluation process.
 
 After performing this step, the system reports key statistics to the user, including the total number of duplicate rows detected, the percentage of duplicated data, and the resulting dataset shape after removal. This allows the user to verify that the dataset no longer contains redundant entries.
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Split data:}\par
+\paragraph{Split data:}\par
 Split the data into \texttt{X\_train}, \texttt{X\_val},
 \texttt{y\_train}, and \texttt{y\_val} using the
 \texttt{train\_test\_split} function from Scikit-learn. The split follows the
 configured \texttt{test\_size} and \texttt{random\_state} values.
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Get training data information:}\par
+\paragraph{Get training data information:}\par
  For each column, calculate the required information,
 such as the percentage of missing values,number of unique values, the mean and median for
 numerical columns, and the mode value
 \Needspace{4\baselineskip}
 \vspace{1cm}
-\noindent\textbf{Specify Columns to Drop:}\par
+\paragraph{Specify Columns to Drop:}\par
 A column is dropped if:
 \begin{itemize}
     \item It is included in the user-provided \texttt{columns\_need\_to\_drop} parameter.
@@ -237,11 +237,11 @@ A column is dropped if:
     \item The column is a constant value.
 \end{itemize}
 \Needspace{4\baselineskip}
-\noindent\textbf{Drop Selected Columns:}\par
+\paragraph{Drop Selected Columns:}\par
 The specified columns are removed from both \texttt{X\_train} and \texttt{X\_val}.The dropped column names are serialized and saved as a pickle file to ensure consistency when applying the same preprocessing steps on future data.
 \Needspace{4\baselineskip}
 \vspace{1cm}
-\noindent\textbf{Detect the type of each column based on the training data:}\par
+\paragraph{Detect the type of each column based on the training data:}\par
 Each feature is automatically assigned a column type. The detected type determines the preprocessing techniques that will be applied later in the pipeline.
 \begin{table}[!htbp]
 \centering
@@ -319,7 +319,7 @@ Output: Column groups and assigned preprocessing rules
 \end{lstlisting}
 
 \Needspace{4\baselineskip}
-\noindent\textbf{Generate visualizations of the training data based on column types and task type:}\par
+\paragraph{Generate visualizations of the training data based on column types and task type:}\par
 When the \texttt{is\_report} flag is enabled, the tabular preprocessing report produces a set of visualizations corresponding to each detected feature type and task type.
 \begin{itemize}
   \item \textbf{Binary / categorical features with classification targets:} The report produces these graphs
@@ -399,7 +399,7 @@ When the \texttt{is\_report} flag is enabled, the tabular preprocessing report p
   \item \textbf{Target histogram (regression):} shows distribution of target values, helping detect skewness and outliers.
 \end{itemize}
 \Needspace{4\baselineskip}
-\noindent\textbf{Apply feature preprocessing techniques for each column based on its detected type:}\par
+\paragraph{Apply feature preprocessing techniques for each column based on its detected type:}\par
 
 \begin{table}[!htbp]
 \centering
@@ -449,12 +449,12 @@ Ensures robustness during inference by handling unseen categories without breaki
 \end{tabular}
 \end{table}
 \Needspace{4\baselineskip}
-\noindent\textbf{Apply target preprocessing based on the selected task:}\par
+\paragraph{Apply target preprocessing based on the selected task:}\par
 Target preprocessing changes based on problem type (classification / regression):
 
 \begin{itemize}
   \item \textbf{Classification:} Fill missing target values with the training-mode label, then encode the labels with \texttt{LabelEncoder}.
-  \item \textbf{Regression:} Fill missing target values with the training median, then standard scale the target using \texttt{StandardScaler}. 
+  \item \textbf{Regression:} Fill missing target values with the training median, then robust scale the target using \texttt{RobustScaler}. 
 \end{itemize}
 \begin{lstlisting}[style=algostyle,caption={Target Variable Preprocessing}]
 Input: Target y_train, y_val and problem type
@@ -468,9 +468,9 @@ Output: Processed targets and saved target metadata
 6:      record classification target preprocessing in the report
 7:  else if problem type is Regression then
 8:      replace missing target values using the median target value
-9:      fit a StandardScaler on the training target
+9:      fit a RobustScaler on the training target
 10:     scale training and validation targets
-11:     save the fitted StandardScaler
+11:     save the fitted RobustScaler
 12:     record regression target preprocessing in the report
 13: end if
 14: Store processed target samples in the report
@@ -480,7 +480,7 @@ Output: Processed targets and saved target metadata
 
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Feature Selection:}\par
+\paragraph{Feature Selection:}\par
 Feature selection is performed using Mutual Information to measure the dependency between each feature and the target variable. 
 For classification tasks, Mutual Information Classification is used, while Mutual Information Regression is applied for regression problems.
 Each feature is assigned an importance score based on its Mutual Information value. 
@@ -491,7 +491,7 @@ The selected features are then used to filter both the training and validation s
 Finally, the list of selected features is saved for reproducibility and later use during inference.
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Save all files required for preprocessing the test data:}\par
+\paragraph{Save all files required for preprocessing the test data:}\par
 The preprocessing pipeline persists the objects required for later inference and reuse:
 
 \begin{table}[H]
@@ -514,11 +514,12 @@ The preprocessing pipeline persists the objects required for later inference and
 \end{table}
 \vspace{2cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Generate Report (Optional):}\par
+\paragraph{Generate Report (Optional):}\par
 When \texttt{is\_report} is enabled, the \texttt{TabularPreprocessingReport} class generates an HTML report from the collected \texttt{report\_data}. The report documents the complete preprocessing workflow, including data overview statistics, missing values, duplicate analysis, train-validation split details, removed columns, generated graphs, preprocessing decisions for each feature, and previews of the transformed training and validation datasets. This allows users to inspect and understand all preprocessing steps applied before model training.
 \vspace{1cm}
 \Needspace{5\baselineskip}
-\noindent\textbf{Testing Preprocessing Steps}\par
+\subsubsection{Tabular Dataset Testing}
+\paragraph{Testing Preprocessing Steps}\par
 The testing preprocessing workflow is designed to reuse the exact training preprocessing artifacts and transformations.
 
 \begin{enumerate}
@@ -567,13 +568,13 @@ folder\_path & Path to load saved preprocessing artifacts. \\
 }
 \end{table}
 
-\subsubsection{Text Dataset}
+\subsubsection{Text Dataset Training}
 
 The text dataset consists of unstructured data containing a single text column used for natural language processing tasks.
 
 \vspace{1cm}
 \Needspace{5\baselineskip}
-\noindent\textbf{Training Preprocessing Steps}\par
+\paragraph{Training Preprocessing Steps}\par
 
 \begin{enumerate}
   \item Constructor Initialization and Input Validation.
@@ -590,7 +591,7 @@ The text dataset consists of unstructured data containing a single text column u
 \end{enumerate}
 \vspace{1cm}
 \vspace{0.5cm}
-\noindent\textbf{Constructor Initialization and Input Validation:}\par
+\paragraph{Constructor Initialization and Input Validation:}\par
 
 The constructor initializes all required parameters. During initialization, the method performs  validation checks to ensure that the text column is correctly defined, is different from the target column, and has the appropriate data type. It also verifies that the target variable is suitable for classification tasks. Additionally, unnecessary columns are removed, required NLP resources are downloaded, and all configuration parameters are stored for later use.
 
@@ -643,15 +644,15 @@ Boolean flag to enable or disable report generation. \\
 \vspace{1cm}
 
 \Needspace{4\baselineskip}
-\noindent\textbf{Initialize NLP dependencies:}\par
+\paragraph{Initialize NLP dependencies:}\par
 Required Natural Language Processing resources such as tokenizers and stopword lists are downloaded and initialized to enable text preprocessing operations.
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Generate data overview and split dataset:}\par
+\paragraph{Generate data overview and split dataset:}\par
 A statistical overview of the dataset is generated, including missing values, duplicates, and descriptive statistics. After that, the dataset is split into training and validation sets using the configured split ratio.
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Generate optional graphs:}\par
+\paragraph{Generate optional graphs:}\par
 If enabled, the system generates visualizations such as text distribution plots and target distribution plots to better understand dataset characteristics.
 \vspace{0.5cm}
 
@@ -677,11 +678,11 @@ Shows the most frequent 7 words in the corpus.\\
 \end{table}
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Handle missing text values:}\par
+\paragraph{Handle missing text values:}\par
 All missing values in the text column are replaced with empty strings.
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Apply text preprocessing and tokenization:}\par
+\paragraph{Apply text preprocessing and tokenization:}\par
 Raw text is cleaned and transformed using a custom tokenizer. This includes lowercasing, removing noise characters, handling contractions, removing stopwords, and applying stemming to normalize tokens.
 \begin{lstlisting}[style=algostyle,caption={Custom Text Tokenizer},label={alg:custom_text_tokenizer}]
 Input: Raw text string
@@ -708,23 +709,23 @@ Output: List of cleaned and stemmed tokens
 \end{lstlisting}
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Transform text using TF-IDF vectorization:}\par
+\paragraph{Transform text using TF-IDF vectorization:}\par
 The cleaned text is converted into numerical feature vectors using a TF-IDF vectorizer, which captures the importance of words based on their frequency across documents.
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Encode target labels:}\par
+\paragraph{Encode target labels:}\par
 Categorical target labels are converted into numerical form using label encoding. Missing target values are filled using the most frequent class.
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Save preprocessing artifacts:}\par
+\paragraph{Save preprocessing artifacts:}\par
 All fitted preprocessing objects such as the TF-IDF vectorizer and label encoder are saved to disk for reuse during inference.
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Generate preprocessing report (optional):}\par
+\paragraph{Generate preprocessing report (optional):}\par
 If enabled, a detailed report is generated containing preprocessing steps, dataset statistics, and visualizations for analysis and reproducibility.
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Return processed datasets:}\par
+\paragraph{Return processed datasets:}\par
 The final processed training and validation datasets are returned, including transformed features and encoded labels, ready for model training.
 \vspace{2cm}
 \begin{lstlisting}[style=algostyle,caption={Common Preprocessing Pipeline},label={alg:common_preprocessing}]
@@ -743,9 +744,11 @@ Output: X_train, y_train, X_val, y_val
 9: End if
 10: Return X_train, y_train, X_val, y_val
 \end{lstlisting}
+\subsubsection{Text Dataset Testing}
+
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Testing Preprocessing Steps}\par
+\paragraph{Testing Preprocessing Steps}\par
 
 \begin{enumerate}
   \item Load saved training metadata from \texttt{data\_info.pkl} and recover the original \texttt{text\_col} and \texttt{target\_col}.
@@ -757,12 +760,12 @@ Output: X_train, y_train, X_val, y_val
 \end{enumerate}
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Constructor Initialization and Artifact Loading:}\par
+\paragraph{Constructor Initialization and Artifact Loading:}\par
 
 The testing constructor loads \texttt{data\_info.pkl} from the saved folder path and recovers the original \texttt{text\_col}, \texttt{target\_col}, and \texttt{target\_mode}. It verifies that the text column exists in the test DataFrame and sets \texttt{features\_only=true} if the target column is missing.
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Text Testing Preprocessing Parameters:}\par
+\paragraph{Text Testing Preprocessing Parameters:}\par
 
 \begin{table}[!htbp]
 \centering
@@ -782,17 +785,17 @@ The testing constructor loads \texttt{data\_info.pkl} from the saved folder path
 \end{table}
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Feature Preprocessing:}\par
+\paragraph{Feature Preprocessing:}\par
 
 The feature preprocessing method fills missing values in the text column with empty strings and applies the loaded TF-IDF transformer from \texttt{training\_preprocessor.pkl}. This yields the final sparse feature matrix for test time.
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Target Preprocessing:}\par
+\paragraph{Target Preprocessing:}\par
 
 If the test set contains the target column, missing targets are replaced with the saved training mode and then transformed with the loaded label encoder from \texttt{target\_preprocessor.pkl}. If the target column is missing, the method returns \texttt{None} for the labels.
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Common Preprocessing Flow:}\par
+\paragraph{Common Preprocessing Flow:}\par
 
 The test pipeline first lowercases all string values in the DataFrame, then executes feature preprocessing and target preprocessing sequentially. It returns the transformed text features and encoded labels.
 \vspace{0.5cm}
@@ -817,7 +820,7 @@ Output: X_test, y_test or None
 \end{lstlisting}
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Saved artifacts used by text testing:}\par
+\paragraph{Saved artifacts used by text testing:}\par
 
 \begin{table}[!htbp]
 \centering
@@ -832,11 +835,11 @@ Output: X_test, y_test or None
 \bottomrule
 \end{tabular}
 \end{table}
-\subsubsection{Image Dataset}
-The auto preprocessed image pipeline is designed to handle two types of vision tasks: image classification and binary segmentation.
+\subsubsection{Image Dataset Training}
+The auto preprocessed image pipeline is designed to handle a vision task: image classification.
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Expected Dataset Structure}
+\paragraph{Expected Dataset Structure}
 The dataset is expected to follow the directory structure shown below. The validation folder is optional; if it exists.
 \begin{verbatim}
 Training/
@@ -851,12 +854,12 @@ Validation/
 
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Classification image training preprocessing steps:}\par
+\paragraph{Classification image training preprocessing steps:}\par
 \begin{enumerate}
 \item Initialize the constructor and validate input parameters.
   \item Generate class-label mappings.
     \item Load and validate images.
-    \item Create dataset overview and summary statistics.
+    \item Create dataset overview.
     \item Split training data into training and validation sets (optional).
     \item Apply image preprocessing and augmentation.
     \item Construct training and validation datasets.
@@ -867,7 +870,7 @@ Validation/
 
 \vspace{1cm}
 \Needspace{4\baselineskip}
-\noindent\textbf{Initialize the constructor and validate input parameters:}\par
+\paragraph{Initialize the constructor and validate input parameters:}\par
 
 \begin{table}[h!]
 \centering
@@ -961,3 +964,132 @@ Must be a tuple of two numeric values (int/float) \\
 \end{tabular}
 \caption{Validation Rules for Classification Image Training Preprocessing Parameters}
 \end{table}
+
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\paragraph{Generate class-label mappings:}\par
+The system scans the training folder to identify all class subdirectories. Each class is assigned a unique numerical identifier, creating both class-to-label and label-to-class mappings. These mappings are stored for later use during training, evaluation, and prediction.
+
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\paragraph{Load and validate images:}\par
+Images are collected from each class folder and associated with their corresponding labels. Every image is validated to ensure that it can be successfully loaded and processed. Invalid or corrupted images are excluded from the dataset and recorded for reporting purposes.
+
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\paragraph{Create dataset overview:}\par
+A dataset overview is generated containing information about the available classes, image counts, invalid image counts, class mappings, and randomly selected image samples. This information is collected and stored for inclusion in the preprocessing report.
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\paragraph{Split training data into training and validation sets (optional):}\par
+If a \texttt{split\_training}, the training data is divided into training and validation subsets according to the specified \texttt{val\_size}. The split is performed using a fixed random seed to ensure reproducibility.
+
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\paragraph{Apply image preprocessing and augmentation:}\par
+Image preprocessing transformations are configured, including image resizing and optional augmentation techniques such as horizontal flipping, vertical flipping, rotation, brightness adjustment, and contrast adjustment. These transformations are applied when images are loaded from the dataset.
+
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\paragraph{Construct training and validation datasets:}\par
+Training and validation dataset objects are created using the processed image paths, labels, image size configuration, and augmentation settings. These datasets define how samples are loaded and transformed during training.
+
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\paragraph{Create DataLoaders for batch processing:}\par
+PyTorch DataLoaders are created from the dataset objects. The training DataLoader enables shuffling to improve learning, while the validation DataLoader preserves data order. 
+
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\paragraph{Generate preprocessing visualizations and reports:}\par
+Several visualizations are generated to analyze the dataset and preprocessing results. Label summary graphs display class distributions and valid versus invalid image statistics. Random sample visualizations show representative images from each class. Additional visualizations display images after passing through the DataLoader to verify preprocessing and augmentation operations. All generated information is incorporated into the preprocessing report.
+
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\paragraph{Return processed training and validation DataLoaders:}\par
+The preprocessing pipeline concludes by returning the generated training and validation DataLoaders, which are subsequently used by the model training and evaluation procedures.
+\vspace{1cm}
+\Needspace{5\baselineskip}
+\subsubsection{Image Dataset Testing}
+
+\paragraph{Testing Preprocessing Steps}
+\begin{enumerate}
+    \item Initialize the constructor and validate input parameters.
+    \item Validate input image files.
+    \item Load preprocessing metadata and class mappings.
+    \item Convert class names to numerical labels (optional).
+    \item Construct the testing dataset.
+    \item Create the testing DataLoader.
+    \item Return the testing DataLoader and invalid images.
+\end{enumerate}
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\paragraph{Initialize the constructor and validate input parameters:}\par
+The preprocessing pipeline initializes the testing configuration and validates the provided inputs. It verifies that the image path list is not empty, ensures that optional class names are provided as a list, and confirms that the number of class names matches the number of image paths when labels are supplied.
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|p{9cm}|}
+\hline
+\textbf{Parameter} & \textbf{Description} \\
+\hline
+image\_paths & List of image file paths to be preprocessed and loaded for testing. \\
+\hline
+image\_class\_names & Optional list containing the class name corresponding to each image path. Used when labels are available for evaluation. \\
+\hline
+folder\_path & Directory containing the preprocessing artifacts generated during training, including image size information and class mappings. \\
+\hline
+batch\_size & Number of images processed together in each batch by the DataLoader. \\
+\hline
+\end{tabular}
+\caption{Parameters of ClassificationImageTestingPreprocessing}
+\label{tab:image_testing_parameters}
+\end{table}
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|p{9cm}|}
+\hline
+\textbf{Parameter} & \textbf{Validation Rules} \\
+\hline
+image\_paths & Must be a non-empty list and contain at least one valid image. \\
+\hline
+image\_class\_names & If provided, it must be a list with the same length as image\_paths. \\
+\hline
+folder\_path & Must contain the files data\_info.pkl and class2label\_mapping.pkl generated during training. \\
+\hline
+batch\_size & Used as the DataLoader batch size. \\
+\hline
+class names & If provided, every class name must exist in the training class-to-label mapping. \\
+\hline
+\end{tabular}
+\caption{Validation Rules for ClassificationImageTestingPreprocessing}
+\label{tab:image_testing_validation}
+\end{table}
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\paragraph{Validate input image files:}\par
+Each image path is checked to determine whether it is a valid image file. Valid image paths are collected for further processing, while invalid or unreadable images are stored separately. The preprocessing procedure terminates if no valid images are found.
+
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\paragraph{Load preprocessing metadata and class mappings:}\par
+The preprocessing metadata generated during training is loaded from disk. This includes the image size configuration and the class-to-label mapping used during model training. These artifacts ensure consistency between training and testing data preprocessing.
+
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\paragraph{Convert class names to numerical labels (optional):}\par
+If class names are provided, each class name is converted to its corresponding numerical label using the stored class-to-label mapping. An error is raised if a class name does not exist in the training classes.
+
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\paragraph{Construct the testing dataset:}\par
+A testing dataset is created using the validated image paths, optional labels, and image size configuration loaded from the training stage. Data augmentation is disabled to ensure that testing images remain unchanged.
+
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\paragraph{Create the testing DataLoader:}\par
+A PyTorch DataLoader is constructed from the testing dataset. The DataLoader processes images in batches without shuffling to preserve the original sample order during inference or evaluation.
+
+\vspace{1cm}
+\Needspace{4\baselineskip}
+\paragraph{Return the testing DataLoader and invalid images:}\par
+The preprocessing pipeline returns the generated testing DataLoader together with a list of invalid image files that were excluded from processing.
