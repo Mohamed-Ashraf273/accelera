@@ -36,6 +36,7 @@ examples/*.jpeg
 examples/*.csv
 examples/*.json
 examples/*.zip
+examples/*.pdf
 bin/
 lib/
 lib64/

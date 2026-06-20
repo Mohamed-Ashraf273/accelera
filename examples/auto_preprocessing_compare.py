@@ -21,6 +21,7 @@ from accelera.src.auto_preprocessing.core.classical_training_preprocessing impor
     ClassicalTrainingPreprocessing,
 )
 from accelera.src.utils.dataset_retriever import retriever
+from accelera.src.utils.preprocessing import load_pickle
 
 EXAMPLES_DIR = Path(__file__).resolve().parent
 
@@ -62,14 +63,18 @@ def models_evaluation(
         model.fit(X_train, y_train)
         preds = model.predict(X_test)
         if problem_type == "classification":
-            score = f1_score(y_test, preds, average="micro")
+            score = f1_score(y_test, preds, average="macro")
         else:
             if is_accelera:
-                print(folder_path)
-                # preprocessor=load_pickle(folder_path,"target_preprocessor.pkl")
-                # preds=preprocessor.inverse_transform(preds.reshape(-1,1)).ravel()
-                # y_test=preprocessor.inverse_transform(y_test.reshape(-1,1)).ravel()
-            score = r2_score(y_test, preds)
+                preprocessor = load_pickle(folder_path, "target_preprocessor.pkl")
+                preds = preprocessor.inverse_transform(preds.reshape(-1, 1)).ravel()
+                y_test_rescaled = preprocessor.inverse_transform(
+                    y_test.reshape(-1, 1)
+                ).ravel()
+                score = r2_score(y_test_rescaled, preds)
+            else:
+                score = r2_score(y_test, preds)
+
         models_score[name] = score
     return np.mean(list(models_score.values()))
 
@@ -154,7 +159,8 @@ def plot_comparison(
     plt.legend()
     plt.tight_layout()
     plt.savefig(
-        EXAMPLES_DIR / f"{ds_type}_comparison_{problem_type}_{target_graph}.png"
+        EXAMPLES_DIR / f"{ds_type}_comparison_{problem_type}_{target_graph}.pdf",
+        format="pdf",
     )
 
 
@@ -172,17 +178,18 @@ def main():
                 df = retriever.retrieve_dataset(dataset, url=info["link"], df=True)
                 label = info["target_column"]
                 report_path = EXAMPLES_DIR / info["report_path"]
-                autoclean_score, autoclean_time = auto_clean_preprocessing(
-                    df,
-                    label,
-                    problem_type=problem_type,
-                )
+
                 accelera_score, accelera_time = accelera_preprocessing(
                     df,
                     label,
                     report_path,
                     problem_type=problem_type,
                     ds_type=dataset_type,
+                )
+                autoclean_score, autoclean_time = auto_clean_preprocessing(
+                    df,
+                    label,
+                    problem_type=problem_type,
                 )
                 results.append(
                     {
