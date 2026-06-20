@@ -6,7 +6,8 @@ const UserRoutes = require("./routes/user");
 const SubmissionRoutes=require("./routes/submissions")
 const dotenv = require("dotenv");
 const cors = require("cors");
-dotenv.config();
+dotenv.config({ path: ".env", quiet: true });
+dotenv.config({ path: "env", quiet: true });
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -15,9 +16,9 @@ app.use("/metrics", metricsRoutes);
 app.use("/benchmark", bechmarkRoutes);
 app.use("/user", UserRoutes);
 app.use("/submission", SubmissionRoutes);
-app.listen(process.env.DB_PORT, () => {
-  console.log(`The server is running on port ${process.env.DB_PORT}`);
+const port = process.env.DB_PORT || 3000;
+app.listen(port, () => {
+  console.log(`The server is running on port ${port}`);
 });
-
 
 

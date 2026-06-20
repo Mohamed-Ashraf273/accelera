@@ -1,24 +1,68 @@
 .metric-display-page {
   padding: 20px;
   font-family: Arial, sans-serif;
-  background: white;
+  background: var(--bg);
   min-height: 100vh;
-  color: #0f172a;
+  color: var(--text-dark);
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
-  font-style: italic;
-  font-size: medium;
 }
 .metric-display-card {
   display: flex;
   flex-direction: column;
-  margin: auto;
-  background-color: #16223d;
-  color: white;
-  padding: 30px;
+  margin-top: 105px;
+  margin-left: auto;
+  margin-right: auto;
+  width: min(620px, 100%);
+  background-color: var(--card);
+  color: var(--text);
+  padding: 28px;
+  border-radius: 14px;
+  gap: 14px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.metric-display-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.metric-display-head h1 {
+  color: var(--text-dark);
+}
+
+.metric-display-head p {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.metric-display-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.metric-display-grid > div {
+  background: #f8fafc;
+  border: 1px solid var(--border);
   border-radius: 10px;
-  gap: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.metric-display-grid p {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.metric-display-grid h3 {
+  color: var(--text-dark);
 }
 
 .params {
@@ -27,6 +71,10 @@
   flex-direction: column;
   gap: 10px;
 }
+.params h2 {
+  color: var(--text-dark);
+  margin-top: 6px;
+}
 .params p {
   margin-bottom: 5px;
 }
@@ -34,10 +82,25 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
 }
 .allowed-values {
   padding-left: 20px;
 }
 .allowed-values ul {
   padding-left: 25px;
+}
+
+@media (max-width: 720px) {
+  .metric-display-card {
+    margin-top: 105px;
+    padding: 20px;
+  }
+
+  .metric-display-grid {
+    grid-template-columns: 1fr;
+  }
 }
