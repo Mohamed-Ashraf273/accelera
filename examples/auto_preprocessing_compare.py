@@ -49,7 +49,13 @@ def get_compared_models(problem_type):
 
 
 def models_evaluation(
-    X_train, X_test, y_train, y_test, problem_type="classification"
+    X_train,
+    X_test,
+    y_train,
+    y_test,
+    problem_type="classification",
+    is_accelera=False,
+    folder_path=None,
 ):
     models_score = {}
     for name, model in get_compared_models(problem_type).items():
@@ -58,6 +64,11 @@ def models_evaluation(
         if problem_type == "classification":
             score = f1_score(y_test, preds, average="micro")
         else:
+            if is_accelera:
+                print(folder_path)
+                # preprocessor=load_pickle(folder_path,"target_preprocessor.pkl")
+                # preds=preprocessor.inverse_transform(preds.reshape(-1,1)).ravel()
+                # y_test=preprocessor.inverse_transform(y_test.reshape(-1,1)).ravel()
             score = r2_score(y_test, preds)
         models_score[name] = score
     return np.mean(list(models_score.values()))
@@ -105,7 +116,13 @@ def accelera_preprocessing(
     )
 
     evaluation = models_evaluation(
-        X_train_df, X_test_df, y_train, y_test, problem_type
+        X_train_df,
+        X_test_df,
+        y_train,
+        y_test,
+        problem_type,
+        is_accelera=True,
+        folder_path=report_path,
     )
     end_time = time.time()
     return evaluation, end_time - start_time

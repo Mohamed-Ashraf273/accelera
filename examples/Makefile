@@ -1,7 +1,7 @@
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 EXAMPLES := $(ROOT)/examples
 TOOLS := $(ROOT)/tools
-BENCHMARK := $(ROOT)/accelera/src/benchmark
+BENCHMARK := $(ROOT)/benchmark
 THIS_MAKEFILE := $(abspath $(lastword $(MAKEFILE_LIST)))
 PYTHON ?= python
 
