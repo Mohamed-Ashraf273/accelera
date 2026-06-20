@@ -14,8 +14,8 @@ import numpy as np
 import requests
 
 from accelera.src.config import config
+from accelera.src.parallelizer.py2cpp_converter import py2cpp_converter
 from accelera.src.utils.accelera_utils import print_msg
-from accelera.src.utils.py2cpp_converter import py2cpp_converter
 
 try:
     from code_parallelizer_utils import extract_loops as _extract_loops
@@ -40,7 +40,7 @@ def _compiled_extension_suffix() -> str:
 
 
 def _pymethod_cache_path(code: str, func_name: str) -> Path:
-    from accelera.src.utils.cpp_compiler import compile_opt_flag
+    from accelera.src.parallelizer.cpp_compiler import compile_opt_flag
 
     cache_key = "\n".join(
         [
@@ -626,8 +626,8 @@ class Parallelizer:
         import inspect
         import textwrap
 
-        from accelera.src.utils.cpp_compiler import compile_parallelized_code
-        from accelera.src.utils.cpp_compiler import compiled_module_name
+        from accelera.src.parallelizer.cpp_compiler import compile_parallelized_code
+        from accelera.src.parallelizer.cpp_compiler import compiled_module_name
 
         try:
             code = textwrap.dedent(inspect.getsource(func))
