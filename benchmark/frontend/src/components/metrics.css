@@ -1,108 +1,195 @@
 .metrics-page {
   padding: 20px;
   font-family: Arial, sans-serif;
-  background: white;
+  background: var(--bg);
   min-height: 100vh;
-  color: #0f172a;
+  color: var(--text-dark);
   display: flex;
   flex-direction: column;
 }
 .metrics-page-content {
-  margin-top: 100px;
+  margin-top: 105px;
+  width: min(1120px, 100%);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.metrics-page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 22px;
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+
+.metrics-kicker {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metrics-count {
+  color: var(--muted);
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.metrics-page-title {
+  font-size: 28px;
+  margin-bottom: 4px;
 }
 
 .metrics-page-actions {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin: 18px 0 24px;
 }
 .metric-create-button {
   padding: 10px 15px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  background: #0f172a;
+  background: var(--primary);
   color: white;
   transition: 0.2s;
-  margin-bottom: 10px;
   text-decoration: none;
+  font-weight: bold;
 }
 .metrics-filters {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
   align-items: center;
 }
 
 .metrics-button {
   padding: 8px 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  background: #0f172a;
+  background: var(--primary);
   color: white;
   transition: 0.2s;
 }
 
 .metrics-button:hover,
 .metric-create-button:hover {
-  background: white;
-  color: #0f172a;
+  background: var(--primary-light);
+  color: white;
 }
 
 .metrics-problemType-select {
-  padding: 8px;
-  border-radius: 6px;
-  border: none;
-  background: #0f172a;
-  color: white;
+  max-width: 190px;
 }
 
 .loading {
-  color: #0f172a;
+  color: var(--muted);
+}
+
+.metrics-empty {
+  color: var(--muted);
+  background: var(--card);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  text-align: center;
 }
 
 .metric-card {
-  border: 1px solid #0f172a;
+  border: 1px solid var(--border);
   width: 100%;
-  padding: 15px;
-  color: white;
-  border-radius: 10px;
-  background: #1e293b;
+  padding: 18px;
+  color: var(--text-dark);
+  border-radius: 12px;
+  background: var(--card);
   display: flex;
   flex-direction: column;
-  display: block;
+  gap: 14px;
   text-decoration: none;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+  transition: 0.2s;
+}
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+  border-color: #cbd5e1;
 }
 
 .metric-info {
-  margin-top: 15px;
-  border-radius: 10px;
-  color: #1e293b;
-  width: 100%;
+  margin-top: auto;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 .metric-info p {
   font-size: 12px;
-  font-style: italic;
-  color: white;
+  color: var(--text-dark);
+  background: #eef6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-weight: 600;
 }
 .metric-header {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
 }
 .metric-delete-button {
-  border: none;
-  color: #0f172a;
-  padding: 10px 20px;
-  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--danger);
+  background: #fff1f2;
+  padding: 8px 12px;
+  border-radius: 8px;
 }
 .metric-delete-button:hover {
   color: white;
-  background-color: #1e293b;
+  background-color: var(--danger);
+  border-color: var(--danger);
 }
 .metrics-display {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+}
+
+@media (max-width: 1000px) {
+  .metrics-display {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .metrics-page-content {
+    margin-top: 105px;
+  }
+
+  .metrics-page-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .metrics-page-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .metrics-display {
+    grid-template-columns: 1fr;
+  }
 }

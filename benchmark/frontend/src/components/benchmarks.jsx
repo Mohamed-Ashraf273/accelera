@@ -3,6 +3,7 @@ import Navigation from "./navigation";
 import { Link } from "react-router-dom";
 
 import { useEffect, useState } from "react";
+import { authHeaders } from "../auth";
 
 function Benchmarks() {
   const [benchmarks, setBenchmarks] = useState([]);
@@ -34,6 +35,7 @@ function Benchmarks() {
     try {
       const results = await fetch(`http://localhost:3000/benchmark/${id}`, {
         method: "DELETE",
+        headers: authHeaders(),
       });
       const data = await results.json();
       if (!results.ok) {
@@ -53,7 +55,13 @@ function Benchmarks() {
     <div className="benchmarks-page">
       <Navigation />
       <div className="benchmark-page-content">
-        <h2 className="benchmarks-page-title">Benchmarks</h2>
+        <div className="benchmarks-page-head">
+          <div>
+            <p className="benchmarks-kicker">Benchmark library</p>
+            <h2 className="benchmarks-page-title">Benchmarks</h2>
+          </div>
+          <p className="benchmarks-count">{benchmarks.length} benchmarks</p>
+        </div>
         <div className="benchmarks-page-actions">
           <div className="benchmarks-filters">
             <button className="benchmarks-button" onClick={fetchWithoutFilter}>
@@ -82,12 +90,18 @@ function Benchmarks() {
           </Link>
         </div>
         {loading && <p className="loading">Loading...</p>}
+        {!loading && benchmarks.length === 0 && (
+          <p className="benchmarks-empty">No benchmarks found</p>
+        )}
         <div className="benchmarks-display">
         {benchmarks.map((benchmark) => (
           <Link to="/display-benchmark" state={{benchmark}} key={benchmark._id} className="benchmark-card">
             <div className="benchmark-header">
               <h3>{benchmark.title}</h3>
-              {user && benchmark.createdBy?._id === user._id && (
+              {user && (
+                benchmark.createdBy?._id === user._id ||
+                user.role === "admin"
+              ) && (
                 <button
                   className="benchmark-delete-button"
                   onClick={() => deleteBenchmark(benchmark._id)}
@@ -96,8 +110,10 @@ function Benchmarks() {
                 </button>
               )}
             </div>
+            <p className="benchmark-description">{benchmark.description}</p>
             <div className="benchmark-info">
-              <p>Type: {benchmark.problemType}</p>              
+              <p>{benchmark.problemType}</p>
+              <p>{benchmark.evaluationMetric?.name}</p>
             </div>
           </Link>
         ))}
