@@ -24,7 +24,7 @@ def load_dataset_split(dataset_dir):
 
 
 def choose_runtime_settings():
-    return {"time_budget": 1500, "n_trials": 100}
+    return {"time_budget": 1500, "n_trials": 10}
 
 
 def save_result(result):
