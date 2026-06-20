@@ -23,6 +23,7 @@ category-encoders
 kagglehub
 
 # Dev & Testing Tools
+graphviz
 gdown
 tqdm
 pre-commit
