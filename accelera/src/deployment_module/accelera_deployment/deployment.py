@@ -312,6 +312,12 @@ def _remote_script(args):
             no_cache=getattr(args, "no_cache", False),
         )
     )
+    health_command = (
+        f"sudo docker exec {shlex.quote(container_name)} "
+        'python -c "import urllib.request; '
+        f"urllib.request.urlopen('http://127.0.0.1:{port}/health', "
+        'timeout=3).read()"'
+    )
 
     install_docker = ""
     if args.install_docker:
@@ -337,7 +343,8 @@ fi
     if not args.install_docker:
         docker_check = """
 if ! command -v docker >/dev/null 2>&1; then
-  echo "Docker is not installed on the EC2 host. Use --install-docker to install it automatically." >&2
+  echo "Docker is not installed on the EC2 host. Use --install-docker to "\
+"install it automatically." >&2
   exit 1
 fi
 """
@@ -355,7 +362,7 @@ sudo docker run -d --restart unless-stopped \
   {shlex.quote(image_name)}
 echo "Waiting for container health endpoint..."
 for attempt in 1 2 3 4 5; do
-  if sudo docker exec {shlex.quote(container_name)} python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:{port}/health', timeout=3).read()" >/dev/null 2>&1; then
+  if {health_command} >/dev/null 2>&1; then
     echo "Local container health check: OK"
     break
   fi
@@ -365,7 +372,9 @@ for attempt in 1 2 3 4 5; do
   fi
   sleep 2
 done
-sudo docker ps --filter name={shlex.quote(container_name)} --format 'container={{{{.Names}}}} image={{{{.Image}}}} status={{{{.Status}}}} ports={{{{.Ports}}}}'
+sudo docker ps --filter name={shlex.quote(container_name)} \
+  --format 'container={{{{.Names}}}} image={{{{.Image}}}}' \
+  ' status={{{{.Status}}}} ports={{{{.Ports}}}}'
 echo "Application URL: http://{args.host}:{port}"
 echo "GUI URL: http://{args.host}:{port}/gui"
 """.strip()
@@ -379,7 +388,8 @@ examples:
   python accelera_deployment/deployment.py local
   python accelera_deployment/deployment.py heroku-deploy --app accelera1 --create
   python accelera_deployment/deployment.py heroku-push --app accelera1
-  python accelera_deployment/deployment.py ec2-deploy --host 1.2.3.4 --user ec2-user --key ~/.ssh/key.pem
+  python accelera_deployment/deployment.py ec2-deploy --host 1.2.3.4 \\
+    --user ec2-user --key ~/.ssh/key.pem
 """,
     )
 
@@ -437,7 +447,10 @@ examples:
 
     ec2_parser = subparsers.add_parser(
         "ec2-deploy",
-        help="sync the deployment module to EC2, build the image, and run the container",
+        help=(
+            "sync the deployment module to EC2, build the image, and run the "
+            "container"
+        ),
     )
     ec2_parser.add_argument("--host", required=True, help="EC2 public IP or DNS")
     ec2_parser.add_argument("--user", default="ec2-user", help="SSH user name")

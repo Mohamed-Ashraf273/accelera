@@ -4,11 +4,12 @@ import shutil
 import sys
 from pathlib import Path
 
+from accelera.src.config import config
+
 repo_root = Path(__file__).resolve().parents[1]
 if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
 
-from accelera.src.config import config
 
 skip_names = config.INIT_GENERATOR_SKIP_NAMES | frozenset(
     {
