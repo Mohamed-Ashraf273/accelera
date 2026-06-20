@@ -6,6 +6,6 @@ since your modifications would be overwritten.
 
 from accelera.src.accelera_automl.meta_learning import metafeatures as metafeatures
 from accelera.src.accelera_automl.meta_learning import (
-    test_meta_learning_warmstart as test_meta_learning_warmstart,
+    meta_learning_warmstart_test as meta_learning_warmstart_test,
 )
 from accelera.src.accelera_automl.meta_learning import warmstart as warmstart
