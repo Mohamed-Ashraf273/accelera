@@ -31,13 +31,19 @@ function LeaderBoard() {
     setUpdateForm({ ...updateForm, [e.target.name]: e.target.value });
   };
   const fetchSubmissions = async () => {
-    setLoading(true);
-    const results = await fetch(
-      `http://localhost:3000/submission/benchmark/${benchmark_id}`,
-    );
-    const data = await results.json();
-    setSubmissions(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const results = await fetch(
+        `http://localhost:3000/submission/benchmark/${benchmark_id}`,
+      );
+      const data = await results.json();
+      setSubmissions(Array.isArray(data) ? data : []);
+      setLoading(false);
+    } catch (err) {
+      setSubmissions([])
+      setLoading(false)
+      console.log(err)
+    }
   };
   const handleSubmit = async (e) => {
     setUploading(true);
