@@ -10,5 +10,4 @@ from accelera.src.accelera_pipe.core import metric_display as metric_display
 from accelera.src.accelera_pipe.core import node as node
 from accelera.src.accelera_pipe.core import pipeline as pipeline
 from accelera.src.accelera_pipe.core import pipeline_base as pipeline_base
-from accelera.src.accelera_pipe.core import pipeline_test as pipeline_test
 from accelera.src.accelera_pipe.core import report_base as report_base

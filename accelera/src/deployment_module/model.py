@@ -16,10 +16,25 @@ from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from accelera.src.config import config
+# Configuration
+CONFIG = {
+    "test_size": 0.2,
+    "random_state": 42,
+    "cv_folds": 5,
+    "model_path": "model.pkl",
+    "scaler_path": "scaler.pkl",
+    "metadata_path": "model_metadata.json",
+}
 
-deployment_model_config = config.DEPLOYMENT_MODEL_CONFIG
-deployment_param_grid = config.DEPLOYMENT_PARAM_GRID
+# Hyperparameter grid for tuning
+PARAM_GRID = {
+    "n_estimators": [50, 100, 200],
+    "max_depth": [None, 10, 20, 30],
+    "min_samples_split": [2, 5, 10],
+    "min_samples_leaf": [1, 2, 4],
+    "max_features": ["sqrt", "log2"],
+    "bootstrap": [True, False],
+}
 
 
 def load_and_preprocess_data():
@@ -42,8 +57,8 @@ def load_and_preprocess_data():
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
-        test_size=deployment_model_config["test_size"],
-        random_state=deployment_model_config["random_state"],
+        test_size=CONFIG["test_size"],
+        random_state=CONFIG["random_state"],
         stratify=y,  # Maintain class distribution
     )
 
@@ -69,9 +84,9 @@ def scale_features(X_train, X_test):
     print(f"Train std (after): {X_train_scaled.std(axis=0).round(3)}")
 
     # Save scaler for inference
-    with open(deployment_model_config["scaler_path"], "wb") as f:
+    with open(CONFIG["scaler_path"], "wb") as f:
         pickle.dump(scaler, f)
-    print(f"\nScaler saved to {deployment_model_config['scaler_path']}")
+    print(f"\nScaler saved to {CONFIG['scaler_path']}")
 
     return X_train_scaled, X_test_scaled, scaler
 
@@ -92,28 +107,25 @@ def perform_hyperparameter_tuning(X_train, y_train, quick_search=True):
         }
         print("Using quick search grid (subset of parameters)")
     else:
-        param_grid = deployment_param_grid
+        param_grid = PARAM_GRID
         print("Using full search grid")
 
-    base_model = RandomForestClassifier(
-        random_state=deployment_model_config["random_state"]
-    )
+    base_model = RandomForestClassifier(random_state=CONFIG["random_state"])
 
     grid_search = GridSearchCV(
         estimator=base_model,
         param_grid=param_grid,
-        cv=deployment_model_config["cv_folds"],
+        cv=CONFIG["cv_folds"],
         scoring="accuracy",
         n_jobs=-1,  # Use all available cores
         verbose=1,
         return_train_score=True,
     )
 
-    search_message = (
+    print(
         f"\nSearching {len(param_grid)} parameters with "
-        f"{deployment_model_config['cv_folds']}-fold CV..."
+        f"{CONFIG['cv_folds']}-fold CV..."
     )
-    print(search_message)
     grid_search.fit(X_train, y_train)
 
     print(f"\nBest parameters: {grid_search.best_params_}")
@@ -133,11 +145,7 @@ def cross_validate_model(model, X_train, y_train):
     print("=" * 50)
 
     cv_scores = cross_val_score(
-        model,
-        X_train,
-        y_train,
-        cv=deployment_model_config["cv_folds"],
-        scoring="accuracy",
+        model, X_train, y_train, cv=CONFIG["cv_folds"], scoring="accuracy"
     )
 
     print(f"CV Scores: {cv_scores.round(4)}")
@@ -209,15 +217,15 @@ def save_model_and_metadata(
     print("=" * 50)
 
     # Save model
-    with open(deployment_model_config["model_path"], "wb") as f:
+    with open(CONFIG["model_path"], "wb") as f:
         pickle.dump(model, f)
-    print(f"Model saved to {deployment_model_config['model_path']}")
+    print(f"Model saved to {CONFIG['model_path']}")
 
     # Save metadata
     metadata = {
         "model_type": "RandomForestClassifier",
         "training_date": datetime.now().isoformat(),
-        "config": deployment_model_config,
+        "config": CONFIG,
         "best_params": best_params,
         "cv_score": float(cv_score),
         "test_metrics": metrics,
@@ -225,9 +233,9 @@ def save_model_and_metadata(
         "sklearn_version": "latest",
     }
 
-    with open(deployment_model_config["metadata_path"], "w") as f:
+    with open(CONFIG["metadata_path"], "w") as f:
         json.dump(metadata, f, indent=2)
-    print(f"Metadata saved to {deployment_model_config['metadata_path']}")
+    print(f"Metadata saved to {CONFIG['metadata_path']}")
 
     return metadata
 
@@ -279,17 +287,17 @@ def predict(input_data=None):
     print("#" * 60)
 
     # Load model
-    with open(deployment_model_config["model_path"], "rb") as f:
+    with open(CONFIG["model_path"], "rb") as f:
         model = pickle.load(f)
-    print(f"Model loaded from {deployment_model_config['model_path']}")
+    print(f"Model loaded from {CONFIG['model_path']}")
 
     # Load scaler
-    with open(deployment_model_config["scaler_path"], "rb") as f:
+    with open(CONFIG["scaler_path"], "rb") as f:
         scaler = pickle.load(f)
-    print(f"Scaler loaded from {deployment_model_config['scaler_path']}")
+    print(f"Scaler loaded from {CONFIG['scaler_path']}")
 
     # Load metadata
-    with open(deployment_model_config["metadata_path"], "r") as f:
+    with open(CONFIG["metadata_path"], "r") as f:
         metadata = json.load(f)
     print(f"Model trained on: {metadata['training_date']}")
 

@@ -3,6 +3,8 @@ import json
 import os
 import shlex
 import subprocess
+import urllib.error
+import urllib.request
 
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(project_root)
@@ -55,6 +57,7 @@ def validate_port(port):
 def write_requirements():
     with open("accelera_deployment/requirements.txt", "w", encoding="utf-8") as req:
         req.write("fastapi==0.136.1\n")
+        req.write("great-expectations==1.18.1\n")
         req.write("uvicorn[standard]==0.46.0\n")
         req.write("scikit-learn==1.8.0\n")
         req.write("category-encoders==2.9.0\n")
@@ -77,6 +80,10 @@ def write_dockerfile(configurations):
         )
         f.write("COPY accelera_deployment/server.py server.py\n")
         f.write("COPY accelera_deployment/modelservice.py modelservice.py\n")
+        f.write(
+            "COPY accelera_deployment/schema_validation.py schema_validation.py\n"
+        )
+        f.write("COPY accelera_deployment/tracking.py tracking.py\n")
         f.write("COPY config.json config.json\n")
         for pkl in models.values():
             f.write(f"COPY {pkl} /app/{pkl}\n")
@@ -122,6 +129,7 @@ def run_local(_args):
 
     print("\n--- Starting container  ---\n")
     print(f" API: http://localhost:{port}")
+    print(f" GUI: http://localhost:{port}/gui")
     subprocess.run(
         [
             "docker",
@@ -168,6 +176,7 @@ def heroku_release(args):
     subprocess.run(
         ["heroku", "container:release", "web", "--app", args.app], check=True
     )
+    print(f"GUI: https://{args.app}.herokuapp.com/gui")
 
 
 def heroku_open(args):
@@ -213,6 +222,7 @@ def ec2_deploy(args):
 
     print("Building and starting the Docker container on EC2...")
     _run_remote(args, script)
+    _check_ec2_public_url(args)
 
 
 def ec2_stop(args):
@@ -248,6 +258,31 @@ def _run_remote(args, command):
     )
 
 
+def _check_ec2_public_url(args):
+    port = validate_port(args.port)
+    url = f"http://{args.host}:{port}/health"
+    gui_url = f"http://{args.host}:{port}/gui"
+
+    print("Checking public EC2 URL...")
+    try:
+        with urllib.request.urlopen(url, timeout=8) as response:
+            if response.status < 400:
+                print("Public health check: OK")
+                print(f"GUI URL: {gui_url}")
+                return
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        print(
+            "Public health check failed. The container is healthy on the EC2 "
+            "host, but the public URL is not reachable."
+        )
+        print(
+            "Open the EC2 security group inbound rule for "
+            f"TCP port {port} from your IP, then retry:"
+        )
+        print(f"  {gui_url}")
+        print(f"Details: {exc}")
+
+
 def _remote_target(args):
     return f"{args.user}@{args.host}"
 
@@ -277,6 +312,12 @@ def _remote_script(args):
             no_cache=getattr(args, "no_cache", False),
         )
     )
+    health_command = (
+        f"sudo docker exec {shlex.quote(container_name)} "
+        'python -c "import urllib.request; '
+        f"urllib.request.urlopen('http://127.0.0.1:{port}/health', "
+        'timeout=3).read()"'
+    )
 
     install_docker = ""
     if args.install_docker:
@@ -302,40 +343,26 @@ fi
     if not args.install_docker:
         docker_check = """
 if ! command -v docker >/dev/null 2>&1; then
-  echo "Docker is not installed on the EC2 host." >&2
-  echo "Use --install-docker to install it automatically." >&2
+  echo "Docker is not installed on the EC2 host. Use --install-docker to "\
+"install it automatically." >&2
   exit 1
 fi
 """
-
-    health_probe = (
-        "import urllib.request; "
-        f"urllib.request.urlopen('http://127.0.0.1:{port}/health', "
-        "timeout=3).read()"
-    )
-    ps_format = (
-        "container={{{{.Names}}}} image={{{{.Image}}}} "
-        "status={{{{.Status}}}} ports={{{{.Ports}}}}"
-    )
-    container_arg = shlex.quote(container_name)
-    health_arg = shlex.quote(health_probe)
-    ps_format_arg = shlex.quote(ps_format)
 
     return f"""
 set -e
 cd {_quote_remote_path(remote_root)}
 {install_docker}{docker_check}
 {docker_build}
-sudo docker rm -f {container_arg} >/dev/null 2>&1 || true
+sudo docker rm -f {shlex.quote(container_name)} >/dev/null 2>&1 || true
 sudo docker run -d --restart unless-stopped \
-  --name {container_arg} \
+  --name {shlex.quote(container_name)} \
   -p {port}:{port} \
   -e PORT={port} \
   {shlex.quote(image_name)}
 echo "Waiting for container health endpoint..."
 for attempt in 1 2 3 4 5; do
-  if sudo docker exec {container_arg} \
-      python -c {health_arg} >/dev/null 2>&1; then
+  if {health_command} >/dev/null 2>&1; then
     echo "Local container health check: OK"
     break
   fi
@@ -345,9 +372,11 @@ for attempt in 1 2 3 4 5; do
   fi
   sleep 2
 done
-sudo docker ps --filter name={container_arg} \
-  --format {ps_format_arg}
+sudo docker ps --filter name={shlex.quote(container_name)} \
+  --format 'container={{{{.Names}}}} image={{{{.Image}}}}' \
+  ' status={{{{.Status}}}} ports={{{{.Ports}}}}'
 echo "Application URL: http://{args.host}:{port}"
+echo "GUI URL: http://{args.host}:{port}/gui"
 """.strip()
 
 
@@ -360,7 +389,7 @@ examples:
   python accelera_deployment/deployment.py heroku-deploy --app accelera1 --create
   python accelera_deployment/deployment.py heroku-push --app accelera1
   python accelera_deployment/deployment.py ec2-deploy --host 1.2.3.4 \\
-      --user ec2-user --key ~/.ssh/key.pem
+    --user ec2-user --key ~/.ssh/key.pem
 """,
     )
 
