@@ -15,10 +15,12 @@ parallelization.
 
 ## Features
 
-- **Graph ML pipelines**: build DAG-style workflows with preprocessing, model,
-  predict, metric, merge, and branch nodes.
-- **Parallel branch execution**: compare multiple preprocessing/model/metric
-  combinations in one pipeline run through the C++ graph backend.
+- **Accelera Pipe graph engine**: build DAG-style ML workflows with
+  preprocessing, model, predict, metric, merge, and branch nodes, then reuse the
+  selected fitted path through an `ExecutedGraph`.
+- **Optimized pipeline execution**: run independent branches in parallel through
+  the C++ graph backend, share duplicate first branch nodes, release temporary
+  training data after its last consumer, and save/load pipelines as pickle files.
 - **Custom model support**: plug in sklearn-compatible estimators or extend
   `CustomClassifier`, `CustomRegressor`, `CustomClusterer`, and
   `CustomTransformer`.
@@ -32,22 +34,16 @@ parallelization.
   metafeatures, and optionally build voting or stacked ensembles.
 - **Dataset retriever**: list and download shared CSV datasets into a local
   cache with `accelera.src.utils.dataset_retriever.DatasetRetriever`.
-- **C/C++ code parallelizer**: extract loops with Clang AST, derive loop
-  features, call an OpenMP classifier service, and inject OpenMP pragmas
-  into parallelizable `for` loops.
+- **Python/C++ code parallelizer**: convert supported Python loops to C++,
+  analyze C/C++ loops with Clang AST, classify safe OpenMP opportunities with
+  rules and the OpenMP classifier service, and emit parallelized C++.
+- **Accelera Pipe parallelizer integration**: automatically optimize eligible
+  custom preprocessing functions or `CustomTransformer` methods, compile them as
+  Python-callable native modules, cache compiled outputs, and attach them back to
+  graph preprocessing nodes.
 - **Benchmark backend prototype**: Express/MongoDB backend scaffolding for
   benchmarks, users, metrics, and submissions.
 
-## Current Status
-
-- The core DAG pipeline, custom estimator interfaces, reports, dataset
-  retrieval, and preprocessing utilities are implemented in this repo.
-- AutoML classification and regression search, evaluation, meta-learning
-  warm starts, and ensemble construction are implemented.
-- The benchmark backend is an early prototype.
-- The code parallelizer requires LLVM/Clang, built pybind bindings, and the
-  classifier endpoint configured in `accelera/src/config.py`. CMake attempts
-  to install LLVM/Clang automatically on Linux and Windows when possible.
 
 ## Quick Start
 
@@ -247,96 +243,6 @@ installed the package or exported `PYTHONPATH`.
 If the native graph import fails, rebuild the C++ bindings with
 `cmake --build build -j"$(nproc)"` and run the export command again.
 
-### AutoML Classification and Regression
-
-Accelera AutoML searches across supported scikit-learn, CatBoost, LightGBM,
-and XGBoost estimators. Cross-validation ranks candidate configurations within
-the supplied time and trial limits. Dataset metafeatures can warm-start the
-search, and the best candidates can be combined into voting or stacked
-ensembles.
-
-Install Accelera before using the public API:
-
-```bash
-pip install .
-```
-
-Classification example:
-
-```python
-from sklearn.datasets import make_classification
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-
-from accelera.accelera_automl import AutoMLClassifier
-
-X, y = make_classification(
-    n_samples=1000,
-    n_features=20,
-    n_informative=12,
-    random_state=42,
-)
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y
-)
-
-model = AutoMLClassifier(
-    time_budget=300,
-    n_trials=20,
-    cv=3,
-    random_state=42,
-    n_jobs=1,
-)
-model.fit(X_train, y_train)
-predictions = model.predict(X_test)
-
-print("accuracy", accuracy_score(y_test, predictions))
-print(model.return_leaderboard(top_n=3))
-```
-
-For regression, use the same estimator-style interface:
-
-```python
-from sklearn.datasets import make_regression
-from sklearn.metrics import r2_score
-from sklearn.model_selection import train_test_split
-
-from accelera.accelera_automl import AutoMLRegressor
-
-X, y = make_regression(
-    n_samples=1000,
-    n_features=20,
-    n_informative=12,
-    noise=5.0,
-    random_state=42,
-)
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
-
-model = AutoMLRegressor(
-    time_budget=300,
-    n_trials=20,
-    cv=3,
-    random_state=42,
-    n_jobs=1,
-)
-model.fit(X_train, y_train)
-predictions = model.predict(X_test)
-
-print("r2", r2_score(y_test, predictions))
-print(model.return_leaderboard(top_n=3))
-```
-
-The repository also contains complete CSV-based examples:
-
-```bash
-python examples/run_classification_task_automl.py
-python examples/run_regression_task_automl.py --time-budget 300 --n-trials 10
-```
-
-These scripts read prepared splits from `data/accelera_automl/`. The regression
-script accepts `--time-budget`, `--n-trials`, `--cv`, and `--n-jobs` options.
 
 ### Accelera Pipe Branch Selection
 
@@ -579,17 +485,17 @@ from accelera.src.utils.dataset_retriever import retriever
 retriever.connect()
 df = retriever.retrieve_dataset(dataset_name, url=drive_link, df=True)
 X_train, y_train, X_test, y_test =ClassicalTrainingPreprocessing(
-df=df,
-target_col,
-problem_type,
-folder_path,
-val_size,
-random_state,
-cardinality_threshold,
-max_unique_ordinal,
-missing_threshold,
-columns_need_to_drop,
-feature_importance_threshold,
+  df=df,
+  target_col,
+  problem_type,
+  folder_path,
+  val_size,
+  random_state,
+  cardinality_threshold,
+  max_unique_ordinal,
+  missing_threshold,
+  columns_need_to_drop,
+  feature_importance_threshold,
 ).common_preprocessing()
 retriever.close()
 ```
@@ -803,6 +709,98 @@ results = [
 report = ModelReport("model_report", results=results)
 report.execute()
 ```
+
+### AutoML Classification and Regression
+
+Accelera AutoML searches across supported scikit-learn, CatBoost, LightGBM,
+and XGBoost estimators. Cross-validation ranks candidate configurations within
+the supplied time and trial limits. Dataset metafeatures can warm-start the
+search, and the best candidates can be combined into voting or stacked
+ensembles.
+
+Install Accelera before using the public API:
+
+```bash
+pip install .
+```
+
+Classification example:
+
+```python
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+from accelera.accelera_automl import AutoMLClassifier
+
+X, y = make_classification(
+    n_samples=1000,
+    n_features=20,
+    n_informative=12,
+    random_state=42,
+)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+model = AutoMLClassifier(
+    time_budget=300,
+    n_trials=20,
+    cv=3,
+    random_state=42,
+    n_jobs=1,
+)
+model.fit(X_train, y_train)
+predictions = model.predict(X_test)
+
+print("accuracy", accuracy_score(y_test, predictions))
+print(model.return_leaderboard(top_n=3))
+```
+
+For regression, use the same estimator-style interface:
+
+```python
+from sklearn.datasets import make_regression
+from sklearn.metrics import r2_score
+from sklearn.model_selection import train_test_split
+
+from accelera.accelera_automl import AutoMLRegressor
+
+X, y = make_regression(
+    n_samples=1000,
+    n_features=20,
+    n_informative=12,
+    noise=5.0,
+    random_state=42,
+)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+model = AutoMLRegressor(
+    time_budget=300,
+    n_trials=20,
+    cv=3,
+    random_state=42,
+    n_jobs=1,
+)
+model.fit(X_train, y_train)
+predictions = model.predict(X_test)
+
+print("r2", r2_score(y_test, predictions))
+print(model.return_leaderboard(top_n=3))
+```
+
+The repository also contains complete CSV-based examples:
+
+```bash
+python examples/run_classification_task_automl.py
+python examples/run_regression_task_automl.py --time-budget 300 --n-trials 10
+```
+
+These scripts read prepared splits from `data/accelera_automl/`. The regression
+script accepts `--time-budget`, `--n-trials`, `--cv`, and `--n-jobs` options.
+
 
 ### Runtime Requirements and Common Blockers
 
