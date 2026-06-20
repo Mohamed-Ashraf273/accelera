@@ -11,12 +11,18 @@ function Metrics() {
   const [loading, setLoading] = useState(false);
   const user = JSON.parse(localStorage.getItem("user"));
   const fetchMetric = async (urlLink) => {
-    setLoading(true);
-    const results = await fetch(urlLink);
-    const data = await results.json();
-    console.log(data);
-    setMetrics(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const results = await fetch(urlLink);
+      const data = await results.json();
+      setMetrics(Array.isArray(data) ? data : []);
+      setLoading(false);
+    }
+    catch (err) {
+      setMetrics([])
+      setLoading(false);
+      console.log(err)
+    }
   };
   const fetchWithoutFilter = async () => {
     fetchMetric("http://localhost:3000/metrics");
@@ -57,7 +63,7 @@ function Metrics() {
             <p className="metrics-kicker">Evaluation setup</p>
             <h2 className="metrics-page-title">Metrics</h2>
           </div>
-          <p className="metrics-count">{metrics.length} metrics</p>
+          <p className="metrics-count">{metrics?.length} metrics</p>
         </div>
         <div className="metrics-page-actions">
           <div className="metrics-filters">
@@ -81,11 +87,11 @@ function Metrics() {
           )}
         </div>
         {loading && <p className="loading">Loading...</p>}
-        {!loading && metrics.length === 0 && (
+        {!loading && metrics?.length === 0 && (
           <p className="metrics-empty">No metrics found</p>
         )}
         <div className="metrics-display">
-          {metrics.map((metric) => (
+          {metrics?.map((metric) => (
             <Link to="/display-metric" state={{metric}} key={metric._id} className="metric-card" >
               <div className="metric-header">
                 <h3>{metric.name}</h3>

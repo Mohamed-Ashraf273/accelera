@@ -73,11 +73,6 @@ router.get("/:id", async (req, res) => {
     const benchmark = await Benchmark.findById(benchmarkId)
       .populate("createdBy", "name email")
       .populate("evaluationMetric", "name whichBetter");
-    if (!benchmark) {
-      return res.status(404).json({
-        message: `There is no benchmark with this id: ${benchmarkId}`,
-      });
-    }
     return res.status(200).json(benchmark);
   } catch (err) {
     console.error("Error while fetching Benchmarks:", err);

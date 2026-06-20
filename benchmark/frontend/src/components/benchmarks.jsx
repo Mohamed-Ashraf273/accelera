@@ -11,11 +11,18 @@ function Benchmarks() {
   const [loading, setLoading] = useState(false);
   const user = JSON.parse(localStorage.getItem("user"));
   const fetchBenchmark = async (urlLink) => {
-    setLoading(true);
-    const results = await fetch(urlLink);
-    const data = await results.json();
-    setBenchmarks(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const results = await fetch(urlLink);
+      const data = await results.json();
+      setBenchmarks(Array.isArray(data) ? data : []);
+      setLoading(false);
+    }
+    catch (err) {
+      setBenchmarks([])
+      setLoading(false);
+      console.log(err)
+    }
   };
   const fetchWithoutFilter = async () => {
     fetchBenchmark("http://localhost:3000/benchmark");

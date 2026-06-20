@@ -57,11 +57,6 @@ router.get("/:id", async (req, res) => {
     const submission = await Submission.findById(submissionId)
       .populate("submittedBy", "name email")
       .populate("benchmarkId", "title");
-    if (!submission) {
-      return res.status(404).json({
-        message: `There is no submission with this id: ${submissionId}`,
-      });
-    }
     return res.status(200).json(submission);
   } catch (err) {
     console.error("Error while fetching submission:", err);
