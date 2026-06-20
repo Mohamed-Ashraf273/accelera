@@ -75,7 +75,6 @@ router.post("/:benchmarkId", auth, async (req, res) => {
       submittedBy: submittedBy,
       benchmarkId: benchmarkId,
     });
-    console.log(existSubmission)
     if (existSubmission) {
       return res.status(400).json({
         message: `This submission is already exist`,
