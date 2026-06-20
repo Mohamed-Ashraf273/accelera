@@ -1,17 +1,17 @@
-\subsubsection{Module Overview}
+\subsection{Module Overview}
 
 In the data science lifecycle, data understanding, exploratory data analysis (EDA), and data preparation represent major stages that involve a large amount of repetitive work. In this module, the aim is to reduce this repetitive effort by introducing a rule-based system that automates these processes.
 
 The module is designed to work based on the type of data, whether tabular, text, or image. For each data type, the corresponding data understanding and preprocessing steps are applied to ensure that the data is properly prepared and suitable for input into machine learning and deep learning models.
 
 The system also generates a final report that provides the user with information about the dataset and the applied preprocessing steps. For example, in tabular data, this includes details such as missing values, number of duplicates, dataset size, and column types. In addition, it describes the preprocessing steps that were applied to the data and presents the final results after processing.
-\subsubsection{Supported Dataset Types}
+\subsection{Supported Dataset Types}
 \begin{itemize}
   \item Tabular Dataset
   \item Text Dataset
   \item Image Dataset
 \end{itemize}
-\subsubsection{Supported Tasks }
+\subsection{Supported Tasks }
 
 \begin{itemize}
   \item Classification and Regression for tabular dataset
@@ -20,7 +20,7 @@ The system also generates a final report that provides the user with information
 \end{itemize}
 
 
-\subsubsection{Tabular Dataset Training}
+\subsection{Tabular Dataset Training}
 
 The meaning of The tabular dataset in this module is structured data organized in rows and columns, where features can be either categorical or numerical.
 \begin{figure}[H]
@@ -518,7 +518,7 @@ The preprocessing pipeline persists the objects required for later inference and
 When \texttt{is\_report} is enabled, the \texttt{TabularPreprocessingReport} class generates an HTML report from the collected \texttt{report\_data}. The report documents the complete preprocessing workflow, including data overview statistics, missing values, duplicate analysis, train-validation split details, removed columns, generated graphs, preprocessing decisions for each feature, and previews of the transformed training and validation datasets. This allows users to inspect and understand all preprocessing steps applied before model training.
 \vspace{1cm}
 \Needspace{5\baselineskip}
-\subsubsection{Tabular Dataset Testing}
+\subsection{Tabular Dataset Testing}
 \paragraph{Testing Preprocessing Steps}\par
 The testing preprocessing workflow is designed to reuse the exact training preprocessing artifacts and transformations.
 
@@ -568,7 +568,7 @@ folder\_path & Path to load saved preprocessing artifacts. \\
 }
 \end{table}
 
-\subsubsection{Text Dataset Training}
+\subsection{Text Dataset Training}
 
 The text dataset consists of unstructured data containing a single text column used for natural language processing tasks.
 
@@ -744,7 +744,7 @@ Output: X_train, y_train, X_val, y_val
 9: End if
 10: Return X_train, y_train, X_val, y_val
 \end{lstlisting}
-\subsubsection{Text Dataset Testing}
+\subsection{Text Dataset Testing}
 
 \vspace{1cm}
 \Needspace{4\baselineskip}
@@ -835,7 +835,7 @@ Output: X_test, y_test or None
 \bottomrule
 \end{tabular}
 \end{table}
-\subsubsection{Image Dataset Training}
+\subsection{Image Dataset Training}
 The auto preprocessed image pipeline is designed to handle a vision task: image classification.
 \vspace{1cm}
 \Needspace{4\baselineskip}
@@ -1010,7 +1010,7 @@ Several visualizations are generated to analyze the dataset and preprocessing re
 The preprocessing pipeline concludes by returning the generated training and validation DataLoaders, which are subsequently used by the model training and evaluation procedures.
 \vspace{1cm}
 \Needspace{5\baselineskip}
-\subsubsection{Image Dataset Testing}
+\subsection{Image Dataset Testing}
 
 \paragraph{Testing Preprocessing Steps}
 \begin{enumerate}
