@@ -9,7 +9,7 @@ from sklearn.metrics import accuracy_score
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from accelera.accelera_automl import AutoMLClassifier
+from accelera.src.accelera_automl import AutoMLClassifier
 
 DATA_ROOT = Path(__file__).resolve().parents[1] / "data" / "accelera_automl"
 RESULTS_FILE = DATA_ROOT / "run_local_data_results.csv"

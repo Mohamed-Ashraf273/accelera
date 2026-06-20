@@ -103,21 +103,28 @@ class Optimizer:
             self.configspace.seed(random_state)
 
     def optimize(self):
+        if self.n_trials is None and self.time_budget is None:
+            raise ValueError("n_trials=None requires a finite time_budget.")
+
         started_at = perf_counter()
         trial_id = 0
 
-        while trial_id < self.n_trials:
+        while self.n_trials is None or trial_id < self.n_trials:
             if self.time_budget_exceeded(started_at):
                 break
 
-            batch_size = min(self.n_parallel, self.n_trials - trial_id)
+            batch_size = (
+                self.n_parallel
+                if self.n_trials is None
+                else min(self.n_parallel, self.n_trials - trial_id)
+            )
 
             trials = self.suggest_batch(batch_size)
 
             if self.verbose:
                 print(
                     f"starting batch of {batch_size} trials "
-                    f"({trial_id + 1}/{self.n_trials})"
+                    f"({trial_id + 1}/{self.n_trials or 'time budget'})"
                 )
 
             if batch_size > 1:

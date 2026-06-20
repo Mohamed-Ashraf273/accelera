@@ -98,6 +98,7 @@ class AutoMLClassifier(BaseAutoML):
             meta_learning_top_configs_per_dataset=self.meta_learning_top_configs_per_dataset,
             max_meta_learning_warmstarts=self.max_meta_learning_warmstarts,
             candidate_pool_size=self.candidate_pool_size,
+            n_initial_points=self.n_initial_points,
         )
 
     def fit(self, X, y):
