@@ -11,7 +11,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import RobustScaler
-from sklearn.preprocessing import StandardScaler
 
 from accelera.src.auto_preprocessing.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
