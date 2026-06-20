@@ -9,7 +9,6 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import RobustScaler
-from sklearn.preprocessing import StandardScaler
 
 from accelera.src.auto_preprocessing.wrappers.categorical_classification import (
     CategoricalClassification,
@@ -496,19 +495,19 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             y_train = y_train.fillna(info[self.target_col]["median"])
             y_val = y_val.fillna(info[self.target_col]["median"])
             target_dict["median"] = info[self.target_col]["median"]
-            stander_scaler = StandardScaler()
-            y_train = stander_scaler.fit_transform(
+            robust_scaler = RobustScaler()
+            y_train = robust_scaler.fit_transform(
                 y_train.values.reshape(-1, 1)
             ).ravel()
-            y_val = stander_scaler.transform(y_val.values.reshape(-1, 1)).ravel()
-            save_pickle(self.folder_path, stander_scaler, "target_preprocessor.pkl")
+            y_val = robust_scaler.transform(y_val.values.reshape(-1, 1)).ravel()
+            save_pickle(self.folder_path, robust_scaler, "target_preprocessor.pkl")
             self.report_data["preprocessing"].append(
                 {
                     "col_name": self.target_col,
                     "col_type": self.problem_type,
                     "col_preprocessing": [
                         "Fill missing with median",
-                        "Standard scaling",
+                        "Robust scaling",
                     ],
                 }
             )

@@ -767,7 +767,7 @@ class TestClassicalTrainingPreprocessing:
         median = y_train.median()
         y_train_filled = y_train.fillna(median)
         y_val_filled = y_val.fillna(median)
-        stander = StandardScaler()
+        stander = RobustScaler()
         y_train_scaled = stander.fit_transform(
             y_train_filled.values.reshape(-1, 1)
         ).ravel()
