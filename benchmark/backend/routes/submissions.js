@@ -3,6 +3,7 @@ const router = express.Router();
 const Benchmark = require("../schemas/benchmark");
 const Submission = require("../schemas/submissions");
 const User = require("../schemas/user");
+const auth = require("../middleware/auth");
 const {
   isUrlValidation,
   isGoogleDriveFileLink,
@@ -39,7 +40,7 @@ router.get("/user/:id", async (req, res) => {
   try {
     const userId = req.params.id;
     const submissions = await Submission.find({ submittedBy: userId })
-      .select("score repoLink submissionDate benchmark")
+      .select("score repoLink submissionDate benchmarkId")
       .populate("benchmarkId", "title");
     return res.status(200).json(submissions);
   } catch (err) {
@@ -70,10 +71,11 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/:benchmarkId", async (req, res) => {
+router.post("/:benchmarkId", auth, async (req, res) => {
   try {
     const benchmarkId = req.params.benchmarkId;
-    let { submittedBy, repoLink, predictedColumnLink } = req.body;
+    let { repoLink, predictedColumnLink } = req.body;
+    const submittedBy = req.user._id;
     const existSubmission = await Submission.findOne({
       submittedBy: submittedBy,
       benchmarkId: benchmarkId,
@@ -142,7 +144,7 @@ router.post("/:benchmarkId", async (req, res) => {
       .json({ message: `There is an error while creating Submission ` });
   }
 });
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", auth, async (req, res) => {
   try {
     const submissionId = req.params.id;
     const { predictedColumnLink } = req.body;
@@ -164,6 +166,14 @@ router.patch("/:id", async (req, res) => {
     if (!submission) {
       return res.status(400).json({
         message: `This id ${submissionId} is not exist`,
+      });
+    }
+    if (
+      req.user.role !== "admin" &&
+      submission.submittedBy.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        message: "You are not allowed to update this submission",
       });
     }
     const metricParams = submission.benchmarkId.metricPramaters || {};
@@ -193,16 +203,25 @@ router.patch("/:id", async (req, res) => {
       .json({ message: "There is an error while updating submission" });
   }
 });
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, async (req, res) => {
   try {
     const submissionId = req.params.id;
 
-    const submission = await Submission.findByIdAndDelete(submissionId);
+    const submission = await Submission.findById(submissionId);
     if (!submission) {
       return res.status(404).json({
         message: `There is no submission for this id: ${submissionId}`,
       });
     }
+    if (
+      req.user.role !== "admin" &&
+      submission.submittedBy.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        message: "You are not allowed to delete this submission",
+      });
+    }
+    await Submission.findByIdAndDelete(submissionId);
     return res.status(200).json({ message: "submission successfully deleted" });
   } catch (error) {
     console.error("Error while deleting submission:", error);

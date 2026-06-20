@@ -1,41 +1,129 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family:Arial, sans-serif;
-}
 .home-page {
   min-height: 100vh;
-  background: white;
-  color: #0f172a;
+  background: var(--bg);
+  color: var(--text-dark);
   display: flex;
   flex-direction: column;
   align-items: center;
-
+  overflow-x: hidden;
 }
-.home-page-content{
-  margin-top: 160px;
+.home-page-content {
+  width: 100%;
+  max-width: 960px;
+  margin-top: 115px;
+  padding: 0 16px;
 }
 .home-header {
-  min-height: 40vh;
+  min-height: 50vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-around;
+  justify-content: center;
+  gap: 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 55px 25px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.home-header-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.home-header-actions a {
+  text-decoration: none;
+  background: var(--primary);
+  color: white;
+  padding: 11px 16px;
+  border-radius: 10px;
+  font-weight: bold;
+  border: 1px solid var(--primary);
+  transition: 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-header-actions a:last-child {
+  background: white;
+  color: var(--primary);
+  border-color: var(--border);
+}
+
+.home-header-actions a:hover {
+  background: var(--primary-light);
+  color: white;
+  border-color: var(--primary-light);
+  transform: translateY(-1px);
 }
 
 .home-header-logo {
   width: 120px;
   height: 120px;
+  border-radius: 24px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
 }
 
 .home-header-title {
-  font-size: 42px;
+  font-size: 44px;
   font-weight: bold;
+  color: var(--text-dark);
+  max-width: 100%;
+  line-height: 1.12;
 }
 
 .home-header-subtitle {
   font-size: 16px;
-  color: #94a3b8;
+  color: var(--muted);
   font-style: italic;
+}
+
+@media (max-width: 650px) {
+  .home-page-content {
+    margin-top: 105px;
+    padding: 0 16px;
+  }
+
+  .home-header {
+    padding: 42px 18px;
+    gap: 20px;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .home-header-logo {
+    width: 95px;
+    height: 95px;
+    border-radius: 20px;
+  }
+
+  .home-header-title {
+    font-size: 28px;
+    max-width: 290px;
+    overflow-wrap: normal;
+  }
+
+  .home-header-subtitle {
+    font-size: 14px;
+    max-width: 280px;
+    line-height: 1.5;
+  }
+
+  .home-header-actions {
+    width: 100%;
+    max-width: 270px;
+    flex-direction: column;
+  }
+
+  .home-header-actions a {
+    width: 100%;
+    padding: 11px 12px;
+  }
 }

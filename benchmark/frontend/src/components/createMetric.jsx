@@ -1,7 +1,9 @@
 import { useState } from "react";
 import Navigation from "./navigation";
 import "./createMetric.css";
+import { authHeaders, getUser } from "../auth";
 function CreateMetric() {
+  const user = getUser();
   const [form, setForm] = useState({
     name: "",
     sklearnMetricName: "",
@@ -80,6 +82,7 @@ function CreateMetric() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...authHeaders(),
         },
         body: JSON.stringify(form),
       });
@@ -98,6 +101,8 @@ function CreateMetric() {
 
       <div className="metric-page-content">
         <h2>Create Metric</h2>
+        {user?.role !== "admin" && <p>Admin access is required</p>}
+        {user?.role === "admin" && (
         <div className="form">
           <div className="input-div">
             <p>Metric Name</p>
@@ -204,6 +209,7 @@ function CreateMetric() {
             </button>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

@@ -1,10 +1,10 @@
 from accelera.src.accelera_pipe.core.executed_graph import ExecutedGraph
 from accelera.src.accelera_pipe.core.node import Node
 from accelera.src.accelera_pipe.core.pipeline_base import PipelineBase
+from accelera.src.parallelizer.parallelizer import parallelizer
 from accelera.src.utils.accelera_utils import execute_fit
 from accelera.src.utils.accelera_utils import get_correct_metric_class
 from accelera.src.utils.accelera_utils import get_metric_object
-from accelera.src.utils.parallelizer import parallelizer
 
 
 class Pipeline(PipelineBase):
