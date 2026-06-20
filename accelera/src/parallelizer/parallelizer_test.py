@@ -59,7 +59,7 @@ class TestParallelizer:
             return DummyResponse()
 
         monkeypatch.setattr(
-            "accelera.src.utils.parallelizer.requests.post",
+            "accelera.src.parallelizer.parallelizer.requests.post",
             fake_post,
         )
 
@@ -104,7 +104,7 @@ class TestParallelizer:
                 return {"pragma": "omp parallel for"}
 
         monkeypatch.setattr(
-            "accelera.src.utils.parallelizer.requests.post",
+            "accelera.src.parallelizer.parallelizer.requests.post",
             lambda url, json, timeout: DummyResponse(),
         )
         result = parallelizer._generate_omp_pragma_with_loop(
@@ -149,7 +149,7 @@ class TestParallelizer:
         parallelizer.cache_dir = tmp_path / "cache"
 
         monkeypatch.setattr(
-            "accelera.src.utils.parallelizer.extract_loops",
+            "accelera.src.parallelizer.parallelizer.extract_loops",
             lambda file_path: [SimpleNamespace()],
         )
 
@@ -169,11 +169,11 @@ class TestParallelizer:
             return True
 
         monkeypatch.setattr(
-            "accelera.src.utils.parallelizer.write_loops_to_json",
+            "accelera.src.parallelizer.parallelizer.write_loops_to_json",
             fake_write_loops_to_json,
         )
         monkeypatch.setattr(
-            "accelera.src.utils.parallelizer.extract_features",
+            "accelera.src.parallelizer.parallelizer.extract_features",
             lambda code: {"dummy": True},
         )
         monkeypatch.setattr(parallelizer, "_classify", lambda code: "omp")
@@ -206,7 +206,7 @@ class TestParallelizer:
         parallelizer = Parallelizer()
         parallelizer.cache_dir = tmp_path / "cache"
         monkeypatch.setattr(
-            "accelera.src.utils.parallelizer.extract_loops",
+            "accelera.src.parallelizer.parallelizer.extract_loops",
             lambda code: [
                 SimpleNamespace(
                     code=loop_code,
@@ -248,7 +248,7 @@ class TestParallelizer:
         parallelizer = Parallelizer()
         parallelizer.cache_dir = tmp_path / "cache"
         monkeypatch.setattr(
-            "accelera.src.utils.parallelizer.extract_loops",
+            "accelera.src.parallelizer.parallelizer.extract_loops",
             lambda code: [
                 SimpleNamespace(
                     code=loop_code,
@@ -329,7 +329,7 @@ class TestParallelizer:
         parallelizer = Parallelizer()
         parallelizer.cache_dir = tmp_path / "cache"
         monkeypatch.setattr(
-            "accelera.src.utils.parallelizer.extract_loops",
+            "accelera.src.parallelizer.parallelizer.extract_loops",
             lambda code: [SimpleNamespace()],
         )
 
@@ -355,11 +355,11 @@ class TestParallelizer:
             return True
 
         monkeypatch.setattr(
-            "accelera.src.utils.parallelizer.write_loops_to_json",
+            "accelera.src.parallelizer.parallelizer.write_loops_to_json",
             fake_write_loops_to_json,
         )
         monkeypatch.setattr(
-            "accelera.src.utils.parallelizer.extract_features",
+            "accelera.src.parallelizer.parallelizer.extract_features",
             lambda code: {"dummy": True},
         )
         monkeypatch.setattr(parallelizer, "_classify", lambda code: "parallel_for")
