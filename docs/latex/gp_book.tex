@@ -1,0 +1,378 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage[margin=1in,headheight=22pt,headsep=0.28in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{setspace}
+\setstretch{1.15}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage[table]{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{pgfplots}
+\usepackage{needspace}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{chngcntr}
+\usepackage{tocloft}
+\usepackage{etoolbox}
+\pgfplotsset{compat=1.18}
+
+\definecolor{covergreen}{RGB}{35,107,72}
+\definecolor{accentgreen}{RGB}{224,239,228}
+\definecolor{warningyellow}{RGB}{252,244,210}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=black,
+  citecolor=black,
+  plainpages=false,
+  hypertexnames=false
+}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\bfseries\fontsize{24}{29}\selectfont\raggedright}
+  {\chaptername\ \thechapter:}{0.5em}{}
+\titleformat{name=\chapter,numberless}[hang]
+  {\normalfont\bfseries\fontsize{24}{29}\selectfont}{}{0pt}{}
+\titlespacing*{\chapter}{0pt}{0pt}{18pt}
+\titleformat{\section}
+  {\normalfont\bfseries\fontsize{18}{22}\selectfont}
+  {\thesection}{0.6em}{}
+\titlespacing*{\section}{0pt}{17pt}{8pt}
+\titleformat{\subsection}
+  {\normalfont\bfseries\fontsize{14}{18}\selectfont}
+  {\thesubsection}{0.6em}{}
+\titlespacing*{\subsection}{0pt}{13pt}{6pt}
+\titleformat{\subsubsection}
+  {\normalfont\bfseries\fontsize{12}{15}\selectfont}
+  {\thesubsubsection}{0.6em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\textbf{Accelera} \textcolor{covergreen}{2026}}
+\fancyfoot[R]{\thepage\,|\,Page}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.3pt}
+\fancypagestyle{plain}{\pagestyle{fancy}}
+
+\counterwithin{figure}{chapter}
+\counterwithin{table}{chapter}
+\renewcommand{\lstlistingname}{Algorithm}
+\renewcommand{\lstlistlistingname}{List of Algorithms}
+
+\lstdefinestyle{code}{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  frame=single,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  keywordstyle=\color{blue!60!black},
+  commentstyle=\color{green!40!black},
+  stringstyle=\color{red!50!black}
+}
+
+\lstdefinestyle{algostyle}{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{white},
+  frame=tb,
+  rulecolor=\color{black},
+  framerule=0.45pt,
+  framesep=4pt,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  breaklines=true,
+  breakatwhitespace=false,
+  breakautoindent=false,
+  breakindent=0pt,
+  captionpos=t,
+  aboveskip=0.8em,
+  belowskip=0.8em
+}
+
+\setlength{\emergencystretch}{2em}
+\raggedbottom
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.8}
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
+\renewcommand{\contentsname}{Table of Contents}
+\renewcommand{\listfigurename}{List of Figures}
+\renewcommand{\listtablename}{List of Tables}
+
+\newcommand{\modulepath}[1]{\texttt{#1}}
+\newcommand{\project}{Accelera}
+\newcommand{\bestcell}{\cellcolor{accentgreen}}
+\newcommand{\warncell}{\cellcolor{warningyellow}}
+
+\begin{document}
+
+\begin{titlepage}
+\thispagestyle{empty}
+\centering
+\vspace*{1.4cm}
+{\color{covergreen}\rule{\textwidth}{2.2pt}}\\[1.0cm]
+\includegraphics[width=0.18\textwidth]{imgs/accelera.png}\\[0.45cm]
+{\Large Cairo University}\\[0.18cm]
+{\Large Faculty of Engineering}\\[0.18cm]
+{\Large Department of Computer Engineering}\\[1.2cm]
+{\color{covergreen}\bfseries\fontsize{28}{34}\selectfont Accelera}\\[0.45cm]
+{\Large A Graduation Project Report Submitted}\\[0.28cm]
+{\large to}\\[0.28cm]
+{\Large Faculty of Engineering, Cairo University}\\[0.28cm]
+{\large in Partial Fulfillment of the Requirements for the Degree of}\\[0.28cm]
+{\Large Bachelor of Science in Computer Engineering}\\[1.35cm]
+{\bfseries\Large Presented by}\\[0.4cm]
+\begin{tabular}{p{0.38\textwidth}p{0.38\textwidth}}
+Mohamed Ashraf \hfill ID: 9220658 & Nesma Osama \hfill ID: 9220912 \\
+Mazen Adel \hfill ID: 9220625 & Mohamed Khater \hfill ID: 9220713 \\
+\end{tabular}\\[0.4cm]
+{\bfseries\Large Supervised by}\\[0.3cm]
+{\Large Dr. Salma Abdel monem}\\[0.3cm]
+{\large April 17, 2026}\\[0.3cm]
+{\color{covergreen}\rule{\textwidth}{2.2pt}}\\[0.2cm]
+\parbox{0.88\textwidth}{\centering\small All rights reserved. This report may not be reproduced in whole or in part, by photocopying or other means, without the permission of the authors or department.}
+\end{titlepage}
+
+\pagenumbering{roman}
+\setcounter{page}{1}
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\project{} is a hybrid Python/C++ machine learning framework that combines a
+high-level Python interface with native execution components. The system is
+organized around five modules: Accelera Pipe, the Code Parallelizer,
+AutoPreprocessing, AutoML, Deployment, and the Benchmark Platform. Accelera
+Pipe represents machine-learning workflows as directed graph nodes for
+preprocessing, modelling, prediction, metric evaluation, branching, and
+merging. The Code Parallelizer analyzes C/C++ and supported Python code,
+extracts loop features, predicts parallelization opportunities, and emits
+OpenMP-annotated C++ code. This report documents the design, methodology, and
+experimental results available for the implemented modules, while retaining
+the required report structure for the remaining modules.
+
+\clearpage
+\chapter*{Arabic Abstract}
+\addcontentsline{toc}{chapter}{Arabic Abstract}
+
+\clearpage
+\chapter*{Acknowledgment}
+\addcontentsline{toc}{chapter}{Acknowledgment}
+
+\clearpage
+\tableofcontents
+\clearpage
+\listoffigures
+\clearpage
+\listoftables
+\clearpage
+
+\chapter*{List of Abbreviations}
+\addcontentsline{toc}{chapter}{List of Abbreviations}
+\begin{tabular}{ll}
+AI & Artificial Intelligence \\
+AST & Abstract Syntax Tree \\
+CPU & Central Processing Unit \\
+ML & Machine Learning \\
+OpenMP & Open Multi-Processing \\
+RSS & Resident Set Size \\
+SVC & Support Vector Classifier \\
+VMS & Virtual Memory Size \\
+\end{tabular}
+
+\clearpage
+\chapter*{List of Symbols}
+\addcontentsline{toc}{chapter}{List of Symbols}
+\begin{tabular}{ll}
+$X$ & Input feature matrix \\
+$y$ & Target vector \\
+$P$ & Source program \\
+$L$ & Extracted loop \\
+$F(L)$ & Feature representation of loop $L$ \\
+\end{tabular}
+
+\clearpage
+\chapter*{Contacts}
+\addcontentsline{toc}{chapter}{Contacts}
+\textbf{Team Members}\\[0.35cm]
+\begin{tabular}{ll}
+\textbf{Name} & \textbf{University ID} \\
+\midrule
+Mohamed Ashraf & 9220658 \\
+Nesma Osama & 9220912 \\
+Mazen Adel & 9220625 \\
+Mohamed Khater & 9220713 \\
+\end{tabular}\\[1cm]
+\textbf{Supervisor}\\[0.35cm]
+\begin{tabular}{l}
+Dr. Salma Abdel monem \\
+\end{tabular}
+
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\chapter{Introduction}
+\section{Motivation and Justification}
+\project{} addresses the practical gap between the productivity of Python and
+the performance requirements of machine-learning workflows and loop-heavy
+data processing. A sequential script evaluates alternatives one after another
+and leaves memory lifetime and parallel execution decisions to the user. The
+project provides a graph-based pipeline backend and a code parallelization path
+to make these execution decisions explicit and reusable.
+
+\section{Project Objectives and Problem Definition}
+The project objective is to provide an integrated framework for constructing,
+executing, evaluating, and accelerating data-science workflows. The problem is
+to preserve a convenient Python-level programming model while enabling native
+graph scheduling, controlled intermediate-data lifetime, and OpenMP-backed
+execution for supported custom code.
+
+\section{Project Outcomes}
+The project is organized into the following modules:
+\begin{itemize}
+  \item Accelera Pipe for graph-based machine-learning workflows.
+  \item Code Parallelizer for source analysis and OpenMP generation.
+  \item AutoPreprocessing for tabular, text, and image data preparation.
+  \item AutoML for model selection and optimization.
+  \item Deployment and Benchmark Platform components for serving and evaluation.
+\end{itemize}
+
+\section{Document Organization}
+Chapter 2 reserves the required market visibility study. Chapter 3 contains
+the literature-survey structure. Chapter 4 documents the system design and
+implemented module methodology. Chapter 5 presents testing and verification
+results. Chapter 6 concludes the report and records future work. The appendices
+retain the required development, user-guide, and feasibility-study sections.
+
+\chapter{Market Visibility Study}
+\section{Targeted Customers}
+\mbox{}
+
+\section{Market Survey}
+\mbox{}
+
+\section{Business Case and Financial Analysis}
+\mbox{}
+
+\chapter{Literature Survey}
+\section{Background and Previous Work}
+\input{sections/literature-mohamed}
+
+\section{Comparative Study of Previous Work}
+\mbox{}
+
+\section{Implemented Approach}
+\mbox{}
+
+\chapter{System Design and Architecture}
+\section{Overview and Assumptions}
+The system combines Python-facing APIs with native execution components. The
+design assumes that machine-learning workflows can be represented as a graph
+of operations and that only a restricted, analyzable subset of custom source
+code should be translated to parallel C++.
+
+\section{System Architecture}
+\subsection{Block Diagram}
+The implemented system is organized around graph execution, source-code
+parallelization, automated preprocessing, model-selection, deployment, and
+benchmarking components. The following module sections describe the material
+available in the previous thesis.
+
+\input{sections/methdoloy-mohamed}
+
+\section{AutoPreprocessing Module}
+\input{sections/methodology-nesma}
+
+\section{AutoML Module}
+\mbox{}
+
+\section{Deployment Module}
+\mbox{}
+
+\section{Benchmark Platform Module}
+\mbox{}
+
+\chapter{System Testing and Verification}
+\section{Testing Setup}
+The available experiments use identical train, validation, and test splits
+when comparing candidate pipelines. Timing, memory, output equivalence, and
+predictive accuracy are reported according to the module under test.
+
+\section{Testing Plan and Strategy}
+Module tests validate graph correctness, pipeline persistence, converter
+support, loop transformation, and output equivalence. Integration tests
+evaluate the end-to-end path from custom preprocessing code through native
+compilation and graph execution.
+
+\input{sections/results-modhamed}
+\input{sections/results-nesma}
+
+\section{AutoML Module}
+\mbox{}
+
+\section{Deployment Module}
+\mbox{}
+
+\section{Benchmark Platform Module}
+\mbox{}
+
+\chapter{Conclusions and Future Work}
+\section{Faced Challenges}
+The main implementation challenges were preserving correctness while sharing
+branch computations, releasing intermediate arrays only after their final
+consumer, and limiting generated OpenMP code to loops that pass dependency and
+conversion checks. The experiments also identify memory usage during
+branch-level parallel execution as the main remaining graph-backend challenge.
+
+\section{Gained Experience}
+\mbox{}
+
+\section{Conclusions}
+Accelera Pipe provides a graph-based execution model for branch-heavy
+machine-learning pipelines and supports fitted executed graphs. The Code
+Parallelizer provides a source-to-source path from supported Python or C++
+loops to OpenMP-annotated C++ using converter rules, loop feature extraction,
+classifier guidance, and safety checks. The available experiments show runtime
+improvements on large branch-selection workloads while preserving selected
+models, accuracy, and output equivalence.
+
+\section{Future Work}
+Future work should continue reducing graph memory consumption while preserving
+parallel branch execution, and should extend safe converter and loop-analysis
+coverage without weakening correctness checks.
+
+\chapter*{References}
+\addcontentsline{toc}{chapter}{References}
+
+\appendix
+\chapter{Development Platforms and Tools}
+The implemented modules use Python, C++, PyBind11, CMake, Clang-based AST
+analysis, OpenMP, NumPy, and Scikit-learn. The available experiments include
+Linux and Windows execution paths.
+
+\chapter{Use Cases}
+\mbox{}
+
+\chapter{User Guide}
+\mbox{}
+
+\chapter{Code Documentation}
+\mbox{}
+
+\chapter{Feasibility Study}
+\mbox{}
+
+\end{document}
