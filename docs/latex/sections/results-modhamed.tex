@@ -1,4 +1,4 @@
-\subsection{Accelera Pipe Results}
+\section{Accelera Pipe Module}
 
 The Accelera Pipe experiments compare three implementations under the same
 train, validation, and test split. The first implementation is a manually
@@ -112,7 +112,7 @@ The memory columns also show the next engineering target: scikit-learn Pipeline
 is extremely memory efficient, while Accelera Pipe trades memory for parallel
 branch execution and native graph state.
 
-\subsection{Code Parallelizer Results}
+\section{Code Parallelizer Module}
 
 The OpenMP classifier was evaluated as a three-class loop classifier. The
 labels are \texttt{none}, \texttt{parallel\_for}, and \texttt{reduction}. The

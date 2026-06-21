@@ -10,11 +10,26 @@ function DisplayMetric() {
     <div className="metric-display-page">
       <Navigation />
       <div className="metric-display-card">
-        <p>Metric Name : {displayedMetric.name}</p>
-        <p>Sklrearn metric Name : {displayedMetric.sklearnMetricName}</p>
-        <p>Problem Type : {displayedMetric.problemType}</p>
-        <p>Needed to be : {displayedMetric.whichBetter}</p>
+        <div className="metric-display-head">
+          <p>Metric details</p>
+          <h1>{displayedMetric.name}</h1>
+        </div>
+        <div className="metric-display-grid">
+          <div>
+            <p>Sklrearn metric Name</p>
+            <h3>{displayedMetric.sklearnMetricName}</h3>
+          </div>
+          <div>
+            <p>Problem Type</p>
+            <h3>{displayedMetric.problemType}</h3>
+          </div>
+          <div>
+            <p>Needed to be</p>
+            <h3>{displayedMetric.whichBetter}</h3>
+          </div>
+        </div>
         <div className="params">
+          <h2>Needed Parameters</h2>
           {Object.entries(displayedMetric.neededParameters).map(
             ([key, allowedValues]) => (
               <ul key={key} className="param">

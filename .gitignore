@@ -5,7 +5,7 @@ __pycache__/
 .accelera_cache/
 cache/
 report/
-benchmark/backend/node_modules
+**/node_modules/
 test.xml
 examples/PetImages
 examples/PetImagesReport
@@ -36,6 +36,7 @@ examples/*.jpeg
 examples/*.csv
 examples/*.json
 examples/*.zip
+examples/*.pdf
 bin/
 lib/
 lib64/

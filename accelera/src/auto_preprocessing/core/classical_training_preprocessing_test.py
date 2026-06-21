@@ -11,7 +11,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import RobustScaler
-from sklearn.preprocessing import StandardScaler
 
 from accelera.src.auto_preprocessing.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
@@ -767,7 +766,7 @@ class TestClassicalTrainingPreprocessing:
         median = y_train.median()
         y_train_filled = y_train.fillna(median)
         y_val_filled = y_val.fillna(median)
-        stander = StandardScaler()
+        stander = RobustScaler()
         y_train_scaled = stander.fit_transform(
             y_train_filled.values.reshape(-1, 1)
         ).ravel()

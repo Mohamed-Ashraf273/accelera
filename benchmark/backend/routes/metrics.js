@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const Metric = require("../schemas/metrics");
 const Benchmark = require("../schemas/benchmark");
+const auth = require("../middleware/auth");
+const admin = require("../middleware/admin");
 
 const {
   isExistingMetric,
@@ -10,11 +12,7 @@ const {
 router.get("/", async (req, res) => {
   try {
     const metrics = await Metric.find();
-    if (metrics.length === 0) {
-      return res.status(404).json({
-        message: `There is no metric `,
-      });
-    }
+
     res.status(200).json(metrics);
   } catch (error) {
     console.error("Error while fetching metrics:", error);
@@ -28,11 +26,6 @@ router.get("/problem-type/:problemType", async (req, res) => {
     let problemType = req.params.problemType;
     problemType = problemType.toLowerCase();
     const metrics = await Metric.find({ problemType: problemType });
-    if (metrics.length === 0) {
-      return res.status(404).json({
-        message: `There is no metric for this problem type: ${problemType}`,
-      });
-    }
     res.status(200).json(metrics);
   } catch (error) {
     console.error("Error while fetching metrics:", error);
@@ -46,11 +39,7 @@ router.get("/:id", async (req, res) => {
   try {
     const metricId = req.params.id;
     const metric = await Metric.findById(metricId);
-    if (!metric) {
-      return res
-        .status(404)
-        .json({ message: `There is no metric for this id: ${metricId}` });
-    }
+
     res.status(200).json(metric);
   } catch (error) {
     console.error("Error while fetching metric:", error);
@@ -60,7 +49,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", auth, admin, async (req, res) => {
   try {
     let {
       name,
@@ -101,7 +90,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, admin, async (req, res) => {
   try {
     const metricId = req.params.id;
 

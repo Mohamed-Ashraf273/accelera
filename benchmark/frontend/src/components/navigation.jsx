@@ -1,8 +1,9 @@
 import "./navigation.css";
 import { Link } from "react-router-dom";
+import { getUser, logout } from "../auth";
 
 function Navigation() {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = getUser();
   return (
     <div className="navigation">
       <div className="navigation-logos">
@@ -27,10 +28,15 @@ function Navigation() {
           </Link>
         ) : (
           <>
-            <Link to="/login" className="nvigation-link">
+            <Link to="/dashboard" className="nvigation-link">
               Dashboard
             </Link>
-            <Link to="/" className="nvigation-link">
+            {user.role === "admin" && (
+              <Link to="/admin-dashboard" className="nvigation-link">
+                Admin
+              </Link>
+            )}
+            <Link to="/" className="nvigation-link" onClick={logout}>
               Logout
             </Link>
           </>

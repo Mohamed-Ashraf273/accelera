@@ -35,6 +35,18 @@ Example `config.json`:
   "models": {
     "scaler_path": "models/scaler.pkl",
     "model_path": "models/model.pkl"
+  },
+  "schema": {
+    "features": [
+      {"name": "sepal length (cm)", "type": "number", "min": 0},
+      {"name": "sepal width (cm)", "type": "number", "min": 0},
+      {"name": "petal length (cm)", "type": "number", "min": 0},
+      {"name": "petal width (cm)", "type": "number", "min": 0}
+    ]
+  },
+  "tracking": {
+    "enabled": true,
+    "path": "prediction_logs/predictions.jsonl"
   }
 }
 ```
@@ -48,7 +60,10 @@ The generated service exposes:
 
 | Endpoint | Method | Input | Output |
 | --- | --- | --- | --- |
-| `/predict` | `POST` | JSON payload with an `input` field | `{"predictions": [...]}` |
+| `/health` | `GET` | None | Service, model, schema, and tracking status |
+| `/gui` | `GET` | Browser | Schema-driven prediction GUI |
+| `/tracking/summary` | `GET` | None | Tracking totals from the prediction log |
+| `/predict` | `POST` | JSON payload with an `input` field | row count and predictions |
 | `/predict/csv` | `POST` | Multipart CSV upload named `file` | filename, row count, predictions |
 
 JSON prediction example:
@@ -65,6 +80,47 @@ CSV prediction example:
 curl -X POST http://localhost:8000/predict/csv \
   -F "file=@sample_input.csv"
 ```
+
+Browser GUI:
+
+```text
+http://localhost:8000/gui
+```
+
+If `config.json` includes `schema.features`, the GUI builds a single-row input
+form from that schema and also keeps CSV upload available. If no schema is
+configured, the GUI shows CSV upload only.
+
+## Input Validation
+
+The prediction service can validate request data with Great Expectations before
+running the model. Configure expected columns under `schema.features` in
+`config.json`. Each feature supports:
+
+| Field | Description |
+| --- | --- |
+| `name` | Input column name. CSV validation uses this directly. |
+| `type` | One of `number`, `integer`, `string`, or `boolean`. Defaults to `number`. |
+| `required` | Whether values must be non-null. Defaults to `true`. |
+| `min` / `max` | Numeric lower and upper bounds. |
+| `allowed_values` | Explicit list of accepted values. |
+
+Validation failures return HTTP `422` with the failed schema checks.
+
+## Prediction Tracking
+
+When `tracking.enabled` is true, each prediction request is appended to a JSONL
+file. The log records timestamp, endpoint, status, row count, latency,
+predictions for successful requests, and error details for failed requests.
+
+The default log path is:
+
+```text
+prediction_logs/predictions.jsonl
+```
+
+Use `/tracking/summary` to inspect total requests, total rows, status counts,
+and the most recent event.
 
 ## Model Snapshot Commands
 
@@ -122,7 +178,8 @@ PORT=9000 python accelera_deployment/deployment.py local
 ```
 
 `run-local` stops any existing Docker container publishing the selected port
-before starting the new container.
+before starting the new container. Deployment commands print the browser GUI URL
+after the service starts or is released.
 
 ## Heroku Commands
 
@@ -191,19 +248,31 @@ After deployment, open the selected port, `8000` by default:
 
 ```text
 http://<host>:8000
+http://<host>:8000/gui
 ```
 
 Make sure the EC2 security group allows inbound traffic on the selected port.
+The deployment script verifies that the container is healthy inside EC2 and then
+checks the public URL. If the internal check passes but the public check times
+out, add an inbound security group rule:
+
+```text
+Type: Custom TCP
+Port: 8000
+Source: your IP address, or 0.0.0.0/0 for a public demo
+```
+
+Use the same port you pass with `--port` if you do not use the default `8000`.
 
 ## Generated Docker Image
 
 `prepare` writes a Dockerfile that:
 
 - Uses `python:3.11-slim`.
-- Installs FastAPI, Uvicorn, scikit-learn, category encoders, NumPy, Pandas,
-  Pydantic, and multipart upload support.
-- Copies `server.py`, `modelservice.py`, `config.json`, and configured model
-  artifacts into `/app`.
+- Installs FastAPI, Uvicorn, Great Expectations, scikit-learn, category
+  encoders, NumPy, Pandas, Pydantic, and multipart upload support.
+- Copies `server.py`, `modelservice.py`, `schema_validation.py`, `tracking.py`,
+  `config.json`, and configured model artifacts into `/app`.
 - Starts Uvicorn on `0.0.0.0` with `${PORT:-8000}`.
 
 ## Notes
@@ -211,8 +280,7 @@ Make sure the EC2 security group allows inbound traffic on the selected port.
 - `python model.py` runs the sample Iris training and prediction script. It is
   not a subcommand-based CLI.
 - The EC2 deployment command performs a post-start health check against
-  `/health`. The current FastAPI service exposes prediction endpoints only, so
-  add a health endpoint before relying on the automated EC2 health check.
+  `/health`, which is exposed by the FastAPI service.
 
 ## Related Modules
 
@@ -222,4 +290,4 @@ Make sure the EC2 security group allows inbound traffic on the selected port.
 
 ---
 
-**Last Updated**: May 2026
+**Last Updated**: June 2026

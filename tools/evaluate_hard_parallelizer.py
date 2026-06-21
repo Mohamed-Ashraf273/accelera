@@ -9,9 +9,9 @@ import tempfile
 import time
 from pathlib import Path
 
-from accelera.src.utils.parallelizer import extract_loops
-from accelera.src.utils.parallelizer import parallelizer
-from accelera.src.utils.py2cpp_converter import py2cpp_converter
+from accelera.src.parallelizer.parallelizer import extract_loops
+from accelera.src.parallelizer.parallelizer import parallelizer
+from accelera.src.parallelizer.py2cpp_converter import py2cpp_converter
 
 repo_root = Path(__file__).resolve().parents[1]
 if str(repo_root) not in sys.path:

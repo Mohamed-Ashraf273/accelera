@@ -15,12 +15,6 @@ from accelera.src.accelera_automl import stacked_ensemble as stacked_ensemble
 from accelera.src.accelera_automl import (
     stacked_ensemble_regression as stacked_ensemble_regression,
 )
-from accelera.src.accelera_automl import (
-    stacked_ensemble_regression_test as stacked_ensemble_regression_test,
-)
-from accelera.src.accelera_automl import (
-    stacked_ensemble_test as stacked_ensemble_test,
-)
 from accelera.src.accelera_automl import components as components
 from accelera.src.accelera_automl import core as core
 from accelera.src.accelera_automl import meta_learning as meta_learning

@@ -1,7 +1,7 @@
 LATEXMK ?= latexmk
 PDFLATEX ?= pdflatex
-MAIN := main
-PDF := thesis.pdf
+MAIN := gp_book
+PDF := gp_book.pdf
 
 .PHONY: pdf clean
 
@@ -12,10 +12,10 @@ pdf:
 		$(PDFLATEX) -interaction=nonstopmode -halt-on-error $(MAIN).tex; \
 		$(PDFLATEX) -interaction=nonstopmode -halt-on-error $(MAIN).tex; \
 	fi
-	cp $(MAIN).pdf $(PDF)
-	rm -f $(MAIN).pdf
+	@test -f $(PDF)
+	@rm -f $(MAIN).aux $(MAIN).fdb_latexmk $(MAIN).fls $(MAIN).log \
+	      $(MAIN).out $(MAIN).toc $(MAIN).lof $(MAIN).lot
 
 clean:
 	rm -f $(MAIN).aux $(MAIN).fdb_latexmk $(MAIN).fls $(MAIN).log \
-	      $(MAIN).out $(MAIN).toc $(MAIN).lof $(MAIN).lot \
-	      $(MAIN).pdf $(PDF)
+	      $(MAIN).out $(MAIN).toc $(MAIN).lof $(MAIN).lot $(PDF)

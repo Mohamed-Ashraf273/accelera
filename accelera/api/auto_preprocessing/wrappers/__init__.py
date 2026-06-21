@@ -17,9 +17,6 @@ from accelera.src.auto_preprocessing.wrappers import (
     correlation_graph as correlation_graph,
 )
 from accelera.src.auto_preprocessing.wrappers import (
-    custom_transform_test as custom_transform_test,
-)
-from accelera.src.auto_preprocessing.wrappers import (
     display_sample_images_classification as display_sample_images_classification,
 )
 from accelera.src.auto_preprocessing.wrappers import (

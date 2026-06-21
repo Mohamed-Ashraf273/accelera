@@ -11,6 +11,5 @@ from accelera.src import accelera_pipe as accelera_pipe
 from accelera.src import auto_preprocessing as auto_preprocessing
 from accelera.src import custom as custom
 from accelera.src import deployment as deployment
-from accelera.src import deployment_module as deployment_module
 from accelera.src import parallelizer as parallelizer
 from accelera.src import utils as utils

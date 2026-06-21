@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Benchmark = require("../schemas/benchmark");
 const Submission = require("../schemas/submissions");
+const auth = require("../middleware/auth");
 const {
   isUrlValidation,
   isValidProblemType,
@@ -72,11 +73,6 @@ router.get("/:id", async (req, res) => {
     const benchmark = await Benchmark.findById(benchmarkId)
       .populate("createdBy", "name email")
       .populate("evaluationMetric", "name whichBetter");
-    if (!benchmark) {
-      return res.status(404).json({
-        message: `There is no benchmark with this id: ${benchmarkId}`,
-      });
-    }
     return res.status(200).json(benchmark);
   } catch (err) {
     console.error("Error while fetching Benchmarks:", err);
@@ -86,7 +82,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", auth, async (req, res) => {
   try {
     let {
       title,
@@ -98,8 +94,8 @@ router.post("/", async (req, res) => {
       problemType,
       evaluationMetric,
       metricParamaters,
-      createdBy,
     } = req.body;
+    const createdBy = req.user._id;
 
     problemType = problemType.toLowerCase();
     if (!isValidProblemType(problemType)) {
@@ -171,15 +167,33 @@ router.post("/", async (req, res) => {
     return res.status(201).json(newBenchmark);
   } catch (err) {
     console.error("Error while creating Benchmarks:", err);
+    if (err.message) {
+      const statusCode = err.isValid === false ? 400 : 500;
+      return res.status(statusCode).json({ message: err.message });
+    }
     return res
       .status(500)
-      .json({ message: `There is an error while creating Benchmarks ` });
+      .json({ message: `there is an error while creating Benchmarks ` });
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, async (req, res) => {
   try {
     const benchmarkId = req.params.id;
+    const benchmarkInfo = await Benchmark.findById(benchmarkId);
+    if (!benchmarkInfo) {
+      return res
+        .status(404)
+        .json({ message: `no benchmark for this id: ${benchmarkId}` });
+    }
+    if (
+      req.user.role !== "admin" &&
+      benchmarkInfo.createdBy.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        message: "You are not allowed to delete this benchmark",
+      });
+    }
     const submissionsCount = await Submission.countDocuments({
       benchmarkId: benchmarkId,
     });
@@ -191,12 +205,7 @@ router.delete("/:id", async (req, res) => {
       });
     }
 
-    const benchmark = await Benchmark.findByIdAndDelete(benchmarkId);
-    if (!benchmark) {
-      return res
-        .status(404)
-        .json({ message: `There is no benchmark for this id: ${benchmarkId}` });
-    }
+    await Benchmark.findByIdAndDelete(benchmarkId);
     return res.status(200).json({ message: "benchmark successfully deleted" });
   } catch (error) {
     console.error("Error while deleting benchmark:", error);

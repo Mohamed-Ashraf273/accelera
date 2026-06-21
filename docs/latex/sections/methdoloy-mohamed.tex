@@ -1,6 +1,6 @@
-\subsection{Accelera Pipe Module}
+\section{Accelera Pipe Module}
 
-\subsubsection{Module Responsibility}
+\subsection{Module Responsibility}
 
 Accelera Pipe is implemented under
 \modulepath{accelera/src/accelera\_pipe/}. Its responsibility is to provide a
@@ -23,7 +23,7 @@ The core files are:
         adapters.
 \end{itemize}
 
-\subsubsection{Graph Execution Model}
+\subsection{Graph Execution Model}
 
 Each pipeline operation becomes a graph node. A preprocessing node transforms
 the input matrix, a model node fits or applies an estimator, a prediction node
@@ -69,7 +69,7 @@ Output: results R, executed graph E
 8:  Return results R and executed graph E
 \end{lstlisting}
 
-\subsubsection{Branching and Node Sharing}
+\subsection{Branching and Node Sharing}
 
 Branching is one of the main reasons Accelera Pipe uses a graph rather than a
 linear pipeline object. A user may compare several preprocessors, several
@@ -100,7 +100,7 @@ with \texttt{p4(X)}.
 \caption{Branch graph after duplicate first-node sharing}
 \end{figure}
 
-\subsubsection{Memory-Lifetime Optimizations}
+\subsection{Memory-Lifetime Optimizations}
 
 The largest memory pressure in Accelera Pipe appears during branch execution.
 Each preprocessing node can produce a transformed training array, and that
@@ -134,7 +134,7 @@ return transformed data without mutating the original input, so unnecessary
 copies can be skipped for those objects. Custom functions remain protected when
 mutation is possible.
 
-\subsubsection{Saving and Loading Pipelines}
+\subsection{Saving and Loading Pipelines}
 
 Pipeline objects can be saved as pickle files. Native graph pickling is
 provided through the PyBind binding for \texttt{graph.Graph}, where C++ exposes
@@ -150,9 +150,9 @@ source inside a controlled namespace to recover the callable. Functions with
 closures are rejected because their external captured variables would not be
 available from source text alone.
 
-\subsection{Code Parallelizer Module}
+\section{Code Parallelizer Module}
 
-\subsubsection{Module Responsibility}
+\subsection{Module Responsibility}
 
 The Code Parallelizer transforms supported loop-heavy source code into
 OpenMP-annotated C++. The main Python orchestration file is
@@ -171,7 +171,7 @@ The workflow has four stages:
   \item Insert OpenMP pragmas and return the transformed C++ code.
 \end{enumerate}
 
-\subsubsection{Loop Analysis and Pragma Selection}
+\subsection{Loop Analysis and Pragma Selection}
 
 Loop extraction records syntactic and semantic features such as loop nesting,
 array access, assignments, reduction patterns, loop-carried dependencies,
@@ -202,7 +202,7 @@ Output: OpenMP-annotated C++ program P'
 16: Return the rewritten C++ source
 \end{lstlisting}
 
-\subsubsection{Classifier Model and Rule-Based Decision}
+\subsection{Classifier Model and Rule-Based Decision}
 
 The classifier assets are stored under
 \modulepath{models/open\_mp\_classifier/}. The service loads
@@ -223,7 +223,7 @@ training programs with AI tools risked injecting generator-specific bias, which
 would lower generalization on real user code. The final approach therefore
 uses explicit loop features, a classifier, and rule-based safety checks.
 
-\subsubsection{Python-to-C++ Converter Support}
+\subsection{Python-to-C++ Converter Support}
 
 The Python converter intentionally supports a restricted subset. This makes the
 generated C++ predictable enough for the parallelizer and avoids silently
@@ -251,7 +251,7 @@ Functions & Plain function definitions & Decorators, closures, and dynamic dispa
 \bottomrule
 \end{longtable}
 
-\subsubsection{Integration with Accelera Pipe}
+\subsection{Integration with Accelera Pipe}
 
 The parallelizer is integrated into Accelera Pipe for custom preprocessing
 functions and custom transformer instances. If a preprocessing function is a
