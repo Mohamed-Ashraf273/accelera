@@ -622,15 +622,13 @@ class Parallelizer:
         cache_path.write_text(parallelized_code)
         return parallelized_code
 
-    def _optimize_pymethod(self, func):
-        import inspect
-        import textwrap
-
+    def _optimize_pymethod(self, func, source=None):
         from accelera.src.parallelizer.cpp_compiler import compile_parallelized_code
         from accelera.src.parallelizer.cpp_compiler import compiled_module_name
+        from accelera.src.utils.source_backed_function import SourceBackedFunction
 
         try:
-            code = textwrap.dedent(inspect.getsource(func))
+            code = source or SourceBackedFunction(func).compilation_source()
             cache_path = _pymethod_cache_path(code, func.__name__)
             cached_func = _load_cached_pymethod(cache_path, func.__name__)
             if cached_func is not None:
@@ -686,7 +684,12 @@ class Parallelizer:
             return self._optimize_pyinstance(content)
         elif is_custom_function(content):
             source_func = SourceBackedFunction(content)
-            source_func.set_runtime_func(self._optimize_pymethod(content))
+            source_func.set_runtime_func(
+                self._optimize_pymethod(
+                    content,
+                    source=source_func.compilation_source(),
+                )
+            )
             return source_func
         else:
             return content

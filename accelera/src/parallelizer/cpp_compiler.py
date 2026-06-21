@@ -109,20 +109,37 @@ def to_numpy_code_cpp(cpp_code: str, func_name: str, module_name: str) -> str:
     if "int main()" in code:
         code = code[: code.index("int main()")].rstrip()
 
-    code = re.sub(r"template\s*<[^>]+>\s*\n", "", code)
+    code = re.sub(r"template\s*<[^>]+>\s*", "", code)
+    code = re.sub(r"\bT\d+\b", "double", code)
+    function_pattern = (
+        rf"auto\s+{re.escape(func_name)}\s*\(\s*[^,()\s]+\s+"
+        r"([A-Za-z_]\w*)\s*\)\s*\{"
+    )
+    function_match = re.search(function_pattern, code)
+    if function_match is None:
+        raise ValueError(
+            "Only functions with one named input parameter can be compiled."
+        )
+
+    input_name = function_match.group(1)
+    escaped_input_name = re.escape(input_name)
     code = re.sub(
-        rf"auto\s+{re.escape(func_name)}\s*\([^)]*\)\s*\{{",
+        function_pattern,
         (
-            f"py::array_t<double> {func_name}(py::array_t<double> X) {{\n"
-            "    auto x = X.mutable_unchecked<2>();"
+            f"py::array_t<double> {func_name}(py::array_t<double> {input_name}) {{\n"
+            f"    auto x = {input_name}.mutable_unchecked<2>();"
         ),
         code,
         count=1,
     )
-    code = re.sub(r"\blen\s*\(\s*X\s*\[\s*\w+\s*\]\s*\)", "x.shape(1)", code)
-    code = re.sub(r"\blen\s*\(\s*X\s*\)", "x.shape(0)", code)
     code = re.sub(
-        r"\bX\s*\[\s*([^\]]+)\s*\]\s*\[\s*([^\]]+)\s*\]",
+        rf"\blen\s*\(\s*{escaped_input_name}\s*\[\s*\w+\s*\]\s*\)",
+        "x.shape(1)",
+        code,
+    )
+    code = re.sub(rf"\blen\s*\(\s*{escaped_input_name}\s*\)", "x.shape(0)", code)
+    code = re.sub(
+        rf"\b{escaped_input_name}\s*\[\s*([^\]]+)\s*\]\s*\[\s*([^\]]+)\s*\]",
         r"x(\1, \2)",
         code,
     )
