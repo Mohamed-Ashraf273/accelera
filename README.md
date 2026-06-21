@@ -333,7 +333,7 @@ OpenMP pragmas. The module needs the C++ bindings, LLVM/Clang, and the
 classifier endpoint configured in `accelera/src/config.py`.
 
 ```python
-from accelera.src.utils.parallelizer import parallelizer
+from accelera.src.parallelizer import parallelizer
 
 parallelizer.parallelize("examples/loop_example.py")
 # Writes parallelized_loop_example.c in the repo root by default
@@ -345,7 +345,7 @@ else.
 For in-memory C/C++ code:
 
 ```python
-from accelera.src.utils.parallelizer import parallelizer
+from accelera.src.parallelizer import parallelizer
 
 code = """
 int main() {
@@ -380,7 +380,7 @@ For internal defined python methods:
 ```python
 import numpy as np
 
-from accelera.src.utils.parallelizer import parallelizer
+from accelera.src.parallelizer import parallelizer
 
 
 def normalize_rows(X):
@@ -856,21 +856,24 @@ pytest accelera/src/utils/parallelizer_test.py -q
 
 ```text
 accelera/
+│── benchmark/                   # Node.js backend prototype
 ├── accelera/
-│   ├── api/                 # generated public API modules
-│   ├── bindings/            # pybind11 bindings
+│   ├── api/                     # generated public API modules
+│   ├── bindings/                # pybind11 bindings
 │   └── src/
-│       ├── accelera_pipe/   # DAG pipeline, execution graph
-│       ├── autopreprocessing/          # preprocessing, reports 
-│       ├── benchmark/       # Node.js backend prototype
-│       ├── custom/          # estimator base classes
-│       ├── utils/           # dataset retriever, parallelizer and code utilities
-│       └── wrappers/        # HTML/report helpers
-├── src/                     # C++ core, nodes, AST, and utility sources
-├── include/                 # C++ headers
-├── examples/                # scripts and notebooks
-├── docs/                    # MkDocs documentation
-├── shell/                   # setup scripts
+|       |── accelera_automl/
+│       ├── accelera_pipe/       # DAG pipeline, execution graph
+│       ├── auto_preprocessing/  # preprocessing, reports 
+│       ├── custom/              # estimator base classes
+│       ├── deployment/          # deployment module
+│       ├── parallelizer/        # parallelizer module
+│       ├── utils/               # dataset retriever, parallelizer and code utilities
+│       └── wrappers/            # HTML/report helpers
+├── src/                         # C++ core, nodes, AST, and utility sources
+├── include/                     # C++ headers
+├── examples/                    # scripts and notebooks
+├── docs/                        # MkDocs documentation
+├── shell/                       # setup scripts
 └── CMakeLists.txt
 ```
 
