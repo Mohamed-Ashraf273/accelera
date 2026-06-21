@@ -16,7 +16,7 @@ from sklearn.model_selection import train_test_split
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from accelera.accelera_automl import AutoMLRegressor
+from accelera.src.accelera_automl import AutoMLRegressor
 
 DATASET_NAME = "sklearn_diabetes"
 RESULTS_FILE = (

@@ -63,4 +63,4 @@ examples/catboost_info
 examples/global_ai_jobs
 .env
 /models
-node_modules/
+accelera/src/accelera_automl/automlbenchmark/
