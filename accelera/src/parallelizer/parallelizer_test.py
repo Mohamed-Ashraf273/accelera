@@ -1,5 +1,6 @@
 import json
 import os
+import pickle
 import tempfile
 from pathlib import Path
 from types import SimpleNamespace
@@ -11,6 +12,7 @@ from accelera.src.parallelizer.parallelizer import Parallelizer
 from accelera.src.parallelizer.parallelizer import _resolve_loop_class
 from accelera.src.parallelizer.parallelizer import extract_loops
 from accelera.src.parallelizer.parallelizer import write_loops_to_json
+from accelera.src.utils.source_backed_function import SourceBackedFunction
 
 
 def normalize_rows_for_parallelizer_test(X):
@@ -25,6 +27,43 @@ def normalize_rows_for_parallelizer_test(X):
             X[i][j] = X[i][j] / norm
 
     return X
+
+
+def square_rows_with_nested_helper_for_parallelizer_test(X):
+    def square(value):
+        return value * value
+
+    for i in range(len(X)):
+        for j in range(len(X[i])):
+            X[i][j] = square(X[i][j])
+
+    return X
+
+
+def gamma_correction_with_named_input_for_parallelizer_test(image):
+    def adjust_pixel(pixel):
+        return (pixel / 255.0) ** 0.8 * 255.0
+
+    for i in range(len(image)):
+        for j in range(len(image[i])):
+            image[i][j] = adjust_pixel(image[i][j])
+
+    return image
+
+
+def multiply_for_parallelizer_test(value, factor):
+    return value * factor
+
+
+def gamma_correction_with_external_helper_for_parallelizer_test(image):
+    def adjust_pixel(pixel):
+        return multiply_for_parallelizer_test(pixel, 2.2)
+
+    for i in range(len(image)):
+        for j in range(len(image[i])):
+            image[i][j] = adjust_pixel(image[i][j])
+
+    return image
 
 
 class NormalizeRowsInstanceForParallelizerTest:
@@ -289,6 +328,62 @@ class TestParallelizer:
 
         assert result is not normalize_rows_for_parallelizer_test
         assert np.allclose(np.linalg.norm(normalized, axis=1), 1.0)
+
+    def test_optimize_pymethod_compiles_nested_helper(self):
+        parallelizer = Parallelizer()
+        X = np.array([[2.0, 3.0], [4.0, 5.0]], dtype=np.float64)
+
+        result = parallelizer._optimize_pymethod(
+            square_rows_with_nested_helper_for_parallelizer_test
+        )
+
+        assert result is not square_rows_with_nested_helper_for_parallelizer_test
+        assert np.array_equal(result(X.copy()), X**2)
+
+    def test_optimize_pymethod_preserves_input_parameter_name(self):
+        parallelizer = Parallelizer()
+        image = np.array([[0.0, 128.0], [255.0, 64.0]], dtype=np.float64)
+
+        result = parallelizer._optimize_pymethod(
+            gamma_correction_with_named_input_for_parallelizer_test
+        )
+
+        assert result is not gamma_correction_with_named_input_for_parallelizer_test
+        assert np.allclose(
+            result(image.copy()),
+            gamma_correction_with_named_input_for_parallelizer_test(image.copy()),
+        )
+
+    def test_optimize_pymethod_compiles_referenced_helper(self):
+        parallelizer = Parallelizer()
+        image = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+
+        result = parallelizer._optimize_pymethod(
+            gamma_correction_with_external_helper_for_parallelizer_test
+        )
+
+        assert (
+            result is not gamma_correction_with_external_helper_for_parallelizer_test
+        )
+        assert np.allclose(
+            result(image.copy()),
+            gamma_correction_with_external_helper_for_parallelizer_test(
+                image.copy()
+            ),
+        )
+
+    def test_parallelized_nested_helper_is_pickleable(self):
+        parallelizer = Parallelizer()
+        X = np.array([[2.0, 3.0]], dtype=np.float64)
+
+        result = parallelizer.parallelize(
+            square_rows_with_nested_helper_for_parallelizer_test
+        )
+        restored_result = pickle.loads(pickle.dumps(result))
+
+        assert isinstance(result, SourceBackedFunction)
+        assert np.array_equal(result(X.copy()), X**2)
+        assert np.array_equal(restored_result(X.copy()), X**2)
 
     def test_optimize_pyinstance_compiles_transform(self):
         parallelizer = Parallelizer()
