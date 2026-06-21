@@ -136,8 +136,8 @@
 {\Large Bachelor of Science in Computer Engineering}\\[1.35cm]
 {\bfseries\Large Presented by}\\[0.4cm]
 \begin{tabular}{p{0.38\textwidth}p{0.38\textwidth}}
-Mohamed Ashraf \hfill ID: 9220658 & Nesma Osama \hfill ID: 9220912 \\
-Mazen Adel \hfill ID: 9220625 & Mohamed Khater \hfill ID: 9220713 \\
+Mohamed Ashraf \hfill  & Nesma Osama \hfill  \\
+Mazen Adel \hfill & Mohamed Khater \hfill  \\
 \end{tabular}\\[0.4cm]
 {\bfseries\Large Supervised by}\\[0.3cm]
 {\Large Dr. Salma Abdel monem}\\[0.3cm]
@@ -279,11 +279,95 @@ retain the required development, user-guide, and feasibility-study sections.
 
 \chapter{System Design and Architecture}
 \section{Overview and Assumptions}
+Accelera is a machine learning toolkit that provides a set of modules designed to help users through different stages of the data science workflow. the system allows users to access and use each module according to their specific needs.
+The toolkit consists of six main modules that automate repetitive tasks often exist in machine learning projects. These modules aim to reduce manual effort, improve productivity, and speed up experimentation and model development.
+Each module has its own set of assumptions, which will be listed separately.
+\subsection{Accelera Pipeline Assumptions}
 The system combines Python-facing APIs with native execution components. The
 design assumes that machine-learning workflows can be represented as a graph
 of operations and that only a restricted, analyzable subset of custom source
 code should be translated to parallel C++.
+\subsection{Auto Preprocessing Assumptions}
 
+For the AutoPreprocessing module, the assumptions depend on the type of dataset being processed. The module supports three types of data: tabular, text, and image datasets.
+
+\subsubsection{Tabular Dataset Assumptions}
+
+For tabular datasets, the AutoPreprocessing module assumes that:
+
+\begin{itemize}
+\item The dataset consists of numerical and categorical features, and the task is either classification or regression.  
+Because we try to implement the standard structured machine learning problems where supervised learning is applied..
+\item The user provides configuration parameters to control preprocessing operations.  
+This allows the pipeline to adapt to different datasets and user requirements.
+\end{itemize}
+\subsubsection{Text Dataset Assumptions}
+
+For text datasets, the AutoPreprocessing module assumes that:
+
+\begin{itemize}
+\item The dataset contains a single text column and is intended for a text classification task with a defined target label.  
+Because This simplifies the pipeline to standard supervised NLP classification problems and prevents the feature space from becoming very large after transforming the text into a numerical representation, making it suitable for classical machine learning techniques.
+\item The user provides configuration parameters for text cleaning and feature extraction.  
+To give the user a level of control over the preprocessing pipeline, such as limiting the maximum number of numerical features generated after transforming the text into a numerical representation.
+\end{itemize}
+
+\subsubsection{Image Dataset Assumptions}
+
+For image datasets, the AutoPreprocessing module assumes that:
+\begin{itemize}
+
+\item The dataset is intended for image classification and follows a folder-based class structure.  
+Because there are many vision tasks, but we implemented the most common one to apply its processes.
+
+\item All images are stored in supported formats and are accessible.  
+This ensures compatibility with image loading and preprocessing libraries.
+
+\item The user provides configuration parameters for preprocessing and augmentation.  
+Because different datasets require different preprocessing strategies such as resizing, normalization, and augmentation.
+
+\end{itemize}
+The dataset is expected to follow the directory structure shown below, where the validation folder is optional:
+
+\begin{verbatim}
+Training/
+  Cats/
+  Dogs/
+
+Validation/
+  Cats/
+  Dogs/
+\end{verbatim}
+\subsection{Benchmark Assumptions}
+
+For the Benchmark module, the following assumptions are made. These assumptions are introduced due to system design constraints, particularly the limited server storage capacity for handling large dataset uploads, as well as to ensure fair and consistent evaluation and comparison between users.
+
+\begin{itemize}
+
+\item When the user creates a benchmark, they provide a tabular dataset. This ensures that the module operates on structured data suitable for standard machine learning evaluation.
+
+\item All datasets are stored in publicly accessible Google Drive links. This design choice is adopted to reduce server storage requirements.
+
+\item The user must provide three CSV files:
+\begin{itemize}
+\item A training dataset containing both features and target labels.
+\item A testing dataset containing the same feature structure as the training set but without the target column.
+\item A ground truth target file containing only the target labels for the test set.
+\end{itemize}
+This separation ensures a standard evaluation protocol and prevents data leakage during benchmarking.
+
+\item When submitting predictions, the user provides a Google Drive link to a CSV file containing the predicted results. This ensures consistency in submission format across all users.
+
+\item The submitted prediction file must have the same length and format as the expected output to ensure correct evaluation and fair comparison between different users' models.
+
+\item When creating a benchmark, it is assumed that the user selects an evaluation metric that is appropriate for the problem type and provides a correct metric configuration. This is necessary to guarantee meaningful and valid performance measurement.
+
+\item For admin users, when defining an evaluation metric, it is assumed that a valid metric from the Scikit-learn library is selected. Because we use Scikit-learn metrics for evaluation.
+\item The selected metric must be properly configured and is expected to return a single scalar value for performance comparison and ranking purposes.
+
+\item The user is allowed to have only one active submission per benchmark. The user cannot create multiple submissions, but they are allowed to update their existing submission. This constraint is enforced to reduce storage usage.
+
+\end{itemize}
 \section{System Architecture}
 \subsection{Block Diagram}
 The implemented system is organized around graph execution, source-code
