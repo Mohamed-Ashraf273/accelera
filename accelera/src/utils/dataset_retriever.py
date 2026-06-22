@@ -130,7 +130,7 @@ class DatasetRetriever:
             raise RuntimeError("Dataset retriever is not connected")
 
         self.is_connected = False
-        if self.cache_dir:
+        if self.cache_dir and os.path.exists(self.cache_dir):
             shutil.rmtree(self.cache_dir)
         else:
             print_msg("Cache directory not found", level="warning")

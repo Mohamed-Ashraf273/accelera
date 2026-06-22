@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlparse
 
 import pandas as pd
 
@@ -16,6 +17,17 @@ class E2E(E2EBase):
     def __init__(self):
         super().__init__()
         self.df = None
+
+    def _is_google_drive_url(self, value: str) -> bool:
+        try:
+            parsed = urlparse(value.strip())
+        except (AttributeError, ValueError):
+            return False
+
+        return parsed.scheme in {"http", "https"} and parsed.netloc.lower() in {
+            "drive.google.com",
+            "docs.google.com",
+        }
 
     def _run(self, content, config=None, graph=None):
         self.config = config
