@@ -304,31 +304,29 @@ retain the required development, user-guide, and feasibility-study sections.
 
 \chapter{Market Visibility Study}
 
-In this chapter, we will identify Accelera's target customers, talk about similar tools and platforms in the market, discuss the weaknesses and gaps in current solutions, and present the business case and financial analysis of the system.
-
+In this chapter, we’ll identify Accelera’s target customers, talk about similar tools and platforms in the market, discuss their pros and cons, and provide the business case study and financial analysis of the system.
 \section{Targeted Customers}
 
 Our targeted customers are data scientists and machine learning engineers, both beginners and experts. Accelera aims to support these users by providing a tool that automates and accelerates several steps in the data science life cycle. This helps users reduce repetitive manual work, and save time.
 
 \section{Market Survey}
 
-Many existing platforms provide useful features for data science and machine learning development, but these features are often available in separate tools or are limited to specific parts of the workflow. However, Accelera aims to provide these features within one toolkit.
+We found that many existing platforms provide useful features for data science and machine learning development, but these features are often available in separate tools or are limited to specific parts of the workflow. However, Accelera aims to provide these features within one toolkit.
 
 \mbox{}
 
 \subsection{AutoCleanML}
 
-AutoCleanML is a Python tool that focuses mainly on automating data cleaning and preprocessing tasks for machine learning datasets.
-
+It is a Python tool mainly focused on automating data cleaning and preprocessing tasks for machine learning datasets.\\
 \textbf{Pros:}
 \begin{itemize}
-\item Makes ML data preprocessing automatic and intelligent
+\item Makes machine learning data preparation automatic and smart.
 \item Provides a report that explains the preprocessing decisions made by the tool.
 \end{itemize}
 
 \textbf{Cons:}
 \begin{itemize}
-\item Its scope is mostly limited to data cleaning and preprocessing.
+\item Only designed for cleaning and preparing data..
 \item It does not support preprocessing for image and text datasets.
 \end{itemize}
 \subsection{Kaggle}
@@ -344,8 +342,8 @@ Kaggle is an online platform where the data science and machine learning communi
 
 \textbf{Cons:}
 \begin{itemize}
-\item It depends mainly on notebook-style work, so projects can become difficult to organize.
-\item Kaggle mainly focuses on competitions, and datasets, rather than providing a complete machine learning workflow in one toolkit.
+\item It mainly depends on the notebooks style, so projects can get hard to organize.
+\item It doesn't provide a complete machine learning workflow in a single toolkit.
 
 \end{itemize}
 
@@ -353,60 +351,45 @@ Kaggle is an online platform where the data science and machine learning communi
 \mbox{}
 
 \chapter{Literature Survey}
-In this chapter, we provide an overview of the topics, algorithms and techniques needed to understand
-the project as a whole. First, we discuss the technical topics and background
-knowledge.Then we summarize
-related papers to our project.
+In this chapter, we give an overview of the topics, algorithms, and techniques needed to understand the project as a whole. We discuss the technical subjects and background knowledge, and then summarize the research papers related to our project.
 \section{Background and Previous Work}
-This section explains the main concepts and techniques related to the
-Accelera modules.
+This section explains the concepts and techniques used in Accelera units.
 \subsection{Data Science}
 Data science is a field that extracts knowledge and insights from data using
 scientific methods, processes, and algorithms.
 \subsection{Machine Learning}
-Machine learning is a field of artificial intelligence that allows computers to
-learn patterns from data without being explicitly programmed for every rule. A
-machine learning model is trained using examples, and then it uses what it
-learned to make predictions on new data.
-\subsection{Supervised Machine Learning}
-In supervised learning, the dataset contains input features and a known target output.
+Machine learning is a field of artificial intelligence that lets computers learn patterns from data without needing to be explicitly programmed. 
+A machine learning model is trained using training data , and then it uses what it learned to make predictions on new data.
 
+\subsection{Supervised Machine Learning}
+The training dataset includes a label column that represents the target output. 
+This column is used during training to learn the mapping between the input features and the expected result.
 \subsection{Classification}
-Classification is a supervised machine learning task where the output is a class
-or category. For example, a model can classify a medical case as positive or negative, or an image as one of several object
-classes.
+Classification is a supervised machine learning task whose output is a label or category.
 
 \subsection{Regression}
-Regression is a supervised machine learning task where the output is a
-continuous numerical value. For example, a model can predict house prices.
+Regression is a supervised machine learning task whose output is a continuous numerical value.
 \subsection{Natural Language Processing NLP}
-Natural Language Processing is a field that focuses on enabling computers to understand and process human language. Text data cannot be used directly by most machine learning models, so it must first be cleaned and converted into numerical features.
-
+Natural language processing is a field that focuses on enabling computers to understand and work with human language. Text data can't be used directly by most machine learning models, so it needs to be cleaned and turned into numerical features first.
 
 \subsection{Exploratory Data Analysis}
-Exploratory Data Analysis is the process of analyzing and visualizing
-the dataset to understand its main properties. It can include summary
-statistics, missing value counts, class distribution,
-feature distributions, and correlation between numerical features.
-
+Exploratory Data Analysis is an important step in data analysis where we explore,
+summarize, and visualize data to understand its structure, detect patterns, 
+and check relationships between variables.
 
 \subsection{Data Preprocessing}
 Data preprocessing is the stage of transforming raw data into a clean and usable
-format for machine learning models. Raw datasets often contain missing values,
-duplicated rows, categorical text values, different numerical ranges, noisy text,
-or images with different sizes. These problems must be handled before training a
-model.
+format for machine learning models.
+
 
 \subsection{Missing Value Imputation}
 Missing value imputation is a preprocessing technique used when some values in a
-dataset are empty or unknown. Instead of removing all rows that contain missing
+dataset are empty. Instead of removing all rows that contain missing
 values, the missing values can be replaced using a suitable value.
 
 \subsection{Robust Scaling}
 Robust scaling is a scaling technique that uses the median and the
-interquartile range instead of the mean and standard deviation. This makes it
-useful when the data contains outliers, because extreme values affect the median
-less than they affect the mean.
+interquartile range instead of the mean and standard deviation. 
 \[
 x' = \frac{x - \mathop{\mathrm{median}}(X)}{\mathop{\mathrm{IQR}}(X)}
 \]
@@ -417,10 +400,6 @@ $\mathop{\mathrm{IQR}}(X)$ is the interquartile range.
 Categorical encoding is the process of converting text categories into numeric
 values. Many traditional machine learning models and preprocessing pipelines
 expect numerical input.
-
-\subsection{Label Encoding}
-Label encoding is a simple encoding technique that converts each category into a
-number. 
 
 \subsection{Binary Encoding}
 Binary encoding is a categorical encoding technique that first gives each
@@ -449,41 +428,30 @@ TFIDF(t,d) = TF(t,d) \times IDF(t)
 where $TFIDF(t,d)$ is the weight of term $t$ in document $d$, $TF(t,d)$ is the
 frequency of the term in the document, and $IDF(t)$ measures how rare the term
 is across all documents.
-
-
-
-\subsection{Image Preprocessing}
-Image preprocessing prepares image data before it is used by a deep learning
-model. Images may have different sizes, formats, or pixel ranges, so they need
-to be converted into a consistent form. Common image preprocessing steps include
-loading images, validating that they are readable, resizing them, and normalizing
-pixel values.
-
-Pixel normalization usually converts image values from the range $[0,255]$ to a
-smaller range such as $[0,1]$ using:
-\[
-x' = \frac{x}{255}
-\]
-where $x$ is the original pixel value and $x'$ is the normalized value.
-
-
+\subsection{Data augmentation}
+Is a technique used to increase diversity of a dataset without actually collecting new data. 
+It works by applying various transformations to the existing data to create new, modified versions of data that helps the model generalize better.
 \subsection{Classification Evaluation Metrics}
 Classification metrics are used to evaluate the performance of a classification
-model. Accuracy measures how many predictions are correct out of all predictions:
+model.
+\subsubsection{Accuracy}
+Accuracy measures how many predictions are correct out of all predictions:
 \[
 Accuracy = \frac{TP + TN}{TP + TN + FP + FN}
 \]
 where $TP$ is true positives, $TN$ is true negatives, $FP$ is false positives,
 and $FN$ is false negatives.
-
+\subsubsection{Precision}
 Precision measures how many predicted positive samples are actually positive:
 \[
 Precision = \frac{TP}{TP + FP}
 \]
+\subsubsection{Recall}
 Recall measures how many actual positive samples were correctly detected:
 \[
 Recall = \frac{TP}{TP + FN}
 \]
+\subsubsection{F1-score}
 The F1-score combines precision and recall:
 \[
 F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}
@@ -492,28 +460,35 @@ F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}
 
 \subsection{Regression Evaluation Metrics}
 Regression metrics are used when the model predicts continuous numerical values.
+\subsubsection{Mean Absolute Error}
 Mean Absolute Error measures the average absolute difference between the real
 values and predicted values:
 \[
 MAE = \frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|
 \]
 where $y_i$ is the actual value and $\hat{y}_i$ is the predicted value.
-
+\subsubsection{Mean Squared Error}
 Mean Squared Error gives more penalty to large errors:
 \[
 MSE = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
 \]
+\subsubsection{R-squared Score}
+
+R-squared score measures how well the regression model explains the variation in the actual values. 
+\[
+R^2 = 1 - \frac{\sum_{i=1}^{n}(y_i - \hat{y}i)^2}{\sum_{i=1}^{n}(y_i - \bar{y})^2}
+\]
+Where $y_i$ is the actual value, $\hat{y}_i$ is the predicted value, and $\bar{y}$ is the mean of the actual values.
 
 
 \section{Comparative Study of Previous Work}
 \mbox{}
 \subsection{Data Preprocessing and Feature Engineering for Data Mining:
 Techniques, Tools, and Best Practices ~\cite{preprocessing_feature_engineering}}
-This paper discusses the role of data preprocessing and feature engineering in
-machine learning and data mining projects. It explains that preprocessing is not
+This paper shows the role of data preprocessing and feature engineering in
+machine learning and data mining projects. It says that preprocessing is not
 only a preparation step before model training, but also an important part of the
-complete machine learning pipeline.
-The paper presents a general preprocessing framework that includes data
+complete machine learning pipeline. It also presents a general preprocessing framework that includes data
 cleaning, data transformation, feature construction, feature selection, and
 dimensionality reduction. For each stage, it explains different techniques and
 discusses the advantages and disadvantages of each one.
@@ -521,31 +496,31 @@ discusses the advantages and disadvantages of each one.
 
 \section{Implemented Approach}
 \subsection{Auto Preprocessing}
-Based on the techniques reviewed in the previous section, this project
-implements an automated preprocessing approach for tabular datasets. The
+In this module we decided to implement an automated preprocessing approach for tabular datasets. The
 approach was designed to prepare data for machine learning models by applying
 suitable preprocessing steps automatically according to the type and
-characteristics of each column.
+characteristics of each column and some user configurations.
 
-The general framework of the approach is as follows:
+\noindent The general framework of the approach is as follows:
 \begin{enumerate}
-  \item Load the dataset and define the target column.
+  \item Take the dataset and some user configurations.
   \item Remove duplicate records.
   \item Split the data into training and validation sets.
-  \item Analyze each column using data type, missing percentage, unique values,
-  and basic statistics.
-  \item Drop unsuitable columns, such as constant columns or columns with
+  \item For each column, we get this information: data type, percentage of missing values, unique values, and basic stats.
+  \item Drop unnecessary columns, such as constant columns or columns with
   missing values above the selected threshold.
   \item Detect column types automatically.
-  \item Apply missing-value imputation.
+  \item Make Exploratory Data Analysis.
+  \item Apply missing value imputation.
   \item Apply categorical encoding.
   \item Apply robust scaling.
   \item Apply feature selection using mutual information.
-  \item Save the preprocessing pipeline and generate a report.
+  \item Automatically saves all needed files for inference.
+  \item Generate a report.
 \end{enumerate}
 
 \noindent The chosen approach follows a classical automated preprocessing pipeline. The
-main preprocessing decisions are summarized as follows:
+main preprocessing decisions are:
 
 \begin{itemize}
   \item \textbf{Missing values:} Median imputation is used for numerical
@@ -572,23 +547,15 @@ main preprocessing decisions are summarized as follows:
 \end{itemize}
 
 \noindent This approach was chosen because it gives a good balance between automation,
-simplicity, speed, and interpretability. More advanced techniques, such as
+simplicity, and speed. More advanced techniques, such as
 K-nearest neighbour imputation, autoencoders, and wrapper feature selection, can
-be useful in specific cases, but they need more computation and tuning. For this
-reason, classical preprocessing techniques were selected because they are more
-suitable for a general automated tabular preprocessing framework.
+be useful in specific cases, but they need more computation.
 
-\noindent Another important addition in this project is that the module is not
-only used for data preparation. It also supports exploratory data analysis
-, where the generated report helps the user explore and understand  The report includes useful information
-such as dataset size, column types, missing values, duplicates, visualizations,
-and the preprocessing steps applied.
+\noindent One of the important additions in this project is that the module is not
+only used for data preparation. It also supports exploratory data analysis report.
 
-\noindent In addition, the module was extended to support text and image data
-preparation, not only tabular data. For text data, the system cleans the text
-and converts it into numerical features for classification. For image data, the
-system loads, validates, resizes, and normalizes the images to prepare them for
-image classification.
+\noindent Also the module was extended to support text and image data
+preparation, not only tabular data.
 
 \chapter{System Design and Architecture}
 \section{Overview and Assumptions}

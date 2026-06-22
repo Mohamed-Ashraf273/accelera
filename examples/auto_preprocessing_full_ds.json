@@ -1,6 +1,6 @@
 {
   "tabular_dataset": {
-    "model_name":"KNN",
+    "model_name":"DecisionTree",
     "problemType": {
       "classification": {
         "startup_founder_burnout_2026": {
@@ -25,11 +25,6 @@
           "target_column": "addiction_binary",
           "report_path": "gaming_addiction",
           "columns_need_to_drop": ["user_id"]
-        },
-        "Teen_Mental_Health_Dataset": {
-          "link": "https://drive.google.com/uc?id=10X0yimXSfqzA5XiJ4mASkSTDk-FI83Zw",
-          "target_column": "depression_label",
-          "report_path": "Teen_Mental_Health_Dataset"
         },
         "student_exam_performance_dataset": {
           "link": "https://drive.google.com/uc?id=19mH4wgsK2-zcttdTFl6jk_BR83lrKIS7",
