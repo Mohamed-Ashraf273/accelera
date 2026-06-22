@@ -89,9 +89,9 @@ def test_prepare_syncs_service_sources_and_writes_build_files(
 
     assert (tmp_path / "accelera_deployment" / "server.py").exists()
     assert (tmp_path / "accelera_deployment" / "modelservice.py").exists()
-    requirements = (
-        tmp_path / "accelera_deployment" / "requirements.txt"
-    ).read_text(encoding="utf-8")
+    requirements = (tmp_path / "accelera_deployment" / "requirements.txt").read_text(
+        encoding="utf-8"
+    )
     dockerfile = (tmp_path / "Dockerfile").read_text(encoding="utf-8")
     assert "fastapi" in requirements
     assert "COPY accelera_deployment/server.py server.py" in dockerfile
@@ -212,7 +212,9 @@ def test_remote_helpers_quote_and_build_expected_commands(deployment_module):
     assert deployment_module._remote_root(args) == "~/apps/deployment_module"
     assert deployment_module._quote_remote_path("~/apps") == "~/apps"
     assert "-i" in deployment_module._ssh_command(args)
-    assert "StrictHostKeyChecking=accept-new" in deployment_module._ssh_transport(args)
+    assert "StrictHostKeyChecking=accept-new" in deployment_module._ssh_transport(
+        args
+    )
 
     script = deployment_module._remote_script(args)
     assert "cd ~/apps/deployment_module" in script
@@ -256,7 +258,9 @@ def test_ec2_deploy_prepares_syncs_and_checks_url(deployment_module, monkeypatch
         no_cache=False,
     )
 
-    monkeypatch.setattr(deployment_module, "prepare", lambda _args: calls.append("prepare"))
+    monkeypatch.setattr(
+        deployment_module, "prepare", lambda _args: calls.append("prepare")
+    )
     monkeypatch.setattr(
         deployment_module,
         "_run_remote",

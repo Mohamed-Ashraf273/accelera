@@ -802,6 +802,77 @@ These scripts read prepared splits from `data/accelera_automl/`. The regression
 script accepts `--time-budget`, `--n-trials`, `--cv`, and `--n-jobs` options.
 
 
+### Deployment Module
+
+The deployment module provides a dynamic, procedural (non-OOP) version control system (VCS) to track configuration files and multi-stage ML pipelines, enabling automated container builds and deployments to remote target environments like AWS EC2.
+
+#### Dataset and ML Pipeline Details
+
+The demo pipeline uses the classic **Wine Dataset** (`sklearn.datasets.load_wine`) to train and evaluate multiple models:
+- **Features**: 13 chemical analyses of wine (alcohol, malic acid, ash, alkalinity of ash, magnesium, total phenols, flavanoids, nonflavanoid phenols, proanthocyanins, color intensity, hue, od280/od315 of diluted wines, proline).
+- **Target**: 3 distinct classes of wine cultivars.
+
+The trained and committed artifacts form a sequenced execution pipeline:
+1. **`preprocessing_pipeline`**: Standardizes numerical columns and imputes missing features.
+2. **`feature_selector`**: Selects the top $K$ features using univariate feature selection (`SelectKBest`).
+3. **`final_model`**: The best performing trained estimator selected automatically (Logistic Regression, Random Forest, or Histogram-Based Gradient Boosting).
+
+#### Prerequisites and Installation
+
+##### 1. Local Environment Setup
+To run the VCS commands or execute the end-to-end demo locally, install the deployment dependencies:
+
+```bash
+# Install local packages for modeling, validation, and serving
+pip install -r accelera/src/deployment/accelera_deployment/requirements.txt
+```
+
+These include:
+- `fastapi` and `uvicorn` (to host the REST server and UI)
+- `great-expectations` (for data schema validation)
+- `scikit-learn` & `category-encoders` (for model execution)
+- `pydantic`, `pandas`, and `numpy`
+
+##### 2. Remote Host Setup (EC2 / Ubuntu Linux)
+- Ensure you have SSH access to your Ubuntu server (e.g., via private key file `.pem`).
+- The deployment process will package the pipeline into a Docker container.
+- If Docker is not already installed on the target machine, the script will install it automatically when the `--install-docker` flag is provided.
+
+#### Running the End-to-End Demo
+
+The repository contains an end-to-end demo script that downloads the SSH key, initializes a registry, trains the pipeline, commits the artifacts, and deploys it to a target EC2 instance:
+
+```bash
+# Execute the complete deployment demo pipeline
+python examples/deployment_demo.py
+```
+
+#### CLI Deployment Commands
+
+You can run individual deployment commands manually:
+
+```bash
+# Initialize VCS registry
+python -m accelera.src.deployment.vcs init
+
+# Commit latest models and config
+python -m accelera.src.deployment.vcs commit -m "Your commit message"
+
+# View status
+python -m accelera.src.deployment.vcs status
+
+# View commit logs
+python -m accelera.src.deployment.vcs log
+
+# Deploy the module to an EC2 instance
+python accelera/src/deployment/accelera_deployment/deployment.py ec2-deploy \
+  --host <HOST_IP> \
+  --user <USER> \
+  --key <PATH_TO_PRIVATE_KEY> \
+  --install-docker
+```
+
+
 ### Runtime Requirements and Common Blockers
 
 Things that can prevent these modules from running:

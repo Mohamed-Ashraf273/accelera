@@ -21,12 +21,11 @@ if str(repo_root) not in sys.path:
 
 from accelera.src.config import config as accelera_config
 
-
 CONFIG = {
     "dataset_path": None,
     "dataset_url": None,
     "target_column": "target",
-    "output_dir": str(accelera_config.deployment_root),
+    "output_dir": None,
     "test_size": 0.2,
     "random_state": 42,
     "cv_folds": 5,
@@ -126,7 +125,9 @@ def load_dataset(settings, deps):
     df[target_column] = data.target
 
     # Map numeric targets to meaningful names
-    df[target_column] = df[target_column].map({0: "cultivar_1", 1: "cultivar_2", 2: "cultivar_3"})
+    df[target_column] = df[target_column].map(
+        {0: "cultivar_1", 1: "cultivar_2", 2: "cultivar_3"}
+    )
 
     # Keep 10 meaningful features + target_column
     keep_features = [
@@ -140,7 +141,7 @@ def load_dataset(settings, deps):
         "color_intensity",
         "hue",
         "proline",
-        target_column
+        target_column,
     ]
     df = df[keep_features]
 
@@ -150,7 +151,7 @@ def load_dataset(settings, deps):
         bins=2,
         labels=["light", "dark"],
     ).astype(str)
-    
+
     df["proline_class"] = pd.cut(
         df["proline"],
         bins=3,
@@ -160,11 +161,12 @@ def load_dataset(settings, deps):
     # Introduce some missing values to test preprocessing pipelines
     rng = np.random.default_rng(settings["random_state"])
     for column in ["alcohol", "malic_acid", "color_group"]:
-        missing_rows = rng.choice(df.index, size=max(1, len(df) // 25), replace=False)
+        missing_rows = rng.choice(
+            df.index, size=max(1, len(df) // 25), replace=False
+        )
         df.loc[missing_rows, column] = np.nan
 
     return df, "sklearn:wine_10_features_with_categorical"
-
 
 
 def validate_dataset(df, target_column):
@@ -236,9 +238,7 @@ def make_preprocessor(X, deps):
     StandardScaler = deps["StandardScaler"]
 
     numeric_features = X.select_dtypes(include=["number", "bool"]).columns.tolist()
-    categorical_features = [
-        col for col in X.columns if col not in numeric_features
-    ]
+    categorical_features = [col for col in X.columns if col not in numeric_features]
     numeric_indices = [X.columns.get_loc(col) for col in numeric_features]
     categorical_indices = [X.columns.get_loc(col) for col in categorical_features]
 
@@ -405,7 +405,10 @@ def train_model(settings=None):
     train_test_split = deps["train_test_split"]
 
     settings = {**CONFIG, **(settings or {})}
-    output_dir = Path(settings["output_dir"]).resolve()
+    output_dir_str = settings.get("output_dir")
+    if output_dir_str is None:
+        output_dir_str = str(accelera_config.deployment_root)
+    output_dir = Path(output_dir_str).resolve()
     models_dir = output_dir / "models"
     artifacts_dir = output_dir / "artifacts"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -533,7 +536,9 @@ def train_model(settings=None):
     save_pickle(final_pipeline, artifact_paths["final_pipeline"])
     save_pickle(final_metrics, artifact_paths["evaluation_metrics"])
     save_pickle(comparison, artifact_paths["model_comparison"])
-    save_pickle(all_feature_names, artifact_paths["feature_names_after_preprocessing"])
+    save_pickle(
+        all_feature_names, artifact_paths["feature_names_after_preprocessing"]
+    )
     save_pickle(chosen_features, artifact_paths["selected_feature_names"])
 
     example_rows = X_test.head(3).copy()
@@ -569,7 +574,10 @@ def train_model(settings=None):
 
 
 def load_final_pipeline(output_dir=None):
-    output_dir = Path(output_dir or CONFIG["output_dir"]).resolve()
+    output_dir_str = output_dir or CONFIG["output_dir"]
+    if output_dir_str is None:
+        output_dir_str = str(accelera_config.deployment_root)
+    output_dir = Path(output_dir_str).resolve()
     path = output_dir / "models" / "final_pipeline.pkl"
     if not path.exists():
         raise FileNotFoundError(f"Final pipeline not found: {path}")
@@ -581,7 +589,10 @@ def predict(input_data=None, output_dir=None):
     deps = require_ml_dependencies()
     pd = deps["pd"]
 
-    output_dir = Path(output_dir or CONFIG["output_dir"]).resolve()
+    output_dir_str = output_dir or CONFIG["output_dir"]
+    if output_dir_str is None:
+        output_dir_str = str(accelera_config.deployment_root)
+    output_dir = Path(output_dir_str).resolve()
     pipeline = load_final_pipeline(output_dir)
 
     if input_data is None:
@@ -599,7 +610,10 @@ def predict(input_data=None, output_dir=None):
 
 def example_load_and_predict(output_dir=None):
     """Small example for loading the final pipeline and predicting new rows."""
-    output_dir = Path(output_dir or CONFIG["output_dir"]).resolve()
+    output_dir_str = output_dir or CONFIG["output_dir"]
+    if output_dir_str is None:
+        output_dir_str = str(accelera_config.deployment_root)
+    output_dir = Path(output_dir_str).resolve()
     pipeline = load_final_pipeline(output_dir)
     example_path = output_dir / "artifacts" / "inference_example.pkl"
     with open(example_path, "rb") as f:
@@ -613,7 +627,9 @@ def example_load_and_predict(output_dir=None):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Train deployment case-study models")
+    parser = argparse.ArgumentParser(
+        description="Train deployment case-study models"
+    )
     parser.add_argument("--dataset-path", help="Optional local CSV dataset")
     parser.add_argument("--dataset-url", help="Optional CSV URL")
     parser.add_argument("--target-column", default=CONFIG["target_column"])

@@ -131,7 +131,11 @@ class Config:
 
     @property
     def deployment_root(self) -> Path:
-        return self.REPO_ROOT / "accelera" / "src" / "deployment" / ".accelera_deployment"
+        cwd = Path(os.getcwd()).resolve()
+        for p in [cwd] + list(cwd.parents):
+            if (p / ".accelera_deployment").is_dir():
+                return p / ".accelera_deployment"
+        return cwd / ".accelera_deployment"
 
     @property
     def deployment_experiments_dir(self) -> Path:

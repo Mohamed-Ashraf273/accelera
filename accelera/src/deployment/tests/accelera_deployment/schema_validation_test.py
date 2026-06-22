@@ -21,7 +21,9 @@ class FakeDataFrame:
 
 class FakeBatchDefinition:
     def get_batch(self, batch_parameters):
-        return SimpleNamespace(validate=lambda expectation: SimpleNamespace(success=True))
+        return SimpleNamespace(
+            validate=lambda expectation: SimpleNamespace(success=True)
+        )
 
 
 class FakeAsset:

@@ -20,7 +20,7 @@ ifeq ($(OS),Windows_NT)
 export PATH := $(GRAPHVIZ_BIN)$(EXEC_PATH_SEP)$(PATH)
 endif
 
-.PHONY: all run accpipe-demo parallel-accpipe code-parallelizer save-load auto-preprocessing classification-automl regression-automl benchmark clean-ram
+.PHONY: all run accpipe-demo parallel-accpipe code-parallelizer save-load auto-preprocessing classification-automl regression-automl benchmark deployment-demo clean-ram
 
 all: run
 
@@ -38,6 +38,8 @@ run:
 	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory classification-automl
 	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory clean-ram
 	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory regression-automl
+	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory clean-ram
+	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory deployment-demo
 	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory clean-ram
 	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory benchmark
 
@@ -61,6 +63,9 @@ classification-automl:
 
 regression-automl:
 	@cd "$(ROOT)" && $(PYTHON) "$(EXAMPLES)/run_regression_task_automl.py"
+
+deployment-demo:
+	@cd "$(ROOT)" && $(PYTHON) "$(EXAMPLES)/deployment_demo.py"
 
 benchmark:
 	@cd "$(ROOT)" && $(PYTHON) "$(EXAMPLES)/run_benchmark_servers.py"

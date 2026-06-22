@@ -43,7 +43,11 @@ def write_json(path, data):
 
 
 def test_default_deployment_paths_use_runtime_state_directory():
-    assert config.deployment_root == config.REPO_ROOT / "accelera" / "src" / "deployment" / ".accelera_deployment"
+    import os
+    from pathlib import Path
+
+    expected_root = Path(os.getcwd()).resolve() / ".accelera_deployment"
+    assert config.deployment_root == expected_root
     assert vcs.project_root == str(config.deployment_root)
     assert vcs.experiments_dir == str(config.deployment_root / "experiments")
     assert vcs.models_dir == str(config.deployment_root / "models")
@@ -231,7 +235,9 @@ def test_log_prints_commits_in_reverse_order_with_tags(isolated_vcs, capsys):
 
 
 def test_log_prints_empty_message_when_no_commits(isolated_vcs, capsys):
-    write_json(isolated_vcs.index_file, {"head": None, "deployed": None, "commits": []})
+    write_json(
+        isolated_vcs.index_file, {"head": None, "deployed": None, "commits": []}
+    )
 
     vcs.log(SimpleNamespace())
 
