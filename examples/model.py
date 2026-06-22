@@ -1,11 +1,3 @@
-"""Case-study training pipeline for the deployment module.
-
-The script builds a small but realistic classification pipeline and writes the
-artifacts expected by the deployment tooling.  It can train from a local CSV,
-from a CSV URL, or from a built-in sklearn dataset with a couple of extra
-categorical columns added for preprocessing demos.
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -19,7 +11,7 @@ repo_root = Path(__file__).resolve().parents[3]
 if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
 
-from accelera.src.config import config as accelera_config
+from accelera.src.config import config as accelera_config  # noqa: E402
 
 CONFIG = {
     "dataset_path": None,

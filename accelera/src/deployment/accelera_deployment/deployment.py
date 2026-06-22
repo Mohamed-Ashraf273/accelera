@@ -343,6 +343,9 @@ def _remote_script(args):
     port = validate_port(args.port)
     image_name = args.image
     container_name = args.container
+    docker_ps_format = (
+        "container={.Names} image={.Image} status={.Status} ports={.Ports}"
+    )
     docker_build = "sudo " + " ".join(
         shlex.quote(part)
         for part in _docker_build_command(
@@ -411,7 +414,7 @@ for attempt in 1 2 3 4 5; do
   sleep 2
 done
 sudo docker ps --filter name={shlex.quote(container_name)} \
-  --format 'container={{{{.Names}}}} image={{{{.Image}}}} status={{{{.Status}}}} ports={{{{.Ports}}}}'
+  --format {shlex.quote(docker_ps_format)}
 echo "Application URL: http://{args.host}:{port}"
 echo "GUI URL: http://{args.host}:{port}/gui"
 """.strip()

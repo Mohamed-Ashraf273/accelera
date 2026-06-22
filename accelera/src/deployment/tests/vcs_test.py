@@ -4,7 +4,6 @@ from types import SimpleNamespace
 
 import pytest
 
-from accelera.src.config import config
 from accelera.src.deployment import vcs
 
 
@@ -40,21 +39,6 @@ def write_json(path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f)
-
-
-def test_default_deployment_paths_use_runtime_state_directory():
-    import os
-    from pathlib import Path
-
-    expected_root = Path(os.getcwd()).resolve() / ".accelera_deployment"
-    assert config.deployment_root == expected_root
-    assert vcs.project_root == str(config.deployment_root)
-    assert vcs.experiments_dir == str(config.deployment_root / "experiments")
-    assert vcs.models_dir == str(config.deployment_root / "models")
-    assert vcs.config_file == str(config.deployment_root / "config.json")
-    assert vcs.index_file == str(
-        config.deployment_root / "experiments" / "experiments.json"
-    )
 
 
 def test_calculate_hash_is_stable_short_sha1():

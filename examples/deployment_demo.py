@@ -1,5 +1,6 @@
 import os
 import shutil
+import subprocess
 import sys
 import urllib.request
 from pathlib import Path
@@ -52,8 +53,6 @@ vcs.log(SimpleNamespace())
 
 # 5. Deploy to EC2
 print("\n5: Deploying models to EC2")
-import subprocess
-
 python_bin = sys.executable
 deploy_script = (
     Path(__file__).resolve().parents[1]
