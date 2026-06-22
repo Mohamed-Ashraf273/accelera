@@ -6,8 +6,13 @@ class E2EBase:
         self.config = None
         self.graph = None
 
+<<<<<<< HEAD
     def __call__(self, content, config=None, graph=None):
         return self._run(content, config=config, graph=graph)
+=======
+    def __call__(self, *args, **kwargs):
+        return self._run(*args, **kwargs)
+>>>>>>> ee06af6 (integrate e2e)
 
     def _is_google_drive_url(self, value: str) -> bool:
         try:
@@ -29,7 +34,7 @@ class E2EBase:
         # To be implemented
         pass
 
-    def _run(self, content, config=None, graph=None):
+    def _run(self):
         raise NotImplementedError(
             "This data type is not supported for Accelera E2E."
         )
