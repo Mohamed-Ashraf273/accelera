@@ -3,17 +3,42 @@ import hashlib
 import json
 import os
 import shutil
+import sys
 from datetime import datetime
+from pathlib import Path
 
-from accelera.src.config import config
+repo_root = Path(__file__).resolve().parents[3]
+if str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
 
-project_root = str(config.deployment_root)
-experiments_dir = str(config.deployment_experiments_dir)
-models_dir = str(config.deployment_models_dir)
-config_file = str(config.deployment_config_file)
-index_file = str(config.deployment_index_file)
+from accelera.src.config import config  # noqa: E402
 
 
+def _path(name):
+    val = globals().get(name)
+    if val is not None:
+        return val
+    if name == "project_root":
+        return str(config.deployment_root)
+    if name == "experiments_dir":
+        return str(config.deployment_experiments_dir)
+    if name == "models_dir":
+        return str(config.deployment_models_dir)
+    if name == "config_file":
+        return str(config.deployment_config_file)
+    if name == "index_file":
+        return str(config.deployment_index_file)
+    raise AttributeError(name)
+
+
+def __getattr__(name):
+    try:
+        return _path(name)
+    except AttributeError:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+##helpers
 def calculate_hash(t, message):
     encoded = f"{t}{message}".encode()
     return hashlib.sha1(encoded).hexdigest()[:7]
@@ -24,11 +49,13 @@ def resolve_hash(index, short_hash):
 
 
 def save_index(index):
+    index_file = _path("index_file")
     with open(index_file, "w") as f:
         json.dump(index, f)
 
 
 def load_index():
+    index_file = _path("index_file")
     if not os.path.exists(index_file):
         print(f"Index file not found at {index_file}")
         raise SystemExit(1)
@@ -38,11 +65,26 @@ def load_index():
 
 ################### Commands
 def init(args):
+    if globals().get("index_file") is not None:
+        index_file = globals()["index_file"]
+        experiments_dir = globals()["experiments_dir"]
+        if os.path.exists(index_file):
+            print("Deployment module already initialized")
+            return
+        os.makedirs(experiments_dir, exist_ok=True)
+        save_index({"head": None, "deployed": None, "commits": []})
+        print(f"Deployment initialized at {experiments_dir}")
+        return
+
+    local_root = Path(os.getcwd()).resolve() / ".accelera_deployment"
+    experiments_dir = local_root / "experiments"
+    index_file = experiments_dir / "experiments.json"
     if os.path.exists(index_file):
         print("Deployment module already initialized")
         return
     os.makedirs(experiments_dir, exist_ok=True)
-    save_index({"head": None, "deployed": None, "commits": []})
+    with open(index_file, "w") as f:
+        json.dump({"head": None, "deployed": None, "commits": []}, f)
     print(f"Deployment initialized at {experiments_dir}")
 
 
@@ -51,6 +93,10 @@ def commit(args):
     if not message:
         print("Commit Message is required")
         raise SystemExit(1)
+
+    config_file = _path("config_file")
+    models_dir = _path("models_dir")
+    experiments_dir = _path("experiments_dir")
 
     if not os.path.exists(config_file):
         print(f"Config file not found at {config_file}")
@@ -130,6 +176,7 @@ def log(args):
 def show(args):
     index = load_index()
     commit = resolve_hash(index, args.hash)
+    experiments_dir = _path("experiments_dir")
     commit_dir = os.path.join(experiments_dir, commit["hash"])
 
     deployed = index.get("deployed")
@@ -160,10 +207,14 @@ def show(args):
 def deploy(args):
     index = load_index()
     commit = resolve_hash(index, args.hash)
+    experiments_dir = _path("experiments_dir")
     commit_dir = os.path.join(experiments_dir, commit["hash"])
 
     config = os.path.join(commit_dir, "config.json")
     models = os.path.join(commit_dir, "models")
+
+    config_file = _path("config_file")
+    models_dir = _path("models_dir")
 
     shutil.copy2(config, config_file)
 
@@ -175,9 +226,7 @@ def deploy(args):
     save_index(index)
 
     print(f"deployed {commit['hash']}")
-    print(
-        "'python accelera_deployment/deployment.py' to build and start the container"
-    )
+    print("run deployment.py to build and start the container")
 
 
 def status(args):

@@ -4,8 +4,13 @@ from typing import Any
 from typing import List
 
 import numpy as np
-from schema_validation import InputSchema
-from tracking import PredictionTracker
+
+try:
+    from .schema_validation import InputSchema
+    from .tracking import PredictionTracker
+except ImportError:
+    from schema_validation import InputSchema
+    from tracking import PredictionTracker
 
 
 class ModelService:
