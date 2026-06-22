@@ -1,0 +1,55 @@
+{
+  "source": "sklearn:wine_10_features_with_categorical",
+  "created_at": "2026-06-22T21:08:06.573368",
+  "target_column": "target",
+  "rows": 178,
+  "columns": [
+    "alcohol",
+    "malic_acid",
+    "ash",
+    "alcalinity_of_ash",
+    "magnesium",
+    "total_phenols",
+    "flavanoids",
+    "color_intensity",
+    "hue",
+    "proline",
+    "target",
+    "color_group",
+    "proline_class"
+  ],
+  "feature_columns": [
+    "alcohol",
+    "malic_acid",
+    "ash",
+    "alcalinity_of_ash",
+    "magnesium",
+    "total_phenols",
+    "flavanoids",
+    "color_intensity",
+    "hue",
+    "proline",
+    "color_group",
+    "proline_class"
+  ],
+  "dtypes": {
+    "alcohol": "float64",
+    "malic_acid": "float64",
+    "ash": "float64",
+    "alcalinity_of_ash": "float64",
+    "magnesium": "float64",
+    "total_phenols": "float64",
+    "flavanoids": "float64",
+    "color_intensity": "float64",
+    "hue": "float64",
+    "proline": "float64",
+    "target": "object",
+    "color_group": "object",
+    "proline_class": "object"
+  },
+  "target_distribution": {
+    "cultivar_2": 71,
+    "cultivar_1": 59,
+    "cultivar_3": 48
+  }
+}
