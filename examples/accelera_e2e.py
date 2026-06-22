@@ -1,7 +1,11 @@
+from sklearn.metrics import r2_score
+
 from accelera.src.accelera_pipe.core.pipeline import Pipeline
 from accelera.src.e2e.tabular.e2e import E2E
 
-graoh = Pipeline()
+graph = Pipeline()
+
+
 e2e = E2E()
 
 config = {
@@ -11,8 +15,9 @@ config = {
 }
 
 predictions, executed_graph = e2e(
-    content="https://drive.google.com/file/d/1VMtLcWDcigwkimpf-eWVMZ7zJMUf7wxs/view?usp=drive_link",
+    content="https://drive.google.com/uc?id=1VMtLcWDcigwkimpf-eWVMZ7zJMUf7wxs",
     config=config,
 )
+y_test = predictions[1]
 
-print(predictions)
+print(r2_score(y_test, predictions[0]))
