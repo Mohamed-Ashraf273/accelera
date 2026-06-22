@@ -118,32 +118,66 @@
 \newcommand{\warncell}{\cellcolor{warningyellow}}
 
 \begin{document}
-
 \begin{titlepage}
 \thispagestyle{empty}
+
+
+\vspace*{0.5cm}
+
+% Cairo University logo
+\includegraphics[width=0.12\textwidth]{imgs/CU_logo.png}\\\\
+{\fontsize{12}{14}\selectfont Cairo University}\\
+{\fontsize{12}{14}\selectfont Faculty of Engineering}\\
+{\fontsize{12}{14}\selectfont Department of Computer Engineering}\\
+
 \centering
-\vspace*{1.4cm}
-{\color{covergreen}\rule{\textwidth}{2.2pt}}\\[1.0cm]
-\includegraphics[width=0.18\textwidth]{imgs/accelera.png}\\[0.45cm]
-{\Large Cairo University}\\[0.18cm]
-{\Large Faculty of Engineering}\\[0.18cm]
-{\Large Department of Computer Engineering}\\[1.2cm]
-{\color{covergreen}\bfseries\fontsize{28}{34}\selectfont Accelera}\\[0.45cm]
-{\Large A Graduation Project Report Submitted}\\[0.28cm]
-{\large to}\\[0.28cm]
-{\Large Faculty of Engineering, Cairo University}\\[0.28cm]
-{\large in Partial Fulfillment of the Requirements for the Degree of}\\[0.28cm]
-{\Large Bachelor of Science in Computer Engineering}\\[1.35cm]
-{\bfseries\Large Presented by}\\[0.4cm]
-\begin{tabular}{p{0.38\textwidth}p{0.38\textwidth}}
-Mohamed Ashraf \hfill  & Nesma Osama \hfill  \\
-Mazen Adel \hfill & Mohamed Khater \hfill  \\
-\end{tabular}\\[0.4cm]
-{\bfseries\Large Supervised by}\\[0.3cm]
-{\Large Dr. Salma Abdel monem}\\[0.3cm]
-{\large April 17, 2026}\\[0.3cm]
-{\color{covergreen}\rule{\textwidth}{2.2pt}}\\[0.2cm]
-\parbox{0.88\textwidth}{\centering\small All rights reserved. This report may not be reproduced in whole or in part, by photocopying or other means, without the permission of the authors or department.}
+{\bfseries\fontsize{24}{28}\selectfont Accelera}
+
+\vspace{1.0cm}
+
+\includegraphics[width=0.2\textwidth]{imgs/accelera.png}
+
+\vspace{0.4cm}
+
+{\fontsize{12}{14}\selectfont
+A Graduation Project Report Submitted\\
+to\\[0.15cm]
+Faculty of Engineering, Cairo University\\[0.15cm]
+in Partial Fulfillment of the Requirements for the Degree\\[0.15cm]
+of\\[0.15cm]
+Bachelor of Science in Computer Engineering.
+}
+\vspace{1.0cm}
+
+{\bfseries\fontsize{16}{14}\selectfont Presented by}
+
+\vspace{0.3cm}
+
+{\fontsize{14}{16}\selectfont
+\begin{tabular}{>{\centering\arraybackslash}p{0.35\textwidth}>{\centering\arraybackslash}p{0.35\textwidth}}
+Mohamed Ashraf & Nesma Osama \\
+Mazen Adel & Mohamed Khater \\
+\end{tabular}
+}
+\vspace{0.8cm}
+
+{\bfseries\fontsize{16}{14}\selectfont Supervised by}
+
+\vspace{0.2cm}
+
+{\fontsize{14}{14}\selectfont Dr. Salma Abdel Monem}
+
+\vspace{0.3cm}
+
+{\fontsize{12}{14}\selectfont April 17, 2026}
+
+\vfill
+
+{\fontsize{11}{14}\selectfont
+All rights reserved. This report may not be reproduced in whole or in part,
+by photocopying or other means, without the permission of the authors or department.
+}
+
 \end{titlepage}
 
 \pagenumbering{roman}
@@ -205,20 +239,31 @@ $F(L)$ & Feature representation of loop $L$ \\
 
 \clearpage
 \chapter*{Contacts}
-\addcontentsline{toc}{chapter}{Contacts}
-\textbf{Team Members}\\[0.35cm]
-\begin{tabular}{ll}
-\textbf{Name} & \textbf{University ID} \\
-\midrule
-Mohamed Ashraf & 9220658 \\
-Nesma Osama & 9220912 \\
-Mazen Adel & 9220625 \\
-Mohamed Khater & 9220713 \\
-\end{tabular}\\[1cm]
-\textbf{Supervisor}\\[0.35cm]
-\begin{tabular}{l}
-Dr. Salma Abdel monem \\
+
+\noindent{\fontsize{12}{14}\selectfont \underline{Team Members}}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|p{0.25\textwidth}|p{0.42\textwidth}|p{0.25\textwidth}|}
+\hline
+\textbf{Name} & \textbf{Email} & \textbf{Phone Number} \\ \hline
+Name of Student 1 & \underline{abc1@email.com} & +2 01xxxxxxxx \\ \hline
+Nesma Osama & \underline{nesma.ahmed03@eng-st.cu.edu.eg} & +2 01067193062 \\ \hline
+Name of Student 3 & \underline{abc1@email.com}  & +2 01xxxxxxxx \\ \hline
+Name of Student 4 & \underline{abc1@email.com}  & +2 01xxxxxxxx \\ \hline
 \end{tabular}
+\end{table}
+
+
+\noindent{\fontsize{12}{14}\selectfont \underline{Supervisor}}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|p{0.25\textwidth}|p{0.42\textwidth}|p{0.25\textwidth}|}
+\hline
+\textbf{Name} & \textbf{Email} & \textbf{Number} \\ \hline
+Salma Abdelmoniem & \underline{abc1@email.com}  & +2 01114302362 \\ \hline
+\end{tabular}
+\end{table}
+
 
 \clearpage
 \pagenumbering{arabic}
@@ -258,30 +303,307 @@ results. Chapter 6 concludes the report and records future work. The appendices
 retain the required development, user-guide, and feasibility-study sections.
 
 \chapter{Market Visibility Study}
+
+In this chapter, we will identify Accelera's target customers, talk about similar tools and platforms in the market, discuss the weaknesses and gaps in current solutions, and present the business case and financial analysis of the system.
+
 \section{Targeted Customers}
-\mbox{}
+
+Our targeted customers are data scientists and machine learning engineers, both beginners and experts. Accelera aims to support these users by providing a tool that automates and accelerates several steps in the data science life cycle. This helps users reduce repetitive manual work, and save time.
 
 \section{Market Survey}
+
+Many existing platforms provide useful features for data science and machine learning development, but these features are often available in separate tools or are limited to specific parts of the workflow. However, Accelera aims to provide these features within one toolkit.
+
 \mbox{}
+
+\subsection{AutoCleanML}
+
+AutoCleanML is a Python tool that focuses mainly on automating data cleaning and preprocessing tasks for machine learning datasets.
+
+\textbf{Pros:}
+\begin{itemize}
+\item Makes ML data preprocessing automatic and intelligent
+\item Provides a report that explains the preprocessing decisions made by the tool.
+\end{itemize}
+
+\textbf{Cons:}
+\begin{itemize}
+\item Its scope is mostly limited to data cleaning and preprocessing.
+\item It does not support preprocessing for image and text datasets.
+\end{itemize}
+\subsection{Kaggle}
+
+Kaggle is an online platform where the data science and machine learning community comes together. It is best known for its competition platform.
+
+\textbf{Pros:}
+\begin{itemize}
+\item It introduces competitions.
+\item It ranks users in competitions.
+\item It has many public datasets.
+\end{itemize}
+
+\textbf{Cons:}
+\begin{itemize}
+\item It depends mainly on notebook-style work, so projects can become difficult to organize.
+\item Kaggle mainly focuses on competitions, and datasets, rather than providing a complete machine learning workflow in one toolkit.
+
+\end{itemize}
 
 \section{Business Case and Financial Analysis}
 \mbox{}
 
 \chapter{Literature Survey}
+In this chapter, we provide an overview of the topics, algorithms and techniques needed to understand
+the project as a whole. First, we discuss the technical topics and background
+knowledge that we learned from different research sources. Second, we summarize
+related papers to our project.
 \section{Background and Previous Work}
-\input{sections/literature-mohamed}
+This section explains the main concepts and techniques related to the
+Accelera modules.
+\subsection{Data Science}
+Data science is a field that extracts knowledge and insights from data using
+scientific methods, processes, and algorithms.
+\subsection{Machine Learning}
+Machine learning is a field of artificial intelligence that allows computers to
+learn patterns from data without being explicitly programmed for every rule. A
+machine learning model is trained using examples, and then it uses what it
+learned to make predictions on new data.
+\subsection{Supervised Machine Learning}
+In supervised learning, the dataset contains input features and a known target output.
+
+\subsection{Classification}
+Classification is a supervised machine learning task where the output is a class
+or category. For example, a model can classify a medical case as positive or negative, or an image as one of several object
+classes.
+
+\subsection{Regression}
+Regression is a supervised machine learning task where the output is a
+continuous numerical value. For example, a model can predict house prices,
+temperature, sales, or car prices. Unlike classification, the result is not a
+category but a number.
+\subsection{Natural Language Processing NLP}
+Natural Language Processing is a field that focuses on enabling computers to understand and process human language. Text data cannot be used directly by most machine learning models, so it must first be cleaned and converted into numerical features.
+
+\subsection{Data Understanding}
+Data understanding is the stage where the dataset is explored before applying
+machine learning. In this stage, the user tries to know what the dataset
+contains, what each column means, the type of each feature, the size of the
+dataset, and whether there are problems such as missing values, duplicated
+records, or imbalanced classes.
+
+\subsection{Exploratory Data Analysis}
+Exploratory Data Analysis is the process of analyzing and visualizing
+the dataset to understand its main properties. It can include summary
+statistics, missing value counts, class distribution,
+feature distributions, and correlation between numerical features.
+
+
+\subsection{Data Preprocessing}
+Data preprocessing is the stage of transforming raw data into a clean and usable
+format for machine learning models. Raw datasets often contain missing values,
+duplicated rows, categorical text values, different numerical ranges, noisy text,
+or images with different sizes. These problems must be handled before training a
+model.
+
+\subsection{Missing Value Imputation}
+Missing value imputation is a preprocessing technique used when some values in a
+dataset are empty or unknown. Instead of removing all rows that contain missing
+values, the missing values can be replaced using a suitable value. For numerical
+features, common choices are the mean or median. For categorical features, the
+most frequent value is often used.
+
+\subsection{Robust Scaling}
+Robust scaling is a scaling technique that uses the median and the
+interquartile range instead of the mean and standard deviation. This makes it
+useful when the data contains outliers, because extreme values affect the median
+less than they affect the mean.
+\[
+x' = \frac{x - \mathop{\mathrm{median}}(X)}{\mathop{\mathrm{IQR}}(X)}
+\]
+where $x'$ is the scaled value, $x$ is the original value,
+$\mathop{\mathrm{median}}(X)$ is the median of the feature values, and
+$\mathop{\mathrm{IQR}}(X)$ is the interquartile range.
+\subsection{Categorical Encoding}
+Categorical encoding is the process of converting text categories into numeric
+values. Many traditional machine learning models and preprocessing pipelines
+expect numerical input.
+
+\subsection{Label Encoding}
+Label encoding is a simple encoding technique that converts each category into a
+number. 
+
+\subsection{Binary Encoding}
+Binary encoding is a categorical encoding technique that first gives each
+category a number, then converts this number into binary form. The binary digits
+are then stored as separate columns. 
+
+\subsection{Frequency Encoding}
+Frequency encoding replaces each category with how often it appears in the
+dataset. If a category appears many times, it receives a higher frequency value.
+\[
+f(c) = \frac{\mathop{\mathrm{count}}(c)}{N}
+\]
+where $f(c)$ is the frequency of category $c$,
+$\mathop{\mathrm{count}}(c)$ is the number of rows containing this category,
+and $N$ is the total number of rows.
+
+\subsection{ Term Frequency-Inverse Document Frequency TF-IDF}
+It is a technique used to convert text into numerical features by giving each word a weight based
+on how important it is in a document and across the whole dataset.
+Term Frequency measures how often a word appears in a document. Inverse Document
+Frequency gives lower weight to words that appear in many documents, because
+these words are usually less useful for classification.
+\[
+TFIDF(t,d) = TF(t,d) \times IDF(t)
+\]
+where $TFIDF(t,d)$ is the weight of term $t$ in document $d$, $TF(t,d)$ is the
+frequency of the term in the document, and $IDF(t)$ measures how rare the term
+is across all documents.
+
+
+
+\subsection{Image Preprocessing}
+Image preprocessing prepares image data before it is used by a deep learning
+model. Images may have different sizes, formats, or pixel ranges, so they need
+to be converted into a consistent form. Common image preprocessing steps include
+loading images, validating that they are readable, resizing them, and normalizing
+pixel values.
+
+Pixel normalization usually converts image values from the range $[0,255]$ to a
+smaller range such as $[0,1]$ using:
+\[
+x' = \frac{x}{255}
+\]
+where $x$ is the original pixel value and $x'$ is the normalized value.
+
+
+\subsection{Classification Evaluation Metrics}
+Classification metrics are used to evaluate the performance of a classification
+model. Accuracy measures how many predictions are correct out of all predictions:
+\[
+Accuracy = \frac{TP + TN}{TP + TN + FP + FN}
+\]
+where $TP$ is true positives, $TN$ is true negatives, $FP$ is false positives,
+and $FN$ is false negatives.
+
+Precision measures how many predicted positive samples are actually positive:
+\[
+Precision = \frac{TP}{TP + FP}
+\]
+Recall measures how many actual positive samples were correctly detected:
+\[
+Recall = \frac{TP}{TP + FN}
+\]
+The F1-score combines precision and recall:
+\[
+F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}
+\]
+
+
+\subsection{Regression Evaluation Metrics}
+Regression metrics are used when the model predicts continuous numerical values.
+Mean Absolute Error measures the average absolute difference between the real
+values and predicted values:
+\[
+MAE = \frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|
+\]
+where $y_i$ is the actual value and $\hat{y}_i$ is the predicted value.
+
+Mean Squared Error gives more penalty to large errors:
+\[
+MSE = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
+\]
+
 
 \section{Comparative Study of Previous Work}
 \mbox{}
+\subsection{Data Preprocessing and Feature Engineering for Data Mining:
+Techniques, Tools, and Best Practices ~\cite{preprocessing_feature_engineering}}
+This paper discusses the role of data preprocessing and feature engineering in
+machine learning and data mining projects. It explains that preprocessing is not
+only a preparation step before model training, but also an important part of the
+complete machine learning pipeline.
+The paper presents a general preprocessing framework that includes data
+cleaning, data transformation, feature construction, feature selection, and
+dimensionality reduction. For each stage, it explains different techniques and
+discusses the advantages and disadvantages of each one.
+
 
 \section{Implemented Approach}
-\mbox{}
+\subsection{Auto Preprocessing}
+Based on the techniques reviewed in the previous section, this project
+implements an automated preprocessing approach for tabular datasets. The
+approach was designed to prepare data for machine learning models by applying
+suitable preprocessing steps automatically according to the type and
+characteristics of each column.
+
+The general framework of the approach is as follows:
+\begin{enumerate}
+  \item Load the dataset and define the target column.
+  \item Remove duplicate records.
+  \item Split the data into training and validation sets.
+  \item Analyze each column using data type, missing percentage, unique values,
+  and basic statistics.
+  \item Drop unsuitable columns, such as constant columns or columns with
+  missing values above the selected threshold.
+  \item Detect column types automatically.
+  \item Apply missing-value imputation.
+  \item Apply categorical encoding.
+  \item Apply robust scaling.
+  \item Apply feature selection using mutual information.
+  \item Save the preprocessing pipeline and generate a report.
+\end{enumerate}
+
+\noindent The chosen approach follows a classical automated preprocessing pipeline. The
+main preprocessing decisions are summarized as follows:
+
+\begin{itemize}
+  \item \textbf{Missing values:} Median imputation is used for numerical
+  features because it is simple and more robust to outliers than mean
+  imputation. For categorical features, most-frequent imputation is used because
+  it replaces missing values with valid existing categories.
+
+  \item \textbf{Numerical scaling:} \texttt{RobustScaler} is used for numerical
+  features because tabular datasets may contain outliers or skewed values. It
+  depends on the median and interquartile range, which makes it more stable than
+  standard scaling when extreme values exist.
+
+  \item \textbf{Categorical encoding:} The encoding method is selected according
+  to the feature type and cardinality. Binary columns are encoded using ordinal
+  encoding, low-cardinality categorical columns are encoded using binary
+  encoding, and high-cardinality categorical columns are encoded using frequency
+  encoding. This helps reduce the number of generated features and avoids high
+  dimensionality.
+
+  \item \textbf{Feature selection:} Mutual information is used because it is a
+  filter-based method that can work with both classification and regression
+  tasks. It helps keep the most informative features and remove weak features
+  before model training.
+\end{itemize}
+
+\noindent This approach was chosen because it gives a good balance between automation,
+simplicity, speed, and interpretability. More advanced techniques, such as
+K-nearest neighbour imputation, autoencoders, and wrapper feature selection, can
+be useful in specific cases, but they need more computation and tuning. For this
+reason, classical preprocessing techniques were selected because they are more
+suitable for a general automated tabular preprocessing framework.
+
+\noindent Another important addition in this project is that the module is not
+only used for data preparation. It also supports exploratory data analysis
+, where the generated report helps the user explore and understand  The report includes useful information
+such as dataset size, column types, missing values, duplicates, visualizations,
+and the preprocessing steps applied.
+
+\noindent In addition, the module was extended to support text and image data
+preparation, not only tabular data. For text data, the system cleans the text
+and converts it into numerical features for classification. For image data, the
+system loads, validates, resizes, and normalizes the images to prepare them for
+image classification.
 
 \chapter{System Design and Architecture}
 \section{Overview and Assumptions}
-Accelera is a machine learning toolkit that provides a set of modules designed to help users through different stages of the data science workflow. the system allows users to access and use each module according to their specific needs.
-The toolkit consists of six main modules that automate repetitive tasks often exist in machine learning projects. These modules aim to reduce manual effort, improve productivity, and speed up experimentation and model development.
-Each module has its own set of assumptions, which will be listed separately.
+This section introduces the assumptions made for each module in Accelera and
+explains why these assumptions were needed during the implementation.
 \subsection{Accelera Pipeline Assumptions}
 The system combines Python-facing APIs with native execution components. The
 design assumes that machine-learning workflows can be represented as a graph
@@ -378,7 +700,146 @@ available in the previous thesis.
 \input{sections/methdoloy-mohamed}
 
 \section{AutoPreprocessing Module}
-\input{sections/methodology-nesma}
+\noindent The AutoPreprocessing module is responsible for automating the data
+understanding, exploratory data analysis, and preprocessing stages of the data
+science workflow. The module was designed to reduce repeated manual work and to
+prepare different types of datasets in a consistent way before model training.
+
+\subsection{Functional Description}
+\noindent The main function of this module is to receive a dataset and user configuration,
+then return processed data that is ready for machine learning or deep learning
+models. The module supports tabular, text, and image datasets.
+
+\noindent For tabular datasets, the module supports both classification and regression
+tasks. It analyzes the dataset, removes duplicate records, splits the data into
+training and validation sets, detects column types, handles missing values,
+encodes categorical features, scales numerical features, applies target
+preprocessing, performs feature selection, and saves the preprocessing objects
+needed later for test data.
+
+\noindent For text datasets, the module supports classification tasks. It cleans the text,
+tokenizes it, applies text preprocessing steps, and converts the text into a
+numerical representation suitable for machine learning models. For image
+datasets, the module supports image classification by reading images from class
+folders, validating image files, resizing images, normalizing pixel values, and
+preparing the data loaders needed for training.
+
+\noindent The module also generates a report when this option is enabled. The report
+summarizes information about the dataset and the preprocessing steps applied.
+For example, in tabular data, it includes dataset shape, column types, missing
+values, duplicate analysis, generated graphs, removed columns, and previews of
+the processed data.
+
+\subsection{Modular Decomposition}
+\noindent The AutoPreprocessing module is decomposed into smaller components according to
+the dataset type and the stage of preprocessing.
+
+\subsubsection{Input and Configuration Validation}
+\noindent This component receives the user inputs, such as the dataset, target column,
+problem type, output folder, validation size, random state, missing-value
+threshold, cardinality threshold, and report flag. It validates these values
+before running the pipeline to prevent invalid configurations, such as a wrong
+target column, unsupported problem type, or invalid threshold values.
+
+\subsubsection{Data Understanding and Reporting}
+\noindent This component collects the first information about the dataset before
+preprocessing. It stores dataset previews, column data types, missing values,
+duplicate count, dataset shape, numerical statistics, and categorical
+statistics. These results are saved in a report structure and later used to
+generate the final preprocessing report.
+
+\subsubsection{Tabular Preprocessing}
+\noindent This component handles structured data organized in rows and columns. It first
+removes duplicates, then splits the dataset into training and validation sets.
+After that, it detects feature types such as binary, ordinal, numerical,
+continuous, low-cardinality categorical, high-cardinality categorical, and
+unsupported columns.
+
+\noindent Each feature type has its own preprocessing pipeline. Numerical and continuous
+features use median imputation followed by robust scaling. Binary features use
+most-frequent imputation followed by ordinal encoding. Low-cardinality
+categorical features use most-frequent imputation followed by binary encoding.
+High-cardinality categorical features use most-frequent imputation followed by
+frequency encoding. Unsupported columns and columns above the missing-value
+threshold are removed.
+
+\subsubsection{Target Preprocessing}
+\noindent This component prepares the target column. For classification, missing target
+values are filled using the most frequent class, then the target is transformed
+using label encoding. For regression, missing target values are filled using
+the median, then robust scaling is applied to the target values.
+
+\subsubsection{Feature Selection}
+\noindent After preprocessing the input features, mutual information is used to select
+the most informative features. For classification, mutual information
+classification is used. For regression, mutual information regression is used.
+Only features with scores greater than or equal to the selected threshold are
+kept.
+
+\subsubsection{Text Preprocessing}
+\noindent This component handles text classification datasets. It validates the text
+configuration, cleans the text, applies tokenization and text normalization, and
+converts the processed text into numerical features. The generated
+preprocessing objects are saved so the same transformations can be applied to
+testing data.
+
+\subsubsection{Image Preprocessing}
+\noindent This component handles image classification datasets. Images are collected from
+class folders and assigned labels based on their folder names. The system
+checks whether images can be loaded correctly, removes invalid images, resizes
+valid images, normalizes pixel values, and applies optional augmentation such
+as flipping, rotation, brightness adjustment, and contrast adjustment.
+
+\subsubsection{Artifact Saving}
+\noindent This component saves the objects required to reproduce the same preprocessing
+steps later. Examples include selected columns, dropped columns, feature names,
+target preprocessor, training preprocessor, class mappings, and report data.
+This makes the preprocessing pipeline reusable for validation, testing, or
+future prediction.
+
+\subsection{Design Constraints}
+\noindent Several constraints affected the design of the AutoPreprocessing module:
+
+\begin{itemize}
+  \item The module must avoid data leakage. For this reason, preprocessing
+  objects are fitted only on the training data and then applied to validation
+  or testing data.
+
+  \item The module must support different data types. Therefore, separate
+  preprocessing paths were designed for tabular, text, and image datasets.
+
+  \item The tabular path assumes that the data is structured in rows and
+  columns and that the task is either classification or regression.
+
+  \item The text path assumes that the dataset contains a text column and a
+  target label for a text classification task.
+
+  \item The image path assumes that image classification data follows a
+  folder-based class structure, where each folder represents one class.
+
+  \item The module must keep preprocessing reproducible. Therefore, fitted
+  preprocessing objects and selected features are saved for later use.
+
+  \item The module must be general enough for different datasets, so the design
+  uses rule-based decisions instead of manual preprocessing code for each
+  dataset.
+\end{itemize}
+
+\subsection{Other Description of the Module}
+\noindent The AutoPreprocessing module is not only designed to transform data. It is also
+designed to help the user understand the dataset before and after
+preprocessing. This is achieved through the generated report and visualizations.
+For tabular data, the report can show missing-value statistics, duplicate
+information, feature distributions, target distribution, correlation matrix,
+removed columns, preprocessing decisions, and previews of the final processed
+training and validation data.
+
+\noindent Another important design point is that the module separates training
+preprocessing from testing preprocessing. During training, the module fits the
+preprocessing objects and saves them. During testing, the saved objects are
+loaded and applied directly, which ensures that new data is transformed in the
+same way as the training data.
+
 
 \section{AutoML Module}
 \mbox{}
@@ -387,7 +848,104 @@ available in the previous thesis.
 \mbox{}
 
 \section{Benchmark Platform Module}
-\mbox{}
+\noindent The Benchmark Platform module is designed to provide a shared
+environment where users can create machine learning benchmarks, submit
+predicted results, and compare submissions using selected evaluation metrics.
+The module includes a backend API, database schemas, Python validation and
+scoring scripts, and a frontend interface for users and admins.
+
+\subsection{Functional Description}
+\noindent The main function of this module is to support fair comparison
+between different machine learning solutions. A user can create a benchmark by
+providing the benchmark title, description, problem type, target column,
+dataset link, test dataset link, ground-truth target link, and evaluation
+metric. The system validates the provided links and checks that the test set
+does not contain the target column while the target file contains the expected
+target column.
+
+\noindent After a benchmark is created, other users can submit their prediction
+file and repository link. The system validates the submitted prediction file,
+calculates the score using the selected Scikit-learn metric, stores the
+submission, and displays submissions on a leaderboard. The leaderboard is
+ordered based on the metric configuration, where some metrics are better when
+their value is higher and others are better when their value is lower.
+
+\subsection{Modular Decomposition}
+\noindent The Benchmark Platform is decomposed into several smaller components:
+
+\subsubsection{Benchmark Management}
+\noindent This component handles benchmark creation, listing, filtering, viewing,
+and deletion. It stores benchmark information such as title, description,
+problem type, dataset links, target column, selected metric, metric parameters,
+creation date, and creator.
+
+\subsubsection{Metric Management}
+\noindent This component allows admin users to define evaluation metrics. Each
+metric contains a display name, the corresponding Scikit-learn metric function
+name, needed parameters, problem type, and whether a higher or lower score is
+better. Metrics are linked to benchmarks and used during submission scoring.
+
+\subsubsection{Submission Management}
+\noindent This component allows users to submit prediction files for a specific
+benchmark. Each submission stores the benchmark id, submitting user, repository
+link, prediction file link, score, and submission date. Users can also update
+their existing prediction file or delete their submission if they have
+permission.
+
+\subsubsection{Validation and Scoring Scripts}
+\noindent The backend calls Python scripts to validate benchmark files and score
+submissions. During benchmark creation, the validation script checks that the
+test file does not include the target column and that the target file contains
+the required target column. During submission, the scoring script loads the
+ground-truth file and the submitted prediction file, checks their length and
+target column, then computes the selected Scikit-learn metric.
+
+\subsubsection{Leaderboard Interface}
+\noindent The frontend displays benchmark submissions in a leaderboard. It shows
+the submitter information, repository link, score, and submission date. The
+sorting direction depends on the selected metric, so the platform can support
+both metrics where higher is better and metrics where lower is better.
+
+\subsection{Design Constraints}
+\noindent Several constraints affected the design of the Benchmark Platform:
+
+\begin{itemize}
+  \item The module currently supports classification and regression problem
+  types only.
+
+  \item Dataset, test, target, and prediction files are provided using links,
+  mainly Google Drive file links, to reduce server storage requirements.
+
+  \item The test dataset must not contain the target column. This prevents data
+  leakage and makes the evaluation fair.
+
+  \item The target file and submitted prediction file must contain the selected
+  target column and must have the same number of rows.
+
+  \item Evaluation metrics must be defined using valid Scikit-learn metric
+  names because the scoring script calls Scikit-learn metrics dynamically.
+
+  \item Only authenticated users can create benchmarks or submit predictions.
+  Admin permission is required for metric creation.
+
+  \item A user is allowed to create only one active submission for the same
+  benchmark. If the user wants to change the result, the existing submission is
+  updated instead of creating duplicate submissions.
+\end{itemize}
+
+\subsection{Other Description of the Module}
+\noindent The Benchmark Platform separates benchmark creation from submission
+evaluation. This makes the workflow clearer: first, the benchmark creator
+defines the task and evaluation rules; then, users submit predictions under the
+same conditions. This separation helps ensure that all users are evaluated
+using the same ground-truth file and the same metric configuration.
+
+\noindent Another important design point is the use of Python scripts for file
+validation and metric scoring. The backend is implemented using Node.js and
+Express, while the scoring process uses Python because it depends on
+Scikit-learn metrics and dataset loading utilities already used in the project.
+This design allows the web platform to manage users, benchmarks, and
+submissions while Python handles the machine learning evaluation part.
 
 \chapter{System Testing and Verification}
 \section{Testing Setup}
@@ -440,6 +998,12 @@ coverage without weakening correctness checks.
 
 \chapter*{References}
 \addcontentsline{toc}{chapter}{References}
+\begin{thebibliography}{9}
+\bibitem{preprocessing_feature_engineering}
+``Data Preprocessing and Feature Engineering for Data Mining: Techniques,
+Tools, and Best Practices.'' Available at:
+\url{https://www.proquest.com/openview/17dfa731b6147c8939e3c5cc784897ce/1?pq-origsite=gscholar&cbl=5046920}
+\end{thebibliography}
 
 \appendix
 \chapter{Development Platforms and Tools}
