@@ -24,7 +24,19 @@ class Pipeline(PipelineBase):
         predictions = results[1:]
         return predictions, executed_graph
 
-    def preprocess(self, name, func, branch=False, cache=False):
+    def preprocess(
+        self, name, func, branch=False, cache=False, columns: list = None
+    ):
+        if columns is not None:
+            try:
+                from sklearn.compose import ColumnTransformer
+            except ImportError as e:
+                raise ImportError(f"{e}")
+            func = ColumnTransformer(
+                transformers=[(name, func, columns)],
+                remainder="passthrough",
+            )
+
         func = parallelizer.parallelize(func)
 
         func_params = {
