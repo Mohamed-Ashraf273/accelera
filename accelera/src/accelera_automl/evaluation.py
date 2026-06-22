@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from time import perf_counter
 
 import numpy as np
@@ -17,28 +16,48 @@ from .components import get_regression_components
 from .configspace_search_space import configuration_space_to_dict
 
 
-@dataclass
 class EvaluationResult:
-    model_name: str | None = None
-    params: dict | None = None
-    preprocessing: str | None = None
-    score: float = 0.0
-    cost: float = 0.0
-    duration: float = 0.0
-    status: str | None = None
-    error: str | None = None
-    evaluation_level_stage: int = 0
-    sample_fraction: float = 1.0
-    cv_folds: int = 5
-    model_budget: float = 1.0
+    def __init__(
+        self,
+        model_name=None,
+        params=None,
+        preprocessing=None,
+        score=0.0,
+        cost=0.0,
+        duration=0.0,
+        status=None,
+        error=None,
+        evaluation_level_stage=0,
+        sample_fraction=1.0,
+        cv_folds=5,
+        model_budget=1.0,
+    ):
+        self.model_name = model_name
+        self.params = params
+        self.preprocessing = preprocessing
+        self.score = score
+        self.cost = cost
+        self.duration = duration
+        self.status = status
+        self.error = error
+        self.evaluation_level_stage = evaluation_level_stage
+        self.sample_fraction = sample_fraction
+        self.cv_folds = cv_folds
+        self.model_budget = model_budget
 
 
-@dataclass
 class TrialSpecs:
-    stage: int = 0
-    sample_fraction: float = 1.0
-    cv_folds: int | None = None
-    model_budget: float = 1.0
+    def __init__(
+        self,
+        stage=0,
+        sample_fraction=1.0,
+        cv_folds=None,
+        model_budget=1.0,
+    ):
+        self.stage = stage
+        self.sample_fraction = sample_fraction
+        self.cv_folds = cv_folds
+        self.model_budget = model_budget
 
 
 class BaseModelEvaluator:
@@ -377,12 +396,12 @@ class RegressionEvaluator(BaseModelEvaluator):
     def __init__(
         self,
         *,
-        cv: int = 5,
-        scoring: str = "r2",
-        random_state: int | None = None,
-        n_jobs: int | None = None,
-        per_run_time_limit: float | None = None,
-    ) -> None:
+        cv=5,
+        scoring="r2",
+        random_state=None,
+        n_jobs=None,
+        per_run_time_limit=None,
+    ):
         super().__init__(
             cv=cv,
             scoring=scoring,
@@ -433,6 +452,6 @@ class RegressionEvaluator(BaseModelEvaluator):
             n_splits=1, train_size=target_size, random_state=self.random_state
         )
 
-    def resolve_cv_folds(self, y, requested_folds) -> int:
+    def resolve_cv_folds(self, y, requested_folds):
         sample_count = len(np.asarray(y).reshape(-1))
         return max(2, min(int(requested_folds), sample_count))

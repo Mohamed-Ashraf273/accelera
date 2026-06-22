@@ -431,7 +431,7 @@ class Optimizer:
                             num_of_completed_processes += 1
 
             if remaining_indices:
-                sleep(1)
+                sleep(.01)
 
         return results
 

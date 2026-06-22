@@ -1,0 +1,5 @@
+,mean_accuracy,mean_duration_seconds,accuracy_wins,speed_wins
+Auto-sklearn,0.884178,3615.705556,3,3
+FLAML,0.881427,3655.627778,6,0
+Accelera,0.879076,1201.722222,6,15
+TPOT,0.877654,3953.777778,8,1
