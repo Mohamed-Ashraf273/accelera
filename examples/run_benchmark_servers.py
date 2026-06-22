@@ -7,6 +7,9 @@ BENCHMARK = ROOT / "benchmark"
 processes = []
 
 try:
+    subprocess.run(["npm", "install"], cwd=BENCHMARK / "backend", check=True)
+    subprocess.run(["npm", "install"], cwd=BENCHMARK / "frontend", check=True)
+
     backend = subprocess.Popen(
         ["npm", "run", "dev"],
         cwd=BENCHMARK / "backend",
