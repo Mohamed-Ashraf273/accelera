@@ -1,6 +1,8 @@
 import subprocess
 from pathlib import Path
 
+from pyngrok import ngrok
+
 ROOT = Path(__file__).resolve().parents[1]
 BENCHMARK = ROOT / "benchmark"
 
@@ -22,6 +24,9 @@ try:
     )
     processes.append(frontend)
 
+    public_url = ngrok.connect(5173)
+    print(f"\nFrontend is available here: {public_url}\n")
+
     for p in processes:
         p.wait()
 
@@ -29,5 +34,7 @@ except KeyboardInterrupt:
     print("\nStopping servers...")
 
 finally:
+    ngrok.kill()
+
     for p in processes:
         p.terminate()

@@ -3,6 +3,7 @@ scikit-learn
 pandas==2.3.3
 numpy
 pybind11
+pyngrok
 --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Core Python Utilities
