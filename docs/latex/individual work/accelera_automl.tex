@@ -1048,6 +1048,486 @@ TPOT         & 0.877654 & 3953.78 & 8 & 1 \\
 
 \begin{figure}[H]
 \centering
+\includegraphics[width=0.78\textwidth]{average_accuracy_time.png}
+\caption{Mean classification accuracy and runtime for the evaluated systems.}
+\label{fig:classification-average}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.49\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{thesis_4_datasets_accuracy_bar.png}
+  \textbf{(a)} Accuracy
+\end{minipage}
+\begin{minipage}{0.49\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{thesis_4_datasets_duration_bar.png}
+  \textbf{(b)} Duration
+\end{minipage}
+\caption{Per-dataset classification accuracy and duration on common datasets.}
+\label{fig:classification-common}
+\end{figure}
+
+\section{Regression Results}
+
+Table~\ref{tab:regression-results} reports the stored regression summary. TPOT
+obtained the highest mean $R^2$ at 0.5671, followed by Auto-sklearn at 0.5478
+and Accelera at 0.5351. Accelera completed the recorded tasks in a mean of
+284.3 seconds, compared with approximately 1,800 seconds for each competing
+system. Thus, on the available measurements, Accelera traded a modest reduction
+in average predictive quality for a substantial reduction in runtime.
+
+\begin{table}[H]
+\centering
+\caption{Regression benchmark summary from the stored experiment results.}
+\label{tab:regression-results}
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+System & Mean $R^2$ & Median $R^2$ & Mean time (s) & $R^2$ wins & RMSE wins & MAE wins & Speed wins \\
+\midrule
+TPOT         & 0.567064 & 0.455565 & 1805.54 & 2 & 2 & 2 & 0 \\
+Auto-sklearn & 0.547839 & 0.469324 & 1829.64 & 2 & 2 & 2 & 0 \\
+Accelera     & 0.535125 & 0.426184 &  284.26 & 1 & 1 & 1 & 5 \\
+FLAML        & 0.527313 & 0.436010 & 1803.80 & 0 & 0 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{reg_average_r2_time.png}
+\caption{Mean regression $R^2$ and runtime for the evaluated systems.}
+\label{fig:regression-average}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.49\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{reg_thesis_4_datasets_r2_bar.png}
+  \textbf{(a)} $R^2$
+\end{minipage}
+\begin{minipage}{0.49\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{reg_thesis_4_datasets_duration_bar.png}
+  \textbf{(b)} Duration
+\end{minipage}
+\caption{Per-dataset regression $R^2$ and duration on common datasets.}
+\label{fig:regression-common}
+\end{figure}
+
+\section{Result Reproduction}
+
+Detailed
+environment preparation and benchmark commands are documented in the
+\modulepath{setup/reproduce\_results.md} file in that directory. A public
+reproduction repository will be provided at
+\url{https://github.com/EDIT-ME/accelera-benchmark-reproduction}; this
+placeholder URL should be replaced with the final repository link before
+publication.
+
+\section{Threats to Validity}
+
+The current results use a single benchmark fold, so they do not quantify
+variation across repeated train/test splits or random seeds. Runtime is also
+sensitive to hardware, operating-system load, framework startup overhead, and
+timeout handling. Finally, aggregate means can conceal dataset-level failures
+or missing measurements. Consequently, the tables support a comparison of the
+recorded runs but should not be interpreted as a universal ranking of AutoML
+systems. Repeated runs on controlled hardware and explicit reporting of failed
+tasks would strengthen the evaluation.
+
+\section{Chapter Summary}
+
+Across the stored experiments, Accelera achieved predictive results close to
+the strongest competing framework while requiring markedly less mean runtime.
+The classification results show a small accuracy difference relative to
+Auto-sklearn, and the regression results show a moderate $R^2$ difference
+relative to TPOT, accompanied in both cases by substantial runtime reductions.
+The complete stored artifacts and reproduction instructions are retained with
+the implementation so that the reported measurements can be inspected and
+rerun.
+
+% Discussion, conclusion, and future-work chapters are reserved for a later
+% revision.
+
+\begin{thebibliography}{99}
+
+\bibitem{autoweka}
+Chris Thornton, Frank Hutter, Holger H. Hoos, and Kevin Leyton-Brown.
+\newblock Auto-WEKA: Combined selection and hyperparameter optimization of
+classification algorithms.
+\newblock In \emph{Proceedings of the 19th ACM SIGKDD International Conference
+on Knowledge Discovery and Data Mining}, 2013.
+
+\bibitem{autosklearn}
+Matthias Feurer, Aaron Klein, Katharina Eggensperger, Jost Springenberg,
+Manuel Blum, and Frank Hutter.
+\newblock Efficient and robust automated machine learning.
+\newblock In \emph{Advances in Neural Information Processing Systems}, 2015.
+
+\bibitem{tpot}
+Randal S. Olson, Nathan Bartley, Ryan J. Urbanowicz, and Jason H. Moore.
+\newblock Evaluation of a tree-based pipeline optimization tool for automating
+data science.
+\newblock In \emph{Applications of Evolutionary Computation}, 2016.
+
+\bibitem{flaml}
+Chi Wang, Qingyun Wu, Markus Weimer, and Erkang Zhu.
+\newblock FLAML: A fast and lightweight AutoML library.
+\newblock In \emph{Proceedings of Machine Learning and Systems}, 2021.
+
+\bibitem{autogluon}
+Nick Erickson et al.
+\newblock AutoGluon-Tabular: Robust and accurate AutoML for structured data.
+\newblock \emph{arXiv preprint arXiv:2003.06505}, 2020.
+
+\bibitem{smac}
+Frank Hutter, Holger H. Hoos, and Kevin Leyton-Brown.
+\newblock Sequential model-based optimization for general algorithm
+configuration.
+\newblock In \emph{Learning and Intelligent Optimization}, 2011.
+
+\bibitem{randomsearch}
+James Bergstra and Yoshua Bengio.
+\newblock Random search for hyper-parameter optimization.
+\newblock \emph{Journal of Machine Learning Research}, 13:281--305, 2012.
+
+\bibitem{stacking}
+David H. Wolpert.
+\newblock Stacked generalization.
+\newblock \emph{Neural Networks}, 5(2):241--259, 1992.
+
+\end{thebibliography}
+
+\end{document}
+ internal estimator job counts, allowing the
+caller to limit nested parallelism.
+
+\section{Final Model and Ensemble Selection}
+
+The strongest full-fidelity configuration is rebuilt and fitted on all
+available training data. If ensembles are disabled, this model is returned
+directly. Otherwise, successful run-history candidates are considered for
+voting or stacking.
+
+\medskip
+
+\noindent For voting, the engine selects a bounded set of competitive estimators and
+constructs a task-specific voting estimator. For stacking, candidate diversity
+is considered before selecting base estimators. Every base estimator is wrapped
+in bagging and produces out-of-fold predictions. Forward selection begins with
+the strongest single base model and adds candidates while they improve the
+meta-model score or until the minimum base-model requirement is satisfied.
+
+\medskip
+
+\noindent For classification, probability blocks are aligned across class labels before
+being passed to logistic regression. For regression, each base model contributes
+one numeric prediction column and ridge regression acts as the meta-model. The
+ensemble is evaluated using the same task metric. It replaces the individual
+model only when its validation score is at least as strong.
+
+% -----------------------------------------------------------------------------
+\chapter{System Design and Implementation}
+\label{chap:implementation}
+
+\section{Package Architecture}
+
+The implementation is stored under
+\modulepath{accelera/src/accelera\_automl/}. Public exports are generated under
+\modulepath{accelera/api/accelera\_automl/}, allowing users to import
+\texttt{AutoMLClassifier} and \texttt{AutoMLRegressor} from
+\modulepath{accelera.accelera\_automl}.
+
+\begin{table}[H]
+\centering
+\caption{Main implementation units}
+\label{tab:implementation-units}
+
+\small
+\renewcommand{\arraystretch}{1.18}
+\begin{tabularx}{\textwidth}
+{
+>{\raggedright\arraybackslash}p{0.32\textwidth}
+X
+}
+\toprule
+\textbf{File or directory} & \textbf{Responsibility} \\
+\midrule
+
+\modulepath{base.py} &
+Shared estimator lifecycle, validation, fitted state, leaderboard, and
+run-history access. \\
+
+\modulepath{classification.py} &
+Classification defaults and engine construction. \\
+
+\modulepath{regression.py} &
+Regression defaults and engine construction. \\
+
+\modulepath{core/automl.py} &
+Orchestration, final model fitting, compatibility checks, and ensemble
+selection. \\
+
+\modulepath{components/} &
+Model registries, hyperparameters, conditions, and estimator factories. \\
+
+\modulepath{configspace\_search\_space.py} &
+Task-specific ConfigSpace assembly and configuration conversion. \\
+
+\modulepath{evaluation.py} &
+Fidelity-aware model construction, preprocessing comparison, cross-validation,
+and cost conversion. \\
+
+\begin{tabular}[t]{@{}l@{}}
+\modulepath{optimization/} \\
+\modulepath{smac\_optimizer.py}
+\end{tabular}
+&
+Trial scheduling, surrogate modelling, expected improvement, promotions,
+parallel workers, and timeouts. \\
+
+\modulepath{meta\_learning/} &
+Metafeature extraction, similarity ranking, and warm-start retrieval. \\
+
+\modulepath{stacked\_ensemble.py} &
+Classification adapters, bagging, forward selection, and stacked
+classification. \\
+
+\begin{tabular}[t]{@{}l@{}}
+\modulepath{stacked\_ensemble\_} \\
+\modulepath{regression.py}
+\end{tabular}
+&
+Regression stacking and forward selection. \\
+
+\modulepath{meta\_learning\_data/} &
+Packaged historical classification and regression metadata. \\
+
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Public Estimator Lifecycle}
+
+\texttt{BaseAutoML} extends scikit-learn's \texttt{BaseEstimator}. Its
+\texttt{fit} method validates $X$ and $y$, resets previously fitted state,
+builds a task-specific engine, runs the search, and copies the result into
+public fitted attributes. Prediction validates $X$ and delegates to the final
+model. Calling prediction before fitting raises an explicit runtime error.
+
+\medskip
+
+\noindent The result state includes:
+
+\begin{itemize}[leftmargin=*]
+  \item \texttt{best\_model}: strongest fitted individual candidate;
+  \item \texttt{ensemble}: fitted ensemble when constructed;
+  \item \texttt{final\_model}: model selected for prediction;
+  \item \texttt{best\_score}: validation score of the final choice;
+  \item \texttt{leaderboard}: ranked model and ensemble summary; and
+  \item \texttt{runhistory}: detailed trial records.
+\end{itemize}
+
+\section{Engine Collaboration}
+
+The engine uses composition rather than embedding all behavior in one class.
+It constructs a configuration space, evaluator, optimizer, and optional
+ensemble. This separation allows the evaluator to remain task-aware while the
+optimizer operates mainly on configurations, numeric vectors, and scalar costs.
+
+\medskip
+
+\noindent The runtime interaction is:
+
+\begin{verbatim}
+User estimator
+  -> BaseAutoML.fit
+  -> AutoMLEngine.search
+     -> ConfigSpace construction
+     -> metafeature extraction and warm starts
+     -> task evaluator
+     -> Optimizer.optimize
+        -> staged trials / process workers
+        -> surrogate and expected improvement
+        -> promotion queue
+     -> final individual model
+     -> optional voting or stacked ensemble
+  -> AutoMLResult
+  -> fitted public estimator
+\end{verbatim}
+
+\section{Model Component Abstraction}
+
+Classification and regression components encapsulate four related concerns:
+their public name, hyperparameter definitions, conditional activation rules,
+and estimator construction. This abstraction prevents the optimizer from
+containing model-specific \texttt{if} statements. Adding an estimator requires
+registering a component and ensuring its parameters can be scaled at the
+defined fidelity levels when applicable.
+
+\medskip
+
+\noindent The current registries include estimators from scikit-learn and optional
+gradient-boosting libraries. Because all models do not expose identical
+interfaces, the component builders normalize values such as textual
+representations of \texttt{None}, class weights, and task-specific objectives.
+
+\section{Evaluation Result Model}
+
+Every evaluation returns a structured record rather than only a score. The
+record contains the model name, resolved parameters, preprocessing choice,
+metric score, optimizer cost, duration, status, error text, stage, sample
+fraction, fold count, and model budget. This representation serves three
+purposes: it supports the optimizer, preserves failure diagnostics, and enables
+leaderboard or experimental analysis without repeating the run.
+
+\section{Meta-Learning Data Packaging}
+
+Classification and regression metadata are stored in separate JSON
+directories. File selection depends on task, metric, and classification target
+shape. Paths are resolved relative to the installed module rather than a
+developer-specific absolute directory. The package configuration explicitly
+includes these JSON resources in built wheels so warm starts remain available
+after installation.
+
+\section{Ensemble Implementation Details}
+
+The classification stacker includes an adapter that guarantees a probability
+interface. If a base model lacks \texttt{predict\_proba}, decision scores are
+converted to probabilities where possible; otherwise predicted classes are
+encoded into probability-like output. Class columns are aligned so each base
+block has consistent semantics.
+
+\medskip
+
+\noindent Both stackers generate out-of-fold predictions using cross-validation and fit
+fresh bagged models on all training data for later inference. Forward-selection
+state is stored as a fitted attribute together with its score. This explicit
+state is also used by verbose structural logging and avoids recomputing the
+selection result.
+
+\section{User-Facing Example}
+
+Listing~\ref{lst:usage} shows the intended public API.
+
+\begin{lstlisting}[style=pythonstyle,caption={Classification with Accelera AutoML},label={lst:usage}]
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+
+from accelera.accelera_automl import AutoMLClassifier
+
+X, y = make_classification(
+    n_samples=1000,
+    n_features=20,
+    n_informative=12,
+    random_state=42,
+)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42
+)
+
+model = AutoMLClassifier(
+    time_budget=300,
+    n_trials=20,
+    cv=3,
+    random_state=42,
+    search_n_parallel=2,
+    n_jobs=1,
+    use_meta_learning=True,
+    use_ensemble=True,
+    ensemble_strategy="stacked",
+)
+model.fit(X_train, y_train)
+
+predictions = model.predict(X_test)
+print(model.score(X_test, y_test))
+print(model.return_leaderboard(top_n=3))
+\end{lstlisting}
+
+\section{Current Verification Assets}
+
+Focused tests cover packaged meta-learning path resolution, compatibility of
+the classification adapter with bagging, and regression stacked-ensemble
+forward-selection state. Executable examples are provided for classification
+and for regression using scikit-learn's diabetes dataset. These tests establish
+basic integration behavior; the larger experimental protocol and quantitative
+evaluation will be written in the reserved later chapters.
+
+\section{Chapter Summary}
+
+The implementation maps the proposed method to independently maintainable
+packages. Public estimator classes manage user interaction, the engine
+coordinates the workflow, evaluators own task-specific scoring, the optimizer
+controls resource allocation, meta-learning provides initial configurations,
+and ensemble modules construct the final combined candidates. This separation
+supports future replacement or extension of individual subsystems without
+changing the public estimator interface.
+
+\chapter{Experiments and Results}
+\label{chap:experiments-results}
+
+\section{Experimental Objectives}
+
+The experiments compare \systemname{} with Auto-sklearn, FLAML, and TPOT on
+supervised tabular classification and regression tasks. The evaluation asks
+two practical questions: whether the systems attain comparable predictive
+quality, and how much wall-clock time they require to do so. Classification is
+evaluated primarily by accuracy, while regression is evaluated by the
+coefficient of determination ($R^2$), root mean squared error (RMSE), and mean
+absolute error (MAE). Runtime is reported in seconds for both task types.
+
+\section{Benchmark Sources and Protocol}
+
+The classification experiments were executed through the open-source
+AutoMLBenchmark (AMLB) runner, available at
+\url{https://github.com/openml/automlbenchmark.git}. They use the
+\modulepath{flaml\_paper\_39} classification suite and the
+\modulepath{flaml\_paper\_1h} constraint. The reported classification
+evaluation covers 12 datasets. The regression benchmark was built from the
+Penn Machine Learning Benchmarks (PMLB) repository, available at
+\url{https://github.com/EpistasisLab/pmlb.git}, and was also executed through
+AMLB. The reported regression evaluation covers 10 datasets and uses the
+\modulepath{pmlb\_regression} suite with the \modulepath{pmlb\_30m}
+constraint.
+
+All systems were run through the same benchmark interface. The recorded setup
+used one fold and one allocated core per task. The regression time budget was
+1,800 seconds per dataset; the classification constraint allowed up to one
+hour.
+
+\section{Classification Results}
+
+Table~\ref{tab:classification-results} summarizes the classification results
+stored with the project. Auto-sklearn obtained the highest mean accuracy at
+0.8842. Accelera reached a mean accuracy of 0.8791, a difference of about
+0.0051, while recording the lowest mean duration at 1,201.7 seconds. Its mean
+runtime was approximately one third of the runtimes recorded for the other
+three systems. Accelera also had the largest number of recorded speed wins.
+
+\begin{table}[H]
+\centering
+\caption{Classification benchmark summary.}
+\label{tab:classification-results}
+\begin{tabular}{lrrrr}
+\toprule
+System & Mean accuracy & Mean time (s) & Accuracy wins & Speed wins \\
+\midrule
+Auto-sklearn & 0.884178 & 3615.71 & 3 & 3 \\
+FLAML        & 0.881427 & 3655.63 & 6 & 0 \\
+Accelera     & 0.879076 & 1201.72 & 6 & 15 \\
+TPOT         & 0.877654 & 3953.78 & 8 & 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
 \includegraphics[width=0.78\textwidth]{../../../accelera/src/accelera_automl/benchmark_results/figures/classification/average_accuracy_time.png}
 \caption{Mean classification accuracy and runtime for the evaluated systems.}
 \label{fig:classification-average}
