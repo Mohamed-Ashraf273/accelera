@@ -20,7 +20,7 @@ ifeq ($(OS),Windows_NT)
 export PATH := $(GRAPHVIZ_BIN)$(EXEC_PATH_SEP)$(PATH)
 endif
 
-.PHONY: all run accpipe-demo parallel-accpipe code-parallelizer save-load auto-preprocessing classification-automl regression-automl backend frontend clean-ram
+.PHONY: all run accpipe-demo parallel-accpipe code-parallelizer save-load auto-preprocessing classification-automl regression-automl benchmark clean-ram
 
 all: run
 
@@ -39,7 +39,7 @@ run:
 	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory clean-ram
 	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory regression-automl
 	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory clean-ram
-	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory backend
+	@$(MAKE) -f "$(THIS_MAKEFILE)" --no-print-directory benchmark
 
 accpipe-demo:
 	@cd "$(ROOT)" && $(PYTHON) "$(EXAMPLES)/accpipe_demo.py"
@@ -62,11 +62,8 @@ classification-automl:
 regression-automl:
 	@cd "$(ROOT)" && $(PYTHON) "$(EXAMPLES)/run_regression_task_automl.py"
 
-backend:
-	cd "$(BENCHMARK)/backend" && npm install && npm run dev
-
-frontend:
-	cd "$(BENCHMARK)/frontend" && npm install && npm run dev
+benchmark:
+	@cd "$(ROOT)" && $(PYTHON) "$(EXAMPLES)/run_benchmark_servers.py"
 
 clean-ram:
 	@$(PYTHON) "$(TOOLS)/clean_ram.py"
