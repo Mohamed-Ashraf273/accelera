@@ -3,9 +3,16 @@ import hashlib
 import json
 import os
 import shutil
+import sys
 from datetime import datetime
+from pathlib import Path
+
+repo_root = Path(__file__).resolve().parents[3]
+if str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
 
 from accelera.src.config import config
+
 
 project_root = str(config.deployment_root)
 experiments_dir = str(config.deployment_experiments_dir)
@@ -14,6 +21,7 @@ config_file = str(config.deployment_config_file)
 index_file = str(config.deployment_index_file)
 
 
+##helpers
 def calculate_hash(t, message):
     encoded = f"{t}{message}".encode()
     return hashlib.sha1(encoded).hexdigest()[:7]
@@ -176,7 +184,7 @@ def deploy(args):
 
     print(f"deployed {commit['hash']}")
     print(
-        "'python accelera_deployment/deployment.py' to build and start the container"
+        "run deployment.py to build and start the container"
     )
 
 

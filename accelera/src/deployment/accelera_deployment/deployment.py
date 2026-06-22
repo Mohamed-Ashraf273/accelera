@@ -1,13 +1,50 @@
 import argparse
 import json
 import os
+import shutil
 import shlex
 import subprocess
+import sys
 import urllib.error
 import urllib.request
+from pathlib import Path
 
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def _repo_root_from_this_file():
+    current = Path(__file__).resolve()
+    for parent in current.parents:
+        if (parent / "accelera" / "src" / "config.py").exists():
+            return parent
+    return None
+
+
+repo_root = _repo_root_from_this_file()
+if repo_root and str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
+
+try:
+    from accelera.src.config import config
+except ImportError:
+    config = None
+
+source_root = Path(__file__).resolve().parents[1]
+service_source_dir = source_root / "accelera_deployment"
+project_root = str(config.deployment_root if config else source_root)
+os.makedirs(project_root, exist_ok=True)
 os.chdir(project_root)
+
+
+def sync_service_sources():
+    service_runtime_dir = Path("accelera_deployment")
+    service_runtime_dir.mkdir(exist_ok=True)
+    for name in (
+        "deployment.py",
+        "modelservice.py",
+        "schema_validation.py",
+        "server.py",
+        "tracking.py",
+    ):
+        shutil.copy2(service_source_dir / name, service_runtime_dir / name)
 
 
 def load_configurations():
@@ -96,6 +133,7 @@ def write_dockerfile(configurations):
 
 
 def prepare(_args):
+    sync_service_sources()
     configurations = load_configurations()
     write_requirements()
     write_dockerfile(configurations)
@@ -373,8 +411,7 @@ for attempt in 1 2 3 4 5; do
   sleep 2
 done
 sudo docker ps --filter name={shlex.quote(container_name)} \
-  --format 'container={{{{.Names}}}} image={{{{.Image}}}}' \
-  ' status={{{{.Status}}}} ports={{{{.Ports}}}}'
+  --format 'container={{{{.Names}}}} image={{{{.Image}}}} status={{{{.Status}}}} ports={{{{.Ports}}}}'
 echo "Application URL: http://{args.host}:{port}"
 echo "GUI URL: http://{args.host}:{port}/gui"
 """.strip()

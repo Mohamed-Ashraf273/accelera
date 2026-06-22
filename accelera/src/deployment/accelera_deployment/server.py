@@ -12,9 +12,14 @@ from fastapi import HTTPException
 from fastapi import UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.responses import RedirectResponse
-from modelservice import service  # the models
 from pydantic import BaseModel
-from schema_validation import SchemaValidationError
+
+try:
+    from .modelservice import service  # the models
+    from .schema_validation import SchemaValidationError
+except ImportError:
+    from modelservice import service  # the models
+    from schema_validation import SchemaValidationError
 
 
 class PredictPayload(BaseModel):

@@ -131,7 +131,7 @@ class Config:
 
     @property
     def deployment_root(self) -> Path:
-        return self.REPO_ROOT / "accelera" / "src" / "deployment_module"
+        return self.REPO_ROOT / "accelera" / "src" / "deployment" / ".accelera_deployment"
 
     @property
     def deployment_experiments_dir(self) -> Path:
