@@ -44,8 +44,10 @@ lib64/
 include/
 pyvenv.cfgexamples/student_report
 examples/Dataset_spine
-examples/diabetes_dataset
 examples/job_salary
+examples/diabetes_dataset
+examples/Life_Expectancy_Data
+examples/insurance
 examples/student_exam
 examples/Teen_Mental_Health_Dataset
 examples/ai_student_impact_dataset

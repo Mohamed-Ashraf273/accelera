@@ -27,7 +27,10 @@ class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
         self.problem_type = problem_type
 
         if self.target_col not in self.df.columns:
-            raise ValueError("target_col must be one of the dataframe columns")
+            raise ValueError(
+                f"target_col {target_col} must be one of "
+                f"the dataframe columns {self.df.columns}"
+            )
 
         if (not (isinstance(self.val_size, float))) or (
             not (0 < self.val_size <= 0.5)

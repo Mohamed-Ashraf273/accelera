@@ -1,5 +1,4 @@
 import json
-import time
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -32,21 +31,23 @@ def get_data_set_info():
     return ds
 
 
-def get_compared_models(problem_type):
+def get_compared_models(problem_type, model_name):
     if problem_type == "classification":
-        return {
-            "LogisticRegression": LogisticRegression(max_iter=1000),
+        class_models = {
+            "LR": LogisticRegression(max_iter=1000),
             "RandomForest": RandomForestClassifier(random_state=42),
             "DecisionTree": DecisionTreeClassifier(random_state=42),
             "KNN": KNeighborsClassifier(),
         }
+        return class_models[model_name]
     else:
-        return {
-            "LinearRegression": LinearRegression(),
+        reg_model = {
+            "LR": LinearRegression(),
             "RandomForest": RandomForestRegressor(random_state=42),
             "DecisionTree": DecisionTreeRegressor(random_state=42),
             "KNN": KNeighborsRegressor(),
         }
+        return reg_model[model_name]
 
 
 def models_evaluation(
@@ -57,36 +58,42 @@ def models_evaluation(
     problem_type="classification",
     is_accelera=False,
     folder_path=None,
+    model_name="KNN",
 ):
-    models_score = {}
-    for name, model in get_compared_models(problem_type).items():
-        model.fit(X_train, y_train)
-        preds = model.predict(X_test)
-        if problem_type == "classification":
-            score = f1_score(y_test, preds, average="macro")
+    model = get_compared_models(problem_type, model_name)
+    model.fit(X_train, y_train)
+    preds = model.predict(X_test)
+    if problem_type == "classification":
+        score = f1_score(y_test, preds, average="macro")
+    else:
+        if is_accelera:
+            preprocessor = load_pickle(folder_path, "target_preprocessor.pkl")
+            preds = preprocessor.inverse_transform(preds.reshape(-1, 1)).ravel()
+            y_test_rescaled = preprocessor.inverse_transform(
+                y_test.reshape(-1, 1)
+            ).ravel()
+            score = r2_score(y_test_rescaled, preds)
         else:
-            if is_accelera:
-                preprocessor = load_pickle(folder_path, "target_preprocessor.pkl")
-                preds = preprocessor.inverse_transform(preds.reshape(-1, 1)).ravel()
-                y_test_rescaled = preprocessor.inverse_transform(
-                    y_test.reshape(-1, 1)
-                ).ravel()
-                score = r2_score(y_test_rescaled, preds)
-            else:
-                score = r2_score(y_test, preds)
+            score = r2_score(y_test, preds)
 
-        models_score[name] = score
-    return np.mean(list(models_score.values()))
+    return score
 
 
-def auto_clean_preprocessing(df, label, problem_type="classification"):
-    start_time = time.time()
+def auto_clean_preprocessing(
+    df, label, problem_type="classification", model_name="KNN"
+):
     df = df.drop_duplicates()
     cleaner = AutoCleanML(target=label)
     X_train, X_test, y_train, y_test, _ = cleaner.fit_transform(df)
-    evaluation = models_evaluation(X_train, X_test, y_train, y_test, problem_type)
-    end_time = time.time()
-    return evaluation, end_time - start_time
+    evaluation = models_evaluation(
+        X_train,
+        X_test,
+        y_train,
+        y_test,
+        problem_type=problem_type,
+        model_name=model_name,
+    )
+    return evaluation
 
 
 def handle_data_preprocessing_type(
@@ -110,8 +117,8 @@ def accelera_preprocessing(
     report_path,
     problem_type="classification",
     ds_type="tabular_dataset",
+    model_name="KNN",
 ):
-    start_time = time.time()
     X_train_df, X_test_df, y_train, y_test = handle_data_preprocessing_type(
         df,
         target_column,
@@ -128,14 +135,12 @@ def accelera_preprocessing(
         problem_type,
         is_accelera=True,
         folder_path=report_path,
+        model_name=model_name,
     )
-    end_time = time.time()
-    return evaluation, end_time - start_time
+    return evaluation
 
 
-def plot_comparison(
-    results_df, problem_type, target_graph, ds_type="tabular_dataset"
-):
+def plot_comparison(results_df, problem_type, target_graph, model_name):
     plt.figure(figsize=(20, 6))
     x = np.arange(len(results_df["dataset"]))
     bar_1 = plt.bar(
@@ -155,11 +160,11 @@ def plot_comparison(
     plt.xticks(x, results_df["dataset"], rotation=45, ha="right")
     plt.xlabel("Dataset")
     plt.ylabel(target_graph)
-    plt.title(f"{problem_type} - AutoClean vs Accelera")
+    plt.title(f"{problem_type} - AutoClean vs Accelera {model_name}")
     plt.legend()
     plt.tight_layout()
     plt.savefig(
-        EXAMPLES_DIR / f"{ds_type}_comparison_{problem_type}_{target_graph}.pdf",
+        EXAMPLES_DIR / f"comparison_{problem_type}_{target_graph}_{model_name}.pdf",
         format="pdf",
     )
 
@@ -170,6 +175,7 @@ def main():
     for dataset_type, datasets_obj in ds.items():
         if dataset_type != "tabular_dataset":
             continue
+        model_name = datasets_obj["model_name"]
         datasets_problem = datasets_obj["problemType"]
         for problem_type, datasets in datasets_problem.items():
             results = []
@@ -179,26 +185,23 @@ def main():
                 label = info["target_column"]
                 report_path = EXAMPLES_DIR / info["report_path"]
 
-                accelera_score, accelera_time = accelera_preprocessing(
+                accelera_score = accelera_preprocessing(
                     df,
                     label,
                     report_path,
                     problem_type=problem_type,
                     ds_type=dataset_type,
+                    model_name=model_name,
                 )
-                autoclean_score, autoclean_time = auto_clean_preprocessing(
-                    df,
-                    label,
-                    problem_type=problem_type,
+                autoclean_score = auto_clean_preprocessing(
+                    df, label, problem_type=problem_type, model_name=model_name
                 )
                 results.append(
                     {
                         "dataset": dataset,
                         "dataset_shape": df.shape,
                         "autoclean_score": autoclean_score,
-                        "autoclean_time": autoclean_time,
                         "accelera_score": accelera_score,
-                        "accelera_time": accelera_time,
                         "dataset_type": dataset_type,
                         "problem_type": problem_type,
                     }
@@ -206,8 +209,7 @@ def main():
                 retriever.close()
             results_df = pd.DataFrame(results)
             total_results.extend(results)
-            plot_comparison(results_df, problem_type, "score", dataset_type)
-            plot_comparison(results_df, problem_type, "time", dataset_type)
+            plot_comparison(results_df, problem_type, "score", model_name)
 
     total_results_df = pd.DataFrame(total_results)
     total_results_df.to_csv(
