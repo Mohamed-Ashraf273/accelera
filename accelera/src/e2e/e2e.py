@@ -1,5 +1,5 @@
 from urllib.parse import urlparse
-
+from accelera.src.deployment.deployment import configure_deployment
 
 class E2EBase:
     def __init__(self):
@@ -36,8 +36,10 @@ class E2EBase:
         joblib.dump(model, path)
 
     def _deploy(self, model):
-        # To be implemented
-        pass
+        df = getattr(self, "df", None)
+        config = getattr(self, "config", None)
+        target_col = config.get("target_col") if config else None
+        configure_deployment(model, df=df, target_col=target_col)
 
     def _run(self, content, config=None, graph=None):
         raise NotImplementedError(
