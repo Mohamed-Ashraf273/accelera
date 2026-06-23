@@ -7,4 +7,5 @@ id,task,framework,constraint,fold,type,result,metric,mode,version,params,app_ver
 1096_FacultySalaries,1096_FacultySalaries,autosklearn,pmlb_30m,0,regression,-1.74767,neg_rmse,local,stable,,2.1.7,2026-06-22T17:01:41,1800.2,1798.0,0.03,6,1252533494,,1.50973,0.834251,1.74767
 1191_BNG_pbc,1191_BNG_pbc,autosklearn,pmlb_30m,0,regression,-823.878,neg_rmse,local,stable,,2.1.7,2026-06-22T17:31:52,1805.7,1787.6,7.7,1,1252533494,,629.83,0.441921,823.878
 1193_BNG_lowbwt,1193_BNG_lowbwt,autosklearn,pmlb_30m,0,regression,-457.452,neg_rmse,local,stable,,2.1.7,2026-06-22T18:24:38,1808.6,1799.8,2.7,10,2139357945,,364.086,0.605387,457.452
-1196_BNG_pharynx,1196_BNG_pharynx,autosklearn,pmlb_30m,0,regression,,neg_rmse,local,stable,,2.1.7,2026-06-22T18:31:43,424.4,,,,2139357945,CalledProcessError: Command '/home/khater/automl/automlbenchmark/frameworks/autosklearn/venv/bin/python -W ignore /home/khater/automl/automlbenchmark/frameworks/autosklearn/exec.py' died with <Signal…,,,
+1196_BNG_pharynx,1196_BNG_pharynx,autosklearn,pmlb_30m,0,regression,-291.101,neg_rmse,local,stable,,2.1.7,2026-06-23T13:17:12,1815.5,1794.6,11.5,2,957196927,,214.39,0.513406,291.101
+1199_BNG_echoMonths,1199_BNG_echoMonths,autosklearn,pmlb_30m,0,regression,-11.3688,neg_rmse,local,stable,,2.1.7,2026-06-23T13:47:37,1823.6,1809.1,11.5,13,957196927,,8.80142,0.475317,11.3688

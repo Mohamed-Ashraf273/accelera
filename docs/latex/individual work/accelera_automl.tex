@@ -1071,16 +1071,16 @@ TPOT         & 0.877654 & 3953.78 & 8 & 1 \\
 
 \section{Regression Results}
 
-Table~\ref{tab:regression-results} reports the stored regression summary. TPOT
-obtained the highest mean $R^2$ at 0.5671, followed by Auto-sklearn at 0.5478
-and Accelera at 0.5351. Accelera completed the recorded tasks in a mean of
-284.3 seconds, compared with approximately 1,800 seconds for each competing
-system. Thus, on the available measurements, Accelera traded a modest reduction
-in average predictive quality for a substantial reduction in runtime.
+Table~\ref{tab:regression-results} reports the updated regression summary over
+ten datasets. Auto-sklearn obtained the highest mean $R^2$ at 0.5609, followed
+closely by TPOT at 0.5592. Accelera reached 0.5294 and recorded the lowest mean
+runtime at 892.64 seconds, compared with 1,820--1,864 seconds for the competing
+systems. Accelera also achieved six speed wins, the most of any evaluated
+system.
 
 \begin{table}[H]
 \centering
-\caption{Regression benchmark summary from the stored experiment results.}
+\caption{Updated regression benchmark summary over ten datasets.}
 \label{tab:regression-results}
 \small
 \resizebox{\textwidth}{!}{%
@@ -1088,10 +1088,10 @@ in average predictive quality for a substantial reduction in runtime.
 \toprule
 System & Mean $R^2$ & Median $R^2$ & Mean time (s) & $R^2$ wins & RMSE wins & MAE wins & Speed wins \\
 \midrule
-TPOT         & 0.567064 & 0.455565 & 1805.54 & 2 & 2 & 2 & 0 \\
-Auto-sklearn & 0.547839 & 0.469324 & 1829.64 & 2 & 2 & 2 & 0 \\
-Accelera     & 0.535125 & 0.426184 &  284.26 & 1 & 1 & 1 & 5 \\
-FLAML        & 0.527313 & 0.436010 & 1803.80 & 0 & 0 & 0 & 0 \\
+Auto-sklearn & 0.560947 & 0.494362 & 1820.18 & 2 & 2 & 2 & 2 \\
+TPOT         & 0.559238 & 0.493144 & 1849.70 & 2 & 2 & 2 & 0 \\
+Accelera     & 0.529389 & 0.432577 &  892.64 & 2 & 2 & 2 & 6 \\
+FLAML        & 0.522743 & 0.497530 & 1863.85 & 4 & 4 & 4 & 2 \\
 \bottomrule
 \end{tabular}
 }
@@ -1146,8 +1146,9 @@ tasks would strengthen the evaluation.
 Across the stored experiments, Accelera achieved predictive results close to
 the strongest competing framework while requiring markedly less mean runtime.
 The classification results show a small accuracy difference relative to
-Auto-sklearn, and the regression results show a moderate $R^2$ difference
-relative to TPOT, accompanied in both cases by substantial runtime reductions.
+Auto-sklearn, and the regression results show a modest $R^2$ difference
+relative to Auto-sklearn, accompanied in both cases by substantial runtime
+reductions.
 The complete stored artifacts and reproduction instructions are retained with
 the implementation so that the reported measurements can be inspected and
 rerun.
@@ -1551,16 +1552,16 @@ TPOT         & 0.877654 & 3953.78 & 8 & 1 \\
 
 \section{Regression Results}
 
-Table~\ref{tab:regression-results} reports the stored regression summary. TPOT
-obtained the highest mean $R^2$ at 0.5671, followed by Auto-sklearn at 0.5478
-and Accelera at 0.5351. Accelera completed the recorded tasks in a mean of
-284.3 seconds, compared with approximately 1,800 seconds for each competing
-system. Thus, on the available measurements, Accelera traded a modest reduction
-in average predictive quality for a substantial reduction in runtime.
+Table~\ref{tab:regression-results} reports the updated regression summary over
+ten datasets. Auto-sklearn obtained the highest mean $R^2$ at 0.5609, followed
+closely by TPOT at 0.5592. Accelera reached 0.5294 and recorded the lowest mean
+runtime at 892.64 seconds, compared with 1,820--1,864 seconds for the competing
+systems. Accelera also achieved six speed wins, the most of any evaluated
+system.
 
 \begin{table}[H]
 \centering
-\caption{Regression benchmark summary from the stored experiment results.}
+\caption{Updated regression benchmark summary over ten datasets.}
 \label{tab:regression-results}
 \small
 \resizebox{\textwidth}{!}{%
@@ -1568,10 +1569,10 @@ in average predictive quality for a substantial reduction in runtime.
 \toprule
 System & Mean $R^2$ & Median $R^2$ & Mean time (s) & $R^2$ wins & RMSE wins & MAE wins & Speed wins \\
 \midrule
-TPOT         & 0.567064 & 0.455565 & 1805.54 & 2 & 2 & 2 & 0 \\
-Auto-sklearn & 0.547839 & 0.469324 & 1829.64 & 2 & 2 & 2 & 0 \\
-Accelera     & 0.535125 & 0.426184 &  284.26 & 1 & 1 & 1 & 5 \\
-FLAML        & 0.527313 & 0.436010 & 1803.80 & 0 & 0 & 0 & 0 \\
+Auto-sklearn & 0.560947 & 0.494362 & 1820.18 & 2 & 2 & 2 & 2 \\
+TPOT         & 0.559238 & 0.493144 & 1849.70 & 2 & 2 & 2 & 0 \\
+Accelera     & 0.529389 & 0.432577 &  892.64 & 2 & 2 & 2 & 6 \\
+FLAML        & 0.522743 & 0.497530 & 1863.85 & 4 & 4 & 4 & 2 \\
 \bottomrule
 \end{tabular}
 }
@@ -1627,8 +1628,9 @@ tasks would strengthen the evaluation.
 Across the stored experiments, Accelera achieved predictive results close to
 the strongest competing framework while requiring markedly less mean runtime.
 The classification results show a small accuracy difference relative to
-Auto-sklearn, and the regression results show a moderate $R^2$ difference
-relative to TPOT, accompanied in both cases by substantial runtime reductions.
+Auto-sklearn, and the regression results show a modest $R^2$ difference
+relative to Auto-sklearn, accompanied in both cases by substantial runtime
+reductions.
 The complete stored artifacts and reproduction instructions are retained with
 the implementation so that the reported measurements can be inspected and
 rerun.

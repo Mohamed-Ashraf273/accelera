@@ -9,4 +9,3 @@ id,task,framework,constraint,fold,type,result,metric,mode,version,params,app_ver
 1193_BNG_lowbwt,1193_BNG_lowbwt,flaml,pmlb_30m,0,regression,-454.716,neg_rmse,local,1.2.4,,2.1.7,2026-06-22T12:27:04,1806.6,1803.9,0.07,12,946327022,,362.402,0.610094,454.716
 1196_BNG_pharynx,1196_BNG_pharynx,flaml,pmlb_30m,0,regression,-291.071,neg_rmse,local,1.2.4,,2.1.7,2026-06-22T12:59:22,1938.0,1921.6,11.9,14,946327022,,214.269,0.513508,291.071
 1199_BNG_echoMonths,1199_BNG_echoMonths,flaml,pmlb_30m,0,regression,-11.301,neg_rmse,local,1.2.4,,2.1.7,2026-06-22T13:29:25,1802.7,1799.2,0.07,14,946327022,,8.68251,0.481552,11.301
-1201_BNG_breastTumor,1201_BNG_breastTumor,flaml,pmlb_30m,0,regression,,neg_rmse,local,1.2.4,,2.1.7,2026-06-22T13:54:22,1496.7,,,,946327022,CalledProcessError: Command '/home/khater/automl/automlbenchmark/frameworks/flaml/venv/bin/python -W ignore /home/khater/automl/automlbenchmark/frameworks/flaml/exec.py' died with <Signals.SIGINT: 2>.,,,
