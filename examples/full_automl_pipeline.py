@@ -1,22 +1,24 @@
+import argparse
 import csv
+import json
 import sys
 from pathlib import Path
 from time import perf_counter
-import json
-import pandas as pd
-from sklearn.metrics import f1_score, r2_score, mean_squared_error, mean_absolute_error
+
 import matplotlib.pyplot as plt
 import numpy as np
-import argparse
+import pandas as pd
+from sklearn.metrics import f1_score
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
 
+from accelera.src.accelera_automl import AutoMLClassifier
+from accelera.src.accelera_automl import AutoMLRegressor
 from accelera.src.auto_preprocessing.core.classical_training_preprocessing import (
     ClassicalTrainingPreprocessing,
 )
 from accelera.src.utils.dataset_retriever import retriever
-from accelera.src.utils.preprocessing import load_pickle
-
-from accelera.src.accelera_automl import AutoMLClassifier
-from accelera.src.accelera_automl import AutoMLRegressor
 
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -86,7 +88,7 @@ def main():
                 df = retriever.retrieve_dataset(dataset, url=info["link"], df=True)
                 label = info["target_column"]
                 report_path = EXAMPLES_DIR / info["report_path"]
-                X_train, X_test, y_train, y_test= handle_data_preprocessing_type(
+                X_train, X_test, y_train, y_test = handle_data_preprocessing_type(
                     df, label, problem_type, dataset_type, report_path
                 )
                 accelera_score = handel_problem_type_model(

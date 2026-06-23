@@ -24,12 +24,14 @@ try:
     predicted_df = retriever.retrieve_dataset(
         f"{user_id}_predicted", url=predicted_url, df=True
     )
-    if len(predicted_df)!=len(true_df):
-          print(
+    if len(predicted_df) != len(true_df):
+        print(
             json.dumps(
                 {
                     "message": (
-                        f"Dataset must have the same length predicted {len(predicted_df)} expected {len(true_df)}"
+                        "Dataset must have the same "
+                        f"length predicted {len(predicted_df)} "
+                        f"expected {len(true_df)}"
                     ),
                     "isValid": False,
                 }
