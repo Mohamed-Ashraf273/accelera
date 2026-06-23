@@ -5,10 +5,10 @@ import shlex
 import shutil
 import subprocess
 import sys
+import json
 import urllib.error
 import urllib.request
 from pathlib import Path
-
 
 def _repo_root_from_this_file():
     current = Path(__file__).resolve()
@@ -22,14 +22,10 @@ repo_root = _repo_root_from_this_file()
 if repo_root and str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
 
-try:
-    from accelera.src.config import config
-except ImportError:
-    config = None
+from accelera.src.config import config
 
-source_root = Path(__file__).resolve().parents[1]
-service_source_dir = source_root / "accelera_deployment"
-project_root = str(config.deployment_root if config else source_root)
+service_source_dir = Path(__file__).resolve().parent
+project_root = str(config.deployment_root if config else service_source_dir)
 os.makedirs(project_root, exist_ok=True)
 os.chdir(project_root)
 
@@ -92,7 +88,7 @@ def validate_port(port):
 
 
 def write_requirements():
-    with open("requirements.txt", "w", encoding="utf-8") as req:
+    with open("accelera_deployment/requirements.txt", "w", encoding="utf-8") as req:
         req.write("fastapi==0.136.1\n")
         req.write("great-expectations==1.18.1\n")
         req.write("uvicorn[standard]==0.46.0\n")
@@ -111,17 +107,17 @@ def write_dockerfile(configurations):
     with open("Dockerfile", "w", encoding="utf-8") as f:
         f.write("FROM python:3.11-slim\n")
         f.write("WORKDIR /app\n")
-        f.write("COPY requirements.txt requirements.txt \n")
+        f.write("COPY accelera_deployment/requirements.txt requirements.txt \n")
         f.write(
             "RUN python -m pip install --no-cache-dir --prefer-binary "
             "--timeout 120 --retries 10 -r requirements.txt\n"
         )
-        f.write("COPY server.py server.py\n")
-        f.write("COPY modelservice.py modelservice.py\n")
+        f.write("COPY accelera_deployment/server.py server.py\n")
+        f.write("COPY accelera_deployment/modelservice.py modelservice.py\n")
         f.write(
-            "COPY schema_validation.py schema_validation.py\n"
+            "COPY accelera_deployment/schema_validation.py schema_validation.py\n"
         )
-        f.write("COPY tracking.py tracking.py\n")
+        f.write("COPY accelera_deployment/tracking.py tracking.py\n")
         f.write("COPY config.json config.json\n")
         for pkl in models.values():
             f.write(f"COPY {pkl} /app/{pkl}\n")
@@ -243,16 +239,7 @@ def ec2_deploy(args):
     _run_remote(args, f"mkdir -p {_quote_remote_path(remote_root)}")
 
     rsync_target = f"{target}:{args.remote_dir.rstrip('/')}/deployment_module"
-    rsync_sources = [
-        "Dockerfile",
-        "config.json",
-        "requirements.txt",
-        "server.py",
-        "modelservice.py",
-        "schema_validation.py",
-        "tracking.py",
-        "models"
-    ]
+    rsync_sources = ["Dockerfile", "config.json", "accelera_deployment", "models"]
     print("Syncing build inputs to EC2...")
     subprocess.run(
         [
@@ -412,12 +399,12 @@ sudo docker run -d --restart unless-stopped \
   -e PORT={port} \
   {shlex.quote(image_name)}
 echo "Waiting for container health endpoint..."
-for attempt in 1 2 3 4 5; do
+for attempt in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
   if {health_command} >/dev/null 2>&1; then
     echo "Local container health check: OK"
     break
   fi
-  if [ "$attempt" = "5" ]; then
+  if [ "$attempt" = "15" ]; then
     echo "Local container health check failed; inspect logs with ec2-logs." >&2
     exit 1
   fi
@@ -431,19 +418,14 @@ echo "GUI URL: http://{args.host}:{port}/gui"
 
 
 def configure_deployment(model_path: str, df=None, target_col=None) -> None:
-    import os
-    import shutil
-    import json
-    from accelera.src.config import config as acc_config
-
     abs_model_path = os.path.abspath(model_path)
-    models_dir = str(acc_config.deployment_models_dir)
+    models_dir = str(config.deployment_models_dir)
     os.makedirs(models_dir, exist_ok=True)
 
     filename = os.path.basename(abs_model_path)
     shutil.copy2(abs_model_path, os.path.join(models_dir, filename))
 
-    config_file = str(acc_config.deployment_config_file)
+    config_file = str(config.deployment_config_file)
     config_data = {}
     if os.path.exists(config_file):
         try:
@@ -472,7 +454,7 @@ def configure_deployment(model_path: str, df=None, target_col=None) -> None:
 
     orig_cwd = os.getcwd()
     try:
-        os.chdir(str(acc_config.deployment_root))
+        os.chdir(str(config.deployment_root))
         write_requirements()
         write_dockerfile(config_data)
     finally:
