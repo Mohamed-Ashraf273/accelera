@@ -550,7 +550,7 @@ use the returned train/validation arrays in your model code.
 ```python
 import pandas as pd
 
-from accelera.src.autopreprocessing.core.text_training_preprocessing import (
+from accelera.src.auto_preprocessing.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )
 from accelera.src.utils.dataset_retriever import retriever
@@ -601,7 +601,7 @@ Validation/
 └── Dogs/
 ```
 ```python
-from accelera.src.autopreprocessing.core.classification_image_training_preprocessing import (
+from accelera.src.auto_preprocessing.core.classification_image_training_preprocessing import (
     ClassificationImageTrainingPreprocessing,
 )
 
@@ -647,7 +647,7 @@ Dataset/
         └── img3.png
 ```
 ```python
-from accelera.src.automl.core.segmentation_image_training_preprocessing import (
+from accelera.src.auto_preprocessing.core.segmentation_image_training_preprocessing import (
     SegmentationImageTrainingPreprocessing,
 )
 
@@ -731,7 +731,7 @@ from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-from accelera.accelera_automl import AutoMLClassifier
+from accelera.src.accelera_automl import AutoMLClassifier
 
 X, y = make_classification(
     n_samples=1000,
@@ -764,7 +764,7 @@ from sklearn.datasets import make_regression
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 
-from accelera.accelera_automl import AutoMLRegressor
+from accelera.src.accelera_automl import AutoMLRegressor
 
 X, y = make_regression(
     n_samples=1000,
