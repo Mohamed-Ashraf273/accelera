@@ -188,15 +188,10 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
                 "col_name": self.target_col,
                 "col_type": "Classification",
                 "col_preprocessing": [
-                    "Fill missing with most frequent",
                     "Label encoding",
                 ],
             }
         )
-        mode = y_train.mode()[0]
-        self.info["target_mode"] = mode
-        y_train = y_train.fillna(mode)
-        y_val = y_val.fillna(mode)
         label_encoder = LabelEncoder()
         y_train_preprocessed = label_encoder.fit_transform(y_train)
         y_val_preprocessed = label_encoder.transform(y_val)
@@ -213,6 +208,7 @@ class TextTrainingPreprocessing(TrainingTabularPreprocessingBase):
     def common_preprocessing(self):
         self.report_data["drop_columns"] = {"col_drop": None}
         self.data_overview()
+        self.drop_target_nulls()
         self.drop_duplicates()
         X_train, X_val, y_train, y_val = self.split_data()
         self.make_graphs(X_train, y_train)

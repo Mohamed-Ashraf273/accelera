@@ -75,9 +75,15 @@ class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
             "duplicates_percentage": duplicates_percentage,
             "shape": self.df.shape,
         }
-
+    def drop_target_nulls(self):
+        target_nulls=self.df[self.target_col].isnull().sum()
+        self.df=self.df.dropna(subset=[self.target_col])
+        self.report_data["target_nulls"]={
+            "null":target_nulls,
+            "shape":self.df.shape
+        }
     def drop_duplicates(self):
-        self.df.drop_duplicates(inplace=True)
+        self.df=self.df.drop_duplicates().copy()
         self.report_data["drop_duplicates"] = {
             "shape": self.df.shape,
             "duplicates_sum": self.df.duplicated().sum(),

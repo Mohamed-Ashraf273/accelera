@@ -35,7 +35,7 @@ class TestClassicalTestingPreprocessing:
             {
                 "feature1": ["A", "b", "c"],
                 "feature2": [None, None, None],
-                "target": ["A", None, "C"],
+                "target": ["A", "A", "C"],
             }
         )
         save_pickle(self.temp_dir, selected_features, "selected_features.pkl")
@@ -144,7 +144,7 @@ class TestClassicalTestingPreprocessing:
 
         tp = ClassicalTestingPreprocessing(df=self.df, folder_path=self.temp_dir)
         assert tp.X_test["feature1"].tolist() == ["a", "b", "c"]
-        assert tp.y_test.tolist() == ["a", None, "c"]
+        assert tp.y_test.tolist() == ["a", "a", "c"]
 
     def test_training_testing(self):
         df = pd.DataFrame(
@@ -196,4 +196,5 @@ class TestClassicalTestingPreprocessing:
 
         tp = ClassicalTestingPreprocessing(df=self.df, folder_path=self.temp_dir)
         tp.target_preprocessing()
-        assert tp.y_test.tolist() == [0, 1, 2]
+        assert tp.y_test.tolist() == [0, 0, 2]
+            

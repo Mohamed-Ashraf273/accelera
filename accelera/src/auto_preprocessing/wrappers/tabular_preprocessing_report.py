@@ -17,6 +17,7 @@ class TabularPreprocessingReport(ReportBase):
         self.after_preprocessing = self.report_data["after_preprocessing"]
         self.features_selections = self.report_data.get("features_selections", None)
         self.text_based = text_based
+        self.target_nulls = self.report_data.get("target_nulls", None)
 
     def show_data_heads(self, obj, field_name, name="dataset"):
         self.content += f"""<h3>First 5 rows of the {name}:</h3>\n
@@ -187,9 +188,15 @@ class TabularPreprocessingReport(ReportBase):
                 index=False
             )
             self.content += "</div>\n"
-
+    def show_drop_target_nulls(self):
+        self.content += "<div>\n"
+        self.content += "<h2>Handling Target Nulls</h2>\n"
+        self.content+=f"<p>Target has nulls {self.target_nulls['null']}</p>"
+        self.content+=f"<p>Shape After Dropping Rows has Nulls in target {self.target_nulls['shape']}</p>"
+        self.content += "</div>\n"
     def execute(self):
         self.show_data_overview()
+        self.show_drop_target_nulls()
         self.show_drop_duplicates()
         self.show_split()
         if not self.text_based:

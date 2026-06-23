@@ -43,12 +43,12 @@ class TestTextTrainingPreprocessing:
                     "pos",
                     "pos",
                     "pos",
-                    None,
+                     "pos",
                     "neg",
                     "pos",
                     "neg",
                     "pos",
-                    None,
+                     "pos",
                 ],
                 "wrong_text": [1.1, 2, 3, 5, 5, 5, 2, 3, 4, 5],
             }
@@ -169,6 +169,7 @@ class TestTextTrainingPreprocessing:
                 tp.df["class"],
                 test_size=0.2,
                 random_state=42,
+                stratify=tp.df["class"]
             )
         )
         X_train, X_val, y_train, y_val = tp.split_data()
@@ -267,14 +268,10 @@ class TestTextTrainingPreprocessing:
         tp.report_data["after_preprocessing"] = {}
         tp.report_data["preprocessing"] = []
         X_train, X_val, y_train, y_val = tp.split_data()
-        mode = y_train.mode()[0]
         encoder = LabelEncoder()
-        y_train_fill = y_train.fillna(mode)
-        y_val_fill = y_val.fillna(mode)
-        y_train_manual = encoder.fit_transform(y_train_fill)
-        y_val_manual = encoder.transform(y_val_fill)
+        y_train_manual = encoder.fit_transform(y_train)
+        y_val_manual = encoder.transform(y_val)
         y_train_processed, y_val_processed = tp.target_preprocessing(y_train, y_val)
-        assert tp.info["target_mode"] == mode
         assert np.allclose(y_val_manual, y_val_processed)
         assert np.allclose(y_train_manual, y_train_processed)
         assert check_path_exists(self.temp_dir, "target_preprocessor.pkl")
