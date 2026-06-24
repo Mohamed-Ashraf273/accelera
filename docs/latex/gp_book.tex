@@ -1259,26 +1259,153 @@ Housing & RandomForest & R-squared Score & 0.6037 \\
 \hline
 PetImages & ResNet model & Accuracy & 0.97 \\
 \hline
-DailyDialog & XGBClassifier & Accuracy & Add result \\
+DailyDialog & XGBClassifier & Macro F1-score & .9 \\
 \hline
-TestReviews & XGBClassifier & Accuracy & Add result \\
+TestReviews & XGBClassifier & Macro F1-score & .608 \\
 \hline
 \end{tabular}
 \end{table}
 
+The results show that the preprocessing output was valid and could be used directly for model training. Most tabular classification datasets achieved good Macro F1-score values, which means that the processed data was suitable for the Random Forest model. Some datasets, such as \texttt{ai\_student} and \texttt{TestReviews}, achieved lower scores, which may be because these datasets are more difficult or need more advanced model tuning.
+The regression datasets also gave acceptable R-squared scores, especially \texttt{global\_ai\_jobs} and \texttt{CarPrice\_Assignment}. For image data, the ResNet model achieved high accuracy, showing that the image preprocessing and data loaders worked correctly. Overall, the results confirm that the system produced useful outputs for tabular, text, and image datasets.
 
 \subsubsection{AutoML Module}
 \mbox{}
 
 \subsubsection{Deployment Module}
 \mbox{}
-
 \subsubsection{Benchmark Platform Module}
+
+The Benchmark Platform module was tested by checking its main functionality. Unit tests were not used for this module. Instead, the module was tested by submitting different model results and checking if they were saved and displayed correctly.
+The testing focused on making sure that the platform can receive the submitted result, store the dataset name, metric name, and score, and then show the result in the leaderboard. The leaderboard was also checked to make sure that the results were ordered and displayed in a clear way.
+This testing showed that the Benchmark Platform module worked as expected and was able to submit results and display them correctly in the leaderboard.
+
 \mbox{}
 \subsection{Integration Testing}
 \subsection{Testing Schedule}
 \subsection{Comparative Results to Previous Work}
-\
+\subsubsection{Auto Preprocessing}
+Auto Preprocessing was compared with AutoCleanML to check the performance of the proposed preprocessing approach. The comparison was done using several tabular datasets collected from Kaggle. The same datasets and the same machine learning models were used for both tools.
+The comparison was applied only on tabular datasets because AutoCleanML mainly works with tabular data. For classification datasets, the Macro F1-score was used as the evaluation metric. For regression datasets, the R-squared score was used to measure how well the model predicts the target values.
+After preprocessing the datasets, the output data was tested using four machine learning models. For classification problems, Logistic Regression, Random Forest, Decision Tree, and KNN were used. For regression problems, Linear Regression, Random Forest, Decision Tree, and KNN were used. This helped test the preprocessing output with different model types, not only one model.
+The results were saved and plotted as comparison graphs between Accelera and AutoCleanML. These graphs show the score of each tool on the selected datasets. The purpose of this comparison was to check whether Accelera can produce preprocessing results that are close to, or better than, an existing preprocessing tool.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Classification comparison using Logistic Regression and Random Forest}
+\label{tab:classification-lr-rf-autoclean-accelera}
+\begin{tabular}{p{0.38\textwidth}cccc}
+\toprule
+Dataset & \multicolumn{2}{c}{Logistic Regression} & \multicolumn{2}{c}{Random Forest} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & AutoCleanML & Accelera & AutoCleanML & Accelera \\
+\midrule
+Startup founder burnout & 1.0000 & 1.0000 & 0.9999 & 0.9999 \\
+Healthy diet calorie intake & 0.9917 & 0.9890 & 1.0000 & 1.0000 \\
+AI student & 0.5181 & 0.5095 & 0.4887 & 0.4799 \\
+Gaming addiction & 0.8937 & 0.8937 & 0.9646 & 1.0000 \\
+Student exam performance & 0.8667 & 0.8657 & 0.8579 & 0.8573 \\
+Heart & 0.8019 & 0.8007 & 0.7689 & 0.7860 \\
+Spine dataset & 0.8691 & 0.7943 & 0.8360 & 0.7840 \\
+Diabetes dataset & 0.9995 & 0.9985 & 0.9996 & 0.9985 \\
+Student placement synthetic & 0.5657 & 0.5879 & 0.6241 & 0.9986 \\
+Titanic dataset & 0.7734 & 0.7864 & 0.7906 & 0.7906 \\
+Customer purchase data & 0.8484 & 0.8375 & 0.9386 & 0.9385 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Classification comparison using Decision Tree and KNN}
+\label{tab:classification-dt-knn-autoclean-accelera}
+\begin{tabular}{p{0.38\textwidth}cccc}
+\toprule
+Dataset & \multicolumn{2}{c}{Decision Tree} & \multicolumn{2}{c}{KNN} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & AutoCleanML & Accelera & AutoCleanML & Accelera \\
+\midrule
+Startup founder burnout & 1.0000 & 1.0000 & 0.9824 & 0.9881 \\
+Healthy diet calorie intake & 1.0000 & 1.0000 & 0.9379 & 0.9184 \\
+AI student & 0.4339 & 0.4243 & 0.4451 & 0.4533 \\
+Gaming addiction & 1.0000 & 1.0000 & 0.6905 & 0.8512 \\
+Student exam performance & 0.7987 & 0.8063 & 0.8423 & 0.8338 \\
+Heart & 0.7213 & 0.7704 & 0.7689 & 0.7860 \\
+Spine dataset & 0.7686 & 0.7632 & 0.8239 & 0.8042 \\
+Diabetes dataset & 0.9995 & 0.9972 & 0.9925 & 0.9980 \\
+Student placement synthetic & 0.5827 & 0.9968 & 0.5995 & 0.8348 \\
+Titanic dataset & 0.6979 & 0.7877 & 0.7203 & 0.7562 \\
+Customer purchase data & 0.8486 & 0.8449 & 0.8544 & 0.8806 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Regression comparison using Linear Regression and Random Forest}
+\label{tab:regression-lr-rf-autoclean-accelera}
+\begin{tabular}{p{0.38\textwidth}cccc}
+\toprule
+Dataset & \multicolumn{2}{c}{Linear Regression} & \multicolumn{2}{c}{Random Forest} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & AutoCleanML & Accelera & AutoCleanML & Accelera \\
+\midrule
+Global AI jobs & 0.9022 & 0.7498 & 0.9288 & 0.9227 \\
+Car price assignment & 0.8886 & 0.8943 & 0.9535 & 0.9562 \\
+Housing & 0.6506 & 0.6482 & 0.6087 & 0.6037 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Regression comparison using Decision Tree and KNN}
+\label{tab:regression-dt-knn-autoclean-accelera}
+\begin{tabular}{p{0.38\textwidth}cccc}
+\toprule
+Dataset & \multicolumn{2}{c}{Decision Tree} & \multicolumn{2}{c}{KNN} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & AutoCleanML & Accelera & AutoCleanML & Accelera \\
+\midrule
+Global AI jobs & 0.8640 & 0.8412 & 0.7586 & 0.7510 \\
+Car price assignment & 0.9269 & 0.8825 & 0.7905 & 0.7478 \\
+Housing & 0.3819 & 0.3634 & 0.5312 & 0.5336 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.48\textwidth]{imgs/comparison_classification_score_LR.pdf}
+\includegraphics[width=0.48\textwidth]{imgs/comparison_classification_score_RandomForest.pdf}
+\includegraphics[width=0.48\textwidth]{imgs/comparison_classification_score_DecisionTree.pdf}
+\includegraphics[width=0.48\textwidth]{imgs/comparison_classification_score_KNN.pdf}
+\caption{Classification score comparison graphs for the four tested models}
+\label{fig:classification-comparison-graphs}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.48\textwidth]{imgs/comparison_regression_score_LR.pdf}
+\includegraphics[width=0.48\textwidth]{imgs/comparison_regression_score_RandomForest.pdf}
+\includegraphics[width=0.48\textwidth]{imgs/comparison_regression_score_DecisionTree.pdf}
+\includegraphics[width=0.48\textwidth]{imgs/comparison_regression_score_KNN.pdf}
+\caption{Regression score comparison graphs for the four tested models}
+\label{fig:regression-comparison-graphs}
+\end{figure}
+
+From these results, Accelera preprocessing gives very close results to
+AutoCleanML in many datasets. In some cases, such as
+\texttt{student\_placement\_synthetic}, Accelera gives much higher scores with
+tree-based models. In other cases, AutoCleanML is slightly better, especially
+in some regression results. This means the Accelera preprocessing output is
+valid and competitive, but the best tool can still depend on the dataset and
+the model used after preprocessing.
+
 \chapter{Conclusions and Future Work}
 \section{Faced Challenges}
 The main implementation challenges were preserving correctness while sharing
@@ -1301,8 +1428,9 @@ models, accuracy, and output equivalence.
 
 \section{Future Work}
 Future work should continue reducing graph memory consumption while preserving
-parallel branch execution, and should extend safe converter and loop-analysis
-coverage without weakening correctness checks.
+parallel branch execution, and should extend safe converter , loop-analysis
+coverage without weakening correctness checks, The preprocessing pipeline can be improved by adapting the preprocessing steps based on the selected model type and by adding techniques to handle imbalanced datasets.
+In the future, the benchmark platform can be improved by saving uploaded datasets on the server instead of using Google Drive links. It can also allow users to upload code files directly, instead of submitting only links.
 
 \chapter*{References}
 \addcontentsline{toc}{chapter}{References}
@@ -1315,8 +1443,10 @@ Tools, and Best Practices.'' Available at:
 
 \appendix
 \chapter{Development Platforms and Tools}
+\section{Hardware Platform}
+\section{Software Platform}
 The implemented modules use Python, C++, PyBind11, CMake, Clang-based AST
-analysis, OpenMP, NumPy, and Scikit-learn. The available experiments include
+analysis, OpenMP, NumPy,Pandas, Matplotlib,pytorch,  Scikit-learn , Node.js, and React ,MongoDB. The available experiments include
 Linux and Windows execution paths.
 
 \chapter{Use Cases}

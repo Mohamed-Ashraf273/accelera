@@ -1,6 +1,6 @@
 {
   "tabular_dataset": {
-    "model_name":"RandomForest",
+    "model_name":"DecisionTree",
     "problemType": {
       "classification": {
         "startup_founder_burnout_2026": {
