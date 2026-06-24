@@ -83,7 +83,7 @@ class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
             "shape":self.df.shape
         }
     def drop_duplicates(self):
-        self.df=self.df.drop_duplicates().copy()
+        self.df.drop_duplicates(inplace=True)
         self.report_data["drop_duplicates"] = {
             "shape": self.df.shape,
             "duplicates_sum": self.df.duplicated().sum(),

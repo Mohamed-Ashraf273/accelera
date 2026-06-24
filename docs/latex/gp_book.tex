@@ -654,12 +654,24 @@ available in the previous thesis.
 \noindent The Auto Preprocessing module is responsible for automating the data
 understanding, exploratory data analysis, and preprocessing stages of the data
 science workflow. The module was designed to reduce repeated manual work and to
-prepare different types of datasets in a consistent way before model training.
+prepare different types of datasets before model training.
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{imgs/tabular.pdf}
     \caption{Tabular Preprocessing Workflow}
     \label{fig:tabular_preprocessing_workflow}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{imgs/text.pdf}
+    \caption{Text Preprocessing Workflow}
+    \label{fig:text_preprocessing_workflow}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{imgs/text.pdf}
+    \caption{Image Preprocessing Workflow}
+    \label{fig:image_preprocessing_workflow}
 \end{figure}
 \subsection{Functional Description}
 \noindent The main function of this module is to receive a dataset and user configuration,
@@ -669,19 +681,19 @@ models. The module supports tabular, text, and image datasets.
 summarizes information about the dataset and the preprocessing steps applied.
 
 \subsubsection{Tabular datasets}
-\noindent the module supports both classification and regression
+\noindent For tabular datasets it supports both classification and regression
 tasks. It analyzes the dataset, removes duplicate records, splits the data into
 training and validation sets, detects column types, handles missing values,
 encodes categorical features, scales numerical features, applies target
 preprocessing, performs feature selection, and saves the preprocessing objects
 needed later for test data.
 \subsubsection{Text datasets}
-\noindent the module supports classification tasks. It cleans the text,
+\noindent It supports classification tasks. It cleans the text,
 tokenizes it, applies text preprocessing steps, and converts the text into a
 numerical representation suitable for machine learning models.
 \subsubsection{Image datasets}
-\noindent the module supports image classification by reading images from class
-folders, validating image files, resizing images, normalizing pixel values, and
+\noindent It supports image classification by reading images from class
+folders, validating image files, resizing images, applying augmentation, normalizing pixel values, and
 preparing the data loaders needed for training.
 
 
@@ -701,7 +713,7 @@ structure and needs different techniques.
     This is the constructor that receives the dataset and the user settings. 
     It validates these settings before starting the preprocessing process. 
     \item[\texttt{handel\_bool\_types():}]
-    This function handles boolean columns in the dataset. It finds the columns that have
+    This function handles columns that have bool data type. It finds the columns that have
     boolean values and converts them into integer values.
 
     \item[\texttt{data\_overview():}]
@@ -721,8 +733,7 @@ structure and needs different techniques.
     \item[\texttt{get\_data\_info():}]
     This function studies each column in the training data. It collects important
     information such as data type, number of unique values,
-    missing values, and missing percentage. For numerical columns, it also calculates the mean,and median. This information helps the system
-    decide how each column should be processed.
+    missing values, and missing percentage. For numerical columns, it also calculates the mean,and median.
 
     \item[\texttt{is\_drop\_column():}]
     This function decides whether a column should be removed or kept. A column is
@@ -740,6 +751,59 @@ structure and needs different techniques.
     low cardinality categorical columns, high cardinality categorical columns, and
     unsupported columns. The function also stores the preprocessing steps for each
     column to be shown later in the report.
+    \begin{table}[H]
+    \centering
+    \caption{Detected Column Types in Tabular Data}
+    \label{tab:feature_types}
+    \begin{tabular}{|p{3.5cm}|p{7cm}|p{4cm}|}
+    \hline
+    \textbf{Feature Type} & \textbf{Description} & \textbf{Examples} \\
+    \hline
+
+    Binary &
+    Columns containing exactly two unique values. &
+    yes/no, 1/0 \\
+    \hline
+
+    Ordinal &
+    Integer columns with a small number of unique values less than or equal to
+    \texttt{max\_ordinal\_unique}. &
+    Ratings or levels such as 1, 2, 3, 4 \\
+    \hline
+
+    Numerical &
+    Integer columns with a number of unique values greater than
+    \texttt{max\_ordinal\_unique}. &
+    Age, number of transactions \\
+    \hline
+
+    Continuous &
+    Floating-point columns. &
+    Height = 175.5, price = 19.99, temperature = 36.6 \\
+    \hline
+
+    Low Cardinality Categorical &
+    Object or string columns with a number of unique values less than or equal to
+    \texttt{cardinality\_threshold}. &
+    Product categories, gender, country group \\
+    \hline
+
+    High Cardinality Categorical &
+    Object or string columns with a number of unique values greater than
+    \texttt{cardinality\_threshold}. &
+    Product names, cities \\
+    \hline
+
+    Other &
+    Columns with unsupported or non-standard data types. These columns are excluded from
+    the preprocessing pipeline. &
+    Dates, complex objects, unsupported formats \\
+    \hline
+
+    \end{tabular}
+    \end{table}
+
+
 
     \item[\texttt{make\_graphs():}]
     This function creates graphs when the report option is enabled. The type of graph
@@ -777,7 +841,7 @@ structure and needs different techniques.
     This is the main function that controls the full tabular preprocessing workflow. It
     calls the previous functions in order. It starts by handling boolean columns,
     generating the data overview,drop rows have null target, removing duplicates, and splitting the data. Then, it
-    extracts column information, drops unsuitable columns, detects feature types,
+    extracts column information, drops unsuitable columns, detects column types,
     generates graphs, preprocesses the features, preprocesses the target, applies feature
     selection, and generates the report if enabled.It returns the processed
     training and validation data.
@@ -788,118 +852,74 @@ structure and needs different techniques.
 
 \begin{description}
     \item[\texttt{\_\_init\_\_():}]
-    This function receives the dataset and the user settings, such as the target column,
-    text column, output folder, validation size, random state, TF-IDF settings, and
-    report option. It checks that the text column and target column are not the same. It
-    also checks that the text column exists in the dataset and that its data type is
-    object. Since this module is used for classification, the target column must be
-    categorical, integer, or boolean.
-
-    The function also removes any columns that are not the text column or the target
-    column. This keeps only the columns needed for text classification. Finally, it
+     This is the constructor that receives the dataset and the user settings. 
+     It validates these settings before starting the preprocessing process.Also removes any columns that are not the text column or the target
+     column. This keeps only the columns needed for text classification. It also
     downloads the required NLTK resources, such as \texttt{punkt} and
     \texttt{stopwords}.
-
     \item[\texttt{make\_graphs():}]
     This function creates graphs if the report option is enabled. It creates a graph for
-    the text column using the \texttt{TextGraph} class. It also creates a graph for the
-    target column using the \texttt{TargetClassification} class. These graphs help the
-    user understand the text data and the target class distribution.
+    the text column . It also creates a graph for the target column. These graphs help the user understand the text data and the target class distribution.
 
     \item[\texttt{custom\_text\_tokenizer():}]
-    This function is responsible for cleaning and tokenizing the text. First, it converts
-    the text to lowercase and removes extra spaces. Then, it handles some contractions,
-    such as converting \texttt{can't} to \texttt{can not} and \texttt{won't} to
-    \texttt{will not}. It also separates numbers from letters and removes unnecessary
-    symbols.
+    This function is used to clean the text and split it into words. It converts the text to
+    lowercase, removes extra spaces and unnecessary symbols, and handles some contractions
+    such as \texttt{can't} and \texttt{won't}. It also separates numbers from letters.
+    Then, the text is tokenized into words. Stopwords are removed, but words like
+    \texttt{not} and \texttt{no} are kept because they affect the meaning. After that,
+    stemming is used to reduce words to their basic form.
 
-    After cleaning the text, the function splits it into words. Stopwords are removed,
-    but important negation words such as \texttt{not} and \texttt{no} are kept because
-    they can change the meaning of the sentence. Finally, stemming is applied using
-    \texttt{PorterStemmer} to reduce words to their base form.
+\item[\texttt{features\_preprocessing():}]
+This function applies the preprocessing steps to the text column. It fills
+missing text values in the training and validation data with empty strings. 
+Then it uses the custom tokenizer . It also stores examples of the text
+before and after cleaning in the report. Then \texttt{TfidfVectorizer} is used to convert the cleaned text into numerical
+features. The vectorizer uses the user settings, such as the maximum number of
+features, n-gram range, maximum document frequency, and minimum document frequency.
+The vectorizer is fitted on the training data and applied to the validation
+data. The fitted vectorizer is saved as \texttt{training\_preprocessor.pkl} so the same
+text transformation can be reused later on testing or new data.
 
-    \item[\texttt{features\_preprocessing():}]
-    This function applies the preprocessing steps to the text column. First, missing
-    text values in the training and validation data are replaced with empty strings. Then,
-    the cleaning and tokenization steps are applied using the custom tokenizer.
+\item[\texttt{target\_preprocessing():}]
+This function prepares the target column for classification this function  applies label
+encoding to the target values. The fitted label encoder is saved as \texttt{target\_preprocessor.pkl}. Also, the text
+column and target column information are saved in \texttt{data\_info.pkl}. This helps the
+system apply the same target transformation later on testing or new data.
 
-    The function also stores examples of the text before and after cleaning in the report.
-    After that, \texttt{TfidfVectorizer} is used to convert the cleaned text into
-    numerical features. This is important because machine learning models cannot work
-    directly with raw text.
-
-    The TF-IDF vectorizer uses the settings selected by the user, such as maximum number
-    of features, n-gram range, maximum document frequency, and minimum document
-    frequency. The vectorizer is fitted on the training data and then applied to the
-    validation data. Finally, the fitted vectorizer is saved as
-    \texttt{training\_preprocessor.pkl} so it can be reused later.
-
-    \item[\texttt{target\_preprocessing():}]
-    This function prepares the target column for classification. First, it finds the most
-    frequent class in the training target and uses it to fill missing target values in
-    both training and validation data.
-
-    After that, \texttt{LabelEncoder} is used to convert the class labels into numerical
-    values. The processed target samples are saved in the report. The fitted label encoder
-    is saved as \texttt{target\_preprocessor.pkl}, and the text and target information is
-    saved in \texttt{data\_info.pkl}. This helps the system apply the same target
-    transformation later on testing or new data.
-
-    \item[\texttt{common\_preprocessing():}]
-    This is the main function that controls the full text preprocessing workflow. It
-    starts by setting the dropped columns value in the report, then creates the data
-    overview and removes duplicate rows. After that, it splits the dataset into training
-    and validation sets.
-
-    Then, it creates graphs if the report option is enabled. Next, it applies feature
-    preprocessing to clean and vectorize the text. After that, it applies target
-    preprocessing to encode the labels. Finally, if the report option is enabled, it
-    generates the final preprocessing report using \texttt{TabularPreprocessingReport}
-    with \texttt{text\_based=True}.
-
-    At the end, the function returns the processed training features, training target,
-    validation features, and validation target. These outputs are ready to be used by a
-    machine learning model.
+\item[\texttt{common\_preprocessing():}]
+This is the main function that controls the full text preprocessing workflow. It calls
+the other functions in the correct order.
+It creates the data overview. Then, it removes rows that have missing target
+values and removes duplicate rows. Then, it splits the dataset into training and
+validation sets. If the report option is enabled, graphs are created. Then, feature preprocessing is applied to clean and
+vectorize the text. Target preprocessing is applied to encode the class
+labels. Generates the report if enabled.It returns the processed
+training and validation data.
 \end{description}
 
 \subsubsection{Image Data Preprocessing}
 
-\noindent The image preprocessing module is used for image classification datasets. In this
+\noindent It is used for image classification datasets. In this
 module, the images are organized inside folders, where each folder represents one class.
-The module is divided into a set of functions, and each function has a specific role in
+It is divided into a set of functions, and each function has a specific role in
 the image preprocessing workflow. The main functions are described as follows:
 
 \begin{description}
     \item[\texttt{\_\_init\_\_():}]
-    This function receives the image folders and the user settings, such as the training
-    folder, validation folder, output folder, validation size, random state, image size,
-    augmentation option, batch size, and augmentation settings.
-
-    It checks that the training folder contains class folders. If a validation folder is
-    provided, it also checks that the validation folder contains class folders and that
-    all validation classes already exist in the training classes. This is important
-    because the model should not find a new class in validation that does not exist in
-    training.
-
-    The function also prepares empty lists to store invalid images and their labels.
-    Finally, it saves the image size information in a file so it can be reused later.
+    This is the constructor that receives the dataset and the user settings. 
+    It validates these settings before starting the preprocessing process.It also prepares empty lists to store invalid images and their labels.
+    It saves the image size information in a file so it can be reused later.
 
     \item[\texttt{get\_classes\_mapping():}]
-    This function creates the class mappings. It gives each class name a numerical label.
-    For example, each folder name is converted into a number. It creates two mappings:
-    one from class name to label, and another from label to class name.
-
-    These mappings are saved in files. This helps the system use the same labels during
+    This function creates the class mappings. It gives each class name a numerical label.It creates two mappings:
+    one from class name to label, and another from label to class name.These mappings are saved in files. This helps the system use the same labels during
     training, validation, testing, and prediction.
 
     \item[\texttt{data\_preparing():}]
     This function reads the images from the class folders. It goes through each class
-    folder and checks each image path.
-
-    If the image is valid and can be opened, its path is added to the list of valid image
+    folder and checks each image path.If the image is valid and can be opened, its path is added to the list of valid image
     paths, and its class label is added to the labels list. If the image is invalid or
     corrupted, it is added to the invalid images list with its label.
-
     If there are no valid images, the function raises an error because the preprocessing
     process cannot continue without valid image data.
 
@@ -907,7 +927,6 @@ the image preprocessing workflow. The main functions are described as follows:
     This function collects general information about the image dataset. For the training
     folder, it stores the class names, number of valid images, random sample images,
     number of invalid images, invalid image paths, and the class mapping.
-
     If a validation folder is provided, it also stores the same type of information for
     the validation folder. This information is used later in the final preprocessing
     report.
@@ -985,7 +1004,7 @@ as the training data.
 \end{itemize}
 
 This makes the preprocessing module reusable and consistent for training,
-validation, testing, future prediction, and deployment.
+validation, testing, and future prediction.
 
 \subsection{Design Constraints}
 Several constraints affected the design of the Auto Preprocessing module:
