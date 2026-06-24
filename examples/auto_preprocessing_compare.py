@@ -211,10 +211,12 @@ def main():
             total_results.extend(results)
             plot_comparison(results_df, problem_type, "score", model_name)
 
-    total_results_df = pd.DataFrame(total_results)
-    total_results_df.to_csv(
-        EXAMPLES_DIR / "preprocessing_comparison_autoclean.csv", index=False
-    )
+            total_results_df = pd.DataFrame(total_results)
+            total_results_df.to_csv(
+                EXAMPLES_DIR
+                / f"preprocessing_comparison_autoclean_{model_name}.csv",
+                index=False,
+            )
 
 
 if __name__ == "__main__":

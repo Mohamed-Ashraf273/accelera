@@ -76,6 +76,14 @@ class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
             "shape": self.df.shape,
         }
 
+    def drop_target_nulls(self):
+        target_nulls = self.df[self.target_col].isnull().sum()
+        self.df = self.df.dropna(subset=[self.target_col])
+        self.report_data["target_nulls"] = {
+            "null": target_nulls,
+            "shape": self.df.shape,
+        }
+
     def drop_duplicates(self):
         self.df.drop_duplicates(inplace=True)
         self.report_data["drop_duplicates"] = {
