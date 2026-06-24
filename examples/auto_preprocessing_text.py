@@ -25,7 +25,7 @@ def handel_data_model(df, label, text_col, report_path):
     model = XGBClassifier()
     model.fit(X_train, y_train)
     prediction = model.predict(X_test)
-    evaluation = f1_score(y_test, prediction, average="micro")
+    evaluation = f1_score(y_test, prediction, average="macro")
     print("evaluation f1 score")
     print(evaluation)
 

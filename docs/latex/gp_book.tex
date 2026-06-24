@@ -180,8 +180,8 @@ by photocopying or other means, without the permission of the authors or departm
 
 \end{titlepage}
 
-\pagenumbering{roman}
-\setcounter{page}{1}
+\pagenumbering{arabic}
+\setcounter{page}{2}
 
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
@@ -266,8 +266,7 @@ Salma Abdelmoniem & \underline{abc1@email.com}  & +2 01114302362 \\ \hline
 
 
 \clearpage
-\pagenumbering{arabic}
-\setcounter{page}{1}
+
 
 \chapter{Introduction}
 \section{Motivation and Justification}
@@ -669,7 +668,7 @@ prepare different types of datasets before model training.
 \end{figure}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{imgs/text.pdf}
+    \includegraphics[width=1\textwidth]{imgs/image_workflow.pdf}
     \caption{Image Preprocessing Workflow}
     \label{fig:image_preprocessing_workflow}
 \end{figure}
@@ -1157,29 +1156,129 @@ This design allows the web platform to manage users, benchmarks, and
 submissions while Python handles the machine learning evaluation part.
 
 \chapter{System Testing and Verification}
+This chapter explains how the project was tested to make sure that the system works correctly. The testing was done in different ways because not all parts of the project can be tested using the same method. Some parts were tested using unit tests, some parts were checked manually, and some results were compared with other tools or expected outputs.
+The main purpose of testing was to make sure that the system can take the input, apply the required steps, save the needed files, and return the correct output without errors. 
 \section{Testing Setup}
-The available experiments use identical train, validation, and test splits
-when comparing candidate pipelines. Timing, memory, output equivalence, and
-predictive accuracy are reported according to the module under test.
-
+The testing was done in a Python environment. The main tools used in testing were Python, Pytest, Pandas, NumPy, Scikit-learn, and the other libraries used in the project implementation.
+The system was tested using sample datasets and different test cases. The output of the system was checked to make sure that it is correct and in the expected format to make sure that they were created correctly.
+Some tests were written and run automatically using Pytest. Other tests were checked manually by comparing the actual output with the expected output. This testing setup helped make sure that the project works correctly.
 \section{Testing Plan and Strategy}
-Module tests validate graph correctness, pipeline persistence, converter
-support, loop transformation, and output equivalence. Integration tests
-evaluate the end-to-end path from custom preprocessing code through native
-compilation and graph execution.
-
+The testing plan was based on testing the project step by step. First, the main parts of the system were tested separately to make sure that each part works correctly. After that, the complete system was tested as one workflow to make sure that all parts work together without errors.
+Different testing methods were used depending on the part being tested. Some parts were tested using unit tests with Pytest. Other parts were checked manually by comparing the actual output with the expected output. In some cases, the results were also compared with other tools to make sure that the system gives correct and reasonable results.
+\subsection{Module Testing}
 \input{sections/results-modhamed}
-\input{sections/results-nesma}
+\subsubsection{Auto Preprocessing Module}
+Most of the functions were tested using unit tests. These tests were used to make sure that the functions give the expected output and do not produce errors.
+Real datasets were also used to test the system in a more practical way. These datasets were collected from Kaggle for different data types. For all datasets, the data was split using a test size of 0.2 and a random state of 42. The model performance was then measured on the test data.
+For tabular data, both classification and regression datasets were used. After applying preprocessing, the output was passed to a Random Forest model to check that the processed data was ready for training and testing.
+For text data, the processed output was passed to an \texttt{XGBClassifier}. This helped check that the text preprocessing steps converted the text into numerical features correctly.
+For image data, the output of the image preprocessing module was passed to a ResNet model. This helped check that the image data loaders were created correctly and could be used directly for model training.
+The results showed that the tested modules produced valid outputs and were suitable to be used in the training step.
 
-\section{AutoML Module}
+\begin{table}[H]
+\centering
+\caption{Datasets Used in Module Testing}
+\label{tab:module_testing_datasets}
+\begin{tabular}{|p{7cm}|p{3cm}|p{3cm}|p{3cm}|}
+\hline
+\textbf{Dataset Name} & \textbf{Shape} & \textbf{Dataset Type} & \textbf{Problem Type} \\
+\hline
+startup\_founder\_burnout\_2026 & (50000, 29) & Tabular & Classification \\
+\hline
+healthy\_diet\_calorie\_intake & (6000, 15) & Tabular & Classification \\
+\hline
+ai\_student & (50000, 16) & Tabular & Classification \\
+\hline
+gaming\_addiction & (250, 49) & Tabular & Classification \\
+\hline
+student\_exam\_performance\_dataset & (10000, 17) & Tabular & Classification \\
+\hline
+heart & (1025, 14) & Tabular & Classification \\
+\hline
+Dataset\_spine & (310, 7) & Tabular & Classification \\
+\hline
+diabetes\_dataset & (100000, 31) & Tabular & Classification \\
+\hline
+student\_placement\_synthetic & (100000, 18) & Tabular & Classification \\
+\hline
+Titanic-Dataset & (891, 12) & Tabular & Classification \\
+\hline
+customer\_purchase\_data & (1500, 9) & Tabular & Classification \\
+\hline
+global\_ai\_jobs & (90000, 35) & Tabular & Regression \\
+\hline
+CarPrice\_Assignment & (205, 26) & Tabular & Regression \\
+\hline
+Housing & (545, 13) & Tabular & Regression \\
+\hline
+PetImages & (24998,) & Image & Classification \\
+\hline
+DailyDialog & (11327, 2) & Text & Classification \\
+\hline
+TestReviews & (4321, 2) & Text & Classification \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Models and Evaluation Metrics Used in Module Testing}
+\label{tab:module_testing_models}
+\begin{tabular}{|p{7cm}|p{2.8cm}|p{3cm}|p{2cm}|}
+\hline
+\textbf{Dataset Name} & \textbf{Model Used} & \textbf{Evaluation Metric} & \textbf{Accelera Result} \\
+\hline
+startup\_founder\_burnout\_2026 & RandomForest & Macro F1-score & 0.9999 \\
+\hline
+healthy\_diet\_calorie\_intake & RandomForest & Macro F1-score & 1.0000 \\
+\hline
+ai\_student & RandomForest & Macro F1-score & 0.4799 \\
+\hline
+gaming\_addiction & RandomForest & Macro F1-score & 1.0000 \\
+\hline
+student\_exam\_performance\_dataset & RandomForest & Macro F1-score & 0.8573 \\
+\hline
+heart & RandomForest & Macro F1-score & 0.7860 \\
+\hline
+Dataset\_spine & RandomForest & Macro F1-score & 0.7840 \\
+\hline
+diabetes\_dataset & RandomForest & Macro F1-score & 0.9985 \\
+\hline
+student\_placement\_synthetic & RandomForest & Macro F1-score & 0.9986 \\
+\hline
+Titanic-Dataset & RandomForest & Macro F1-score & 0.7906 \\
+\hline
+customer\_purchase\_data & RandomForest & Macro F1-score & 0.9385 \\
+\hline
+global\_ai\_jobs & RandomForest & R-squared Score & 0.9227 \\
+\hline
+CarPrice\_Assignment & RandomForest & R-squared Score & 0.9562 \\
+\hline
+Housing & RandomForest & R-squared Score & 0.6037 \\
+\hline
+PetImages & ResNet model & Accuracy & 0.97 \\
+\hline
+DailyDialog & XGBClassifier & Accuracy & Add result \\
+\hline
+TestReviews & XGBClassifier & Accuracy & Add result \\
+\hline
+\end{tabular}
+\end{table}
+
+
+\subsubsection{AutoML Module}
 \mbox{}
 
-\section{Deployment Module}
+\subsubsection{Deployment Module}
 \mbox{}
 
-\section{Benchmark Platform Module}
+\subsubsection{Benchmark Platform Module}
 \mbox{}
-
+\subsection{Integration Testing}
+\subsection{Testing Schedule}
+\subsection{Comparative Results to Previous Work}
+\
 \chapter{Conclusions and Future Work}
 \section{Faced Challenges}
 The main implementation challenges were preserving correctness while sharing
