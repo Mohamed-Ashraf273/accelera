@@ -133,19 +133,17 @@ def server_module(monkeypatch):
     monkeypatch.setitem(sys.modules, "pydantic", SimpleNamespace(BaseModel=object))
     monkeypatch.setitem(
         sys.modules,
-        "accelera.src.deployment.accelera_deployment.modelservice",
+        "accelera.src.deployment.modelservice",
         SimpleNamespace(service=service),
     )
     monkeypatch.setitem(
         sys.modules,
-        "accelera.src.deployment.accelera_deployment.schema_validation",
+        "accelera.src.deployment.schema_validation",
         SimpleNamespace(SchemaValidationError=FakeSchemaValidationError),
     )
-    sys.modules.pop("accelera.src.deployment.accelera_deployment.server", None)
+    sys.modules.pop("accelera.src.deployment.server", None)
 
-    module = importlib.import_module(
-        "accelera.src.deployment.accelera_deployment.server"
-    )
+    module = importlib.import_module("accelera.src.deployment.server")
     module.service = service
     return module
 

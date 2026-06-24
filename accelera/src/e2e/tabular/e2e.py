@@ -1,12 +1,5 @@
 import os
-<<<<<<< HEAD
-<<<<<<< HEAD
 from urllib.parse import urlparse
-=======
->>>>>>> ee06af6 (integrate e2e)
-=======
-from urllib.parse import urlparse
->>>>>>> 002ecff (add e2e pipleline)
 
 import pandas as pd
 

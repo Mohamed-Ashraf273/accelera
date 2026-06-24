@@ -52,18 +52,16 @@ def service_module(monkeypatch):
 
     monkeypatch.setitem(
         sys.modules,
-        "accelera.src.deployment.accelera_deployment.schema_validation",
+        "accelera.src.deployment.schema_validation",
         SimpleNamespace(InputSchema=DummySchema),
     )
     monkeypatch.setitem(
         sys.modules,
-        "accelera.src.deployment.accelera_deployment.tracking",
+        "accelera.src.deployment.tracking",
         SimpleNamespace(PredictionTracker=DummyTracker),
     )
-    sys.modules.pop("accelera.src.deployment.accelera_deployment.modelservice", None)
-    module = importlib.import_module(
-        "accelera.src.deployment.accelera_deployment.modelservice"
-    )
+    sys.modules.pop("accelera.src.deployment.modelservice", None)
+    module = importlib.import_module("accelera.src.deployment.modelservice")
     return module
 
 
