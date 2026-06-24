@@ -801,8 +801,7 @@ same way as the training data.
 \section{AutoML Module}
 \mbox{}
 
-\section{Deployment Module}
-\mbox{}
+\input{sections/methodology-deployment}
 
 \section{Benchmark Platform Module}
 \noindent The Benchmark Platform module is designed to provide a shared
@@ -923,7 +922,7 @@ compilation and graph execution.
 \mbox{}
 
 \section{Deployment Module}
-\mbox{}
+\input{sections/results-deployment}
 
 \section{Benchmark Platform Module}
 \mbox{}
@@ -936,8 +935,22 @@ consumer, and limiting generated OpenMP code to loops that pass dependency and
 conversion checks. The experiments also identify memory usage during
 branch-level parallel execution as the main remaining graph-backend challenge.
 
+For the Deployment module, the major challenges included:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Image size optimization}: Eliminating heavy training dependencies (such as PyTorch and TensorFlow) from the runtime serving container to minimize size and deployment time.
+  \item \textbf{Robust type coercion}: Dealing with edge-case inputs (e.g. string representations of numeric and boolean fields) during runtime schema validation without throwing false positives.
+  \item \textbf{Headless remote orchestration}: Programmatically resolving host authentication, SSH key security, and Docker daemon startup on remote AWS EC2 instances during fully automated deployments.
+\end{itemize}
+
 \section{Gained Experience}
-\mbox{}
+Developing the Accelera system provided valuable hands-on experience in:
+\begin{itemize}[leftmargin=*]
+  \item Designing parallel Graph-based execution backends for machine learning pipelines.
+  \item Building source-to-source compilers with loop analyzers, classification guide systems, and AST code generation.
+  \item Constructing lightweight FastAPI-based model serving layers with Great Expectations validation pipelines.
+  \item Implementing a custom VCS for machine learning registries to enable repeatable snapshots and rollbacks.
+  \item Automating cloud orchestration pipelines (Docker, Heroku, AWS EC2) inside continuous deployment constraints.
+\end{itemize}
 
 \section{Conclusions}
 Accelera Pipe provides a graph-based execution model for branch-heavy
@@ -948,10 +961,19 @@ classifier guidance, and safety checks. The available experiments show runtime
 improvements on large branch-selection workloads while preserving selected
 models, accuracy, and output equivalence.
 
+The Deployment module successfully bridges the gap between training and production. It automates staging, runtime validation, telemetry logging, target containerizing, and historical version rollbacks. This ensures that machine learning models can be securely and repeatably served on local, Heroku, or AWS EC2 platforms.
+
 \section{Future Work}
 Future work should continue reducing graph memory consumption while preserving
 parallel branch execution, and should extend safe converter and loop-analysis
 coverage without weakening correctness checks.
+
+For the Deployment module, future research directions include:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Serverless target support}: Introducing serverless handlers (such as AWS Lambda or Google Cloud Functions) to allow on-demand serving and minimize hosting costs.
+  \item \textbf{Live monitoring and drift detection}: Integrating online data drift monitoring engines (e.g. evidently.ai) to alert users when inference data distribution shifts from training data.
+  \item \textbf{Distributed VCS registries}: Extending the internal VCS to synchronize snapshots with centralized cloud storage (like AWS S3) or model registries (like MLflow).
+\end{itemize}
 
 \chapter*{References}
 \addcontentsline{toc}{chapter}{References}
