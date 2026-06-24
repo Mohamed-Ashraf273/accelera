@@ -43,12 +43,12 @@ class TestTextTrainingPreprocessing:
                     "pos",
                     "pos",
                     "pos",
-                     "pos",
-                    "neg",
                     "pos",
                     "neg",
                     "pos",
-                     "pos",
+                    "neg",
+                    "pos",
+                    "pos",
                 ],
                 "wrong_text": [1.1, 2, 3, 5, 5, 5, 2, 3, 4, 5],
             }
@@ -169,7 +169,7 @@ class TestTextTrainingPreprocessing:
                 tp.df["class"],
                 test_size=0.2,
                 random_state=42,
-                stratify=tp.df["class"]
+                stratify=tp.df["class"],
             )
         )
         X_train, X_val, y_train, y_val = tp.split_data()

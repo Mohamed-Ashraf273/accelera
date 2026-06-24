@@ -188,12 +188,15 @@ class TabularPreprocessingReport(ReportBase):
                 index=False
             )
             self.content += "</div>\n"
+
     def show_drop_target_nulls(self):
         self.content += "<div>\n"
         self.content += "<h2>Handling Target Nulls</h2>\n"
-        self.content+=f"<p>Target has nulls {self.target_nulls['null']}</p>"
-        self.content+=f"<p>Shape After Dropping Rows has Nulls in target {self.target_nulls['shape']}</p>"
+        self.content += f"<p>Target has nulls {self.target_nulls['null']}</p>"
+        self.content += "<p>Shape After Dropping Rows has \n     "
+        self.content += f"Nulls in target {self.target_nulls['shape']}</p>"
         self.content += "</div>\n"
+
     def execute(self):
         self.show_data_overview()
         self.show_drop_target_nulls()

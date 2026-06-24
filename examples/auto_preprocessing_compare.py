@@ -213,7 +213,9 @@ def main():
 
             total_results_df = pd.DataFrame(total_results)
             total_results_df.to_csv(
-                EXAMPLES_DIR / f"preprocessing_comparison_autoclean_{model_name}.csv", index=False
+                EXAMPLES_DIR
+                / f"preprocessing_comparison_autoclean_{model_name}.csv",
+                index=False,
             )
 
 

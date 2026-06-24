@@ -197,4 +197,3 @@ class TestClassicalTestingPreprocessing:
         tp = ClassicalTestingPreprocessing(df=self.df, folder_path=self.temp_dir)
         tp.target_preprocessing()
         assert tp.y_test.tolist() == [0, 0, 2]
-            
