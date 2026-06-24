@@ -1,6 +1,6 @@
 import json
 
-from accelera.src.deployment.accelera_deployment.tracking import PredictionTracker
+from accelera.src.deployment.tracking import PredictionTracker
 
 
 def test_disabled_tracker_does_not_write_events(tmp_path):

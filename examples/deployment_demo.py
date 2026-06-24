@@ -54,8 +54,7 @@ vcs.log(SimpleNamespace())
 print("\n5: Deploying models to EC2")
 python_bin = sys.executable
 deploy_script = (
-    Path(__file__).resolve().parents[1]
-    / "accelera/src/deployment/deployment.py"
+    Path(__file__).resolve().parents[1] / "accelera/src/deployment/deployment.py"
 )
 
 cmd = [
@@ -72,9 +71,9 @@ cmd = [
 ]
 subprocess.run(cmd, check=True)
 
-# os.chdir(original_cwd)
-# if demo_dir.exists():
-#     shutil.rmtree(demo_dir)
-#     print(f"\nClean up demo environment{demo_dir}")
+os.chdir(original_cwd)
+if demo_dir.exists():
+    shutil.rmtree(demo_dir)
+    print(f"\nClean up demo environment{demo_dir}")
 
 print("\n==== Accelera deployment demo Completed =========")

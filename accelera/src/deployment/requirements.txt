@@ -7,4 +7,8 @@ numpy==2.4.4
 pandas==3.0.2
 pydantic==2.13.3
 python-multipart==0.0.27
-torch
+joblib
+lightgbm
+catboost
+xgboost
+ConfigSpace
