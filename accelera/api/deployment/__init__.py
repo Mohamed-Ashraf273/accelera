@@ -10,5 +10,4 @@ from accelera.src.deployment import schema_validation as schema_validation
 from accelera.src.deployment import server as server
 from accelera.src.deployment import tracking as tracking
 from accelera.src.deployment import vcs as vcs
-from accelera.src.deployment import accelera_deployment as accelera_deployment
 from accelera.src.deployment import tests as tests
