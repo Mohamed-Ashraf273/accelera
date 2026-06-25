@@ -1,0 +1,52 @@
+\subsection{Experimental Setup and Test suite}
+\noindent The verification of the Deployment module is performed through a comprehensive test suite managed by the \texttt{pytest} framework. To ensure high test isolation and allow headless execution in CI/CD pipelines, the test suite leverages extensive mocking via the Python \texttt{monkeypatch} utility to decouple tests from system-level configurations, active network services (e.g., Heroku API, AWS EC2 hosts), and runtime dependency installations. 
+
+\noindent Tests are executed inside temporary filesystem workspaces generated dynamically using the \texttt{tmp\_path} fixture. This ensures that the generated version control indices, log files, and Docker deployment artifacts do not contaminate the primary workspace.
+
+\subsection{Subsystem Verification Details}
+\noindent The verification targets the six major components of the deployment module:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Model Version Control (VCS) verification}:
+    Validates the stability of the 7-character short SHA-1 hash calculation, confirming that identical timestamp-message pairs produce identical commit IDs. Tests ensure that \texttt{vcs.init()} initializes the experiments metadata directory structure and saves a clean registry template (\texttt{experiments.json}). Commit operations are verified to correctly copy model serialization binaries (e.g., \texttt{model.pkl}), snapshot active configurations, update the \texttt{HEAD} reference, and append metadata entries. Rollback capabilities are verified by deploying historical commits and confirming that the active runtime files are updated with the corresponding commit snapshots.
+  
+  \item \textbf{Model Service Pipeline verification}:
+    Tests check that the \texttt{ModelService} correctly parses configurations, loads active model estimators and preprocessors in the correct sequence, and performs inference. Mock tests confirm that preprocessing steps (such as scaling or encoding) are applied in order before predictions are generated.
+  
+  \item \textbf{Runtime Schema Validation verification}:
+    Validates the runtime behavior of input schema checking. Ephemeral Great Expectations suites are mocked to verify column-presence verification (identifying missing or unexpected fields) and value-bound checking. The data type auto-coercion system is verified by testing how it handles numeric conversions (casting strings to floats or integers) and parsing boolean representations (such as \texttt{"true"}, \texttt{"false"}, or numeric binary flags).
+  
+  \item \textbf{Web Serving Endpoints verification}:
+    Verifies that the FastAPI application correctly routes incoming HTTP requests. Tests evaluate the \texttt{/predict} and \texttt{/predict/csv} endpoints for JSON inputs and multi-row CSV file uploads. Endpoint testing checks that success responses return correct JSON structures with HTTP 200 codes, validation errors throw HTTP 422 codes, and server errors return HTTP 500 codes.
+  
+  \item \textbf{Prediction Tracking and Telemetry verification}:
+    Verifies the telemetry logging behavior. Tests ensure that when telemetry is disabled, no disk writes occur. When active, request parameters, model outputs, timestamps, and latency figures are verified to be written as valid JSON lines to the log file. Additionally, tests verify the telemetry reader's ability to aggregate counts (successful runs, error runs, total row counts) and report them dynamically.
+  
+  \item \textbf{Orchestration CLI verification}:
+    Validates port parsing limits (allowing ports between 1 and 65535, while rejecting negative numbers, non-numeric values, or out-of-bound ports). Tests check the preparation task (\texttt{prepare}) to verify that it creates a clean staging directory, compiles a standard \texttt{Dockerfile} using a Python slim base, and builds a clean \texttt{requirements.txt} containing only runtime-specific dependencies.
+\end{enumerate}
+
+\subsection{Deployment Test Results}
+\noindent When executed in an environment with all core dependencies installed, all 51 test cases compile and pass successfully. Table~\ref{tab:deployment-test-summary} summarizes the verification results for the deployment module.
+
+\begin{table}[H]
+\centering
+\caption{Deployment Module Test Suite Verification Summary}
+\label{tab:deployment-test-summary}
+\begin{tabular}{lrrrl}
+\toprule
+\textbf{Test Component File} & \textbf{Test Cases} & \textbf{Passed} & \textbf{Failed} & \textbf{Verified Feature} \\
+\midrule
+\texttt{vcs\_test.py} & 14 & 14 & 0 & Registry snapshots, workspace rollbacks \\
+\texttt{modelservice\_test.py} & 6 & 6 & 0 & Sequencing of preprocessor transforms \\
+\texttt{schema\_validation\_test.py} & 8 & 8 & 0 & Data coercion and column checking \\
+\texttt{server\_test.py} & 9 & 9 & 0 & FastAPI routing, telemetry integration \\
+\texttt{tracking\_test.py} & 3 & 3 & 0 & Telemetry logging and count aggregation \\
+\texttt{deployment\_test.py} & 11 & 11 & 0 & Staging setup, Dockerfile compiling \\
+\midrule
+\textbf{Total} & \textbf{51} & \textbf{51} & \textbf{0} & \textbf{End-to-End System Correctness} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent This successful validation confirms that the deployment engine operates as intended, offering robust models, automated runtime validation, telemetry logging, and repeatable container deployments without regression errors.

@@ -1,0 +1,56 @@
+digraph VCSWorkflow {
+    // General graph styling
+    fontname = "Helvetica,Arial,sans-serif";
+    node [fontname = "Helvetica,Arial,sans-serif"; shape = box; style = "filled,rounded"; fillcolor = "#ffffff"; stroke = "#333333"; penwidth = 1.5;];
+    edge [fontname = "Helvetica,Arial,sans-serif"; color = "#333333"; penwidth = 1.5;];
+    rankdir = LR;
+    compound = true;
+
+    deploy_cmd [label = "VCS deploy";shape = square;fillcolor = "#ffffff";penwidth = 2.0;];
+
+    subgraph cluster_registry_db {
+        label = "Update Registry Index File";
+        fontname = "Helvetica-Bold";
+        style = "dashed,rounded";
+        fillcolor = "#ffffff";
+        color = "#dddddd";
+        penwidth = 1.0;
+        margin = "10,10";
+        
+        experiments_json [label = "experiments.json\n\n{\n  \"HEAD\": \"experiments/a7c3f9b\",\n  \"deployed\": \"experiments/a7c3f9b\",\n  \"tags\": {...},\n  \"history\": [...]\n}";align = left;shape = box;];
+    }
+    
+    query_db [label = "Find commit\n in Registery";fillcolor = "#ffffff";penwidth = 2.0;];
+    
+    subgraph cluster_model_registry {
+        label = "REGISTRY";
+        fontname = "Helvetica-Bold";
+        style = "dashed,rounded";
+        fillcolor = "#ffffff";
+        color = "#dddddd";
+        penwidth = 2.0;
+        margin = "10,10";
+        
+        registry_structure [label = "experiments/\n  └─ a7c3f9b/\n       ├─ config.json\n       └─ models/\n               └─ *.pkl";align = left;];
+    }
+    
+    restore [label = "RESTORE WORKSPACE\nFILES";fillcolor = "#ffffff";penwidth = 2.0;];
+    
+    subgraph cluster_engineer {
+        label = "Workspace (Restored)";
+        fontname = "Helvetica-Bold";
+        style = "dashed,rounded";
+        color = "#dddddd";
+        penwidth = 1.5;
+        margin = "10,10";
+        config_json [label = "config.json\n(parameters,\nmetadata)";];
+        models_dir [label = "models/\n(artifacts, weights)";];
+    }
+    
+    deploy_cmd -> query_db 
+    query_db -> experiments_json 
+    experiments_json -> registry_structure 
+    registry_structure -> restore 
+    restore -> config_json;
+    restore -> models_dir;
+}
