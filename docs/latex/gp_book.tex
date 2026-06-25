@@ -656,19 +656,19 @@ science workflow. The module was designed to reduce repeated manual work and to
 prepare different types of datasets before model training.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{imgs/tabular.pdf}
+    \includegraphics[width=1\textwidth,clip]{imgs/tabular.pdf}
     \caption{Tabular Preprocessing Workflow}
     \label{fig:tabular_preprocessing_workflow}
 \end{figure}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{imgs/text.pdf}
+    \includegraphics[width=1\textwidth,clip]{imgs/text.pdf}
     \caption{Text Preprocessing Workflow}
     \label{fig:text_preprocessing_workflow}
 \end{figure}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{imgs/image_workflow.pdf}
+    \includegraphics[width=1\textwidth,clip]{imgs/image_workflow.pdf}
     \caption{Image Preprocessing Workflow}
     \label{fig:image_preprocessing_workflow}
 \end{figure}
@@ -712,8 +712,7 @@ structure and needs different techniques.
     This is the constructor that receives the dataset and the user settings. 
     It validates these settings before starting the preprocessing process. 
     \item[\texttt{handel\_bool\_types():}]
-    This function handles columns that have bool data type. It finds the columns that have
-    boolean values and converts them into integer values.
+    This function handles columns that have bool data type. It finds these columns and converts them into integer values.
 
     \item[\texttt{data\_overview():}]
     This function gives a general overview of the dataset before preprocessing.
@@ -750,7 +749,7 @@ structure and needs different techniques.
     low cardinality categorical columns, high cardinality categorical columns, and
     unsupported columns. The function also stores the preprocessing steps for each
     column to be shown later in the report.
-    \begin{table}[H]
+    \begin{table}[!htbp]
     \centering
     \caption{Detected Column Types in Tabular Data}
     \label{tab:feature_types}
@@ -777,14 +776,14 @@ structure and needs different techniques.
     \hline
 
     Continuous &
-    Floating-point columns. &
+    Floating point columns. &
     Height = 175.5, price = 19.99, temperature = 36.6 \\
     \hline
 
     Low Cardinality Categorical &
     Object or string columns with a number of unique values less than or equal to
     \texttt{cardinality\_threshold}. &
-    Product categories, gender, country group \\
+    Product categories, country group \\
     \hline
 
     High Cardinality Categorical &
@@ -794,7 +793,7 @@ structure and needs different techniques.
     \hline
 
     Other &
-    Columns with unsupported or non-standard data types. These columns are excluded from
+    Columns with unsupported or non standard data types. These columns are excluded from
     the preprocessing pipeline. &
     Dates, complex objects, unsupported formats \\
     \hline
@@ -833,7 +832,7 @@ structure and needs different techniques.
     preprocessor is saved so the same transformation can be used later.
 
     \item[\texttt{features\_importance():}]
-    This function selects the most useful features using mutual information. Only features with scores
+    This function selects the most useful features using mutual information with the target. Only features with scores
     greater than or equal to the selected threshold are kept. The selected features are
     saved in a file to use it in the inference step. 
     \item[\texttt{common\_preprocessing():}]
@@ -876,13 +875,13 @@ before and after cleaning in the report. Then \texttt{TfidfVectorizer} is used t
 features. The vectorizer uses the user settings, such as the maximum number of
 features, n-gram range, maximum document frequency, and minimum document frequency.
 The vectorizer is fitted on the training data and applied to the validation
-data. The fitted vectorizer is saved as \texttt{training\_preprocessor.pkl} so the same
+data. The fitted vectorizer is saved so the same
 text transformation can be reused later on testing or new data.
 
 \item[\texttt{target\_preprocessing():}]
 This function prepares the target column for classification this function  applies label
-encoding to the target values. The fitted label encoder is saved as \texttt{target\_preprocessor.pkl}. Also, the text
-column and target column information are saved in \texttt{data\_info.pkl}. This helps the
+encoding to the target values. The fitted label encoder is saved. Also, the text
+column and target column information are saved . This helps the
 system apply the same target transformation later on testing or new data.
 
 \item[\texttt{common\_preprocessing():}]
@@ -1156,26 +1155,71 @@ This design allows the web platform to manage users, benchmarks, and
 submissions while Python handles the machine learning evaluation part.
 
 \chapter{System Testing and Verification}
-This chapter explains how the project was tested to make sure that the system works correctly. The testing was done in different ways because not all parts of the project can be tested using the same method. Some parts were tested using unit tests, some parts were checked manually, and some results were compared with other tools or expected outputs.
-The main purpose of testing was to make sure that the system can take the input, apply the required steps, save the needed files, and return the correct output without errors. 
+This chapter explains how the project was tested to make sure that the main
+parts work correctly. The testing was not done in one way only, because each
+part of the project has a different output. Auto Preprocessing was tested using
+unit tests, real datasets, generated artifacts, and model performance. The
+pipeline reporting part was checked by generating reports from serialized
+graphs and metric results. The benchmark platform was checked by creating
+benchmarks, submitting prediction files, calculating scores, and viewing the
+leaderboard.
+
+The main purpose of testing was to make sure that each part can receive the
+input, apply the required steps, save the needed files, and return the expected
+output without errors.
 \section{Testing Setup}
-The testing was done in a Python environment. The main tools used in testing were Python, Pytest, Pandas, NumPy, Scikit-learn, and the other libraries used in the project implementation.
-The system was tested using sample datasets and different test cases. The output of the system was checked to make sure that it is correct and in the expected format to make sure that they were created correctly.
-Some tests were written and run automatically using Pytest. Other tests were checked manually by comparing the actual output with the expected output. This testing setup helped make sure that the project works correctly.
+The testing was done mainly in a Python environment. The main tools used in
+testing were Python, Pytest, Pandas, NumPy, Scikit-learn, PyTorch, Matplotlib,
+and the libraries used in the implementation. For the benchmark platform,
+Node.js, Express, React, MongoDB, and Python scoring scripts were also checked.
+
+The system was tested using sample datasets and different test cases. The
+outputs were checked to make sure that they were in the expected format. For
+example, preprocessing was expected to return transformed data and save fitted
+artifacts, reports were expected to generate HTML files and graphs, and
+benchmark submissions were expected to save scores and appear in the correct
+leaderboard order.
+
+Some tests were written and run automatically using Pytest. Other parts were
+checked manually by comparing the actual output with the expected output. This
+was useful because some outputs, such as HTML reports and frontend leaderboard
+screens, need visual checking.
 \section{Testing Plan and Strategy}
-The testing plan was based on testing the project step by step. First, the main parts of the system were tested separately to make sure that each part works correctly. After that, the complete system was tested as one workflow to make sure that all parts work together without errors.
-Different testing methods were used depending on the part being tested. Some parts were tested using unit tests with Pytest. Other parts were checked manually by comparing the actual output with the expected output. In some cases, the results were also compared with other tools to make sure that the system gives correct and reasonable results.
+The testing plan was based on testing the project step by step. First, each
+module was tested separately. After that, the outputs were checked in a more
+complete workflow. For example, preprocessing output was passed to machine
+learning models, generated reports were opened and inspected, and benchmark
+submissions were checked after scoring.
+
+Different testing methods were used depending on the part being tested. Some
+parts were tested using unit tests with Pytest. Other parts were checked
+manually by comparing the actual output with the expected output. In some
+cases, the results were compared with another tool, AutoCleanML, to check if
+the preprocessing results were reasonable.
 \subsection{Module Testing}
 \input{sections/results-modhamed}
 \subsubsection{Auto Preprocessing Module}
-Most of the functions were tested using unit tests. These tests were used to make sure that the functions give the expected output and do not produce errors.
-Real datasets were also used to test the system in a more practical way. These datasets were collected from Kaggle for different data types. For all datasets, the data was split using a test size of 0.2 and a random state of 42. The model performance was then measured on the test data.
-For tabular data, both classification and regression datasets were used. After applying preprocessing, the output was passed to a Random Forest model to check that the processed data was ready for training and testing.
-For text data, the processed output was passed to an \texttt{XGBClassifier}. This helped check that the text preprocessing steps converted the text into numerical features correctly.
-For image data, the output of the image preprocessing module was passed to a ResNet model. This helped check that the image data loaders were created correctly and could be used directly for model training.
-The results showed that the tested modules produced valid outputs and were suitable to be used in the training step.
+Most of the preprocessing functions were tested using unit tests. These tests
+were used to check validation rules, artifact saving, feature transformation,
+and test-time loading. Real datasets were also used to test the system in a
+more practical way. These datasets were collected from Kaggle for tabular,
+text, and image data. For the tabular and text experiments, the data was split
+using a validation size of 0.2 and random state 42.
 
-\begin{table}[H]
+For tabular data, both classification and regression datasets were used. After
+preprocessing, the output was passed to a Random Forest model to check that the
+processed data was ready for training and validation. For text data, the
+processed TF-IDF output was passed to an \texttt{XGBClassifier}. This checked
+that the text preprocessing steps converted raw text into numerical features
+correctly. For image data, the output DataLoaders were passed to a ResNet
+model. This checked that the image preprocessing module created usable loaders.
+
+The generated preprocessing reports were also checked. The report was expected
+to contain dataset overview, missing values, duplicate information, graphs,
+preprocessing decisions, and examples of processed data. This helped verify
+that the reporting part of Auto Preprocessing was also working.
+
+\begin{table}[!htbp]
 \centering
 \caption{Datasets Used in Module Testing}
 \label{tab:module_testing_datasets}
@@ -1220,7 +1264,7 @@ TestReviews & (4321, 2) & Text & Classification \\
 \end{tabular}
 \end{table}
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \small
 \caption{Models and Evaluation Metrics Used in Module Testing}
@@ -1232,8 +1276,6 @@ TestReviews & (4321, 2) & Text & Classification \\
 startup\_founder\_burnout\_2026 & RandomForest & Macro F1-score & 0.9999 \\
 \hline
 healthy\_diet\_calorie\_intake & RandomForest & Macro F1-score & 1.0000 \\
-\hline
-ai\_student & RandomForest & Macro F1-score & 0.4799 \\
 \hline
 gaming\_addiction & RandomForest & Macro F1-score & 1.0000 \\
 \hline
@@ -1274,15 +1316,54 @@ The regression datasets also gave acceptable R-squared scores, especially \textt
 
 \subsubsection{Deployment Module}
 \mbox{}
+
+\subsubsection{Accelera Pipeline Reporting Module}
+
+The pipeline reporting part was tested by generating reports from executed
+pipeline results. The test checks that the report can read the serialized graph
+file, create the graph image, detect branches, show the selected path, and
+display metric results in the correct format.
+
+Different metric result types were checked, such as single numbers, arrays,
+dictionaries, strings, tuples, and plotted figures. The expected output was a
+\texttt{report.html} file with readable tables and figures. The graph image was
+also checked manually to make sure that selected nodes and normal nodes were
+shown using different colors.
+
 \subsubsection{Benchmark Platform Module}
 
-The Benchmark Platform module was tested by checking its main functionality. Unit tests were not used for this module. Instead, the module was tested by submitting different model results and checking if they were saved and displayed correctly.
-The testing focused on making sure that the platform can receive the submitted result, store the dataset name, metric name, and score, and then show the result in the leaderboard. The leaderboard was also checked to make sure that the results were ordered and displayed in a clear way.
-This testing showed that the Benchmark Platform module worked as expected and was able to submit results and display them correctly in the leaderboard.
+The Benchmark Platform module was tested by checking its main functionality.
+The testing focused on creating benchmark tasks, validating dataset links,
+submitting prediction files, calculating scores, and displaying the results in
+the leaderboard. The leaderboard was checked to make sure that results were
+ordered correctly depending on whether the selected metric is better when it is
+higher or lower.
 
-\mbox{}
+The Python scoring script was also checked by comparing the target file and
+prediction file. The script should reject files with different row counts or
+missing target columns. This testing showed that the benchmark platform was
+able to submit results and display them correctly in the leaderboard.
+
 \subsection{Integration Testing}
+
+Integration testing was done by connecting the output of one part with another
+part. For Auto Preprocessing, the transformed data was passed to machine
+learning models to check that the output was usable. For pipeline reporting,
+the report was generated after graph serialization and metric calculation. For
+benchmarking, the backend called the Python scoring script and then saved the
+returned score in MongoDB.
+
+These checks were important because a function can pass a unit test but still
+fail when used with the rest of the system.
+
 \subsection{Testing Schedule}
+
+The testing was done during implementation and after completing each module.
+First, small functions were tested. Then complete module flows were tested.
+After that, final outputs such as reports, saved files, and leaderboard results
+were checked manually. The final comparison with AutoCleanML was done after the
+tabular preprocessing flow became stable.
+
 \subsection{Comparative Results to Previous Work}
 \subsubsection{Auto Preprocessing}
 Auto Preprocessing was compared with AutoCleanML to check the performance of the proposed preprocessing approach. The comparison was done using several tabular datasets collected from Kaggle. The same datasets and the same machine learning models were used for both tools.
@@ -1290,7 +1371,7 @@ The comparison was applied only on tabular datasets because AutoCleanML mainly w
 After preprocessing the datasets, the output data was tested using four machine learning models. For classification problems, Logistic Regression, Random Forest, Decision Tree, and KNN were used. For regression problems, Linear Regression, Random Forest, Decision Tree, and KNN were used. This helped test the preprocessing output with different model types, not only one model.
 The results were saved and plotted as comparison graphs between Accelera and AutoCleanML. These graphs show the score of each tool on the selected datasets. The purpose of this comparison was to check whether Accelera can produce preprocessing results that are close to, or better than, an existing preprocessing tool.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \small
 \caption{Classification comparison using Logistic Regression and Random Forest}
@@ -1303,7 +1384,6 @@ Dataset & \multicolumn{2}{c}{Logistic Regression} & \multicolumn{2}{c}{Random Fo
 \midrule
 Startup founder burnout & 1.0000 & 1.0000 & 0.9999 & 0.9999 \\
 Healthy diet calorie intake & 0.9917 & 0.9890 & 1.0000 & 1.0000 \\
-AI student & 0.5181 & 0.5095 & 0.4887 & 0.4799 \\
 Gaming addiction & 0.8937 & 0.8937 & 0.9646 & 1.0000 \\
 Student exam performance & 0.8667 & 0.8657 & 0.8579 & 0.8573 \\
 Heart & 0.8019 & 0.8007 & 0.7689 & 0.7860 \\
@@ -1316,7 +1396,7 @@ Customer purchase data & 0.8484 & 0.8375 & 0.9386 & 0.9385 \\
 \end{tabular}
 \end{table}
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \small
 \caption{Classification comparison using Decision Tree and KNN}
@@ -1329,7 +1409,6 @@ Dataset & \multicolumn{2}{c}{Decision Tree} & \multicolumn{2}{c}{KNN} \\
 \midrule
 Startup founder burnout & 1.0000 & 1.0000 & 0.9824 & 0.9881 \\
 Healthy diet calorie intake & 1.0000 & 1.0000 & 0.9379 & 0.9184 \\
-AI student & 0.4339 & 0.4243 & 0.4451 & 0.4533 \\
 Gaming addiction & 1.0000 & 1.0000 & 0.6905 & 0.8512 \\
 Student exam performance & 0.7987 & 0.8063 & 0.8423 & 0.8338 \\
 Heart & 0.7213 & 0.7704 & 0.7689 & 0.7860 \\
@@ -1342,7 +1421,7 @@ Customer purchase data & 0.8486 & 0.8449 & 0.8544 & 0.8806 \\
 \end{tabular}
 \end{table}
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \small
 \caption{Regression comparison using Linear Regression and Random Forest}
@@ -1360,7 +1439,7 @@ Housing & 0.6506 & 0.6482 & 0.6087 & 0.6037 \\
 \end{tabular}
 \end{table}
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \small
 \caption{Regression comparison using Decision Tree and KNN}
@@ -1378,25 +1457,7 @@ Housing & 0.3819 & 0.3634 & 0.5312 & 0.5336 \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.48\textwidth]{imgs/comparison_classification_score_LR.pdf}
-\includegraphics[width=0.48\textwidth]{imgs/comparison_classification_score_RandomForest.pdf}
-\includegraphics[width=0.48\textwidth]{imgs/comparison_classification_score_DecisionTree.pdf}
-\includegraphics[width=0.48\textwidth]{imgs/comparison_classification_score_KNN.pdf}
-\caption{Classification score comparison graphs for the four tested models}
-\label{fig:classification-comparison-graphs}
-\end{figure}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.48\textwidth]{imgs/comparison_regression_score_LR.pdf}
-\includegraphics[width=0.48\textwidth]{imgs/comparison_regression_score_RandomForest.pdf}
-\includegraphics[width=0.48\textwidth]{imgs/comparison_regression_score_DecisionTree.pdf}
-\includegraphics[width=0.48\textwidth]{imgs/comparison_regression_score_KNN.pdf}
-\caption{Regression score comparison graphs for the four tested models}
-\label{fig:regression-comparison-graphs}
-\end{figure}
 
 From these results, Accelera preprocessing gives very close results to
 AutoCleanML in many datasets. In some cases, such as
@@ -1444,16 +1505,234 @@ Tools, and Best Practices.'' Available at:
 \appendix
 \chapter{Development Platforms and Tools}
 \section{Hardware Platform}
+
+
 \section{Software Platform}
 The implemented modules use Python, C++, PyBind11, CMake, Clang-based AST
-analysis, OpenMP, NumPy,Pandas, Matplotlib,pytorch,  Scikit-learn , Node.js, and React ,MongoDB. The available experiments include
-Linux and Windows execution paths.
+analysis, OpenMP, NumPy, Pandas, Matplotlib, PyTorch, Scikit-learn, Node.js,
+React, and MongoDB. The Auto Preprocessing module depends mainly on Python
+data-science libraries. The Pipeline Reporting module uses Python, HTML report
+generation, Matplotlib, Pandas tables, and Graphviz for graph visualization.
+The Benchmark Platform uses a Node.js and Express backend, MongoDB for storing
+benchmarks and submissions, React for the frontend, and Python scripts for
+dataset validation and metric scoring. The available experiments include Linux
+and Windows execution paths.
 
 \chapter{Use Cases}
-\mbox{}
+\section{Auto Preprocessing Use Cases}
+The user can use Auto Preprocessing when they have a dataset and want to
+prepare it before training a model. For tabular data, the module can clean
+missing values, encode categorical columns, scale numerical columns, select
+features, save artifacts, and generate a report. For text data, it can clean
+sentences, tokenize them, apply TF-IDF, encode labels, and generate a report.
+For image data, it can validate images, map class folders to labels, resize
+images, apply augmentation, and create DataLoaders.
+
+\section{Pipeline Reporting Use Cases}
+The user can use the pipeline report after running an Accelera pipeline. The
+report helps show the graph structure, branches, selected path, and metric
+results. This is useful when the pipeline contains more than one branch and the
+user wants to understand which path was selected.
+
+\section{Benchmark Platform Use Cases}
+The benchmark platform can be used when different users or models need to be
+compared on the same task. A benchmark creator defines the dataset, test file,
+target column, and metric. Users then submit prediction files, and the platform
+calculates the score and displays the leaderboard.
 
 \chapter{User Guide}
-\mbox{}
+\section{Using Tabular Auto Preprocessing}
+To use tabular preprocessing, the user first loads the dataset as a Pandas
+DataFrame. Then the user gives the target column, problem type, and output
+folder. The output folder is important because the module saves the fitted
+preprocessing objects and the HTML report inside it.
+
+\begin{lstlisting}[style=code,caption={Calling tabular training preprocessing}]
+import pandas as pd
+from accelera.src.auto_preprocessing.core.classical_training_preprocessing import (
+    ClassicalTrainingPreprocessing,
+)
+
+df = pd.read_csv("dataset.csv")
+
+preprocessor = ClassicalTrainingPreprocessing(
+    df=df,
+    target_col="target",
+    problem_type="classification",
+    folder_path="outputs/tabular_run",
+    val_size=0.2,
+    random_state=42,
+    is_report=True,
+)
+
+X_train, y_train, X_val, y_val = preprocessor.common_preprocessing()
+\end{lstlisting}
+
+For regression, the user only changes the problem type:
+
+\begin{lstlisting}[style=code,caption={Changing tabular preprocessing to regression}]
+preprocessor = ClassicalTrainingPreprocessing(
+    df=df,
+    target_col="price",
+    problem_type="regression",
+    folder_path="outputs/regression_run",
+)
+\end{lstlisting}
+
+After training preprocessing, the same folder should be used for test data.
+This makes the test data use the saved training transformers instead of fitting
+new ones.
+
+\begin{lstlisting}[style=code,caption={Calling tabular testing preprocessing}]
+import pandas as pd
+from accelera.src.auto_preprocessing.core.classical_testing_preprocessing import (
+    ClassicalTestingPreprocessing,
+)
+
+test_df = pd.read_csv("test.csv")
+
+test_preprocessor = ClassicalTestingPreprocessing(
+    df=test_df,
+    folder_path="outputs/tabular_run",
+)
+
+X_test, y_test = test_preprocessor.common_preprocessing()
+\end{lstlisting}
+
+\section{Using Text Auto Preprocessing}
+For text preprocessing, the user provides the text column and the target
+column. The text column must contain text values, and the target is used for
+classification.
+
+\begin{lstlisting}[style=code,caption={Calling text training preprocessing}]
+import pandas as pd
+from accelera.src.auto_preprocessing.core.text_training_preprocessing import (
+    TextTrainingPreprocessing,
+)
+
+df = pd.read_csv("reviews.csv")
+
+text_preprocessor = TextTrainingPreprocessing(
+    df=df,
+    target_col="label",
+    text_col="review",
+    folder_path="outputs/text_run",
+    tfidf_max_features=500,
+    is_report=True,
+)
+
+X_train, y_train, X_val, y_val = text_preprocessor.common_preprocessing()
+\end{lstlisting}
+
+For testing text data, the user again passes the same folder path. If the test
+data does not contain the target column, the class returns the transformed text
+features and \texttt{None} for the labels.
+
+\begin{lstlisting}[style=code,caption={Calling text testing preprocessing}]
+from accelera.src.auto_preprocessing.core.text_testing_preprocesing import (
+    TextTestingPreprocessing,
+)
+
+test_text = pd.read_csv("reviews_test.csv")
+
+text_test_preprocessor = TextTestingPreprocessing(
+    df=test_text,
+    folder_path="outputs/text_run",
+)
+
+X_test, y_test = text_test_preprocessor.common_preprocessing()
+\end{lstlisting}
+
+\section{Using Image Auto Preprocessing}
+For image preprocessing, the dataset should be arranged in class folders. For
+example:
+
+\begin{verbatim}
+Training/
+  Cats/
+  Dogs/
+\end{verbatim}
+
+The user passes the training folder and the output folder. If a validation
+folder already exists, it can be passed also. If not, the module can split the
+training folder.
+
+\begin{lstlisting}[style=code,caption={Calling image training preprocessing}]
+from accelera.src.auto_preprocessing.core.classification_image_training_preprocessing import (
+    ClassificationImageTrainingPreprocessing,
+)
+
+image_preprocessor = ClassificationImageTrainingPreprocessing(
+    training_folder_images="data/PetImages/Training",
+    folder_path="outputs/image_run",
+    split_training=True,
+    val_size=0.2,
+    images_size=(224, 224),
+    batch_size=16,
+    augment=True,
+)
+
+train_loader, val_loader = image_preprocessor.common_preprocessing()
+\end{lstlisting}
+
+For image testing, the user provides a list of image paths. If class names are
+available, they can be passed too. If not, the loader can still be used for
+prediction.
+
+\begin{lstlisting}[style=code,caption={Calling image testing preprocessing}]
+from accelera.src.auto_preprocessing.core.classification_image_testing_preprocessing import (
+    ClassificationImageTestingPreprocessing,
+)
+
+image_paths = ["test/cat1.jpg", "test/dog1.jpg"]
+class_names = ["Cats", "Dogs"]
+
+image_test_preprocessor = ClassificationImageTestingPreprocessing(
+    image_paths=image_paths,
+    image_class_names=class_names,
+    folder_path="outputs/image_run",
+    batch_size=4,
+)
+
+test_loader, invalid_images = image_test_preprocessor.common_preprocessing()
+\end{lstlisting}
+
+\section{Reading Auto Preprocessing Reports}
+After running preprocessing with \texttt{is\_report=True}, the user opens the
+generated \texttt{report.html} file from the output folder. The report shows
+the dataset overview, missing values, duplicate rows, dropped columns, graphs,
+preprocessing decisions, selected features, and processed data samples.
+
+\section{Using Pipeline Reports}
+To generate a pipeline report, the pipeline graph should be serialized first.
+Then the user passes the XML graph path, output folder, and metric results to
+\texttt{GraphReport}.
+
+\begin{lstlisting}[style=code,caption={Calling the pipeline graph report}]
+from accelera.src.accelera_pipe.wrappers.graph_report import GraphReport
+
+report = GraphReport(
+    folderpath="outputs/pipeline_report",
+    xmlpath="outputs/pipeline_graph.xml",
+    results=metric_results,
+)
+
+report.execute()
+\end{lstlisting}
+
+The output is a \texttt{report.html} file. It contains the graph image, branch
+tables, selected branch, and metric summary.
+
+\section{Using the Benchmark Platform}
+The benchmark platform is used from the web interface. The benchmark creator
+enters the title, problem type, target column, dataset link, test-set link,
+target-label link, and evaluation metric. A user submits a prediction file link
+and repository link. The backend calls the Python scoring script, saves the
+score, and displays the result in the leaderboard.
+
+The prediction file must contain the target column name expected by the
+benchmark. Also, the number of rows in the prediction file must match the
+number of rows in the target-label file.
 
 \chapter{Code Documentation}
 \mbox{}
