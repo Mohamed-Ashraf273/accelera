@@ -159,6 +159,49 @@ This paper describes two core modules of Accelera: \texttt{accelera\_pipe}, a gr
 \label{chap:introduction}
 Modern machine learning workflows often require repeated evaluation of several preprocessing and model candidates. A direct implementation usually fits each candidate pipeline independently, repeats transformations, and retains intermediate arrays longer than necessary. In parallel, user-defined preprocessing functions may contain numeric loops written in Python, which can become a major bottleneck when the input data grows.
 
+The project can be viewed as solving two connected execution problems:
+
+\begin{itemize}[leftmargin=1.2cm]
+  \item \textbf{Workflow-level inefficiency:} repeated preprocessing, duplicated
+  branch execution, and unclear intermediate-data lifetime.
+  \item \textbf{Code-level inefficiency:} slow custom Python preprocessing loops
+  that could benefit from native compilation and OpenMP parallel execution.
+\end{itemize}
+
+Table~\ref{tab:intro-module-scope} summarizes the main scope of the modules
+covered by this paper.
+
+\begin{table}[!htbp]
+\centering
+\caption{Main module scope in this report.}
+\label{tab:intro-module-scope}
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{p{0.25\textwidth}X X}
+\toprule
+Module & Main idea & Expected benefit \\
+\midrule
+\texttt{accelera\_pipe} &
+Represent machine-learning workflows as a graph of preprocessing, model,
+prediction, metric, merge, and branch nodes. &
+Avoids purely sequential workflow execution and supports reusable executed
+graphs. \\
+
+Parallelizer &
+Analyze supported Python/C++ loops, insert safe OpenMP pragmas, and compile
+optimized native functions when possible. &
+Speeds up eligible loop-heavy custom preprocessing code while keeping fallback
+behavior safe. \\
+
+Integration path &
+Connect the Parallelizer to \texttt{accelera\_pipe} preprocessing nodes. &
+Allows pipeline-level execution and code-level acceleration to work together. \\
+\bottomrule
+\end{tabularx}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+
 Accelera addresses these two issues through two complementary modules. The first module, \texttt{accelera\_pipe}, expresses machine learning workflows as a graph. Nodes represent preprocessing steps, models, predictions, metrics, merges, and branch alternatives. The graph backend executes independent branches in parallel and returns an executed graph that can be reused for inference.
 
 The second module, the Parallelizer, analyzes loop-heavy source code and adds OpenMP pragmas when the loop structure is considered safe. For supported Python functions, a restricted Python-to-C++ converter emits C++ code before loop extraction. The generated code can then be compiled into a Python extension and inserted into an \texttt{accelera\_pipe} preprocessing node.
@@ -180,6 +223,39 @@ Parallelizer module. Third, it compares the project with related work, especiall
 system. Finally, it explains the implemented approach adopted in this project and
 justifies the main design choices, including the use of rule-based pragma
 generation instead of fully AI-generated pragma insertion.
+
+The chapter organization is summarized in Table~\ref{tab:literature-map}.
+
+\begin{table}[!htbp]
+\centering
+\caption{Literature-survey organization.}
+\label{tab:literature-map}
+\small
+\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{p{0.30\textwidth}X}
+\toprule
+Part & Purpose \\
+\midrule
+Machine-learning pipeline frameworks &
+Explains why pipeline abstractions are useful and why
+\texttt{scikit-learn} is the main baseline for \texttt{accelera\_pipe}. \\
+
+Automatic parallelization and OpenMP &
+Introduces loop-level parallelization, dependency safety, reductions, and
+OpenMP pragmas. \\
+
+Comparative study &
+Compares Accelera with \texttt{scikit-learn} and OMPar, focusing on what is
+borrowed and what is changed. \\
+
+Implemented approach &
+Explains why the project combines graph execution with conservative rule-based
+OpenMP generation. \\
+\bottomrule
+\end{tabularx}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
 
 \section{Background on Machine Learning Pipeline Frameworks}
 
@@ -337,6 +413,38 @@ recognized reduction pattern, it can insert a reduction pragma. If the loop is
 unclear or unsafe, it is left unchanged. This conservative design makes the
 system easier to inspect and reduces the risk of unsafe transformations caused
 by biased or insufficient training data.
+
+\begin{table}[!htbp]
+\centering
+\caption{Summary comparison with the closest related systems.}
+\label{tab:related-systems-summary}
+\small
+\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{p{0.22\textwidth}X X}
+\toprule
+System & Strength & Limitation addressed by Accelera \\
+\midrule
+\texttt{scikit-learn Pipeline} &
+Simple, mature, and widely used linear workflow abstraction. &
+\texttt{accelera\_pipe} adds a graph backend, branching, executed-graph reuse,
+and integration with custom-code acceleration. \\
+
+OMPar &
+AI-assisted source-to-source OpenMP parallelization for C/C++ code. &
+The Parallelizer keeps the staged analysis idea but uses deterministic
+rule-based pragma generation to reduce risk from limited or synthetic data. \\
+
+Accelera &
+Combines graph-level pipeline execution with conservative loop-level
+parallelization for supported custom preprocessing code. &
+The project focuses on a narrower, safer integration path rather than trying to
+be a general compiler or full AutoML platform. \\
+\bottomrule
+\end{tabularx}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+
 
 \section{Implemented Approach}
 
@@ -919,9 +1027,12 @@ After node N executes:
 \end{lstlisting}
 
 \section{Branch Sharing}
-The graph also avoids duplicated work when a split contains repeated equivalent first nodes. If a branch is declared as \texttt{MinMaxScaler}, \texttt{StandardScaler}, \texttt{MinMaxScaler}, the split creates only one MinMax node and one Standard node. The sharing signature depends on node type and object identity/representation rather than the visible node name, so duplicate operations can be shared even when named differently.
-
-This sharing is intentionally restricted to the first node of each branch path. In list branches such as \texttt{[p1, p2, p3]} and \texttt{[p4, p2, p3]}, the two \texttt{p2} nodes must remain separate because their inputs are produced by different previous nodes. Figure~\ref{fig:branch-sharing} shows the effect of sharing at the branch entry.
+The graph avoids duplicated work when a split starts with equivalent branch nodes. 
+For example, if the branches contain repeated preprocessing operations such as \texttt{MinMaxScaler}, 
+the graph creates only one shared node for that operation. This sharing depends on the node type and object identity or 
+representation, not only on the visible node name. However, sharing is limited to the first node of each branch path, 
+because later nodes may receive different inputs from previous operations and therefore must 
+remain separate. Figure~\ref{fig:branch-sharing} illustrates this branch-entry sharing behavior.
 
 \begin{figure}[!htbp]
   \centering
