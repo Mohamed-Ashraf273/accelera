@@ -804,7 +804,7 @@ script accepts `--time-budget`, `--n-trials`, `--cv`, and `--n-jobs` options.
 
 ### Deployment Module
 
-The deployment module provides a dynamic, procedural (non-OOP) version control system (VCS) to track configuration files and multi-stage ML pipelines, enabling automated container builds and deployments to remote target environments like AWS EC2.
+The deployment module provides a dynamic, procedural version control system (VCS) to track configuration files and multi-stage ML pipelines, enabling automated container builds and deployments to remote target environments like AWS EC2.
 
 #### Dataset and ML Pipeline Details
 
@@ -820,11 +820,11 @@ The trained and committed artifacts form a sequenced execution pipeline:
 #### Prerequisites and Installation
 
 ##### 1. Local Environment Setup
-To run the VCS commands or execute the end-to-end demo locally, install the deployment dependencies:
+To run the VCS commands or execute the end-to-end demo locally, install the dependencies from the root `requirements.txt`:
 
 ```bash
-# Install local packages for modeling, validation, and serving
-pip install -r accelera/src/deployment/accelera_deployment/requirements.txt
+# Install local packages for modeling, validation, serving, and deployment
+pip install -r requirements.txt
 ```
 
 These include:
@@ -837,6 +837,23 @@ These include:
 - Ensure you have SSH access to your Ubuntu server (e.g., via private key file `.pem`).
 - The deployment process will package the pipeline into a Docker container.
 - If Docker is not already installed on the target machine, the script will install it automatically when the `--install-docker` flag is provided.
+
+##### 3. Heroku Environment Setup
+- Register for an account at [Heroku Sign Up](https://signup.heroku.com/) or log in to [Heroku Dashboard](https://id.heroku.com/).
+- Download and install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli).
+- Before deploying, authenticate your CLI sessions:
+  ```bash
+  # Log in to your Heroku Account
+  heroku login
+
+  # Log in to the Heroku Container Registry
+  heroku container:login
+  ```
+  Alternatively, you can run these logins using the Accelera wrapper CLI:
+  ```bash
+  python accelera/src/deployment/deployment.py heroku-login
+  python accelera/src/deployment/deployment.py heroku-container-login
+  ```
 
 #### Running the End-to-End Demo
 
@@ -865,12 +882,18 @@ python -m accelera.src.deployment.vcs status
 python -m accelera.src.deployment.vcs log
 
 # Deploy the module to an EC2 instance
-python accelera/src/deployment/accelera_deployment/deployment.py ec2-deploy \
+python accelera/src/deployment/deployment.py ec2-deploy \
   --host <HOST_IP> \
   --user <USER> \
   --key <PATH_TO_PRIVATE_KEY> \
   --install-docker
+
+# Deploy the module to Heroku
+python accelera/src/deployment/deployment.py heroku-deploy \
+  --app <HEROKU_APP_NAME> \
+  --create
 ```
+
 
 
 ### Runtime Requirements and Common Blockers

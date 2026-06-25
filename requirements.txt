@@ -1,4 +1,4 @@
-autogluon.tabular
+#autogluon.tabular
 scikit-learn
 pandas==2.3.3
 numpy
@@ -6,11 +6,11 @@ pybind11
 pyngrok
 --extra-index-url https://download.pytorch.org/whl/cpu
 
-# Core Python Utilities
+# Python 
 regex
 build
 
-# ML/DL Libraries & Tools
+# ml
 catboost
 ConfigSpace
 joblib
@@ -23,7 +23,14 @@ dm-tree
 category-encoders
 kagglehub
 
-# Dev & Testing Tools
+# deployment
+fastapi
+great-expectations
+uvicorn[standard]
+pydantic
+python-multipart
+
+# testing 
 graphviz
 gdown
 tqdm

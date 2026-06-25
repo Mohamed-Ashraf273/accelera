@@ -16,7 +16,7 @@ DRIVE_LINK = (
     "https://docs.google.com/uc?export=download&id=16-thQ5VnYDHUH5gvoY1tCP0n5Ovaw1fP"
 )
 
-print("===========Starting Accelera Deployment Demo ========")
+print("=========== Accelera Deployment Demo Start ========")
 
 
 original_cwd = os.getcwd()
@@ -35,10 +35,10 @@ os.chmod("ssh.pem", 0o600)
 print("\n1: Initializing VCS")
 vcs.init(SimpleNamespace())
 
-print("\n2: Train the ML Pipeline...")
+print("\n2: Train ML Pipeline")
 results = train_model()
-print(f"Model trained {results['best_model']}")
-print("Model components:")
+print(f"Model trained {results['model']}")
+print("pkl files:")
 for name, path in results["deployment_config"]["models"].items():
     print(f"  - {name}: {path}")
 
@@ -76,4 +76,4 @@ if demo_dir.exists():
     shutil.rmtree(demo_dir)
     print(f"\nClean up demo environment{demo_dir}")
 
-print("\n==== Accelera deployment demo Completed =========")
+print("\n==== Accelera deployment demo End =========")

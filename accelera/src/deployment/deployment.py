@@ -348,7 +348,7 @@ def remote_script(args):
     image_name = args.image
     container_name = args.container
     docker_ps_format = (
-        "container={.Names} image={.Image} status={.Status} ports={.Ports}"
+        "container={{.Names}} image={{.Image}} status={{.Status}} ports={{.Ports}}"
     )
     build_cmd = ["docker", "build"]
     if getattr(args, "no_cache", False):
