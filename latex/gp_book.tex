@@ -10,6 +10,7 @@
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
+\usepackage{tabularx}
 \usepackage[table]{xcolor}
 \usepackage{hyperref}
 \usepackage{listings}
@@ -18,6 +19,8 @@
 \usepackage{tabularx}
 \usepackage{array}
 \usepackage{caption}
+\usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{pgfplots}
 \usepackage{needspace}
 \usepackage{fancyhdr}
@@ -1335,6 +1338,7 @@ cleaning, data transformation, feature construction, feature selection, and
 dimensionality reduction. For each stage, it explains different techniques and
 discusses the advantages and disadvantages of each one.
 
+
 \subsection{\texttt{scikit-learn} Pipeline}
 \texttt{scikit-learn} is one of the most widely used machine learning libraries
 in Python. It provides many preprocessing tools, machine learning models,
@@ -1375,6 +1379,76 @@ could lead to unsafe pragma generation.
 Therefore, our Parallelizer uses AI mainly to support loop classification, while
 the final pragma insertion is controlled by deterministic safety rules. This
 makes the system more conservative, but also safer and easier to explain.
+
+\subsection{Automated Machine Learning}
+Automated machine learning treats model-family selection, preprocessing choices,
+and hyperparameter tuning as one optimization problem. Instead of manually
+testing a small set of estimators, an AutoML system builds a search space and
+evaluates configurations under a consistent validation protocol. The combined
+algorithm selection and hyperparameter optimization problem can be written as
+\[
+  (a^*, \lambda^*) =
+  \arg\min_{a \in \mathcal{A},\,\lambda \in \Lambda_a}
+  \widehat{L}(a, \lambda; D),
+\]
+where $\mathcal{A}$ is the set of candidate algorithms, $\Lambda_a$ is the
+hyperparameter domain of algorithm $a$, and $\widehat{L}$ is the validation
+loss on dataset $D$. This formulation was popularized by Auto-WEKA
+~\cite{autoweka}.
+
+\subsection{Search Strategies for AutoML}
+Grid search evaluates a fixed Cartesian product and becomes expensive as the
+number of dimensions increases. Random search is often stronger when only some
+hyperparameters strongly affect performance ~\cite{randomsearch}. Sequential
+model-based optimization improves on random sampling by fitting a surrogate
+model to observed configuration costs. SMAC uses random forests for algorithm
+configuration and acquisition-function based candidate selection ~\cite{smac}.
+
+\subsection{Multi-Fidelity Evaluation and Warm Starts}
+Full cross-validation on the complete dataset is costly, especially for
+ensembles and iterative models. Multi-fidelity optimization first evaluates
+candidates using cheaper approximations, such as smaller samples, fewer folds,
+or reduced model budgets. Poor candidates can be discarded early, while
+promising candidates are promoted to more expensive stages.
+
+Meta-learning is another way to reduce cold-start cost. A new dataset can be
+described using metafeatures, compared with historical datasets, and initialized
+with configurations that worked well on similar tasks. Auto-sklearn combines
+Bayesian optimization, dataset metafeatures, and ensemble construction for
+Scikit-learn workflows ~\cite{autosklearn}.
+
+\subsection{Ensemble Learning in AutoML}
+Ensembles reduce the risk of selecting one unstable model. Voting combines
+predictions or probabilities from several models. Stacked generalization trains
+a meta-model on out-of-fold predictions from base models ~\cite{stacking}. The
+out-of-fold step is important because it prevents the meta-model from learning
+on predictions made by base models on their own training rows.
+
+\begin{table}[H]
+\centering
+\caption{Selected AutoML systems and their design emphasis}
+\label{tab:automl_related_systems}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.22\textwidth}X}
+\toprule
+\textbf{System} & \textbf{Design emphasis} \\
+\midrule
+Auto-WEKA & Combined algorithm selection and hyperparameter optimization over
+WEKA components ~\cite{autoweka}. \\
+Auto-sklearn & Bayesian optimization, dataset metafeatures, and post-hoc
+ensembles for Scikit-learn workflows ~\cite{autosklearn}. \\
+TPOT & Evolutionary search over tree-structured machine-learning pipelines
+~\cite{tpot}. \\
+FLAML & Cost-aware lightweight AutoML for limited resource budgets
+~\cite{flaml}. \\
+AutoGluon Tabular & Multi-layer stacking and ensembling with a high-level
+tabular prediction interface ~\cite{autogluon}. \\
+Accelera AutoML & Conditional model spaces, staged fidelity,
+surrogate-guided sampling, packaged warm starts, and voting or stacking inside
+Accelera. \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \section{Implemented Approach}
 
@@ -2281,7 +2355,188 @@ same way as the training data.
 
 
 \section{AutoML Module}
-\mbox{}
+\subsection{Module Responsibility}
+The AutoML module automates model-family selection, hyperparameter search,
+preprocessing selection, and final model construction for supervised tabular
+classification and regression. It exposes two Scikit-learn-style estimators:
+\texttt{AutoMLClassifier} and \texttt{AutoMLRegressor}. Both estimators support
+\texttt{fit}, \texttt{predict}, \texttt{score}, leaderboard inspection,
+configured scoring metrics, cross-validation folds, random seeds, time budgets,
+trial limits, meta-learning warm starts, and optional ensemble construction.
+
+The main problem solved by this module is to produce a strong model under
+explicit time and trial constraints while avoiding unnecessary full-cost
+evaluations. The design separates public estimator behavior, task-specific
+evaluation, optimization, meta-learning, and ensembling so that each part can be
+extended independently.
+
+\subsection{Functional Description}
+The AutoML workflow starts by validating the input feature matrix $X$ and target
+vector $y$. The estimator builds a task-specific engine, constructs a
+conditional configuration space, loads optional meta-learning warm starts, and
+evaluates candidate configurations through a staged optimizer. Each candidate
+contains a model family, active hyperparameters, and a preprocessing choice.
+
+Every trial is evaluated using cross-validation and converted to an optimizer
+cost. For classification, accuracy is the default score and the cost is
+$1-\text{accuracy}$. For regression, $R^2$ is the default score and the cost is
+the negative score because the optimizer minimizes cost. Failed trials are
+recorded in the run history instead of terminating the complete search.
+
+\subsection{Configuration Space Construction}
+The search space is conditional. The active hyperparameters depend on the
+selected model family, so random forest parameters are active only when
+\texttt{random\_forest} is selected, SVM parameters are active only for SVM
+models, and so on. The implementation stores model definitions in task-specific
+component registries. Each component defines its public name, hyperparameters,
+conditions, and estimator factory.
+
+The engine can also filter models according to dataset properties. For example,
+some expensive models can be disabled for large datasets, and models that
+require non-negative features can be skipped when negative input values are
+detected.
+
+\subsection{Three-Stage Fidelity Schedule}
+To avoid spending full resources on weak candidates, the optimizer evaluates
+configurations through three fidelity stages:
+\[
+  f = (s, q, k, b),
+\]
+where $s$ is the stage index, $q$ is the sample fraction, $k$ is the number of
+cross-validation folds, and $b$ is a multiplicative model budget. The current
+schedule uses:
+\begin{itemize}
+  \item stage 0: 20\% of samples, 2 folds, and 25\% model budget;
+  \item stage 1: 50\% of samples, 3 folds, and 60\% model budget;
+  \item stage 2: full samples, configured folds, and full model budget.
+\end{itemize}
+Promising candidates are promoted to higher stages. This makes the search more
+resource-aware than evaluating every sampled configuration at full cost.
+
+\subsection{Surrogate-Guided Candidate Selection}
+After initial trials are collected, the optimizer vectorizes configurations and
+augments each vector with its fidelity variables. A random-forest regressor is
+trained as a surrogate model over observed costs. Predictions from individual
+trees provide an empirical mean and standard deviation. The optimizer ranks a
+sampled candidate pool using expected improvement:
+\[
+  EI(x) =
+  (\mu^* - \mu(x) - \xi)\Phi(z) + \sigma(x)\phi(z),
+  \qquad
+  z = \frac{\mu^* - \mu(x) - \xi}{\sigma(x)} ,
+\]
+where $\mu^*$ is the best observed cost, $\mu(x)$ and $\sigma(x)$ are the
+surrogate mean and uncertainty for candidate $x$, and $\Phi$ and $\phi$ are the
+normal cumulative distribution and density functions. This balances exploring
+uncertain regions with exploiting candidates predicted to improve the current
+best result.
+
+\subsection{Meta-Learning Warm Starts}
+The module computes basic metafeatures for the input dataset. Shared
+metafeatures include the number of instances and features, numeric and
+categorical feature ratios, missing-value ratios, skewness, kurtosis, and
+categorical symbol statistics. Classification adds class entropy and class
+probability statistics. Regression adds target mean, standard deviation,
+skewness, and kurtosis.
+
+Packaged JSON metadata stores historical dataset descriptors and candidate
+configurations. At runtime, similar datasets are ranked by distance in the
+metafeature space, and the best historical configurations are converted into
+the current configuration space as warm-start candidates.
+
+\subsection{Parallel Execution and Timeout Control}
+The optimizer supports parallel candidate evaluation and per-trial timeout
+control. When timeout control is enabled, trials can be isolated in separate
+processes so that a slow or hanging estimator does not stop the parent search.
+The engine also passes internal job-count settings to estimators and ensembles
+to limit nested parallelism.
+
+\subsection{Final Model and Ensemble Selection}
+The strongest configuration is rebuilt and fitted on all available training
+data. If ensembles are disabled, this model is returned directly. If ensembles
+are enabled, successful candidates from the run history are considered for
+voting or stacking.
+
+For stacking, the module builds bagged base estimators and generates
+out-of-fold prediction blocks. Forward selection starts with the strongest
+single base model and adds candidates while they improve the meta-model score
+or until the minimum base-model requirement is satisfied. Classification uses a
+logistic-regression meta-model over probability blocks. Regression uses a
+ridge-regression meta-model over numeric prediction columns. The ensemble is
+added to the leaderboard and becomes the final model when its score is stronger
+than the best individual model.
+
+\subsection{Modular Decomposition}
+\begin{table}[H]
+\centering
+\caption{AutoML implementation units}
+\label{tab:automl_implementation_units}
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.35\textwidth}X}
+\toprule
+\textbf{File or directory} & \textbf{Responsibility} \\
+\midrule
+\modulepath{base.py} & Shared estimator lifecycle, validation, fitted state,
+leaderboard, and warning handling. \\
+\modulepath{classification.py} & Classification defaults and engine
+construction. \\
+\modulepath{regression.py} & Regression defaults and engine construction. \\
+\modulepath{core/automl.py} & Search orchestration, final model fitting, model
+filtering, and ensemble selection. \\
+\modulepath{components/} & Model registries, hyperparameter definitions,
+conditions, and estimator factories. \\
+\modulepath{configspace\_search\_space.py} & Task-specific configuration-space
+assembly and configuration conversion. \\
+\modulepath{evaluation.py} & Fidelity-aware estimator construction,
+preprocessing comparison, cross-validation, and cost conversion. \\
+\modulepath{optimization/smac\_optimizer.py} & Trial scheduling, surrogate
+modelling, expected improvement, promotions, parallel workers, and timeouts. \\
+\modulepath{meta\_learning/} & Metafeature extraction, similarity ranking, and
+warm-start retrieval. \\
+\modulepath{stacked\_ensemble.py} & Classification adapters, bagging, forward
+selection, and stacked classification. \\
+\modulepath{stacked\_ensemble\_regression.py} & Regression stacking and forward
+selection. \\
+\modulepath{meta\_learning\_data/} & Packaged historical classification and
+regression metadata. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Design Constraints}
+\begin{itemize}
+  \item The current module targets supervised tabular classification and
+  regression.
+  \item Inputs must be compatible with Scikit-learn validation utilities.
+  \item Optional libraries such as XGBoost, LightGBM, and CatBoost are used
+  only when available in the environment.
+  \item Trial failures and estimator exceptions must be recorded rather than
+  crashing the full search.
+  \item Search should remain reproducible when a random state is provided.
+  \item Warm-start metadata must be stored relative to the package so it works
+  after installation.
+\end{itemize}
+
+\subsection{User-Facing Example}
+\begin{lstlisting}[style=code,caption={Using Accelera AutoML for classification},label={lst:automl_usage}]
+from accelera.src.accelera_automl import AutoMLClassifier
+
+model = AutoMLClassifier(
+    time_budget=300,
+    n_trials=20,
+    cv=3,
+    random_state=42,
+    use_meta_learning=True,
+    use_ensemble=True,
+    ensemble_strategy="stacked",
+)
+
+model.fit(X_train, y_train)
+predictions = model.predict(X_test)
+print(model.score(X_test, y_test))
+print(model.return_leaderboard(top_n=3))
+\end{lstlisting}
 
 \input{sections/methodology-deployment}
 
@@ -2544,7 +2799,100 @@ The results show that the preprocessing output was valid and could be used direc
 The regression datasets also gave acceptable R-squared scores, especially \texttt{global\_ai\_jobs} and \texttt{CarPrice\_Assignment}. For image data, the ResNet model achieved high accuracy, showing that the image preprocessing and data loaders worked correctly. Overall, the results confirm that the system produced useful outputs for tabular, text, and image datasets.
 
 \subsubsection{AutoML Module}
-\mbox{}
+\paragraph{Experimental Objectives}
+The AutoML experiments compare Accelera AutoML with Auto-sklearn, FLAML, and
+TPOT on supervised tabular classification and regression tasks. The evaluation
+focuses on two questions: whether the systems reach comparable predictive
+quality, and how much wall-clock time they require. Classification is evaluated
+mainly by accuracy. Regression is evaluated by $R^2$, root mean squared error
+(RMSE), and mean absolute error (MAE). Runtime is reported in seconds.
+
+\paragraph{Benchmark Protocol}
+The classification experiments were executed through the AutoMLBenchmark
+(AMLB) runner using the \modulepath{flaml\_paper\_39} classification suite and
+the \modulepath{flaml\_paper\_1h} constraint. The reported classification
+evaluation covers 12 datasets. The regression benchmark was built from the Penn
+Machine Learning Benchmarks (PMLB) repository and executed through AMLB using
+the \modulepath{pmlb\_regression} suite with the \modulepath{pmlb\_30m}
+constraint. The reported regression evaluation covers 10 datasets.
+
+All systems were run through the same benchmark interface. The recorded setup
+used one fold and one allocated core per task. The regression time budget was
+1,800 seconds per dataset, while the classification constraint allowed up to
+one hour.
+
+\paragraph{Classification Results}
+Table~\ref{tab:automl_classification_results} summarizes the stored
+classification results. Auto-sklearn obtained the highest mean accuracy at
+0.8842. Accelera reached a mean accuracy of 0.8791, a difference of about
+0.0051, while recording the lowest mean duration at 1,201.7 seconds. Its mean
+runtime was approximately one third of the runtimes recorded for the other
+systems.
+
+\begin{table}[H]
+\centering
+\caption{AutoML classification benchmark summary}
+\label{tab:automl_classification_results}
+\begin{tabular}{lrrrr}
+\toprule
+System & Mean accuracy & Mean time (s) & Accuracy wins & Speed wins \\
+\midrule
+Auto-sklearn & 0.884178 & 3615.71 & 3 & 3 \\
+FLAML        & 0.881427 & 3655.63 & 6 & 0 \\
+Accelera     & 0.879076 & 1201.72 & 6 & 15 \\
+TPOT         & 0.877654 & 3953.78 & 8 & 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{imgs/average_accuracy_time.png}
+\caption{Mean classification accuracy and runtime for the evaluated AutoML systems}
+\label{fig:automl_classification_average}
+\end{figure}
+
+\paragraph{Regression Results}
+Table~\ref{tab:automl_regression_results} reports the regression summary over
+ten datasets. Auto-sklearn obtained the highest mean $R^2$ at 0.5609, followed
+closely by TPOT at 0.5592. Accelera reached 0.5294 and recorded the lowest mean
+runtime at 892.64 seconds, compared with 1,820--1,864 seconds for the
+competing systems. Accelera also achieved six speed wins, the most of any
+evaluated system.
+
+\begin{table}[H]
+\centering
+\caption{AutoML regression benchmark summary over ten datasets}
+\label{tab:automl_regression_results}
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrr}
+\toprule
+System & Mean $R^2$ & Median $R^2$ & Mean time (s) & $R^2$ wins & RMSE wins & MAE wins & Speed wins \\
+\midrule
+Auto-sklearn & 0.560947 & 0.494362 & 1820.18 & 2 & 2 & 2 & 2 \\
+TPOT         & 0.559238 & 0.493144 & 1849.70 & 2 & 2 & 2 & 0 \\
+Accelera     & 0.529389 & 0.432577 &  892.64 & 2 & 2 & 2 & 6 \\
+FLAML        & 0.522743 & 0.497530 & 1863.85 & 4 & 4 & 4 & 2 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{imgs/reg_average_r2_time.png}
+\caption{Mean regression $R^2$ and runtime for the evaluated AutoML systems}
+\label{fig:automl_regression_average}
+\end{figure}
+
+\paragraph{Threats to Validity}
+The current results use a single benchmark fold, so they do not quantify
+variation across repeated splits or random seeds. Runtime is sensitive to
+hardware, operating-system load, framework startup overhead, and timeout
+handling. Aggregate means can also hide dataset-level failures or missing
+measurements. Therefore, the tables should be read as a summary of the stored
+runs rather than a universal ranking of AutoML systems.
 
 \subsubsection{Deployment Module}
 \input{sections/results-deployment}
@@ -2732,6 +3080,45 @@ In the future, the benchmark platform can be improved by saving uploaded dataset
 ``Data Preprocessing and Feature Engineering for Data Mining: Techniques,
 Tools, and Best Practices.'' Available at:
 \url{https://www.proquest.com/openview/17dfa731b6147c8939e3c5cc784897ce/1?pq-origsite=gscholar&cbl=5046920}
+
+\bibitem{autoweka}
+Chris Thornton, Frank Hutter, Holger H. Hoos, and Kevin Leyton-Brown.
+``Auto-WEKA: Combined selection and hyperparameter optimization of
+classification algorithms.'' In \emph{Proceedings of the 19th ACM SIGKDD
+International Conference on Knowledge Discovery and Data Mining}, 2013.
+
+\bibitem{autosklearn}
+Matthias Feurer, Aaron Klein, Katharina Eggensperger, Jost Springenberg,
+Manuel Blum, and Frank Hutter. ``Efficient and robust automated machine
+learning.'' In \emph{Advances in Neural Information Processing Systems}, 2015.
+
+\bibitem{tpot}
+Randal S. Olson, Nathan Bartley, Ryan J. Urbanowicz, and Jason H. Moore.
+``Evaluation of a tree-based pipeline optimization tool for automating data
+science.'' In \emph{Applications of Evolutionary Computation}, 2016.
+
+\bibitem{flaml}
+Chi Wang, Qingyun Wu, Markus Weimer, and Erkang Zhu. ``FLAML: A fast and
+lightweight AutoML library.'' In \emph{Proceedings of Machine Learning and
+Systems}, 2021.
+
+\bibitem{autogluon}
+Nick Erickson et al. ``AutoGluon-Tabular: Robust and accurate AutoML for
+structured data.'' \emph{arXiv preprint arXiv:2003.06505}, 2020.
+
+\bibitem{smac}
+Frank Hutter, Holger H. Hoos, and Kevin Leyton-Brown. ``Sequential model-based
+optimization for general algorithm configuration.'' In \emph{Learning and
+Intelligent Optimization}, 2011.
+
+\bibitem{randomsearch}
+James Bergstra and Yoshua Bengio. ``Random search for hyper-parameter
+optimization.'' \emph{Journal of Machine Learning Research}, 13:281--305,
+2012.
+
+\bibitem{stacking}
+David H. Wolpert. ``Stacked generalization.'' \emph{Neural Networks},
+5(2):241--259, 1992.
 \end{thebibliography}
 
 \appendix
