@@ -9,6 +9,8 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+from accelera.src.config import config
+
 current = Path(__file__).resolve()
 for parent in current.parents:
     if (parent / "accelera" / "src" / "config.py").exists():
@@ -17,7 +19,6 @@ for parent in current.parents:
 repo_root = parent
 sys.path.insert(0, str(repo_root))
 
-from accelera.src.config import config
 
 service_source_dir = Path(__file__).resolve().parent
 project_root = str(config.deployment_root if config else service_source_dir)
@@ -133,7 +134,9 @@ def write_dockerfile(configurations):
     with open("Dockerfile", "w", encoding="utf-8") as f:
         f.write("FROM python:3.11-slim\n")
         f.write(
-            "RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/*\n"
+            "RUN apt-get update && \\\n"
+            "    apt-get install -y --no-install-recommends libgomp1 && \\\n"
+            "    rm -rf /var/lib/apt/lists/*\n"
         )
         f.write("WORKDIR /app\n")
         f.write("COPY accelera_deployment/requirements.txt requirements.txt \n")
@@ -364,8 +367,19 @@ def remote_script(args):
     if args.install_docker:
         docker_setup = """
 if ! command -v docker >/dev/null 2>&1; then
-  sudo apt-get update && sudo apt-get install -y docker.io || sudo yum install -y docker
-  sudo systemctl enable docker && sudo systemctl start docker
+  sudo apt-get update || true
+
+  if command -v apt-get >/dev/null 2>&1; then
+    sudo apt-get install -y docker.io
+  elif command -v yum >/dev/null 2>&1; then
+    sudo yum install -y docker
+  else
+    echo "No supported package manager found for Docker install" >&2
+    exit 1
+  fi
+
+  sudo systemctl enable docker
+  sudo systemctl start docker
 fi
 """
     else:
@@ -378,12 +392,28 @@ fi
 
     return f"""
 set -e
+
 cd {quoted_remote_root}
+
 {docker_setup.strip()}
+
 {docker_build}
-sudo docker rm -f {shlex.quote(container_name)} >/dev/null 2>&1 || true
-sudo docker run -d --restart unless-stopped --name {shlex.quote(container_name)} -p {port}:{port} -e PORT={port} {shlex.quote(image_name)}
+
+CONTAINER_NAME={shlex.quote(container_name)}
+IMAGE_NAME={shlex.quote(image_name)}
+DOCKER_PS_FORMAT={shlex.quote(docker_ps_format)}
+
+sudo docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
+
+sudo docker run -d \\
+  --restart unless-stopped \\
+  --name "$CONTAINER_NAME" \\
+  -p {port}:{port} \\
+  -e PORT={port} \\
+  "$IMAGE_NAME"
+
 echo "Waiting for health check..."
+
 for attempt in {{1..15}}; do
   if {health_command} >/dev/null 2>&1; then
     echo "Local container health check: OK"
@@ -391,8 +421,13 @@ for attempt in {{1..15}}; do
   fi
   sleep 2
 done
+
 {health_command} >/dev/null 2>&1 || (echo "health check failed" >&2 && exit 1)
-sudo docker ps --filter name={shlex.quote(container_name)} --format {shlex.quote(docker_ps_format)}
+
+sudo docker ps \\
+  --filter "name=$CONTAINER_NAME" \\
+  --format "$DOCKER_PS_FORMAT"
+
 echo "Application URL: http://{args.host}:{port}"
 echo "GUI URL: http://{args.host}:{port}/gui"
 """.strip()
