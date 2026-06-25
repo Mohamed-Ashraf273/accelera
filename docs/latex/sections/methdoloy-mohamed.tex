@@ -48,6 +48,7 @@ Parallelizer. The C++ layer is responsible for graph storage, node connections,
 execution order, parallel scheduling, selected-path extraction, and memory
 lifetime management.
 
+
 \begin{table}[H]
 \centering
 \caption{Main components of the Accelera Pipe module}
@@ -55,25 +56,12 @@ lifetime management.
 \toprule
 Component & Responsibility \\
 \midrule
-\modulepath{core/pipeline.py} & Implements the public builder API. It exposes
-\texttt{preprocess}, \texttt{model}, \texttt{predict}, \texttt{metric},
-\texttt{merge}, and \texttt{branch}. It also calls the native graph execution
-method and wraps the selected fitted path into an \texttt{ExecutedGraph}. \\
-\modulepath{core/pipeline\_base.py} & Owns the native \texttt{graph.Graph}
-object, enables parallel graph execution by default, maps Python node names to
-C++ \texttt{NodeType} values, and provides save/load behavior using pickle. \\
-\modulepath{core/executed\_graph.py} & Represents the reusable inference graph
-produced after training. It executes the selected fitted path on new data and can
-temporarily enable metrics when \texttt{y\_true} is supplied. \\
-\modulepath{wrappers/} & Contains metric and display wrappers that adapt
-supervised and unsupervised metrics to the graph execution format. \\
-\modulepath{include/core/graph.hpp} and \modulepath{src/core/graph.cpp} & Define
-and implement the native graph object. This layer stores nodes, computes
-execution order, runs nodes sequentially or in parallel, selects the best branch,
-and serializes graph state. \\
-\modulepath{include/core/node.hpp} and node implementations & Define the common
-node abstraction and specialized node behavior for input, preprocessing, model,
-prediction, merge, and metric stages. \\
+Pipeline Builder Interface & Provides the user-facing fluent API used to define preprocessing stages, models, prediction steps, metrics, merge operations, and branches. It translates each user call into a typed computational node instead of immediately executing the operation. \\
+Pipeline State and Persistence Manager & Owns the native graph object, maps high-level node categories to graph node types, controls graph execution settings, and provides save/load behavior for reusable pipeline objects. \\
+Executed Graph Runtime & Represents the fitted execution path selected after training. It allows the same trained transformations and models to be reused for inference without keeping unnecessary validation data or temporary training branches. \\
+Metric and Display Wrappers & Adapt supervised metrics, unsupervised metrics, arrays, figures, dictionaries, and reports into graph-compatible outputs that can be stored, selected, displayed, or used in branch-selection strategies. \\
+Native Graph Engine & Stores the pipeline as a directed acyclic graph, validates node connections, computes execution order, schedules sequential or parallel execution, manages branch selection, and controls intermediate-memory lifetime. \\
+Node Abstraction Layer & Defines the common behavior of input, preprocessing, model, prediction, merge, and metric nodes, including source-node relationships, stored data, GPU usage flags, and selected-path markers. \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -259,6 +247,30 @@ resulting C++ code is then analyzed by the same loop extraction path used for
 native C/C++ input. This design avoids building two separate parallelization
 pipelines and ensures that both Python and C++ inputs are judged using the same
 loop features and safety checks.
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{0.95}
+\caption{Supported operations in the Python-to-C++ converter}
+\begin{tabular}{p{0.27\textwidth}p{0.60\textwidth}}
+\toprule
+Category & Supported forms and notes \\
+\midrule
+Constants and names & \texttt{None}, booleans, integers, floats, strings, and variables. \\
+Arithmetic & Addition, subtraction, multiplication, division, modulo, and power using \texttt{std::pow}. \\
+Unary and boolean & Unary plus, unary minus, logical not, logical and, and logical or. \\
+Comparisons & Equality, inequality, less-than, less-than-or-equal, greater-than, and greater-than-or-equal; chained comparisons rejected. \\
+Calls and printing & Ordinary function calls and \texttt{print}; keyword arguments are generally unsupported. \\
+Access operations & Attribute access and indexing are supported; slicing is rejected. \\
+Assignment & Single-target assignment and indexed assignment are supported; multi-target assignment is rejected. \\
+Augmented assignment & Simple-name \texttt{+=}, \texttt{-=}, \texttt{*=}, \texttt{/=}, and \texttt{\%=}. \\
+Control flow & \texttt{if}/\texttt{else} blocks and \texttt{return} statements. \\
+Loops & \texttt{for i in range(...)} loops with one, two, or three range arguments. \\
+Functions & Function definitions are emitted as C++ template-style functions; decorators are rejected. \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 After normalization, the module extracts loop information using native Clang AST
 bindings. Each loop is represented by its source code and source-line range. The
@@ -284,55 +296,45 @@ and OpenMP/native-extension generation.
 
 \begin{table}[H]
 \centering
+\fontsize{8.8}{10.5}\selectfont
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{0.88}
 \caption{Main components of the Code Parallelizer module}
-\begin{tabular}{p{0.30\textwidth}p{0.62\textwidth}}
+\begin{tabular}{p{0.27\textwidth}p{0.63\textwidth}}
 \toprule
 Component & Responsibility \\
 \midrule
-\modulepath{parallelizer.py} & Main orchestration layer. It receives strings,
-files, custom functions, and custom transformer instances; manages caches;
-extracts loop features; requests classifier predictions; applies pragmas; and
-falls back safely when optimization fails. \\
-\modulepath{py2cpp\_converter.py} & Converts a restricted Python AST subset into
-C++ code. It handles constants, arithmetic, boolean logic, comparisons,
-assignments, augmented assignments, \texttt{if} statements, functions, and
-\texttt{for range(...)} loops. \\
-\modulepath{cpp\_compiler.py} & Wraps generated C++ into a PyBind11/NumPy module,
-chooses compiler flags, adds \texttt{-fopenmp} only when OpenMP pragmas are
-present, builds a shared extension, and loads the compiled function. \\
-\modulepath{src/utils/code\_parallelizer\_utils.cpp} & Native C++ bridge for
-loop extraction. It runs a Clang frontend action on source code and serializes
-extracted loop information to JSON when needed. \\
-\modulepath{include/ast/} and related C++ files & Clang AST consumer and loop
-visitor logic used to identify loop constructs and their source ranges. \\
-Classifier service & Receives the fixed-size loop embedding and predicts one of
-the supported classes: no parallelization, parallel for, or reduction. \\
+Parallelization Orchestrator & Receives source strings, file paths, custom functions, and transformer instances. It coordinates conversion, loop extraction, feature analysis, classification, pragma insertion, caching, compilation, and fallback behavior. \\
+Input Normalization Layer & Converts accepted input forms into a common source-analysis representation. Files are read, source strings are analyzed directly, functions are captured from source, and transformer instances are inspected through their transformation method. \\
+Python-to-C++ Converter & Translates a restricted subset of Python into C++ so Python preprocessing logic can enter the same static loop-analysis pipeline as native C/C++ code. \\
+Loop Extraction Engine & Uses a compiler-style front end to locate loops, record source ranges, and expose structured loop information for feature extraction and rewriting. \\
+Feature Extraction and Embedding Generator & Computes structural, dependency, memory-access, control-flow, arithmetic, and reduction features, then maps them into a fixed-size numeric representation. \\
+Parallelization Classifier and Safety Resolver & Combines classifier predictions with deterministic safety rules to decide whether a loop remains sequential, receives a parallel-for pragma, or receives a reduction pragma. \\
+OpenMP Rewriter & Inserts the selected OpenMP directive while avoiding unsafe duplicate insertion, especially when an outer loop already contains selected inner loops. \\
+Native Compilation and Loading Layer & Wraps optimized C++ into a Python-callable extension, adds OpenMP flags only when needed, builds the native module, loads it at runtime, and returns the optimized callable. \\
+Caching Layer & Stores processed source and compiled native functions using source-based hashes to avoid repeated conversion and compilation. \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Figure~\ref{fig:parallelizer_workflow} summarizes the complete data flow. The
-important point is that all supported inputs eventually converge to the same C++
-loop-analysis path. Only callable Python inputs continue beyond source-code
-rewriting into PyBind11 extension generation.
+Figure~\ref{fig:parallelizer_workflow} summarizes the overall data flow. In general, 
+supported inputs are normalized into a common C++ loop-analysis path, 
+while callable Python inputs additionally proceed to PyBind11 extension generation.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{imgs/parallelizer_module_workflow.pdf}
+\includegraphics[width=\textwidth,keepaspectratio]{imgs/pp.png}
 \caption{Code Parallelizer module workflow}
 \label{fig:parallelizer_workflow}
 \end{figure}
 
-The feature extraction stage combines syntactic and semantic indicators. It
-looks for reduction patterns, array reads and writes, loop-carried dependencies,
-indirect memory access, early exits, nested loop depth, branch count, function
-call count, arithmetic operation count, memory operation count, and whether the
-loop appears vectorizable. These features are converted into a 40-dimensional
-numeric vector before being sent to the classifier. The classifier result is
-then combined with deterministic rules. For example, even if the classifier
-returns \texttt{none}, the rule layer may still recognize a scalar reduction, an
-independent array-write loop, or a directly nested loop pattern that can be
-handled safely.
+The feature extraction stage analyzes both code structure and loop behavior, 
+including reductions, array accesses, dependencies, indirect memory access, early exits, 
+nesting depth, branches, function calls, arithmetic operations, and vectorization potential. 
+
+These indicators are encoded into a 40-dimensional vector for the classifier, 
+then refined by deterministic safety rules that can still detect safe cases such as reductions, 
+independent array writes, and nested loop patterns.
 
 \begin{lstlisting}[style=algostyle,caption={Loop classification and pragma insertion}]
 Input: source program P
