@@ -80,17 +80,71 @@
 \newcommand{\besttime}{\cellcolor{green!20}}
 \newcommand{\bestmem}{\cellcolor{blue!15}}
 
-\title{
-  \vspace{-1.5cm}
-  \includegraphics[width=0.24\textwidth]{../imgs/accelera.png}\\[0.8em]
-  \textbf{Graph-Based Machine Learning Pipelines and Automatic Loop Parallelization in Accelera}\\[0.4em]
-  \Large Accelera Pipe and Parallelizer Modules
-}
-\author{Mohamed Ashraf\\[0.35em]ID: 9220658\\[0.35em]Supervisor: Dr. Salma Abdel monem}
-\date{June 2026}
 \begin{document}
 
-\maketitle
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{center}
+
+% Cairo University logo and affiliation, adapted from gp_book.tex
+\includegraphics[width=0.12\textwidth]{../imgs/CU_logo.png}\\
+{\fontsize{12}{14}\selectfont Cairo University}\\
+{\fontsize{12}{14}\selectfont Faculty of Engineering}\\
+{\fontsize{12}{14}\selectfont Department of Computer Engineering}\\
+
+\vspace{0.9cm}
+
+{\bfseries\fontsize{22}{26}\selectfont Graph-Based Machine Learning Pipelines and Automatic Loop Parallelization in Accelera}
+
+\vspace{0.35cm}
+
+{\fontsize{16}{20}\selectfont Accelera Pipe and Parallelizer Modules}
+
+\vspace{0.9cm}
+
+\includegraphics[width=0.22\textwidth]{../imgs/accelera.png}
+
+\vspace{0.7cm}
+
+{\fontsize{12}{14}\selectfont
+A Graduation Project Individual Report Submitted\\
+to\\[0.15cm]
+Faculty of Engineering, Cairo University\\[0.15cm]
+in Partial Fulfillment of the Requirements for the Degree\\[0.15cm]
+of\\[0.15cm]
+Bachelor of Science in Computer Engineering.
+}
+
+\vspace{0.95cm}
+
+{\bfseries\fontsize{16}{18}\selectfont Presented by}
+
+\vspace{0.25cm}
+
+{\fontsize{14}{16}\selectfont Mohamed Ashraf}\\[0.15cm]
+{\fontsize{12}{14}\selectfont ID: 9220658}
+
+\vspace{0.75cm}
+
+{\bfseries\fontsize{16}{18}\selectfont Supervised by}
+
+\vspace{0.25cm}
+
+{\fontsize{14}{16}\selectfont Dr. Salma Abdel Monem}
+
+\vspace{0.45cm}
+
+{\fontsize{12}{14}\selectfont June 2026}
+
+\vfill
+
+{\fontsize{11}{14}\selectfont
+All rights reserved. This report may not be reproduced in whole or in part,
+by photocopying or other means, without the permission of the author or department.
+}
+
+\end{center}
+\end{titlepage}
 
 \begin{abstract}
 This paper describes two core modules of Accelera: \texttt{accelera\_pipe}, a graph-based machine learning pipeline executor, and the Parallelizer, a source-to-source loop optimization module that emits OpenMP-enabled C++ for supported code patterns. The pipeline module represents preprocessing, model fitting, prediction, metrics, branching, merging, and executed inference graphs as a native backend graph. This representation enables parallel branch execution, path selection, graph reuse, and targeted memory optimizations. The Parallelizer converts supported Python code to C++, extracts loops, classifies safe OpenMP transformations, inserts pragmas, and can compile custom preprocessing functions into Python-callable native extensions. Experiments show that \texttt{accelera\_pipe} preserves sklearn-equivalent accuracy while reducing latency on a large four-candidate model-selection benchmark from about 803 seconds to 495 seconds. The Parallelizer also accelerates hard loop examples and reduces a preprocessing-heavy Python kernel from 6.83 seconds to 0.08 seconds in a repeated cached end-to-end pipeline run.\end{abstract}
@@ -1143,29 +1197,68 @@ produce the same accuracy, while the second Accelera run is slightly faster
 than the sklearn baseline.
 
 \par\vspace{0.8em}
-\begin{center}
-\captionof{table}{Windows direct example correctness and path timing.}
+\begin{table}[!htbp]
+\centering
+\caption{Windows direct example correctness and path timing.}
 \label{tab:direct-example-runs-windows}
-\footnotesize
-\begin{tabular}{llrrl}
+
+\scriptsize
+\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{3pt}
+
+\begin{tabularx}{\textwidth}{
+  >{\raggedright\arraybackslash}p{0.25\textwidth}
+  >{\raggedright\arraybackslash}p{0.21\textwidth}
+  >{\centering\arraybackslash}p{0.12\textwidth}
+  >{\centering\arraybackslash}p{0.15\textwidth}
+  >{\raggedright\arraybackslash}X
+}
 \toprule
 Example & Run/cache state & Baseline (s) & Accelera/C path (s) & Validation \\
 \midrule
-\texttt{accpipe\_demo.py} & normal & 1.75 / 1.78 & \besttime 1.03 &
+
+\path{accpipe_demo.py} &
+normal &
+1.75 / 1.78 &
+\besttime 1.03 &
 same test accuracy, 0.9260 \\
-\texttt{parallel\_accpipe.py} & isolated cache, run 1 & 6.66 &
-\besttime 6.00 & outputs match \\
-\texttt{parallel\_accpipe.py} & isolated cache, run 2 & 6.58 &
-\besttime 0.09 & outputs match \\
-\texttt{code\_parallelizer\_demo.py} & isolated cache, run 1 & 5.59 &
-\besttime 1.04 & outputs match \\
-\texttt{code\_parallelizer\_demo.py} & isolated cache, run 2 & 5.61 &
-\besttime 1.05 & outputs match \\
-\texttt{save\_load.py} & normal & 0.57 & \besttime 0.51 / 0.53 &
+
+\path{parallel_accpipe.py} &
+isolated cache, run 1 &
+6.66 &
+\besttime 6.00 &
+outputs match \\
+
+\path{parallel_accpipe.py} &
+isolated cache, run 2 &
+6.58 &
+\besttime 0.09 &
+outputs match \\
+
+\path{code_parallelizer_demo.py} &
+isolated cache, run 1 &
+5.59 &
+\besttime 1.04 &
+outputs match \\
+
+\path{code_parallelizer_demo.py} &
+isolated cache, run 2 &
+5.61 &
+\besttime 1.05 &
+outputs match \\
+
+\path{save_load.py} &
+normal &
+0.57 &
+\besttime 0.51 / 0.53 &
 same accuracy, 0.268 \\
+
 \bottomrule
-\end{tabular}
-\end{center}
+\end{tabularx}
+
+\renewcommand{\arraystretch}{1.0}
+\normalsize
+\end{table}
 
 \begin{table}[!htbp]
 \centering
