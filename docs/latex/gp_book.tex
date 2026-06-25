@@ -15,6 +15,8 @@
 \usepackage{listings}
 \usepackage{enumitem}
 \usepackage{float}
+\usepackage{tabularx}
+\usepackage{array}
 \usepackage{caption}
 \usepackage{pgfplots}
 \usepackage{needspace}
@@ -39,10 +41,10 @@
 }
 
 \titleformat{\chapter}[hang]
-  {\normalfont\bfseries\fontsize{24}{29}\selectfont\raggedright}
+  {\normalfont\bfseries\fontsize{21}{25}\selectfont\raggedright}
   {\chaptername\ \thechapter:}{0.5em}{}
 \titleformat{name=\chapter,numberless}[hang]
-  {\normalfont\bfseries\fontsize{24}{29}\selectfont}{}{0pt}{}
+  {\normalfont\bfseries\fontsize{21}{25}\selectfont}{}{0pt}{}
 \titlespacing*{\chapter}{0pt}{0pt}{18pt}
 \titleformat{\section}
   {\normalfont\bfseries\fontsize{18}{22}\selectfont}
@@ -241,16 +243,22 @@ $F(L)$ & Feature representation of loop $L$ \\
 \chapter*{Contacts}
 
 \noindent{\fontsize{12}{14}\selectfont \underline{Team Members}}
+
 \begin{table}[h!]
 \centering
-\begin{tabular}{|p{0.25\textwidth}|p{0.42\textwidth}|p{0.25\textwidth}|}
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+
+\begin{tabularx}{\textwidth}{|p{0.25\textwidth}|>{\raggedright\arraybackslash}X|p{0.22\textwidth}|}
 \hline
 \textbf{Name} & \textbf{Email} & \textbf{Phone Number} \\ \hline
-Name of Student 1 & \underline{abc1@email.com} & +2 01xxxxxxxx \\ \hline
-Nesma Osama & \underline{nesma.ahmed03@eng-st.cu.edu.eg} & +2 01067193062 \\ \hline
-Name of Student 3 & \underline{abc1@email.com}  & +2 01xxxxxxxx \\ \hline
-Name of Student 4 & \underline{abc1@email.com}  & +2 01xxxxxxxx \\ \hline
-\end{tabular}
+Mohamed Ashraf & \texttt{mohamed.abdelaziz03@eng-st.cu.edu.eg} & +2 01004538215 \\ \hline
+Nesma Osama & \texttt{nesma.ahmed03@eng-st.cu.edu.eg} & +2 01067193062 \\ \hline
+Mazen Adel & \texttt{abc1@email.com} & +2 01xxxxxxxx \\ \hline
+Mohamed Khater & \texttt{abc1@email.com} & +2 01xxxxxxxx \\ \hline
+\end{tabularx}
+
 \end{table}
 
 
@@ -269,93 +277,852 @@ Salma Abdelmoniem & \underline{abc1@email.com}  & +2 01114302362 \\ \hline
 
 
 \chapter{Introduction}
+\label{chap:introduction}
+
+Accelera is a hybrid Python/C++ machine-learning framework designed to support
+the complete data-science workflow, starting from data preparation and model
+selection, and extending to graph-based execution, native code acceleration, and
+benchmark comparison. The project is not a single isolated algorithm. Instead,
+it is a collection of connected modules that cooperate to make machine-learning
+experiments easier to build, easier to repeat, and faster to execute when
+possible.
+
+The main idea behind Accelera is simple: Python gives developers a productive
+environment for experimentation, but real machine-learning workflows often need
+more structure and better execution control. A typical workflow may include data
+cleaning, preprocessing, feature engineering, model selection, prediction,
+metric evaluation, reporting, and comparison between several alternatives. When
+these steps are written as separate scripts, repeated work, unclear execution
+order, and performance bottlenecks become common problems.
+
+Accelera addresses this by combining five main units:
+\texttt{auto\_preprocessing}, \texttt{accelera\_automl},
+\texttt{accelera\_pipe}, \texttt{parallelizer}, and the benchmark platform.
+Table~\ref{tab:intro-modules-overview} gives a quick overview of these modules
+and how they contribute to the full system.
+
+\begin{table}[!htbp]
+\centering
+\caption{Main Accelera modules and their roles.}
+\label{tab:intro-modules-overview}
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{0.23\textwidth}p{0.34\textwidth}p{0.33\textwidth}}
+\toprule
+Module & Main role & Why it matters \\
+\midrule
+\texttt{auto\_preprocessing} &
+Prepares tabular, text, and image data using automated preprocessing steps. &
+Reduces repeated manual data-cleaning work and produces reusable preprocessing
+artifacts and reports. \\
+
+\texttt{accelera\_automl} &
+Searches for suitable classification and regression models under time and trial
+budgets. &
+Helps users compare model candidates systematically instead of manually testing
+each model. \\
+
+\texttt{accelera\_pipe} &
+Builds graph-based machine-learning workflows with preprocessing, model,
+prediction, metric, merge, and branch nodes. &
+Exposes workflow structure, supports branch execution, and allows fitted paths
+to be reused through an executed graph. \\
+
+\texttt{parallelizer} &
+Analyzes supported Python/C++ loop-heavy code, inserts safe OpenMP pragmas, and
+compiles native callable extensions. &
+Targets custom preprocessing bottlenecks that would otherwise remain slow in
+pure Python. \\
+
+Benchmark platform &
+Provides a prototype web platform for datasets, metrics, submissions, and
+leaderboard-style comparison. &
+Connects the framework to a future environment for fair pipeline evaluation and
+community comparison. \\
+\bottomrule
+\end{tabular}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+
 \section{Motivation and Justification}
-\project{} addresses the practical gap between the productivity of Python and
-the performance requirements of machine-learning workflows and loop-heavy
-data processing. A sequential script evaluates alternatives one after another
-and leaves memory lifetime and parallel execution decisions to the user. The
-project provides a graph-based pipeline backend and a code parallelization path
-to make these execution decisions explicit and reusable.
 
-\section{Project Objectives and Problem Definition}
-The project objective is to provide an integrated framework for constructing,
-executing, evaluating, and accelerating data-science workflows. The problem is
-to preserve a convenient Python-level programming model while enabling native
-graph scheduling, controlled intermediate-data lifetime, and OpenMP-backed
-execution for supported custom code.
+Machine-learning development is often presented as a simple process of choosing
+a model and calling \texttt{fit}. In practice, the model is only one stage in a
+larger workflow. Before training, the data must be cleaned, split, transformed,
+encoded, scaled, and sometimes reduced. After training, the output must be
+evaluated, compared, reported, and possibly deployed or submitted to a benchmark
+system. This creates several practical problems.
 
-\section{Project Outcomes}
-The project is organized into the following modules:
 \begin{itemize}
-  \item Accelera Pipe for graph-based machine-learning workflows.
-  \item Code Parallelizer for source analysis and OpenMP generation.
-  \item Auto Preprocessing for tabular, text, and image data preparation.
-  \item AutoML for model selection and optimization.
-  \item Deployment and Benchmark Platform components for serving and evaluation.
+  \item \textbf{Repeated preprocessing code:} Similar cleaning, encoding,
+  scaling, and feature-selection steps are often rewritten for every dataset.
+
+  \item \textbf{Manual model comparison:} Users may need to try many models and
+  configurations before finding a good solution.
+
+  \item \textbf{Linear workflow limitations:} Traditional scripts or simple
+  pipelines may duplicate work when several branches share early operations.
+
+  \item \textbf{Python loop bottlenecks:} Custom preprocessing functions written
+  in Python may become slow when they contain large numeric loops.
+
+  \item \textbf{Weak experiment visibility:} Without reports, graphs, and saved
+  artifacts, it becomes harder to understand what preprocessing and evaluation
+  steps were applied.
+
+  \item \textbf{Lack of fair comparison:} Pipeline results need a structured
+  place where metrics, submissions, and benchmarks can be compared.
 \end{itemize}
 
+These problems justify the need for Accelera. The project provides automation
+where the workflow is repetitive, graph execution where the workflow contains
+branches, native acceleration where supported custom code is slow, and benchmark
+components where results must be compared. The motivation is not only speed; it
+is also organization, reproducibility, and usability.
+
+The \texttt{auto\_preprocessing} module is motivated by the fact that data
+preparation usually consumes a large part of the development effort. It handles
+common preprocessing decisions for tabular datasets, such as dropping duplicate
+records, detecting column types, imputing missing values, encoding categorical
+features, applying robust scaling, selecting features, saving preprocessors, and
+generating reports. It also supports text preprocessing using cleaning,
+tokenization, stemming, TF-IDF vectorization, and target encoding. For image
+workflows, it provides preparation paths for classification and segmentation
+tasks. This makes the project useful before the model-selection stage even
+begins.
+
+The \texttt{accelera\_automl} module is motivated by the difficulty of manual
+model selection. A user may not know which estimator, preprocessing choice, or
+hyperparameter setting will perform best. AutoML reduces this burden by
+evaluating candidate configurations under controlled budgets. This makes the
+search process more systematic and provides useful outputs such as the best
+model, score, leaderboard, and run history.
+
+The \texttt{accelera\_pipe} module is motivated by the need to represent
+machine-learning workflows as graphs rather than only as linear chains. In
+branch-heavy experiments, several alternatives may share the same preprocessing
+steps. A graph representation makes these dependencies explicit. It also allows
+the system to reason about execution order, branch selection, reuse of fitted
+paths, and intermediate-data lifetime. This gives the user a high-level Python
+interface while the backend manages a more structured execution model.
+
+The \texttt{parallelizer} module is motivated by the performance gap between
+Python and native compiled code. Python is easy to write, but loop-heavy Python
+functions can be slow. The parallelizer attempts to optimize supported custom
+functions by converting them to C++, extracting loops, computing loop features,
+classifying safe parallelization opportunities, applying rule-based safety
+checks, inserting OpenMP pragmas, and compiling the result as a native
+Python-callable extension. If the optimization path fails, the original function
+is preserved, which keeps the workflow correct.
+
+Finally, the benchmark platform is motivated by the need for organized
+comparison. A machine-learning framework becomes more useful when users can
+compare pipelines on common datasets and metrics. The benchmark module therefore
+represents a future-facing part of the project, where submissions, metrics, and
+leaderboard-style results can help users evaluate their solutions fairly.
+
+\begin{table}[!htbp]
+\centering
+\caption{Problems addressed by Accelera.}
+\label{tab:intro-problems-solutions}
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{0.30\textwidth}p{0.29\textwidth}p{0.31\textwidth}}
+\toprule
+Problem & Accelera component & Expected benefit \\
+\midrule
+Manual and repetitive data preparation &
+\texttt{auto\_preprocessing} &
+Automates common preprocessing and produces saved artifacts and reports. \\
+
+Time-consuming model selection &
+\texttt{accelera\_automl} &
+Searches candidate models and configurations under controlled budgets. \\
+
+Repeated work in branch-heavy workflows &
+\texttt{accelera\_pipe} &
+Represents the workflow as a graph and exposes shared execution structure. \\
+
+Slow custom Python loops &
+\texttt{parallelizer} &
+Converts supported functions to native code and inserts safe OpenMP pragmas. \\
+
+Difficult result comparison &
+Benchmark platform &
+Stores benchmark information, metrics, submissions, and leaderboard views. \\
+\bottomrule
+\end{tabular}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+
+\section{Project Objectives and Problem Definition}
+
+The main objective of Accelera is to provide an integrated framework for
+constructing, preprocessing, executing, evaluating, optimizing, and comparing
+machine-learning workflows. The project aims to keep the familiar Python
+programming style while adding automation, graph execution, native acceleration,
+and benchmark-oriented evaluation.
+
+The main objectives of the project are:
+
+\begin{enumerate}
+  \item Build an automated preprocessing module for tabular, text, and image
+  datasets.
+
+  \item Support data cleaning, missing-value handling, categorical encoding,
+  robust scaling, TF-IDF text representation, image preparation, feature
+  selection, and report generation.
+
+  \item Implement AutoML classifiers and regressors that search across supported
+  model configurations using scoring metrics, cross-validation, time budgets,
+  trial budgets, and optional ensemble construction.
+
+  \item Provide a graph-based pipeline module that represents workflow steps as
+  executable graph nodes rather than only as a sequential list.
+
+  \item Support pipeline operations such as preprocessing, model fitting,
+  prediction, metric evaluation, branching, merging, and executed-graph reuse.
+
+  \item Integrate custom preprocessing functions with the parallelizer so that
+  supported loop-heavy functions can be optimized automatically.
+
+  \item Implement a conservative code parallelization path that uses C++,
+  OpenMP, loop-feature extraction, classification, rule-based safety checks, and
+  native compilation.
+
+  \item Provide reporting tools that make preprocessing outputs, model metrics,
+  and pipeline structure more visible to the user.
+
+  \item Build a benchmark platform prototype for datasets, submissions, users,
+  metrics, and leaderboard-based comparison.
+\end{enumerate}
+
+The problem addressed by the project can be stated as follows:
+
+\begin{quote}
+Machine-learning workflows in Python are easy to write but become difficult to
+organize, repeat, compare, and optimize when they include many preprocessing
+steps, model alternatives, custom functions, and evaluation paths. Accelera aims
+to preserve Python usability while adding automated preprocessing, budgeted
+model search, graph-based execution, safe loop-level acceleration, and
+benchmark-oriented evaluation.
+\end{quote}
+
+This problem has two sides. The first side is \textbf{workflow complexity}. As
+the number of preprocessing steps, branches, and candidate models increases, the
+workflow becomes harder to manage manually. The second side is
+\textbf{execution performance}. Even if the workflow is correct, it may repeat
+shared work or spend too much time in slow Python loops. Accelera addresses both
+sides by combining high-level automation with lower-level execution support.
+
+\section{Project Outcomes}
+
+The project outcomes are the implemented modules and the integration between
+them. Each module provides a different part of the final system.
+
+\subsection*{Outcome 1: Automated preprocessing}
+
+The \texttt{auto\_preprocessing} module prepares datasets for machine-learning
+models. For tabular data, it handles duplicates, missing values, column-type
+detection, categorical encoding, robust scaling, target processing, feature
+selection, and report generation. For text data, it applies cleaning,
+tokenization, stemming, TF-IDF vectorization, and label encoding. For image
+data, it supports classification and segmentation preparation. The outcome is a
+set of processed arrays, saved preprocessors, selected features, and reports.
+
+\subsection*{Outcome 2: AutoML model search}
+
+The \texttt{accelera\_automl} module provides estimator-style AutoML classes for
+classification and regression. It searches candidate configurations, evaluates
+them with cross-validation, supports warm-starting from dataset metafeatures,
+and can build voting or stacked ensembles. The outcome is a fitted final model,
+best score, leaderboard, and run history.
+
+\subsection*{Outcome 3: Graph-based pipeline execution}
+
+The \texttt{accelera\_pipe} module provides a graph-based pipeline interface.
+It represents preprocessing, model, prediction, metric, branch, and merge
+operations as graph nodes. The output of a pipeline run includes predictions and
+an \texttt{ExecutedGraph}, which stores the selected fitted path for later use.
+This outcome gives the project its workflow-execution layer.
+
+\subsection*{Outcome 4: Source-level parallelization}
+
+The \texttt{parallelizer} module accelerates supported loop-heavy code. It can
+process C/C++ code, supported Python code, custom Python functions, and
+transformer methods. It extracts loops, computes features, classifies
+parallelization opportunities, applies safety rules, inserts OpenMP pragmas, and
+compiles native Python-callable extensions when possible. If any step fails, it
+falls back to the original Python implementation.
+
+\subsection*{Outcome 5: Pipeline and parallelizer integration}
+
+One of the most important outcomes is the connection between
+\texttt{accelera\_pipe} and the \texttt{parallelizer}. When a preprocessing node
+contains a supported custom Python function, the pipeline attempts to optimize
+it before adding it to the graph. This allows the system to combine graph-level
+workflow execution with code-level acceleration.
+
+\subsection*{Outcome 6: Reporting and benchmark support}
+
+The project includes reports for preprocessing, model metrics, and graph
+visualization. It also includes a benchmark platform prototype with backend and
+frontend components for datasets, metrics, users, submissions, and leaderboards.
+These outcomes improve visibility and comparison.
+
+\begin{table}[!htbp]
+\centering
+\caption{Summary of project outcomes.}
+\label{tab:intro-outcomes}
+\small
+\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{0.28\textwidth}p{0.62\textwidth}}
+\toprule
+Outcome & Description \\
+\midrule
+Automated preprocessing &
+Reusable preprocessing for tabular, text, and image datasets with saved
+artifacts and reports. \\
+
+AutoML search &
+Budgeted model search for classification and regression with leaderboard and
+optional ensembles. \\
+
+Graph pipeline execution &
+DAG-style workflow representation with branches, metrics, merges, and executed
+graph reuse. \\
+
+Code parallelization &
+Supported Python/C++ loop analysis, OpenMP insertion, native compilation, and
+safe fallback. \\
+
+Integrated acceleration &
+Automatic attempt to optimize eligible custom preprocessing functions inside
+pipeline nodes. \\
+
+Benchmark platform &
+Prototype for benchmark datasets, submissions, metrics, and leaderboards. \\
+\bottomrule
+\end{tabular}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+
 \section{Document Organization}
-Chapter 2 reserves the required market visibility study. Chapter 3 contains
-the literature-survey structure. Chapter 4 documents the system design and
-implemented module methodology. Chapter 5 presents testing and verification
-results. Chapter 6 concludes the report and records future work. The appendices
-retain the required development, user-guide, and feasibility-study sections.
+
+The rest of this report is organized as follows:
+
+\begin{itemize}
+  \item \textbf{Chapter 2} presents the required market visibility study and
+  discusses the project from a practical and application-oriented perspective.
+
+  \item \textbf{Chapter 3} presents the literature survey. It explains the
+  background concepts and previous work related to machine-learning pipelines,
+  preprocessing, AutoML, OpenMP, automatic parallelization, and related systems
+  such as \texttt{scikit-learn} and OMPar.
+
+  \item \textbf{Chapter 4} presents the methodology and system design. It
+  explains how the main modules are implemented, including
+  \texttt{auto\_preprocessing}, \texttt{accelera\_automl},
+  \texttt{accelera\_pipe}, the \texttt{parallelizer}, and the benchmark
+  platform.
+
+  \item \textbf{Chapter 5} presents testing, verification, and experimental
+  results. It discusses correctness checks, runtime measurements, pipeline
+  comparisons, Windows and Linux execution behavior, and the effect of caching
+  and native compilation.
+
+  \item \textbf{Chapter 6} concludes the report by summarizing the project
+  contributions, limitations, and possible future improvements.
+
+  \item \textbf{Appendices} include supporting material such as development
+  documentation, usage instructions, feasibility details, and additional
+  implementation notes.
+\end{itemize}
+
 
 \chapter{Market Visibility Study}
+\label{chap:market-visibility}
 
-In this chapter, we’ll identify Accelera’s target customers, talk about similar tools and platforms in the market, discuss their pros and cons, and provide the business case study and financial analysis of the system.
+This chapter studies the market need for Accelera and compares it with existing
+tools that solve related problems. The goal is to show who can benefit from the
+project, what alternatives already exist, and why Accelera provides a different
+value. The chapter also presents a simplified business case and financial
+analysis to clarify how the project could be developed into a product or service.
+
+Accelera targets the data-science workflow as a complete process, not as one
+isolated task. Some existing tools focus on preprocessing, others focus on model
+selection, and others focus on competition platforms or code acceleration.
+Accelera combines these directions through five connected parts:
+\texttt{auto\_preprocessing}, \texttt{accelera\_automl},
+\texttt{accelera\_pipe}, \texttt{parallelizer}, and the benchmark platform.
+
 \section{Targeted Customers}
 
-Our targeted customers are data scientists and machine learning engineers, both beginners and experts. Accelera aims to support these users by providing a tool that automates and accelerates several steps in the data science life cycle. This helps users reduce repetitive manual work, and save time.
+The targeted customers for Accelera are users and organizations that build,
+test, compare, and optimize machine-learning workflows. These customers can be
+divided into several groups, as shown in Table~\ref{tab:target-customers}.
+
+\begin{table}[!htbp]
+\centering
+\caption{Targeted customers for Accelera.}
+\label{tab:target-customers}
+\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{0.25\textwidth}p{0.33\textwidth}p{0.32\textwidth}}
+\toprule
+Customer group & Main need & How Accelera helps \\
+\midrule
+Students and beginners &
+Need an easier way to build complete machine-learning workflows without writing
+every step manually. &
+Provides automated preprocessing, model search, reports, and a pipeline
+interface that organizes the workflow. \\
+
+Data scientists &
+Need to prepare data, compare models, and repeat experiments quickly. &
+Reduces repetitive preprocessing, supports AutoML search, and gives reports and
+leaderboards for comparison. \\
+
+Machine-learning engineers &
+Need structured, reusable, and optimized workflows that can be inspected and
+executed reliably. &
+Provides graph-based pipeline execution, executed-graph reuse, and integration
+with custom preprocessing acceleration. \\
+
+Researchers &
+Need to compare approaches, measure results, and experiment with workflow and
+code optimization. &
+Provides modular components for benchmarking, graph execution, OpenMP
+parallelization, and performance evaluation. \\
+
+Small teams and startups &
+Need a practical toolkit that reduces development time without building an
+internal ML platform from scratch. &
+Combines preprocessing, AutoML, pipeline execution, reports, and benchmark
+support in one project. \\
+\bottomrule
+\end{tabular}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+
+The most important customer segment is the data-science and machine-learning
+user who wants to move from a raw dataset to an evaluated model with less manual
+work. For beginners, Accelera provides guidance and automation. For experienced
+users, it provides a more structured execution model and opportunities for
+acceleration.
+
+Accelera can also be useful in educational environments. In many machine
+learning courses, students repeat the same steps: clean the data, encode
+features, scale numerical values, split the dataset, train models, calculate
+metrics, and compare results. Accelera can make these steps easier to understand
+because it provides reports and separates the workflow into clear modules.
+
+For professional users, the value is different. They care more about
+reproducibility, execution time, reusable pipeline structure, and fair
+comparison. The \texttt{accelera\_pipe} and benchmark modules are especially
+useful here because they organize workflow execution and comparison. The
+\texttt{parallelizer} adds value when the workflow includes supported custom
+preprocessing functions that are slow in Python.
+
+\subsection*{Customer Value Proposition}
+
+The main value proposition of Accelera is that it reduces the gap between
+experimentation and structured execution. Instead of forcing the user to choose
+between simple scripts and large industrial platforms, Accelera provides a
+research-friendly framework with practical automation and optimization features.
+
+\begin{itemize}
+  \item \textbf{Less manual work:} preprocessing and model search are partially
+  automated.
+  \item \textbf{Better organization:} workflows can be represented as graph
+  pipelines instead of scattered scripts.
+  \item \textbf{Better visibility:} reports and benchmark views help users
+  inspect results.
+  \item \textbf{Possible speedup:} supported loop-heavy preprocessing code can be
+  accelerated through C++ and OpenMP.
+  \item \textbf{Fairer comparison:} benchmark components help compare pipelines
+  using common datasets and metrics.
+\end{itemize}
 
 \section{Market Survey}
 
-We found that many existing platforms provide useful features for data science and machine learning development, but these features are often available in separate tools or are limited to specific parts of the workflow. However, Accelera aims to provide these features within one toolkit.
+Many existing tools provide features related to Accelera, but most of them focus
+on only one part of the workflow. Some tools focus on preprocessing, some on
+AutoML, some on competitions, and some on code acceleration. Accelera is
+different because it tries to connect these ideas into one toolkit.
 
-\mbox{}
+\begin{table}[!htbp]
+\centering
+\caption{Market comparison summary.}
+\label{tab:market-comparison}
+\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{0.22\textwidth}p{0.28\textwidth}p{0.19\textwidth}p{0.21\textwidth}}
+\toprule
+Tool or platform & Main focus & Limitation & Accelera difference \\
+\midrule
+\texttt{scikit-learn} &
+Machine-learning models, preprocessing tools, and linear pipelines. &
+Pipeline execution is mainly linear and does not focus on graph-based branch
+execution or custom code parallelization. &
+Adds graph-based pipeline execution and integration with the Parallelizer. \\
+
+AutoCleanML &
+Automatic data cleaning and preprocessing. &
+Focused mainly on data cleaning and does not cover the whole workflow. &
+Adds AutoML, graph pipelines, parallelization, reports, and benchmarks. \\
+
+Kaggle &
+Datasets, notebooks, competitions, and leaderboards. &
+Strong for competition and sharing, but not a local integrated ML framework. &
+Adds local preprocessing, AutoML, graph execution, and code acceleration. \\
+
+Auto-sklearn / TPOT / AutoGluon &
+Automated model selection and machine-learning search. &
+Focus mainly on model search, not graph execution or source-level code
+parallelization. &
+Combines AutoML with preprocessing, graph pipelines, and the Parallelizer. \\
+
+Numba / Cython &
+Python performance acceleration. &
+Require user knowledge of acceleration syntax and do not manage ML workflow
+structure. &
+Provides an automatic attempt to optimize supported preprocessing functions
+inside the pipeline. \\
+\bottomrule
+\end{tabular}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
 
 \subsection{AutoCleanML}
 
-It is a Python tool mainly focused on automating data cleaning and preprocessing tasks for machine learning datasets.\\
+AutoCleanML is a Python tool focused on automating data cleaning and
+preprocessing tasks for machine-learning datasets. It is useful because data
+preparation is one of the most repetitive and time-consuming parts of the
+machine-learning workflow.
+
 \textbf{Pros:}
 \begin{itemize}
-\item Makes machine learning data preparation automatic and smart.
-\item Provides a report that explains the preprocessing decisions made by the tool.
+  \item Automates common data-cleaning and preprocessing decisions.
+  \item Helps beginners prepare datasets more easily.
+  \item Provides reporting that explains some preprocessing decisions.
 \end{itemize}
 
 \textbf{Cons:}
 \begin{itemize}
-\item Only designed for cleaning and preparing data..
-\item It does not support preprocessing for image and text datasets.
+  \item Focuses mainly on preprocessing, not the complete workflow.
+  \item Does not provide a graph-based pipeline execution engine.
+  \item Does not target custom code acceleration or OpenMP parallelization.
+  \item Does not provide a benchmark platform for comparing full pipelines.
 \end{itemize}
+
+Compared with AutoCleanML, Accelera includes preprocessing but does not stop
+there. It also includes AutoML search, graph pipeline execution, source-level
+parallelization, reports, and benchmark support. Therefore, Accelera aims to be
+closer to a complete workflow framework.
+
 \subsection{Kaggle}
 
-Kaggle is an online platform where the data science and machine learning community comes together. It is best known for its competition platform.
+Kaggle is one of the most popular platforms for machine-learning competitions,
+datasets, notebooks, and community learning. It is important in this market
+because it provides public datasets and leaderboards where users can compare
+solutions.
 
 \textbf{Pros:}
 \begin{itemize}
-\item It introduces competitions.
-\item It ranks users in competitions.
-\item It has many public datasets.
+  \item Provides many public datasets.
+  \item Supports competitions and leaderboards.
+  \item Encourages community learning and solution sharing.
+  \item Gives users a place to test ideas against other solutions.
 \end{itemize}
 
 \textbf{Cons:}
 \begin{itemize}
-\item It mainly depends on the notebooks style, so projects can get hard to organize.
-\item It doesn't provide a complete machine learning workflow in a single toolkit.
-
+  \item Mainly depends on notebook-style experimentation, which can become hard
+  to organize in large projects.
+  \item Does not provide a local graph-based machine-learning workflow engine.
+  \item Does not automatically accelerate custom preprocessing code.
+  \item Does not combine preprocessing, AutoML, graph execution, and OpenMP
+  parallelization in one local toolkit.
 \end{itemize}
 
+Accelera is not trying to replace Kaggle as a public competition platform.
+Instead, the benchmark module takes inspiration from the idea of comparing
+pipelines and results. Accelera focuses more on building and optimizing the
+pipeline itself, while the benchmark platform can later support sharing and
+comparison.
+
+\subsection{\texttt{scikit-learn}}
+
+\texttt{scikit-learn} is one of the strongest tools in the machine-learning
+market. It provides a wide range of models, preprocessing tools, metrics, and a
+simple \texttt{Pipeline} abstraction. For this reason, it is the most important
+competitor for \texttt{accelera\_pipe}.
+
+\textbf{Pros:}
+\begin{itemize}
+  \item Mature and widely used.
+  \item Provides many models, preprocessing utilities, and metrics.
+  \item Has a simple and reliable pipeline interface.
+  \item Integrates well with the Python data-science ecosystem.
+\end{itemize}
+
+\textbf{Cons:}
+\begin{itemize}
+  \item The standard pipeline is mainly linear.
+  \item Branch-heavy workflows may require repeated pipelines or external search
+  utilities.
+  \item It does not focus on native graph scheduling for pipeline branches.
+  \item It does not automatically convert supported custom preprocessing
+  functions to C++ and OpenMP.
+\end{itemize}
+
+Accelera uses \texttt{scikit-learn} as a strong baseline rather than ignoring
+it. The difference is that \texttt{accelera\_pipe} represents the workflow as a
+graph and integrates with the Parallelizer for supported custom preprocessing
+acceleration.
+
+\subsection{AutoML Tools}
+
+AutoML tools such as Auto-sklearn, TPOT, and AutoGluon focus on automating model
+selection and hyperparameter search. They are useful because they reduce the
+manual effort needed to test many models.
+
+\textbf{Pros:}
+\begin{itemize}
+  \item Search over many candidate models and configurations.
+  \item Reduce manual model-selection effort.
+  \item Often provide strong baseline performance.
+  \item Some tools support ensembles.
+\end{itemize}
+
+\textbf{Cons:}
+\begin{itemize}
+  \item Usually focus on model search more than workflow execution.
+  \item Do not mainly target graph-based pipeline execution.
+  \item Do not automatically accelerate custom preprocessing loops using OpenMP.
+  \item Can be heavy or complex for beginners.
+\end{itemize}
+
+Accelera includes \texttt{accelera\_automl}, but also connects AutoML with
+preprocessing, graph execution, reports, and parallelization. This makes the
+AutoML module one part of a larger framework rather than the only feature.
+
+\subsection{Code Acceleration Tools}
+
+Tools such as Numba, Cython, and manual C++ extensions can speed up Python code.
+They are relevant because Accelera also tries to accelerate supported custom
+preprocessing functions.
+
+\textbf{Pros:}
+\begin{itemize}
+  \item Can significantly improve performance for numeric code.
+  \item Useful for loop-heavy workloads.
+  \item Provide more control for experienced developers.
+\end{itemize}
+
+\textbf{Cons:}
+\begin{itemize}
+  \item Often require users to understand extra syntax, compilation, or type
+  constraints.
+  \item Do not automatically decide where acceleration fits inside an ML
+  pipeline.
+  \item Do not provide pipeline graphs, AutoML, reports, or benchmark features.
+\end{itemize}
+
+The Accelera Parallelizer is different because it is designed to work with the
+pipeline module. It attempts to optimize supported custom preprocessing
+functions and attach the optimized callable back to the pipeline node. This makes
+code acceleration part of the workflow instead of a separate manual task.
+
 \section{Business Case and Financial Analysis}
-\mbox{}
+
+Accelera can be developed as an open-source framework with optional hosted
+services around benchmarking, reporting, team collaboration, and managed
+execution. The open-source part helps adoption because students, researchers,
+and developers can use the framework freely. The business value can come from
+hosted benchmark features, team dashboards, managed experiment tracking, and
+support services.
+
+\subsection{Business Case}
+
+The main business case is based on reducing time spent in repetitive
+data-science work. Users and teams spend time preparing data, comparing models,
+rewriting scripts, debugging pipeline steps, and measuring results. Accelera can
+reduce this time by providing one framework that handles multiple stages of the
+workflow.
+
+\begin{table}[!htbp]
+\centering
+\caption{Possible business value of Accelera.}
+\label{tab:business-value}
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{0.30\textwidth}p{0.30\textwidth}p{0.30\textwidth}}
+\toprule
+Business value & Reason & Possible customer \\
+\midrule
+Faster experimentation &
+Automated preprocessing and AutoML reduce repeated manual trials. &
+Students, data scientists, small teams. \\
+
+Better organization &
+Graph pipelines and executed graphs make workflows easier to inspect and reuse. &
+ML engineers and research teams. \\
+
+Performance improvement &
+Parallelizer can speed up supported loop-heavy preprocessing code. &
+Teams with custom preprocessing bottlenecks. \\
+
+Better comparison &
+Benchmark platform supports submissions, metrics, and leaderboards. &
+Universities, communities, and organizations. \\
+
+Lower entry barrier &
+Reports and automation make ML workflows easier for beginners. &
+Education and training programs. \\
+\bottomrule
+\end{tabular}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+
+The first possible product direction is a hosted benchmark platform. Users can
+submit pipelines, compare results on public datasets, and view leaderboards. A
+free tier can support public datasets and basic submissions, while paid tiers can
+support private benchmarks, team spaces, larger storage, and advanced reports.
+
+The second possible product direction is a managed workflow dashboard. This
+dashboard can visualize preprocessing results, model leaderboards, pipeline
+graphs, and runtime comparisons. Teams can use it to organize experiments and
+share results without relying only on notebooks.
+
+The third possible product direction is professional support and integration.
+Organizations that want to use Accelera internally may need help adapting the
+framework to their datasets, infrastructure, or benchmark requirements. This
+creates a possible support and consulting model.
+
+\subsection{Financial Analysis}
+
+The financial analysis can be divided into expected costs and possible revenue
+streams. Since Accelera is mainly a software project, the capital expenditure is
+limited compared with hardware-based products. Most costs come from development,
+hosting, cloud resources, storage, and maintenance.
+
+\begin{table}[!htbp]
+\centering
+\caption{Expected cost categories.}
+\label{tab:expected-costs}
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{0.28\textwidth}p{0.32\textwidth}p{0.30\textwidth}}
+\toprule
+Cost category & Description & Notes \\
+\midrule
+Development cost &
+Time spent implementing, testing, documenting, and maintaining the framework. &
+Main cost during early stages. \\
+
+Cloud hosting &
+Servers for benchmark backend, database, frontend, and possible job execution. &
+Can start small and scale with users. \\
+
+Storage &
+Datasets, submissions, reports, and model artifacts. &
+Increases with benchmark usage. \\
+
+Compute resources &
+Running benchmark submissions or managed experiments. &
+Can be limited by quotas or paid tiers. \\
+
+Maintenance and support &
+Bug fixes, user support, documentation, and security updates. &
+Needed for long-term usage. \\
+\bottomrule
+\end{tabular}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+
+Possible revenue streams include:
+
+\begin{itemize}
+  \item \textbf{Free open-source adoption:} increases user base and community
+  trust.
+  \item \textbf{Hosted benchmark subscriptions:} paid private benchmarks, team
+  workspaces, and larger storage limits.
+  \item \textbf{Managed experiment dashboards:} paid reporting and workflow
+  monitoring for teams.
+  \item \textbf{Enterprise support:} integration, customization, and technical
+  support for organizations.
+  \item \textbf{Education packages:} university or training-center packages for
+  teaching machine-learning workflows.
+\end{itemize}
+
+A simple financial plan can start with low-cost hosting and manual support. In
+the first stage, the focus should be adoption and validation. The open-source
+framework can attract users, while the benchmark platform can collect early
+feedback. In the second stage, private benchmark spaces and team dashboards can
+be introduced. In the third stage, enterprise support and managed compute can be
+added if the user base grows.
+
+\begin{table}[!htbp]
+\centering
+\caption{Simplified business plan stages.}
+\label{tab:business-plan-stages}
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{0.22\textwidth}p{0.34\textwidth}p{0.34\textwidth}}
+\toprule
+Stage & Focus & Expected result \\
+\midrule
+Stage 1 &
+Release open-source framework, documentation, examples, and local benchmark
+prototype. &
+Build trust, collect users, and validate the technical direction. \\
+
+Stage 2 &
+Launch hosted benchmark features, public leaderboards, and private team
+workspaces. &
+Create first revenue stream through hosted services. \\
+
+Stage 3 &
+Add managed experiment dashboards, larger storage, and paid support. &
+Serve teams and organizations with more advanced workflow needs. \\
+
+Stage 4 &
+Provide enterprise integration and managed compute for benchmark execution. &
+Scale the platform into a commercial ML workflow service. \\
+\bottomrule
+\end{tabular}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+
+The expected break-even point depends on hosting cost, development effort, and
+the number of paying users. Since the software can begin as open source, the
+initial financial risk is lower than products that require manufacturing or
+special hardware. The main challenge is user adoption. If Accelera can attract
+students, researchers, and small teams through the free framework, the benchmark
+and reporting services can become the commercial layer that supports future
+development.
+
 
 \chapter{Literature Survey}
 In this chapter, we give an overview of the topics, algorithms, and techniques needed to understand the project as a whole. We discuss the technical subjects and background knowledge, and then summarize the research papers related to our project.
+
 \section{Background and Previous Work}
 This section explains the concepts and techniques used in Accelera units.
+
 \subsection{Data Science}
 Data science is a field that extracts knowledge and insights from data using
 scientific methods, processes, and algorithms.
+
 \subsection{Machine Learning}
 Machine learning is a field of artificial intelligence that lets computers learn patterns from data without needing to be explicitly programmed. 
 A machine learning model is trained using training data , and then it uses what it learned to make predictions on new data.
@@ -363,11 +1130,13 @@ A machine learning model is trained using training data , and then it uses what 
 \subsection{Supervised Machine Learning}
 The training dataset includes a label column that represents the target output. 
 This column is used during training to learn the mapping between the input features and the expected result.
+
 \subsection{Classification}
 Classification is a supervised machine learning task whose output is a label or category.
 
 \subsection{Regression}
 Regression is a supervised machine learning task whose output is a continuous numerical value.
+
 \subsection{Natural Language Processing NLP}
 Natural language processing is a field that focuses on enabling computers to understand and work with human language. Text data can't be used directly by most machine learning models, so it needs to be cleaned and turned into numerical features first.
 
@@ -379,7 +1148,6 @@ and check relationships between variables.
 \subsection{Data Preprocessing}
 Data preprocessing is the stage of transforming raw data into a clean and usable
 format for machine learning models.
-
 
 \subsection{Missing Value Imputation}
 Missing value imputation is a preprocessing technique used when some values in a
@@ -395,6 +1163,7 @@ x' = \frac{x - \mathop{\mathrm{median}}(X)}{\mathop{\mathrm{IQR}}(X)}
 where $x'$ is the scaled value, $x$ is the original value,
 $\mathop{\mathrm{median}}(X)$ is the median of the feature values, and
 $\mathop{\mathrm{IQR}}(X)$ is the interquartile range.
+
 \subsection{Categorical Encoding}
 Categorical encoding is the process of converting text categories into numeric
 values. Many traditional machine learning models and preprocessing pipelines
@@ -427,12 +1196,82 @@ TFIDF(t,d) = TF(t,d) \times IDF(t)
 where $TFIDF(t,d)$ is the weight of term $t$ in document $d$, $TF(t,d)$ is the
 frequency of the term in the document, and $IDF(t)$ measures how rare the term
 is across all documents.
+
 \subsection{Data augmentation}
 Is a technique used to increase diversity of a dataset without actually collecting new data. 
 It works by applying various transformations to the existing data to create new, modified versions of data that helps the model generalize better.
+
+\subsection{Machine Learning Pipelines}
+A machine learning pipeline is a sequence of steps used to prepare data, train a
+model, make predictions, and evaluate results. Pipelines are useful because they
+organize the full workflow in one structure instead of writing each step
+separately.
+
+A typical pipeline may include preprocessing steps such as scaling, encoding, or
+feature selection, followed by a machine learning model. This makes experiments
+easier to repeat and reduces mistakes, because the same preprocessing steps are
+applied during training and testing.
+
+One of the most common tools for building machine learning pipelines is
+\texttt{scikit-learn}. It provides a \texttt{Pipeline} object that connects
+transformers and estimators together. In this project, \texttt{scikit-learn} is
+considered the main competitor for the \texttt{accelera\_pipe} module because
+both systems aim to help users build machine learning workflows in Python.
+
+\subsection{Graph-Based Pipeline Execution}
+Traditional machine learning pipelines usually execute steps in a linear order.
+This is suitable for simple workflows, but it can become inefficient when several
+branches share the same preprocessing steps or when multiple models are compared.
+
+Graph-based execution represents the workflow as nodes and edges. Each node
+represents an operation, such as preprocessing, model training, prediction, or
+metric evaluation. Each edge represents the dependency between operations. This
+representation can help avoid repeated work, because shared steps can be
+executed once and reused by different branches.
+
+The \texttt{accelera\_pipe} module follows this idea by representing the
+pipeline internally as an execution graph. This allows the system to support
+branching, merging, parallel execution of independent paths, and better
+management of intermediate data.
+
+\subsection{Code Parallelization}
+Code parallelization is the process of running parts of a program at the same
+time to reduce execution time. In many programs, the most expensive part is a
+loop that repeats the same operation over a large amount of data. If the loop
+iterations are independent, they may be executed in parallel.
+
+Manual parallelization is difficult because the developer must check that there
+are no unsafe dependencies between iterations. If a loop writes to shared
+variables or depends on results from previous iterations, parallel execution may
+produce wrong results. Because of this, automatic parallelization tools try to
+analyze code and decide whether a loop can be safely parallelized.
+
+\subsection{OpenMP}
+OpenMP is a programming interface used to add parallel execution to C and C++
+programs. It allows developers to use compiler directives, called pragmas, to
+tell the compiler that some parts of the code can run in parallel.
+
+For example, the directive \texttt{\#pragma omp parallel for} can be used before
+a loop to distribute loop iterations across multiple threads. OpenMP is useful
+because it does not require rewriting the whole program. However, the pragma must
+be inserted only when the loop is safe to parallelize.
+
+\subsection{Synthetic Data}
+Synthetic data is artificially generated data instead of data collected from real
+examples. It can be useful when real training data is limited, because it allows
+more examples to be created. However, synthetic data can also introduce bias if
+it does not represent real-world cases well.
+
+In automatic parallelization, this is important because a model trained mainly on
+synthetic examples may learn repeated artificial patterns instead of learning
+robust rules from real code. For this reason, relying completely on AI-generated
+pragma generation can be risky when the available dataset is limited or biased.
+
+\newpage
 \subsection{Classification Evaluation Metrics}
 Classification metrics are used to evaluate the performance of a classification
 model.
+
 \subsubsection{Accuracy}
 Accuracy measures how many predictions are correct out of all predictions:
 \[
@@ -440,25 +1279,28 @@ Accuracy = \frac{TP + TN}{TP + TN + FP + FN}
 \]
 where $TP$ is true positives, $TN$ is true negatives, $FP$ is false positives,
 and $FN$ is false negatives.
+
 \subsubsection{Precision}
 Precision measures how many predicted positive samples are actually positive:
 \[
 Precision = \frac{TP}{TP + FP}
 \]
+
 \subsubsection{Recall}
 Recall measures how many actual positive samples were correctly detected:
 \[
 Recall = \frac{TP}{TP + FN}
 \]
+
 \subsubsection{F1-score}
 The F1-score combines precision and recall:
 \[
 F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}
 \]
 
-
 \subsection{Regression Evaluation Metrics}
 Regression metrics are used when the model predicts continuous numerical values.
+
 \subsubsection{Mean Absolute Error}
 Mean Absolute Error measures the average absolute difference between the real
 values and predicted values:
@@ -466,22 +1308,23 @@ values and predicted values:
 MAE = \frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|
 \]
 where $y_i$ is the actual value and $\hat{y}_i$ is the predicted value.
+
 \subsubsection{Mean Squared Error}
 Mean Squared Error gives more penalty to large errors:
 \[
 MSE = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
 \]
-\subsubsection{R-squared Score}
 
+\subsubsection{R-squared Score}
 R-squared score measures how well the regression model explains the variation in the actual values. 
 \[
-R^2 = 1 - \frac{\sum_{i=1}^{n}(y_i - \hat{y}i)^2}{\sum_{i=1}^{n}(y_i - \bar{y})^2}
+R^2 = 1 - \frac{\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}{\sum_{i=1}^{n}(y_i - \bar{y})^2}
 \]
 Where $y_i$ is the actual value, $\hat{y}_i$ is the predicted value, and $\bar{y}$ is the mean of the actual values.
 
-
 \section{Comparative Study of Previous Work}
 \mbox{}
+
 \subsection{Data Preprocessing and Feature Engineering for Data Mining:
 Techniques, Tools, and Best Practices ~\cite{preprocessing_feature_engineering}}
 This paper shows the role of data preprocessing and feature engineering in
@@ -492,8 +1335,49 @@ cleaning, data transformation, feature construction, feature selection, and
 dimensionality reduction. For each stage, it explains different techniques and
 discusses the advantages and disadvantages of each one.
 
+\subsection{\texttt{scikit-learn} Pipeline}
+\texttt{scikit-learn} is one of the most widely used machine learning libraries
+in Python. It provides many preprocessing tools, machine learning models,
+evaluation metrics, and utilities for building complete machine learning
+workflows.
+
+The \texttt{Pipeline} object in \texttt{scikit-learn} allows users to connect
+several processing steps together. Each step is usually a transformer, and the
+final step is usually an estimator. This makes the workflow cleaner and easier
+to reuse.
+
+In this project, \texttt{scikit-learn} is the main competitor for
+\texttt{accelera\_pipe}. Both systems provide a way to build machine learning
+workflows. However, \texttt{scikit-learn} pipelines are mainly linear, while
+\texttt{accelera\_pipe} uses a graph-based backend. This allows
+\texttt{accelera\_pipe} to support branching, shared intermediate results, and
+parallel execution of independent parts of the workflow.
+
+\subsection{OMPar: Automatic Parallelization with AI-Driven Source-to-Source Compilation}
+OMPar is a related work that focuses on automatic parallelization using
+AI-driven source-to-source compilation. The main idea of OMPar is to analyze C
+and C++ code, detect loops that can be parallelized, and generate OpenMP pragmas
+automatically.
+
+OMPar is important for this project because it inspired the general direction of
+the Parallelizer module. Both approaches use a staged process that includes loop
+analysis, loop classification, and pragma insertion. This makes the problem
+easier to handle because the system does not treat parallelization as one single
+step.
+
+However, there is an important difference between OMPar and our Parallelizer.
+OMPar uses an AI-based pragma generation approach. In our project, the pragma
+generator was replaced with a rule-based generator. This decision was made
+because the available training data was limited, and some of the available
+examples were synthetic data. Depending completely on generated or biased data
+could lead to unsafe pragma generation.
+
+Therefore, our Parallelizer uses AI mainly to support loop classification, while
+the final pragma insertion is controlled by deterministic safety rules. This
+makes the system more conservative, but also safer and easier to explain.
 
 \section{Implemented Approach}
+
 \subsection{Auto Preprocessing}
 In this module we decided to implement an automated preprocessing approach for tabular datasets. The
 approach was designed to prepare data for machine learning models by applying
@@ -555,6 +1439,65 @@ only used for data preparation. It also supports exploratory data analysis repor
 
 \noindent Also the module was extended to support text and image data
 preparation, not only tabular data.
+
+\subsection{\texttt{accelera\_pipe}}
+In this module, we decided to implement a graph-based machine learning pipeline
+approach. The goal of this module is to make machine learning workflows easier
+to build while also improving execution when the workflow contains branches or
+repeated shared steps.
+
+The general framework of the approach is as follows:
+\begin{enumerate}
+  \item The user builds a pipeline using high-level Python methods.
+  \item The pipeline stores each operation as a node in an internal graph.
+  \item Preprocessing, model training, prediction, metric evaluation, branching,
+  and merging are represented as graph operations.
+  \item The graph executor determines the correct order of execution.
+  \item Independent branches can be executed in parallel when possible.
+  \item Shared intermediate results can be reused instead of recomputed.
+  \item Intermediate data can be released when it is no longer needed.
+  \item The executed graph can be stored and reused for inspection or later execution.
+\end{enumerate}
+
+\noindent This approach was chosen because it keeps the pipeline idea familiar to
+users who already know \texttt{scikit-learn}, but changes the internal execution
+model. Instead of treating the workflow as only a sequence of steps,
+\texttt{accelera\_pipe} treats it as a graph. This helps the system handle more
+complex workflows that include multiple models, shared preprocessing, and branch
+comparisons.
+
+\subsection{Parallelizer}
+In this module, we decided to implement a conservative automatic parallelization
+approach. The goal is to speed up supported loop-heavy code by converting it to
+C++, analyzing its loops, inserting safe OpenMP pragmas, and compiling it into a
+native Python-callable extension.
+
+The general framework of the approach is as follows:
+\begin{enumerate}
+  \item Take the input source code, file, function, or transformer method.
+  \item Convert supported Python code into C++ when needed.
+  \item Extract loops using a compiler-based analysis stage.
+  \item Compute loop features such as memory access, dependency indicators,
+  reduction patterns, branches, and function calls.
+  \item Classify whether the loop may be parallelized.
+  \item Apply rule-based safety checks before inserting any pragma.
+  \item Insert \texttt{\#pragma omp parallel for} or a reduction pragma only
+  when the loop is considered safe.
+  \item Compile the transformed C++ code into a native extension.
+  \item Return the optimized callable to be used from Python.
+\end{enumerate}
+
+\noindent The chosen approach follows the same general idea as AI-assisted
+parallelization systems, but with a safer final pragma generation stage. The
+pragma generator is rule-based instead of fully AI-generated because the
+available data was limited and partly synthetic. This reduces the risk of
+generating unsafe OpenMP directives.
+
+\noindent The Parallelizer is also connected to \texttt{accelera\_pipe}. When a
+preprocessing node contains a supported custom Python function, the pipeline can
+attempt to optimize this function using the Parallelizer. This allows the
+project to combine graph-level workflow execution with code-level acceleration.
+
 
 \chapter{System Design and Architecture}
 \section{Overview and Assumptions}
@@ -640,12 +1583,301 @@ This separation ensures a standard evaluation protocol and prevents data leakage
 \item The user is allowed to have only one active submission per benchmark. The user cannot create multiple submissions, but they are allowed to update their existing submission. This constraint is enforced to reduce storage usage.
 
 \end{itemize}
+
+\newpage
 \section{System Architecture}
 \subsection{Block Diagram}
-The implemented system is organized around graph execution, source-code
-parallelization, automated preprocessing, model-selection, deployment, and
-benchmarking components. The following module sections describe the material
-available in the previous thesis.
+\label{subsec:block-diagram}
+
+The block diagram in Figure~\ref{fig:block-diagram} gives the big picture of
+Accelera. It shows the system as a group of connected modules rather than one
+single fixed pipeline. This is intentional: a user can use each module alone, or
+can connect several modules together to build an end-to-end machine-learning
+workflow.
+
+\begin{figure}[!htbp]
+\centering
+\makebox[\textwidth][c]{%
+\includegraphics[width=1.08\textwidth,height=0.55\textheight,keepaspectratio]{imgs/block_diagram.png}
+}
+\caption{Overall block diagram of the Accelera project architecture.}
+\label{fig:block-diagram}
+\end{figure}
+
+At the highest level, the user can interact directly with the six main parts of
+the project: Auto Preprocessing, Accelera AutoML, Accelera Pipe, Parallelizer,
+Benchmark Platform, and Deployment. The blue arrows in the diagram represent
+standalone or module-level flows, while the red arrows represent the end-to-end
+workflow path.
+
+\begin{table}[!htbp]
+\centering
+\caption{Main blocks in the Accelera architecture.}
+\label{tab:block-diagram-modules}
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{p{0.24\textwidth}X X}
+\toprule
+Block & Main responsibility & Output \\
+\midrule
+Auto Preprocessing &
+Prepares datasets according to their type: tabular, text, or image. &
+Processed data, reports, and saved preprocessing artifacts. \\
+
+Accelera AutoML &
+Searches for good model and preprocessing configurations. &
+Best model, score, leaderboard, and run history. \\
+
+Accelera Pipe &
+Builds and executes graph-based machine-learning workflows. &
+Predictions, executed graph, selected path, and reports. \\
+
+Parallelizer &
+Optimizes supported loop-heavy Python/C++ code using analysis, safety rules,
+OpenMP, compilation, and caching. &
+Parallelized C++ code or optimized Python-callable native module. \\
+
+Benchmark Platform &
+Evaluates user prediction files against benchmark ground truth. &
+Score, ranking, and benchmark results. \\
+
+Deployment &
+Turns a saved model or pipeline into a deployed service. &
+Model URL, service endpoint, and optional inference UI. \\
+\bottomrule
+\end{tabularx}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+
+\subsubsection*{Auto Preprocessing flow}
+
+The Auto Preprocessing block starts from a dataset and tries to prepare it for
+machine-learning usage. The module first profiles the data and detects its type.
+Then it applies preprocessing steps depending on the type of input.
+
+\begin{itemize}
+  \item \textbf{Tabular data:} missing-value imputation, categorical encoding,
+  robust scaling, and feature selection.
+  \item \textbf{Text data:} cleaning, tokenization, stemming, and TF-IDF feature
+  extraction.
+  \item \textbf{Image data:} image preparation for classification tasks.
+\end{itemize}
+
+The output can be used in two ways. In the standalone path, the user can directly
+use the processed data, reports, and saved preprocessors. In the end-to-end path,
+the processed data can be passed to the AutoML block for model search.
+
+\subsubsection*{AutoML and selection flow}
+
+The AutoML block receives a dataset, extracts statistics and metafeatures, builds
+candidate models and preprocessing choices, and runs a search process. Its goal
+is to return the best model according to the selected metric.
+
+The important point is that AutoML is not forced to be the only way to build a
+model. The user may choose an AutoML result, or may choose a graph-pipeline
+result from Accelera Pipe. This is why the diagram contains a selection switch.
+
+\begin{table}[!htbp]
+\centering
+\caption{Possible paths to the deployment selection switch.}
+\label{tab:selection-switch-paths}
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{p{0.26\textwidth}X}
+\toprule
+Path & Meaning \\
+\midrule
+AutoML path &
+The user lets \texttt{accelera\_automl} search for the best model, then chooses
+the selected model for deployment. \\
+
+Graph pipeline path &
+The user builds a workflow using \texttt{accelera\_pipe}, executes the graph,
+and selects the executed graph or best pipeline path for deployment. \\
+
+Standalone path &
+The user may stop after any module and use its output directly without
+continuing to deployment. \\
+\bottomrule
+\end{tabularx}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+
+\subsubsection*{Accelera Pipe and Parallelizer interaction}
+
+Accelera Pipe is the graph-execution part of the system. It represents the
+workflow as a graph of nodes. These nodes may represent preprocessing, model
+training, prediction, metric evaluation, merging, branching, and input/output
+operations.
+
+A key feature is the interaction between Accelera Pipe and the Parallelizer. If
+a graph preprocessing node contains a supported custom method, the graph can send
+that method to the Parallelizer. The Parallelizer then tries to optimize it and
+return an optimized callable. After that, the optimized method can be attached
+back to the graph.
+
+\begin{enumerate}
+  \item The user defines a graph workflow in \texttt{accelera\_pipe}.
+  \item The graph detects a supported custom preprocessing method.
+  \item The method is sent to the Parallelizer.
+  \item The Parallelizer analyzes, rewrites, compiles, and caches the optimized
+  implementation when possible.
+  \item The optimized method is returned and reattached to the graph.
+  \item The graph continues execution using either the optimized method or the
+  original method if optimization fails.
+\end{enumerate}
+
+This interaction is important because it connects workflow-level optimization
+with code-level optimization. Accelera Pipe manages the execution graph, while
+the Parallelizer attempts to speed up supported loop-heavy custom code inside
+that graph.
+
+\subsubsection*{Parallelizer flow}
+
+The Parallelizer block accepts several kinds of input. This makes it usable both
+as a standalone module and as an internal acceleration module for Accelera Pipe.
+
+\begin{itemize}
+  \item C/C++ file or source code.
+  \item Python file or Python source code.
+  \item Python function.
+  \item Custom transformer method.
+\end{itemize}
+
+After receiving the input, the Parallelizer normalizes it. If the input is
+supported Python code, it is converted to C++ first. Then the module extracts
+loops using a Clang AST based analysis stage. After loop extraction, it computes
+features such as memory access, dependencies, reductions, branches, and function
+calls. These features are used with a classifier and rule-based safety checks to
+decide whether a loop can be parallelized.
+
+\begin{table}[!htbp]
+\centering
+\caption{Parallelizer stages.}
+\label{tab:parallelizer-stages}
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{p{0.23\textwidth}X}
+\toprule
+Stage & Description \\
+\midrule
+Input normalization &
+Accepts source code, files, functions, or transformer methods and prepares them
+for analysis. \\
+
+Python-to-C++ conversion &
+Converts supported Python code into C++ so it can enter the same loop-analysis
+path. \\
+
+Loop extraction &
+Uses compiler-style analysis to locate loops and record loop ranges. \\
+
+Feature extraction &
+Computes indicators such as reductions, dependencies, array access, branches,
+function calls, and vectorization potential. \\
+
+Safety decision &
+Combines classifier output with deterministic rule-based checks. \\
+
+Pragma insertion &
+Adds OpenMP pragmas only when the loop is considered safe. \\
+
+Compilation and caching &
+Builds optimized native code when needed and reuses cached results when
+possible. \\
+\bottomrule
+\end{tabularx}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+
+The final pragma generation is intentionally rule-based. This makes the behavior
+safer and easier to inspect, especially when the available data for fully
+AI-generated pragma generation is limited or synthetic.
+
+\subsubsection*{Benchmark Platform flow}
+
+The Benchmark Platform is used for evaluation and ranking. It does not take a
+full user pipeline as input. Instead, it works with benchmark data links and user
+prediction submissions.
+
+A benchmark owner creates a benchmark by providing the required CSV links:
+
+\begin{itemize}
+  \item training CSV file link,
+  \item testing CSV file link,
+  \item true prediction or ground-truth CSV file link.
+\end{itemize}
+
+A participant submits:
+
+\begin{itemize}
+  \item a predictions CSV file containing the prediction column,
+  \item and optionally a GitHub repository URL for the project.
+\end{itemize}
+
+The platform compares the submitted prediction column with the true labels,
+computes the score, and updates the ranking. This makes the benchmark module
+focused on fair evaluation and leaderboard comparison, not on directly executing
+the user's pipeline.
+
+\subsubsection*{Deployment flow}
+
+The Deployment block receives a saved model or pipeline. It prepares the
+deployment service, builds the required API layer, handles authentication or API
+configuration, publishes an endpoint, and optionally provides an inference UI.
+
+The final deployment block produces a deployed model URL or service. This output
+has two possible meanings:
+
+\begin{itemize}
+  \item \textbf{Standalone use:} the user deploys a saved model or pipeline
+  directly and uses the endpoint.
+  \item \textbf{End-to-end use:} the user selects a model or pipeline through the
+  selection switch, deploys it, and receives the final E2E service output.
+\end{itemize}
+
+\subsubsection*{Overall architecture meaning}
+
+The main idea of the block diagram is that Accelera is modular but connected.
+Each module gives value by itself, but the full system becomes stronger when the
+modules are combined.
+
+\begin{table}[!htbp]
+\centering
+\caption{Standalone use versus end-to-end use.}
+\label{tab:standalone-vs-e2e}
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{p{0.24\textwidth}X X}
+\toprule
+Mode & Description & Example \\
+\midrule
+Standalone use &
+The user uses one module and stops at its output. &
+Use Auto Preprocessing only to generate processed data and reports. \\
+
+End-to-end use &
+The user connects several modules together to move from data to deployed result. &
+Preprocess data, run AutoML or graph pipeline, select output, deploy service. \\
+
+Integrated acceleration &
+A module internally uses another module to improve execution. &
+Accelera Pipe sends supported custom preprocessing methods to the Parallelizer. \\
+\bottomrule
+\end{tabularx}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+
+Therefore, the block diagram communicates three important ideas. First, the
+system supports direct access to each module. Second, the modules can be
+connected into a complete machine-learning workflow. Third, the interaction
+between Accelera Pipe and the Parallelizer allows the project to combine
+graph-based execution with source-level acceleration.
+
 
 \input{sections/methdoloy-mohamed}
 
