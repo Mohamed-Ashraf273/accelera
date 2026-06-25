@@ -860,7 +860,7 @@ These include:
 The repository contains an end-to-end demo script that downloads the SSH key, initializes a registry, trains the pipeline, commits the artifacts, and deploys it to a target EC2 instance:
 
 ```bash
-# Execute the complete deployment demo pipeline
+# FOR REVIEWRS please use this to run the deployment module easily
 python examples/deployment_demo.py
 ```
 
@@ -893,6 +893,25 @@ python accelera/src/deployment/deployment.py heroku-deploy \
   --app <HEROKU_APP_NAME> \
   --create
 ```
+
+#### Running from a Custom Directory
+
+If you are running the deployment or VCS commands from a custom directory  you must prefix the commands with `PYTHONPATH` set to the project root `/home/mazen/Desktop/GP/Accelera` so Python can resolve the `accelera` imports. You must ensure that `config.json` and the model artifacts are present for more details see the deployment documentation
+  
+1. **Initialize the VCS registry** inside your custom directory:
+   ```bash
+   PYTHONPATH=/home/mazen/Desktop/GP/Accelera python -m accelera.src.deployment.vcs init
+   ```
+
+2. **Commit models and configuration** to the local registry:
+   ```bash
+   PYTHONPATH=/home/mazen/Desktop/GP/Accelera python -m accelera.src.deployment.vcs commit -m "Your commit message"
+   ```
+
+3. **Build and Run the Service Locally**:
+   ```bash
+   PYTHONPATH=/home/mazen/Desktop/GP/Accelera python /home/mazen/Desktop/GP/Accelera/accelera/src/deployment/deployment.py local
+   ```
 
 #### Running Deployment Tests
 ```bash
