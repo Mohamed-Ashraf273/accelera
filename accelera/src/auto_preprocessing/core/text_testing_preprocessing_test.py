@@ -36,7 +36,7 @@ class TestTextTestingPreprocessing:
         self.test = pd.DataFrame(
             {
                 "text": ["welcome ", "It is not bad", "i  like it"],
-                "class": ["pos", None, "pos"],
+                "class": ["pos", "pos", "pos"],
             }
         )
         self.target_preprocessor = LabelEncoder()
@@ -97,13 +97,10 @@ class TestTextTestingPreprocessing:
 
         self.data_info["target_col"] = "class"
         self.data_info["text_col"] = "text"
-        self.data_info["target_mode"] = "pos"
         save_pickle(self.temp_dir, self.data_info, "data_info.pkl")
         tp = TextTestingPreprocessing(self.test, self.temp_dir)
         y_test = tp.target_preprocessing()
         assert not tp.features_only
         assert y_test is not None
-        y = y.fillna("pos")
         y = self.target_preprocessor.transform(y)
         assert np.allclose(y, y_test)
-        assert tp.data_info["target_mode"] == "pos"

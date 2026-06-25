@@ -8,16 +8,14 @@ import pytest
 @pytest.fixture
 def deployment_module(monkeypatch):
     cwd = os.getcwd()
-    module = importlib.import_module(
-        "accelera.src.deployment.accelera_deployment.deployment"
-    )
+    module = importlib.import_module("accelera.src.deployment.deployment")
     monkeypatch.chdir(cwd)
     return module
 
 
 def test_validate_port_accepts_numeric_ports(deployment_module):
-    assert deployment_module.validate_port(8000) == "8000"
-    assert deployment_module.validate_port("65535") == "65535"
+    assert deployment_module.validate_port(8000) == 8000
+    assert deployment_module.validate_port("65535") == 65535
 
 
 def test_validate_port_rejects_invalid_ports(deployment_module):
@@ -26,66 +24,63 @@ def test_validate_port_rejects_invalid_ports(deployment_module):
             deployment_module.validate_port(port)
 
 
-def test_validate_configured_model_paths_accepts_existing_relative_paths(
+def test_validate_model_paths_accepts_existing_relative_paths(
     deployment_module,
     tmp_path,
     monkeypatch,
 ):
     monkeypatch.chdir(tmp_path)
-    (tmp_path / "models").mkdir()
-    (tmp_path / "models" / "model.pkl").write_bytes(b"model")
+    (tmp_path / ".accelera_deployment").mkdir()
+    (tmp_path / ".accelera_deployment" / "models").mkdir()
+    (tmp_path / ".accelera_deployment" / "models" / "model.pkl").write_bytes(
+        b"model"
+    )
 
-    models = deployment_module.validate_configured_model_paths(
+    models = deployment_module.validate_model_paths(
         {"models": {"main": "models/model.pkl"}}
     )
 
     assert models == {"main": "models/model.pkl"}
 
 
-def test_validate_configured_model_paths_rejects_bad_model_mapping(
+def test_validate_model_paths_rejects_bad_model_mapping(
     deployment_module,
 ):
-    with pytest.raises(ValueError, match="non-empty 'models' mapping"):
-        deployment_module.validate_configured_model_paths({})
+    with pytest.raises(ValueError, match="models"):
+        deployment_module.validate_model_paths({})
 
 
-def test_validate_configured_model_paths_rejects_absolute_paths(
-    deployment_module,
-    tmp_path,
-):
-    with pytest.raises(ValueError, match="relative"):
-        deployment_module.validate_configured_model_paths(
-            {"models": {"main": str(tmp_path / "model.pkl")}}
-        )
-
-
-def test_validate_configured_model_paths_rejects_missing_relative_paths(
+def test_validate_model_paths_rejects_missing_relative_paths(
     deployment_module,
     tmp_path,
     monkeypatch,
 ):
     monkeypatch.chdir(tmp_path)
+    (tmp_path / ".accelera_deployment").mkdir()
 
-    with pytest.raises(FileNotFoundError, match="missing"):
-        deployment_module.validate_configured_model_paths(
+    with pytest.raises(SystemExit):
+        deployment_module.validate_model_paths(
             {"models": {"main": "models/missing.pkl"}}
         )
 
 
-def test_prepare_syncs_service_sources_and_writes_build_files(
+def test_write_files_syncs_service_sources_and_writes_build_files(
     deployment_module,
     tmp_path,
     monkeypatch,
 ):
     monkeypatch.chdir(tmp_path)
-    (tmp_path / "models").mkdir()
-    (tmp_path / "models" / "model.pkl").write_bytes(b"model")
+    (tmp_path / ".accelera_deployment").mkdir()
+    (tmp_path / ".accelera_deployment" / "models").mkdir()
+    (tmp_path / ".accelera_deployment" / "models" / "model.pkl").write_bytes(
+        b"model"
+    )
     (tmp_path / "config.json").write_text(
         '{"models": {"main": "models/model.pkl"}}',
         encoding="utf-8",
     )
 
-    deployment_module.prepare(SimpleNamespace())
+    deployment_module.write_files(SimpleNamespace())
 
     assert (tmp_path / "accelera_deployment" / "server.py").exists()
     assert (tmp_path / "accelera_deployment" / "modelservice.py").exists()
@@ -96,24 +91,6 @@ def test_prepare_syncs_service_sources_and_writes_build_files(
     assert "fastapi" in requirements
     assert "COPY accelera_deployment/server.py server.py" in dockerfile
     assert "COPY models/model.pkl /app/models/model.pkl" in dockerfile
-
-
-def test_docker_build_command_places_no_cache_before_tag(deployment_module):
-    assert deployment_module._docker_build_command("image") == [
-        "docker",
-        "build",
-        "-t",
-        "image",
-        ".",
-    ]
-    assert deployment_module._docker_build_command("image", no_cache=True) == [
-        "docker",
-        "build",
-        "--no-cache",
-        "-t",
-        "image",
-        ".",
-    ]
 
 
 def test_build_runs_docker_build_command(deployment_module, monkeypatch):
@@ -208,15 +185,9 @@ def test_remote_helpers_quote_and_build_expected_commands(deployment_module):
         no_cache=True,
     )
 
-    assert deployment_module._remote_target(args) == "ubuntu@example.com"
-    assert deployment_module._remote_root(args) == "~/apps/deployment_module"
-    assert deployment_module._quote_remote_path("~/apps") == "~/apps"
-    assert "-i" in deployment_module._ssh_command(args)
-    assert "StrictHostKeyChecking=accept-new" in deployment_module._ssh_transport(
-        args
-    )
+    assert "-i" in deployment_module.configure_ssh(args)
 
-    script = deployment_module._remote_script(args)
+    script = deployment_module.remote_script(args)
     assert "cd ~/apps/deployment_module" in script
     assert "sudo docker build --no-cache -t image-name ." in script
     assert "-p 8080:8080" in script
@@ -232,7 +203,7 @@ def test_run_remote_uses_ssh_transport(deployment_module, monkeypatch):
     monkeypatch.setattr(deployment_module.subprocess, "run", fake_run)
     args = SimpleNamespace(user="ubuntu", host="example.com", key=None)
 
-    deployment_module._run_remote(args, "echo hi")
+    deployment_module.run_remote(args, "echo hi")
 
     assert calls[0][0][:4] == [
         "ssh",
@@ -259,16 +230,16 @@ def test_ec2_deploy_prepares_syncs_and_checks_url(deployment_module, monkeypatch
     )
 
     monkeypatch.setattr(
-        deployment_module, "prepare", lambda _args: calls.append("prepare")
+        deployment_module, "write_files", lambda _args: calls.append("write_files")
     )
     monkeypatch.setattr(
         deployment_module,
-        "_run_remote",
+        "run_remote",
         lambda _args, command: calls.append(("remote", command)),
     )
     monkeypatch.setattr(
         deployment_module,
-        "_check_ec2_public_url",
+        "check_ec2_public_url",
         lambda _args: calls.append("check"),
     )
     monkeypatch.setattr(
@@ -279,7 +250,7 @@ def test_ec2_deploy_prepares_syncs_and_checks_url(deployment_module, monkeypatch
 
     deployment_module.ec2_deploy(args)
 
-    assert calls[0] == "prepare"
+    assert calls[0] == "write_files"
     assert calls[1][0] == "remote"
     assert calls[2][0] == "rsync"
     assert calls[3][0] == "remote"
@@ -290,13 +261,13 @@ def test_ec2_stop_and_logs_run_remote_commands(deployment_module, monkeypatch):
     calls = []
     monkeypatch.setattr(
         deployment_module,
-        "_run_remote",
+        "run_remote",
         lambda _args, command: calls.append(command),
     )
     args = SimpleNamespace(container="ml-model", host="example.com")
 
     deployment_module.ec2_stop(args)
-    deployment_module.ec2_logs(args)
+    deployment_module.ec2_get_logs(args)
 
     assert calls == [
         "sudo docker stop ml-model || true",

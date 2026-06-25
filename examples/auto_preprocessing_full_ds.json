@@ -1,6 +1,6 @@
 {
   "tabular_dataset": {
-    "model_name":"DecisionTree",
+    "model_name":"RandomForest",
     "problemType": {
       "classification": {
         "startup_founder_burnout_2026": {
@@ -70,11 +70,6 @@
           "target_column": "salary_usd",
           "report_path": "global_ai_jobs",
           "columns_need_to_drop": ["id"]
-        },
-        "Life_Expectancy_Data": {
-          "link": "https://drive.google.com/uc?id=1J0-SWHCz1RtvpoagrZSr7NyqnjMF_ox_",
-          "target_column": "Life expectancy ",
-          "report_path": "Life_Expectancy_Data"
         },
         "CarPrice_Assignment": {
           "link": "https://drive.google.com/uc?id=1fHodFSYNZyX-XmkFb0Yn8crb9CqpVG4v",

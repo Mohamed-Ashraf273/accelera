@@ -42,10 +42,10 @@ def write_json(path, data):
 
 
 def test_calculate_hash_is_stable_short_sha1():
-    hash_value = vcs.calculate_hash("2026-06-21T00:00:00", "deploy")
-    assert hash_value == vcs.calculate_hash("2026-06-21T00:00:00", "deploy")
+    hash_value = vcs.calc_hash("2026-06-21T00:00:00", "deploy")
+    assert hash_value == vcs.calc_hash("2026-06-21T00:00:00", "deploy")
     assert len(hash_value) == 7
-    assert vcs.calculate_hash("t1", "deploy") != vcs.calculate_hash("t2", "deploy")
+    assert vcs.calc_hash("t1", "deploy") != vcs.calc_hash("t2", "deploy")
 
 
 def test_resolve_hash_matches_short_prefix():
@@ -89,12 +89,15 @@ def test_init_creates_empty_index_and_is_idempotent(isolated_vcs, capsys):
 
     vcs.init(SimpleNamespace())
 
-    assert "already initialized" in capsys.readouterr().out
+    assert "initialized already" in capsys.readouterr().out
 
 
 def test_commit_snapshots_config_models_and_updates_head(isolated_vcs):
     vcs.init(SimpleNamespace())
-    write_json(isolated_vcs.config_file, {"models": {"main": "models/model.pkl"}})
+    write_json(
+        isolated_vcs.config_file,
+        {"models": {"main": "models/model.pkl", "scaler": "models/scaler.pkl"}},
+    )
     isolated_vcs.models_dir.mkdir()
     (isolated_vcs.models_dir / "model.pkl").write_bytes(b"model")
     (isolated_vcs.models_dir / "scaler.pkl").write_bytes(b"scaler")
@@ -110,7 +113,7 @@ def test_commit_snapshots_config_models_and_updates_head(isolated_vcs):
 
     commit_dir = isolated_vcs.experiments_dir / commit["hash"]
     assert read_json(commit_dir / "config.json") == {
-        "models": {"main": "models/model.pkl"}
+        "models": {"main": "models/model.pkl", "scaler": "models/scaler.pkl"}
     }
     assert (commit_dir / "models" / "model.pkl").read_bytes() == b"model"
     assert (commit_dir / "models" / "scaler.pkl").read_bytes() == b"scaler"
@@ -139,16 +142,16 @@ def test_second_commit_records_previous_head_as_parent(isolated_vcs):
 def test_commit_requires_message_config_and_models(isolated_vcs, capsys):
     with pytest.raises(SystemExit):
         vcs.commit(SimpleNamespace(message=""))
-    assert "Commit Message is required" in capsys.readouterr().out
+    assert "Commit mesage is required" in capsys.readouterr().out
 
     with pytest.raises(SystemExit):
         vcs.commit(SimpleNamespace(message="missing config"))
     assert "Config file not found" in capsys.readouterr().out
 
-    write_json(isolated_vcs.config_file, {"models": {}})
+    write_json(isolated_vcs.config_file, {"models": {"main": "models/missing.pkl"}})
     with pytest.raises(SystemExit):
         vcs.commit(SimpleNamespace(message="missing models"))
-    assert "Models directroy not found" in capsys.readouterr().out
+    assert "no exist model" in capsys.readouterr().out
 
 
 def test_deploy_restores_config_models_and_marks_deployed(isolated_vcs):
@@ -225,7 +228,7 @@ def test_log_prints_empty_message_when_no_commits(isolated_vcs, capsys):
 
     vcs.log(SimpleNamespace())
 
-    assert "No commits yet" in capsys.readouterr().out
+    assert "no commits yet" in capsys.readouterr().out
 
 
 def test_show_prints_commit_config_and_model_files(isolated_vcs, capsys):

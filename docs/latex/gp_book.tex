@@ -182,15 +182,15 @@ by photocopying or other means, without the permission of the authors or departm
 
 \end{titlepage}
 
-\pagenumbering{roman}
-\setcounter{page}{1}
+\pagenumbering{arabic}
+\setcounter{page}{2}
 
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 \project{} is a hybrid Python/C++ machine learning framework that combines a
 high-level Python interface with native execution components. The system is
 organized around five modules: Accelera Pipe, the Code Parallelizer,
-AutoPreprocessing, AutoML, Deployment, and the Benchmark Platform. Accelera
+Auto Preprocessing, AutoML, Deployment, and the Benchmark Platform. Accelera
 Pipe represents machine-learning workflows as directed graph nodes for
 preprocessing, modelling, prediction, metric evaluation, branching, and
 merging. The Code Parallelizer analyzes C/C++ and supported Python code,
@@ -268,8 +268,7 @@ Salma Abdelmoniem & \underline{abc1@email.com}  & +2 01114302362 \\ \hline
 
 
 \clearpage
-\pagenumbering{arabic}
-\setcounter{page}{1}
+
 
 \chapter{Introduction}
 \label{chap:introduction}
@@ -1505,11 +1504,11 @@ of operations and that only a restricted, analyzable subset of custom source
 code should be translated to parallel C++.
 \subsection{Auto Preprocessing Assumptions}
 
-For the AutoPreprocessing module, the assumptions depend on the type of dataset being processed. The module supports three types of data: tabular, text, and image datasets.
+For the Auto Preprocessing module, the assumptions depend on the type of dataset being processed. The module supports three types of data: tabular, text, and image datasets.
 
 \subsubsection{Tabular Dataset Assumptions}
 
-For tabular datasets, the AutoPreprocessing module assumes that:
+For tabular datasets, the Auto Preprocessing module assumes that:
 
 \begin{itemize}
 \item The dataset consists of numerical and categorical features, and the task is either classification or regression.  
@@ -1519,32 +1518,18 @@ This allows the pipeline to adapt to different datasets and user requirements.
 \end{itemize}
 \subsubsection{Text Dataset Assumptions}
 
-For text datasets, the AutoPreprocessing module assumes that:
+For text datasets, the Auto Preprocessing module assumes that:
 
 \begin{itemize}
-\item The dataset contains a single text column and is intended for a text classification task with a defined target label.  
-Because This simplifies the pipeline to standard supervised NLP classification problems and prevents the feature space from becoming very large after transforming the text into a numerical representation, making it suitable for classical machine learning techniques.
+\item we assume that the dataset has one text column and one categorical target label.This makes the pipeline easier to apply and keeps the number of features smaller after converting the text into numerical values.
 \item The user provides configuration parameters for text cleaning and feature extraction.  
-To give the user a level of control over the preprocessing pipeline, such as limiting the maximum number of numerical features generated after transforming the text into a numerical representation.
+To give the user a level of control over the preprocessing pipeline.
 \end{itemize}
 
 \subsubsection{Image Dataset Assumptions}
-
-For image datasets, the AutoPreprocessing module assumes that:
 \begin{itemize}
 
-\item The dataset is intended for image classification and follows a folder-based class structure.  
-Because there are many vision tasks, but we implemented the most common one to apply its processes.
-
-\item All images are stored in supported formats and are accessible.  
-This ensures compatibility with image loading and preprocessing libraries.
-
-\item The user provides configuration parameters for preprocessing and augmentation.  
-Because different datasets require different preprocessing strategies such as resizing, normalization, and augmentation.
-
-\end{itemize}
-The dataset is expected to follow the directory structure shown below, where the validation folder is optional:
-
+\item The dataset is for image classification and follows this folder structure.  
 \begin{verbatim}
 Training/
   Cats/
@@ -1554,9 +1539,17 @@ Validation/
   Cats/
   Dogs/
 \end{verbatim}
+\item All images are stored in supported formats and are accessible.  
+This ensures compatibility with image loading and preprocessing libraries.
+
+\item The user provides configuration parameters for preprocessing and augmentation.  
+Because different datasets require different preprocessing strategies such as resizing, normalization, and augmentation.
+
+\end{itemize}
+
 \subsection{Benchmark Assumptions}
 
-For the Benchmark module, the following assumptions are made. These assumptions are introduced due to system design constraints, particularly the limited server storage capacity for handling large dataset uploads, as well as to ensure fair and consistent evaluation and comparison between users.
+For the Benchmark module, the following assumptions are made. These assumptions are introduced due to system design constraints, particularly the limited server storage capacity for handling large dataset uploads.
 
 \begin{itemize}
 
@@ -1882,106 +1875,364 @@ graph-based execution with source-level acceleration.
 
 \input{sections/methdoloy-mohamed}
 
-\section{AutoPreprocessing Module}
-\noindent The AutoPreprocessing module is responsible for automating the data
+\section{Auto Preprocessing Module}
+\noindent The Auto Preprocessing module is responsible for automating the data
 understanding, exploratory data analysis, and preprocessing stages of the data
 science workflow. The module was designed to reduce repeated manual work and to
-prepare different types of datasets in a consistent way before model training.
-
+prepare different types of datasets before model training.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{imgs/tabular.pdf}
+    \caption{Tabular Preprocessing Workflow}
+    \label{fig:tabular_preprocessing_workflow}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{imgs/text.pdf}
+    \caption{Text Preprocessing Workflow}
+    \label{fig:text_preprocessing_workflow}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{imgs/image_workflow.pdf}
+    \caption{Image Preprocessing Workflow}
+    \label{fig:image_preprocessing_workflow}
+\end{figure}
 \subsection{Functional Description}
 \noindent The main function of this module is to receive a dataset and user configuration,
 then return processed data that is ready for machine learning or deep learning
 models. The module supports tabular, text, and image datasets.
+\noindent The module also generates a report when this option is enabled. The report
+summarizes information about the dataset and the preprocessing steps applied.
 
-\noindent For tabular datasets, the module supports both classification and regression
+\subsubsection{Tabular datasets}
+\noindent For tabular datasets it supports both classification and regression
 tasks. It analyzes the dataset, removes duplicate records, splits the data into
 training and validation sets, detects column types, handles missing values,
 encodes categorical features, scales numerical features, applies target
 preprocessing, performs feature selection, and saves the preprocessing objects
 needed later for test data.
-
-\noindent For text datasets, the module supports classification tasks. It cleans the text,
+\subsubsection{Text datasets}
+\noindent It supports classification tasks. It cleans the text,
 tokenizes it, applies text preprocessing steps, and converts the text into a
-numerical representation suitable for machine learning models. For image
-datasets, the module supports image classification by reading images from class
-folders, validating image files, resizing images, normalizing pixel values, and
+numerical representation suitable for machine learning models.
+\subsubsection{Image datasets}
+\noindent It supports image classification by reading images from class
+folders, validating image files, resizing images, applying augmentation, normalizing pixel values, and
 preparing the data loaders needed for training.
 
-\noindent The module also generates a report when this option is enabled. The report
-summarizes information about the dataset and the preprocessing steps applied.
-For example, in tabular data, it includes dataset shape, column types, missing
-values, duplicate analysis, generated graphs, removed columns, and previews of
-the processed data.
+
+
 
 \subsection{Modular Decomposition}
-\noindent The AutoPreprocessing module is decomposed into smaller components according to
-the dataset type and the stage of preprocessing.
+\noindent The Auto Preprocessing module is divided based on the type of input data. The
+system supports three main types of data: tabular data, text data, and image data.
+Each type has its own preprocessing workflow and functions because every data type has a different
+structure and needs different techniques.
 
-\subsubsection{Input and Configuration Validation}
-\noindent This component receives the user inputs, such as the dataset, target column,
-problem type, output folder, validation size, random state, missing-value
-threshold, cardinality threshold, and report flag. It validates these values
-before running the pipeline to prevent invalid configurations, such as a wrong
-target column, unsupported problem type, or invalid threshold values.
+\subsubsection{Tabular Data Preprocessing Functions}
 
-\subsubsection{Data Understanding and Reporting}
-\noindent This component collects the first information about the dataset before
-preprocessing. It stores dataset previews, column data types, missing values,
-duplicate count, dataset shape, numerical statistics, and categorical
-statistics. These results are saved in a report structure and later used to
-generate the final preprocessing report.
 
-\subsubsection{Tabular Preprocessing}
-\noindent This component handles structured data organized in rows and columns. It first
-removes duplicates, then splits the dataset into training and validation sets.
-After that, it detects feature types such as binary, ordinal, numerical,
-continuous, low-cardinality categorical, high-cardinality categorical, and
-unsupported columns.
+\begin{description}
+    \item[\texttt{\_\_init\_\_():}]
+    This is the constructor that receives the dataset and the user settings. 
+    It validates these settings before starting the preprocessing process. 
+    \item[\texttt{handel\_bool\_types():}]
+    This function handles columns that have bool data type. It finds the columns that have
+    boolean values and converts them into integer values.
 
-\noindent Each feature type has its own preprocessing pipeline. Numerical and continuous
-features use median imputation followed by robust scaling. Binary features use
-most-frequent imputation followed by ordinal encoding. Low-cardinality
-categorical features use most-frequent imputation followed by binary encoding.
-High-cardinality categorical features use most-frequent imputation followed by
-frequency encoding. Unsupported columns and columns above the missing-value
-threshold are removed.
+    \item[\texttt{data\_overview():}]
+    This function gives a general overview of the dataset before preprocessing.
+    \item[\texttt{drop\_target\_nulls():}]
+    This function drops rows have null value in the target.
 
-\subsubsection{Target Preprocessing}
-\noindent This component prepares the target column. For classification, missing target
-values are filled using the most frequent class, then the target is transformed
-using label encoding. For regression, missing target values are filled using
-the median, then robust scaling is applied to the target values.
+    \item[\texttt{drop\_duplicates():}]
+    This function removes repeated rows from the dataset.
 
-\subsubsection{Feature Selection}
-\noindent After preprocessing the input features, mutual information is used to select
-the most informative features. For classification, mutual information
-classification is used. For regression, mutual information regression is used.
-Only features with scores greater than or equal to the selected threshold are
-kept.
+    \item[\texttt{split\_data():}]
+    This function splits the dataset into training and validation sets. The split is
+    based on the validation size and random state selected by the user. The output of
+    this function is \texttt{X\_train}, \texttt{X\_val}, \texttt{y\_train}, and
+    \texttt{y\_val}.
 
-\subsubsection{Text Preprocessing}
-\noindent This component handles text classification datasets. It validates the text
-configuration, cleans the text, applies tokenization and text normalization, and
-converts the processed text into numerical features. The generated
-preprocessing objects are saved so the same transformations can be applied to
-testing data.
+    \item[\texttt{get\_data\_info():}]
+    This function studies each column in the training data. It collects important
+    information such as data type, number of unique values,
+    missing values, and missing percentage. For numerical columns, it also calculates the mean,and median.
 
-\subsubsection{Image Preprocessing}
-\noindent This component handles image classification datasets. Images are collected from
-class folders and assigned labels based on their folder names. The system
-checks whether images can be loaded correctly, removes invalid images, resizes
-valid images, normalizes pixel values, and applies optional augmentation such
-as flipping, rotation, brightness adjustment, and contrast adjustment.
+    \item[\texttt{is\_drop\_column():}]
+    This function decides whether a column should be removed or kept. A column is
+    removed if it is included in the user selected drop list, if it has only one constant
+    value, or if its missing value percentage is higher than the selected threshold. 
+    \item[\texttt{drop\_col():}]
+    This function removes the selected columns from both the training and validation
+    datasets. It also saves the dropped columns and their reasons in a file. This helps
+    the system apply the same dropping step later on testing or new data.
 
-\subsubsection{Artifact Saving}
-\noindent This component saves the objects required to reproduce the same preprocessing
-steps later. Examples include selected columns, dropped columns, feature names,
-target preprocessor, training preprocessor, class mappings, and report data.
-This makes the preprocessing pipeline reusable for validation, testing, or
-future prediction.
+    \item[\texttt{detect\_column\_types():}]
+    This function detects the type of each feature. This step is important because each
+    feature type needs a different preprocessing method. The features are divided into
+    binary columns, ordinal columns, numerical columns, continuous columns,
+    low cardinality categorical columns, high cardinality categorical columns, and
+    unsupported columns. The function also stores the preprocessing steps for each
+    column to be shown later in the report.
+    \begin{table}[H]
+    \centering
+    \caption{Detected Column Types in Tabular Data}
+    \label{tab:feature_types}
+    \begin{tabular}{|p{3.5cm}|p{7cm}|p{4cm}|}
+    \hline
+    \textbf{Feature Type} & \textbf{Description} & \textbf{Examples} \\
+    \hline
+
+    Binary &
+    Columns containing exactly two unique values. &
+    yes/no, 1/0 \\
+    \hline
+
+    Ordinal &
+    Integer columns with a small number of unique values less than or equal to
+    \texttt{max\_ordinal\_unique}. &
+    Ratings or levels such as 1, 2, 3, 4 \\
+    \hline
+
+    Numerical &
+    Integer columns with a number of unique values greater than
+    \texttt{max\_ordinal\_unique}. &
+    Age, number of transactions \\
+    \hline
+
+    Continuous &
+    Floating-point columns. &
+    Height = 175.5, price = 19.99, temperature = 36.6 \\
+    \hline
+
+    Low Cardinality Categorical &
+    Object or string columns with a number of unique values less than or equal to
+    \texttt{cardinality\_threshold}. &
+    Product categories, gender, country group \\
+    \hline
+
+    High Cardinality Categorical &
+    Object or string columns with a number of unique values greater than
+    \texttt{cardinality\_threshold}. &
+    Product names, cities \\
+    \hline
+
+    Other &
+    Columns with unsupported or non-standard data types. These columns are excluded from
+    the preprocessing pipeline. &
+    Dates, complex objects, unsupported formats \\
+    \hline
+
+    \end{tabular}
+    \end{table}
+
+
+
+    \item[\texttt{make\_graphs():}]
+    This function creates graphs when the report option is enabled. The type of graph
+    depends on the feature type and the problem type.
+
+    \item[\texttt{features\_preprocessing():}]
+    This function applies the preprocessing steps to the input features. It creates
+    different pipelines based on the detected feature types:
+    \begin{itemize}
+        \item Numerical and continuous features are filled using the median and scaled
+        using robust scaling.
+        \item Binary features are filled using the most frequent value and encoded using
+        ordinal encoding.
+        \item Low cardinality categorical features are filled using the most frequent
+        value and encoded using binary encoding.
+        \item High cardinality categorical features are filled using the most frequent
+        value and encoded using frequency encoding.
+        \item Ordinal features are filled using the most frequent value and scaled using
+        robust scaling.
+    \end{itemize}
+    These pipelines are combined using \texttt{ColumnTransformer}. The transformer is
+    fitted on the training data and then applied to the validation data. The fitted
+    preprocessor and the generated feature names are saved for later use.
+
+    \item[\texttt{target\_preprocessing():}]
+    This function prepares the target column based on the problem type. For
+    classification label encoding is used to convert class labels into numbers. For regression robust scaling is applied. The target
+    preprocessor is saved so the same transformation can be used later.
+
+    \item[\texttt{features\_importance():}]
+    This function selects the most useful features using mutual information. Only features with scores
+    greater than or equal to the selected threshold are kept. The selected features are
+    saved in a file to use it in the inference step. 
+    \item[\texttt{common\_preprocessing():}]
+    This is the main function that controls the full tabular preprocessing workflow. It
+    calls the previous functions in order. It starts by handling boolean columns,
+    generating the data overview,drop rows have null target, removing duplicates, and splitting the data. Then, it
+    extracts column information, drops unsuitable columns, detects column types,
+    generates graphs, preprocesses the features, preprocesses the target, applies feature
+    selection, and generates the report if enabled.It returns the processed
+    training and validation data.
+\end{description}
+
+\subsubsection{Text Data Preprocessing Functions}
+
+
+\begin{description}
+    \item[\texttt{\_\_init\_\_():}]
+     This is the constructor that receives the dataset and the user settings. 
+     It validates these settings before starting the preprocessing process.Also removes any columns that are not the text column or the target
+     column. This keeps only the columns needed for text classification. It also
+    downloads the required NLTK resources, such as \texttt{punkt} and
+    \texttt{stopwords}.
+    \item[\texttt{make\_graphs():}]
+    This function creates graphs if the report option is enabled. It creates a graph for
+    the text column . It also creates a graph for the target column. These graphs help the user understand the text data and the target class distribution.
+
+    \item[\texttt{custom\_text\_tokenizer():}]
+    This function is used to clean the text and split it into words. It converts the text to
+    lowercase, removes extra spaces and unnecessary symbols, and handles some contractions
+    such as \texttt{can't} and \texttt{won't}. It also separates numbers from letters.
+    Then, the text is tokenized into words. Stopwords are removed, but words like
+    \texttt{not} and \texttt{no} are kept because they affect the meaning. After that,
+    stemming is used to reduce words to their basic form.
+
+\item[\texttt{features\_preprocessing():}]
+This function applies the preprocessing steps to the text column. It fills
+missing text values in the training and validation data with empty strings. 
+Then it uses the custom tokenizer . It also stores examples of the text
+before and after cleaning in the report. Then \texttt{TfidfVectorizer} is used to convert the cleaned text into numerical
+features. The vectorizer uses the user settings, such as the maximum number of
+features, n-gram range, maximum document frequency, and minimum document frequency.
+The vectorizer is fitted on the training data and applied to the validation
+data. The fitted vectorizer is saved as \texttt{training\_preprocessor.pkl} so the same
+text transformation can be reused later on testing or new data.
+
+\item[\texttt{target\_preprocessing():}]
+This function prepares the target column for classification this function  applies label
+encoding to the target values. The fitted label encoder is saved as \texttt{target\_preprocessor.pkl}. Also, the text
+column and target column information are saved in \texttt{data\_info.pkl}. This helps the
+system apply the same target transformation later on testing or new data.
+
+\item[\texttt{common\_preprocessing():}]
+This is the main function that controls the full text preprocessing workflow. It calls
+the other functions in the correct order.
+It creates the data overview. Then, it removes rows that have missing target
+values and removes duplicate rows. Then, it splits the dataset into training and
+validation sets. If the report option is enabled, graphs are created. Then, feature preprocessing is applied to clean and
+vectorize the text. Target preprocessing is applied to encode the class
+labels. Generates the report if enabled.It returns the processed
+training and validation data.
+\end{description}
+
+\subsubsection{Image Data Preprocessing}
+
+\noindent It is used for image classification datasets. In this
+module, the images are organized inside folders, where each folder represents one class.
+It is divided into a set of functions, and each function has a specific role in
+the image preprocessing workflow. The main functions are described as follows:
+
+\begin{description}
+    \item[\texttt{\_\_init\_\_():}]
+    This is the constructor that receives the dataset and the user settings. 
+    It validates these settings before starting the preprocessing process.It also prepares empty lists to store invalid images and their labels.
+    It saves the image size information in a file so it can be reused later.
+
+    \item[\texttt{get\_classes\_mapping():}]
+    This function creates the class mappings. It gives each class name a numerical label.It creates two mappings:
+    one from class name to label, and another from label to class name.These mappings are saved in files. This helps the system use the same labels during
+    training, validation, testing, and prediction.
+
+    \item[\texttt{data\_preparing():}]
+    This function reads the images from the class folders. It goes through each class
+    folder and checks each image path.If the image is valid and can be opened, its path is added to the list of valid image
+    paths, and its class label is added to the labels list. If the image is invalid or
+    corrupted, it is added to the invalid images list with its label.
+    If there are no valid images, the function raises an error because the preprocessing
+    process cannot continue without valid image data.
+
+    \item[\texttt{data\_overview():}]
+    This function collects general information about the image dataset. For the training
+    folder, it stores the class names, number of valid images, random sample images,
+    number of invalid images, invalid image paths, and the class mapping.
+    If a validation folder is provided, it also stores the same type of information for
+    the validation folder. This information is used later in the final preprocessing
+    report.
+
+    \item[\texttt{make\_graphs\_label\_summary():}]
+    This function creates graphs that show the label distribution. It creates a label
+    summary graph for the training folder. If a validation folder is provided, it also
+    creates a label summary graph for the validation folder.
+
+    If the training data is split into training and validation sets, the function also
+    creates graphs for the labels after splitting. These graphs help the user understand
+    if the classes are balanced or not.
+
+    \item[\texttt{make\_garphs\_sample():}]
+    This function creates sample image graphs. It shows random samples from the training
+    folder. If a validation folder is provided, it also shows random samples from the
+    validation folder.
+
+    If the training data is split into training and validation sets, it also shows sample
+    images after splitting. This helps the user visually check the image dataset.
+
+    \item[\texttt{make\_graphs\_loader():}]
+    This function creates sample images after using the DataLoader. It takes a small
+    number of images from the training DataLoader and displays them.
+
+    If a validation DataLoader exists, it also displays sample images from it. This step
+    helps confirm that the images are loaded correctly after resizing, normalization, and
+    augmentation.
+
+    \item[\texttt{make\_graphs():}]
+    This function controls all graph generation steps. It prepares the graph section in
+    the report, then calls the label summary graphs, sample image graphs, and DataLoader
+    sample graphs.
+
+    \item[\texttt{get\_loaders():}]
+    This function creates the training and validation datasets and DataLoaders. First, it
+    creates a \texttt{ClassificationImageDataset} for the training images using the image
+    paths, labels, image size, and augmentation settings.
+
+    Then, it creates the training DataLoader with the selected batch size and uses
+    shuffling. Shuffling is used for training because it helps the model see the data in
+    a different order.
+
+    If validation data exists, the function creates a validation dataset and validation
+    DataLoader. Augmentation is not applied to the validation data, and shuffling is not
+    used because validation should be more stable.
+
+    \item[\texttt{common\_preprocessing():}]
+    This is the main function that controls the full image preprocessing workflow. It
+    starts by creating the class mappings. Then, it prepares the training images by
+    collecting valid image paths and labels and saving invalid images.
+
+    If a validation folder is provided, it also prepares the validation images. After
+    that, it creates the data overview, splits the data if needed, creates the
+    DataLoaders, generates graphs, and creates the final image preprocessing report.
+
+    At the end, the function returns the training DataLoader and validation DataLoader.
+    These outputs are ready to be used for training an image classification model.
+\end{description}
+
+
+
+
+\subsubsection{Testing and Reusability:}
+
+For all supported data types, the saved preprocessing objects are reused during
+testing. This is important because the testing data must be processed in the same way
+as the training data.
+
+\begin{itemize}
+    \item For tabular data, the system loads the saved preprocessors, selected features,
+    dropped columns, and target preprocessor.
+    \item For text data, the system loads the saved TF-IDF vectorizer and label encoder.
+    \item For image data, the system loads the saved class mappings and image size.
+\end{itemize}
+
+This makes the preprocessing module reusable and consistent for training,
+validation, testing, and future prediction.
 
 \subsection{Design Constraints}
-\noindent Several constraints affected the design of the AutoPreprocessing module:
+Several constraints affected the design of the Auto Preprocessing module:
 
 \begin{itemize}
   \item The module must avoid data leakage. For this reason, preprocessing
@@ -2009,7 +2260,7 @@ future prediction.
 \end{itemize}
 
 \subsection{Other Description of the Module}
-\noindent The AutoPreprocessing module is not only designed to transform data. It is also
+\noindent The Auto Preprocessing module is not only designed to transform data. It is also
 designed to help the user understand the dataset before and after
 preprocessing. This is achieved through the generated report and visualizations.
 For tabular data, the report can show missing-value statistics, duplicate
@@ -2131,29 +2382,129 @@ This design allows the web platform to manage users, benchmarks, and
 submissions while Python handles the machine learning evaluation part.
 
 \chapter{System Testing and Verification}
+This chapter explains how the project was tested to make sure that the system works correctly. The testing was done in different ways because not all parts of the project can be tested using the same method. Some parts were tested using unit tests, some parts were checked manually, and some results were compared with other tools or expected outputs.
+The main purpose of testing was to make sure that the system can take the input, apply the required steps, save the needed files, and return the correct output without errors. 
 \section{Testing Setup}
-The available experiments use identical train, validation, and test splits
-when comparing candidate pipelines. Timing, memory, output equivalence, and
-predictive accuracy are reported according to the module under test.
-
+The testing was done in a Python environment. The main tools used in testing were Python, Pytest, Pandas, NumPy, Scikit-learn, and the other libraries used in the project implementation.
+The system was tested using sample datasets and different test cases. The output of the system was checked to make sure that it is correct and in the expected format to make sure that they were created correctly.
+Some tests were written and run automatically using Pytest. Other tests were checked manually by comparing the actual output with the expected output. This testing setup helped make sure that the project works correctly.
 \section{Testing Plan and Strategy}
-Module tests validate graph correctness, pipeline persistence, converter
-support, loop transformation, and output equivalence. Integration tests
-evaluate the end-to-end path from custom preprocessing code through native
-compilation and graph execution.
-
+The testing plan was based on testing the project step by step. First, the main parts of the system were tested separately to make sure that each part works correctly. After that, the complete system was tested as one workflow to make sure that all parts work together without errors.
+Different testing methods were used depending on the part being tested. Some parts were tested using unit tests with Pytest. Other parts were checked manually by comparing the actual output with the expected output. In some cases, the results were also compared with other tools to make sure that the system gives correct and reasonable results.
+\subsection{Module Testing}
 \input{sections/results-modhamed}
-\input{sections/results-nesma}
+\subsubsection{Auto Preprocessing Module}
+Most of the functions were tested using unit tests. These tests were used to make sure that the functions give the expected output and do not produce errors.
+Real datasets were also used to test the system in a more practical way. These datasets were collected from Kaggle for different data types. For all datasets, the data was split using a test size of 0.2 and a random state of 42. The model performance was then measured on the test data.
+For tabular data, both classification and regression datasets were used. After applying preprocessing, the output was passed to a Random Forest model to check that the processed data was ready for training and testing.
+For text data, the processed output was passed to an \texttt{XGBClassifier}. This helped check that the text preprocessing steps converted the text into numerical features correctly.
+For image data, the output of the image preprocessing module was passed to a ResNet model. This helped check that the image data loaders were created correctly and could be used directly for model training.
+The results showed that the tested modules produced valid outputs and were suitable to be used in the training step.
 
-\section{AutoML Module}
+\begin{table}[H]
+\centering
+\caption{Datasets Used in Module Testing}
+\label{tab:module_testing_datasets}
+\begin{tabular}{|p{7cm}|p{3cm}|p{3cm}|p{3cm}|}
+\hline
+\textbf{Dataset Name} & \textbf{Shape} & \textbf{Dataset Type} & \textbf{Problem Type} \\
+\hline
+startup\_founder\_burnout\_2026 & (50000, 29) & Tabular & Classification \\
+\hline
+healthy\_diet\_calorie\_intake & (6000, 15) & Tabular & Classification \\
+\hline
+ai\_student & (50000, 16) & Tabular & Classification \\
+\hline
+gaming\_addiction & (250, 49) & Tabular & Classification \\
+\hline
+student\_exam\_performance\_dataset & (10000, 17) & Tabular & Classification \\
+\hline
+heart & (1025, 14) & Tabular & Classification \\
+\hline
+Dataset\_spine & (310, 7) & Tabular & Classification \\
+\hline
+diabetes\_dataset & (100000, 31) & Tabular & Classification \\
+\hline
+student\_placement\_synthetic & (100000, 18) & Tabular & Classification \\
+\hline
+Titanic-Dataset & (891, 12) & Tabular & Classification \\
+\hline
+customer\_purchase\_data & (1500, 9) & Tabular & Classification \\
+\hline
+global\_ai\_jobs & (90000, 35) & Tabular & Regression \\
+\hline
+CarPrice\_Assignment & (205, 26) & Tabular & Regression \\
+\hline
+Housing & (545, 13) & Tabular & Regression \\
+\hline
+PetImages & (24998,) & Image & Classification \\
+\hline
+DailyDialog & (11327, 2) & Text & Classification \\
+\hline
+TestReviews & (4321, 2) & Text & Classification \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Models and Evaluation Metrics Used in Module Testing}
+\label{tab:module_testing_models}
+\begin{tabular}{|p{7cm}|p{2.8cm}|p{3cm}|p{2cm}|}
+\hline
+\textbf{Dataset Name} & \textbf{Model Used} & \textbf{Evaluation Metric} & \textbf{Accelera Result} \\
+\hline
+startup\_founder\_burnout\_2026 & RandomForest & Macro F1-score & 0.9999 \\
+\hline
+healthy\_diet\_calorie\_intake & RandomForest & Macro F1-score & 1.0000 \\
+\hline
+ai\_student & RandomForest & Macro F1-score & 0.4799 \\
+\hline
+gaming\_addiction & RandomForest & Macro F1-score & 1.0000 \\
+\hline
+student\_exam\_performance\_dataset & RandomForest & Macro F1-score & 0.8573 \\
+\hline
+heart & RandomForest & Macro F1-score & 0.7860 \\
+\hline
+Dataset\_spine & RandomForest & Macro F1-score & 0.7840 \\
+\hline
+diabetes\_dataset & RandomForest & Macro F1-score & 0.9985 \\
+\hline
+student\_placement\_synthetic & RandomForest & Macro F1-score & 0.9986 \\
+\hline
+Titanic-Dataset & RandomForest & Macro F1-score & 0.7906 \\
+\hline
+customer\_purchase\_data & RandomForest & Macro F1-score & 0.9385 \\
+\hline
+global\_ai\_jobs & RandomForest & R-squared Score & 0.9227 \\
+\hline
+CarPrice\_Assignment & RandomForest & R-squared Score & 0.9562 \\
+\hline
+Housing & RandomForest & R-squared Score & 0.6037 \\
+\hline
+PetImages & ResNet model & Accuracy & 0.97 \\
+\hline
+DailyDialog & XGBClassifier & Accuracy & Add result \\
+\hline
+TestReviews & XGBClassifier & Accuracy & Add result \\
+\hline
+\end{tabular}
+\end{table}
+
+
+\subsubsection{AutoML Module}
 \mbox{}
 
-\section{Deployment Module}
+\subsubsection{Deployment Module}
 \mbox{}
 
-\section{Benchmark Platform Module}
+\subsubsection{Benchmark Platform Module}
 \mbox{}
-
+\subsection{Integration Testing}
+\subsection{Testing Schedule}
+\subsection{Comparative Results to Previous Work}
+\
 \chapter{Conclusions and Future Work}
 \section{Faced Challenges}
 The main implementation challenges were preserving correctness while sharing

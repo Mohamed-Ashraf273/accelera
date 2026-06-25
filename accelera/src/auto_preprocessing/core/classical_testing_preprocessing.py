@@ -77,10 +77,8 @@ class ClassicalTestingPreprocessing(TestingTabularPreprocessingBase):
     def target_preprocessing(self):
         try:
             if self.target_info["problem_type"] == "classification":
-                self.y_test.fillna(self.target_info["mode"], inplace=True)
                 self.y_test = self.target_preprocessor.transform(self.y_test)
             elif self.target_info["problem_type"] == "regression":
-                self.y_test.fillna(self.target_info["median"], inplace=True)
                 self.y_test = self.target_preprocessor.transform(
                     self.y_test.values.reshape(-1, 1)
                 ).ravel()
