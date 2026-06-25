@@ -166,193 +166,219 @@ The second module, the Parallelizer, analyzes loop-heavy source code and adds Op
 This paper focuses only on these two modules. The main contributions described here are: a graph-based pipeline execution model, memory and branching optimizations for pipeline search, a hybrid rule and classifier loop-parallelization strategy, a documented Python-to-C++ subset, and an integration path that uses the Parallelizer as an acceleration backend for custom preprocessing functions.
 
 % -----------------------------------------------------------------------------
-\chapter{Literature Review}
+\chapter{Literature Survey}
 \label{chap:literature-review}
 
-\section{Machine Learning Pipeline Frameworks}
+This chapter reviews the main background and previous work related to the
+\systemname{} project. The chapter is divided into four main parts. First, it
+introduces machine learning pipeline frameworks, with special attention to
+\texttt{scikit-learn}, which is the main practical baseline for the
+\texttt{accelera\_pipe} module. Second, it explains the background of automatic
+code parallelization and OpenMP, which are needed to understand the design of the
+Parallelizer module. Third, it compares the project with related work, especially
+\texttt{scikit-learn} pipelines and OMPar, an AI-driven OpenMP parallelization
+system. Finally, it explains the implemented approach adopted in this project and
+justifies the main design choices, including the use of rule-based pragma
+generation instead of fully AI-generated pragma insertion.
+
+\section{Background on Machine Learning Pipeline Frameworks}
 
 Machine learning projects rarely consist of a single model call. A complete
-workflow usually contains data loading, preprocessing, feature transformation,
+workflow usually includes data loading, preprocessing, feature transformation,
 model fitting, prediction, metric evaluation, and sometimes several alternative
-branches that compare different preprocessing or model choices. The common
-Python solution for this problem is the pipeline abstraction provided by
+branches that compare different preprocessing or model choices. Without a
+structured pipeline abstraction, these steps can become hard to reproduce and
+maintain. For example, preprocessing may accidentally be applied differently
+during training and testing, or several experimental branches may repeat the same
+early computation many times.
+
+A common Python solution for this problem is the pipeline abstraction provided by
 \texttt{scikit-learn}. In \texttt{scikit-learn}, a pipeline connects a sequence
-of transformers followed by a final estimator, so the user can fit and evaluate
-the complete chain through one high-level object. This design is valuable because
-it reduces user error, keeps preprocessing tied to the estimator, and makes
-experiments easier to reproduce.
+of transformers followed by a final estimator. The user can then fit, predict,
+and evaluate the complete chain through one high-level object. This design is
+important because it reduces user error, keeps preprocessing attached to the
+model, and makes experiments easier to reproduce. It also provides a familiar
+interface for combining preprocessing operations such as scaling, encoding, or
+feature selection with estimators such as logistic regression, support vector
+machines, decision trees, or other machine learning models.
 
-The role of \texttt{scikit-learn} in this work is therefore not a minor
-background detail. It is the main practical competitor for the
-\texttt{accelera\_pipe} module. The comparison is natural because both systems
-allow the user to describe a learning workflow in Python and both support common
-preprocessing and modelling components. However, the two systems make different
-execution assumptions. A traditional \texttt{scikit-learn} pipeline is mainly a
-linear composition of steps. It is excellent for expressing one selected path,
-such as scaling followed by logistic regression, but it does not directly expose
-a native execution graph that can share intermediate work across multiple
-candidate branches. When a user wants to compare several alternatives, the usual
-approach is to create several pipelines or use a search utility that repeatedly
-fits candidate configurations.
+The role of \texttt{scikit-learn} in this project is therefore central. It is
+the main competitor and baseline for the \texttt{accelera\_pipe} module. The
+comparison is natural because both systems allow users to describe a machine
+learning workflow in Python and both support common preprocessing and modelling
+components. However, the two systems make different execution assumptions. A
+traditional \texttt{scikit-learn} pipeline is mainly a linear composition of
+steps. It is very effective when the user wants to express one selected path,
+such as scaling followed by logistic regression. However, it does not directly
+represent the workflow as a native execution graph that can share intermediate
+results across several candidate branches.
 
-This repeated fitting style is simple and reliable, but it can duplicate work.
-For example, if several candidate models all require the same preprocessing
-output, a linear pipeline view may recompute or keep separate copies of data that
-could otherwise be shared. This becomes more important when the workflow contains
-large datasets, several transformations, repeated metrics, or branch structures
-where different candidates reuse the same early stages. The motivation for
-\texttt{accelera\_pipe} is to keep the familiar pipeline idea while changing the
-internal representation from a simple chain into a graph. In this graph, nodes
-represent preprocessing, modelling, prediction, metric, merge, and branch
-operations, and edges describe data dependencies. This makes the workflow closer
-to a computation graph than to a list of sequential steps.
+This difference becomes more important when the user wants to compare several
+alternatives. In a traditional workflow, the user may create multiple pipelines
+or use a model-selection utility that repeatedly fits different candidate
+configurations. Although this approach is simple and reliable, it can duplicate
+work. For example, if several candidate models all use the same preprocessing
+output, the preprocessing stage may be recomputed or stored separately for each
+candidate path. This repeated work can increase runtime and memory usage,
+especially when the dataset is large or when the preprocessing step is expensive.
 
-The literature and ecosystem around machine learning workflows show that users
-benefit from high-level abstractions, but also that execution strategy matters.
-AutoML systems, model-selection utilities, and pipeline search frameworks all
-try to reduce manual experimentation by evaluating alternatives automatically.
-However, many such systems focus on choosing the best estimator or
-hyperparameter setting rather than on reducing the runtime cost of the workflow
-itself. \texttt{accelera\_pipe} is positioned differently. Its goal is not to
-replace the estimator library or introduce a new model family. Instead, it
-focuses on workflow execution: branch scheduling, intermediate reuse, memory
-release, and integration with a lower-level acceleration module when custom
-preprocessing code becomes a bottleneck.
+The motivation for \texttt{accelera\_pipe} is to keep the familiar pipeline
+idea while changing the internal representation from a simple chain into a graph.
+In this graph, nodes represent operations such as preprocessing, modelling,
+prediction, metric evaluation, merging, and branching. Edges represent data
+dependencies between these operations. This makes the workflow closer to a
+computation graph than to a purely sequential list of steps. As a result, the
+system can expose opportunities for branch scheduling, intermediate result reuse,
+and memory release after data is no longer needed.
 
-This distinction is important for evaluating the contribution. The project does
-not claim that the graph abstraction is a replacement for the scientific
-validity of \texttt{scikit-learn}. Rather, it treats \texttt{scikit-learn} as a
-strong baseline and builds around the observation that a graph can expose
-parallelism and sharing opportunities that are harder to express in a purely
-linear pipeline. The experiments therefore compare correctness and runtime
-against equivalent \texttt{scikit-learn}-style workflows, while the methodology
-explains how the graph executor schedules independent branches, stores the
-executed graph for later reuse, and releases intermediate arrays when their
-consumers have finished.
+This project does not aim to replace the scientific reliability or wide
+ecosystem of \texttt{scikit-learn}. Instead, it treats \texttt{scikit-learn} as
+a strong baseline and builds on the observation that a graph-based execution
+model can expose optimization opportunities that are difficult to express in a
+linear pipeline. Therefore, the experiments compare \systemname{} against
+equivalent \texttt{scikit-learn}-style workflows, while the methodology explains
+how the graph executor schedules independent branches, stores executed graphs,
+and releases intermediate arrays when their consumers have finished.
 
-\section{Automatic Parallelization and OpenMP}
+\section{Background on Automatic Code Parallelization}
 
-The second related area is automatic parallelization. Manual parallelization is
-powerful but difficult. A programmer must inspect loops, reason about data
-dependencies, identify reductions, choose the correct OpenMP directive, and
-avoid race conditions. A wrong pragma can silently produce incorrect results,
-which makes parallelization a correctness problem as much as a performance
-problem. Automatic parallelization tools try to reduce this burden by detecting
-safe opportunities and generating transformed code that uses parallel execution
-without requiring the user to manually rewrite every loop.
+The second important background area is automatic code parallelization. Manual
+parallelization can improve performance, but it is difficult and error-prone.
+The programmer must inspect loops, reason about data dependencies, identify
+possible reductions, select the correct OpenMP directive, and avoid race
+conditions. A wrong parallelization decision may not only reduce performance, but
+can also produce incorrect results. This makes automatic parallelization both a
+performance problem and a correctness problem.
 
-OpenMP is a natural target for this type of work because it allows parallelism
-to be expressed through compiler directives, especially for loop-level shared
-memory parallelism in C and C++. In many numeric workloads, expensive work is
-concentrated in loops over arrays, matrices, or feature vectors. If iterations
-are independent, or if the loop follows a recognizable reduction pattern, the
-loop can often be mapped to an OpenMP \texttt{parallel for} directive or to an
-OpenMP reduction clause. The difficulty is deciding when that transformation is
-safe. Variables may be read and written across iterations, arrays may be indexed
-indirectly, branches may exit early, and function calls may hide side effects.
-These issues explain why a simple pattern match is not enough for a robust
-parallelizer.
+OpenMP is a common target for automatic parallelization because it allows
+parallel execution to be expressed using compiler directives. In C and C++,
+directives such as \texttt{\#pragma omp parallel for} can be used to distribute
+loop iterations across multiple threads. This is especially useful in numeric
+workloads where expensive computation is concentrated inside loops over arrays,
+matrices, or feature vectors. If loop iterations are independent, or if the loop
+matches a safe reduction pattern, the loop can often be parallelized using an
+OpenMP directive.
 
-The Parallelizer module in this project is related to this line of work. It
-analyzes source code, extracts loops, computes loop features, and decides whether
-a safe OpenMP pragma should be inserted. The module also supports a restricted
-Python-to-C++ conversion path so that user-defined preprocessing functions can
-enter the same C++ loop analysis and compilation pipeline. This is important for
-\texttt{accelera\_pipe}, because the slow part of a machine learning workflow is
-not always the estimator itself. Sometimes the expensive part is a custom Python
-transformation that performs repeated numeric work before the model receives the
-features. In that case, graph-level scheduling alone is not enough; the custom
-loop body may also need native compilation and parallel execution.
+However, deciding whether a loop is safe to parallelize is not trivial. A loop
+may read and write the same variable across iterations, access arrays using
+indirect indexes, contain branches that exit early, or call functions with hidden
+side effects. These patterns can create dependencies between iterations, which
+means that running iterations in parallel may change the result. Therefore, a
+parallelizer needs more than simple text matching. It must analyze the loop
+structure, memory accesses, control flow, dependency patterns, and reduction
+behavior before inserting a pragma.
 
-\section{OMPar and AI-Driven Pragma Generation}
+The Parallelizer module in \systemname{} is related to this area of work. It
+analyzes source code, extracts loops, computes loop-level features, and decides
+whether a safe OpenMP pragma should be inserted. The module also supports a
+restricted Python-to-C++ conversion path. This allows supported Python functions
+to be translated into C++ so that they can enter the same loop-analysis and
+native-compilation pipeline. This is important for \texttt{accelera\_pipe}
+because the bottleneck in a machine learning workflow is not always the model
+itself. Sometimes the slow part is a custom preprocessing function written in
+Python. In that case, graph-level scheduling alone is not enough; the loop-heavy
+custom code may also need native compilation and parallel execution.
 
-A direct inspiration for the Parallelizer module is OMPar
-(\emph{Automatic Parallelization with AI-Driven Source-to-Source Compilation}).
-OMPar proposes an AI-assisted source-to-source parallelization pipeline for C and
-C++ code. The system combines loop analysis with machine learning components
-that identify parallelization opportunities and generate OpenMP pragmas. In the
-OMPar paper, the workflow includes components such as OMPify for assessing
-whether loops can be parallelized and MonoCoder-OMP for producing OpenMP
-directives. The paper evaluates the system on benchmark suites and compares the
-results with traditional parallelization tools and compilers.
+\section{Comparative Study of Previous Work}
 
-The idea that influenced this project is the separation between loop discovery,
-feature or context extraction, classification, and pragma insertion. This is a
-useful architecture because it avoids treating parallelization as a single black
-box. First, the system must find candidate loops. Second, it must understand
-properties of those loops, such as memory accesses, dependencies, control flow,
-and reductions. Third, it must decide whether a transformation is safe and which
-kind of pragma should be used. Finally, it must rewrite the source code and
-verify that the transformed code can compile and run correctly. The Parallelizer
-module follows this general direction, but it changes several design choices to
-fit the available data, implementation scope, and integration target of
-\systemname.
+The closest practical competitor for \texttt{accelera\_pipe} is
+\texttt{scikit-learn Pipeline}. \texttt{scikit-learn} provides a mature,
+well-tested, and widely used ecosystem for machine learning in Python. Its
+pipeline abstraction is simple, clear, and strongly integrated with the rest of
+the library. It is suitable for many standard machine learning workflows and is
+therefore a strong baseline for any new pipeline execution system.
 
-The most important difference is the pragma generation step. OMPar uses an
-AI-driven pragma generation component. In contrast, this project uses a
-rule-based pragma generator after the classifier and safety resolver. This design
-choice was intentional. During development, there was not enough high-quality
-labeled data to reliably train or fine-tune a model that generates full OpenMP
-pragmas for the range of patterns expected by the project. Some available or
-collectable examples were synthetic data, meaning artificially generated data
-rather than naturally occurring, manually validated real-world code. Synthetic
-data can be useful for bootstrapping an experiment, but it can also introduce
-bias. If the generated examples repeat a narrow set of loop styles, the model may
-learn the style of the generator instead of learning robust parallelization
-rules. For a safety-critical task such as pragma insertion, this risk is serious.
+The main difference is that \texttt{scikit-learn Pipeline} is primarily a
+linear abstraction, while \texttt{accelera\_pipe} uses a graph-based execution
+backend. A linear pipeline is convenient when the workflow follows one sequence
+of operations. However, when the user evaluates several alternatives that share
+early stages, a graph representation can avoid repeated work by sharing
+intermediate results. \texttt{accelera\_pipe} also stores the executed graph and
+uses graph-level information to manage execution order and intermediate memory.
+Therefore, the contribution is not a new estimator or a replacement for
+\texttt{scikit-learn}; rather, it is an execution model that aims to improve the
+handling of branch-heavy workflows.
 
-Because of this limitation, the project separates prediction from final pragma
-construction. The classifier is used to help categorize loops, but deterministic
-rules still decide the final safe action. If a loop matches a supported
-independent-iteration pattern, the generator can insert a parallel-for pragma. If
-it matches a recognized reduction pattern, it can insert a reduction pragma. If
-neither condition is sufficiently clear, the loop is left unchanged. This makes
-the system more conservative than a fully generative approach, but it also makes
-its behavior easier to inspect and justify. The rule-based layer acts as a guard
-against unsafe model output and reduces dependence on biased synthetic training
-examples.
+For the Parallelizer module, the closest conceptual inspiration is OMPar,
+short for \emph{Automatic Parallelization with AI-Driven Source-to-Source
+Compilation}. OMPar proposes an AI-assisted source-to-source parallelization
+system for C and C++ programs. Its design separates the problem into several
+stages, including loop discovery, loop analysis, parallelization decision, and
+OpenMP pragma generation. This general structure influenced the design of the
+Parallelizer module in \systemname{} because it treats automatic
+parallelization as a staged process rather than as a single black box.
 
-\newpage
-\section{Positioning of Accelera Relative to Existing Work}
+The OMPar approach is useful because it shows how machine learning can assist
+parallelization decisions. It also motivates the idea of extracting loop
+features before deciding whether a loop can be parallelized. In \systemname{},
+the Parallelizer follows a similar high-level direction: it finds loops, extracts
+structural and semantic indicators, classifies the loop, and then rewrites the
+source code when the transformation is considered safe.
 
-The reviewed systems show two separate but connected problems. The first problem
-is workflow-level efficiency in machine learning pipelines. Existing tools such
-as \texttt{scikit-learn} provide a reliable and widely used API for composing
-preprocessing and estimators, but repeated candidate evaluation can still create
-unnecessary recomputation and memory pressure. The second problem is loop-level
-efficiency in custom code. OpenMP and automatic parallelization research show
-that loop acceleration can improve numeric workloads, but safe pragma insertion
-requires careful reasoning about dependencies and reductions.
+However, \systemname{} differs from OMPar in the pragma generation stage. OMPar
+uses an AI-driven pragma generation component, while this project uses a
+rule-based pragma generator after classification and safety resolution. This was
+an intentional design decision. During development, there was not enough
+high-quality labeled data to reliably train a model that generates complete
+OpenMP pragmas for the full range of expected code patterns. Some available
+examples were also synthetic data. Synthetic data means artificially generated
+training data rather than naturally occurring, manually validated real-world
+code. Although synthetic data can help bootstrap an experiment, it can also
+introduce bias. If the generated examples repeat a narrow set of loop structures,
+the model may learn the generator's style instead of learning robust
+parallelization behavior.
 
-\systemname{} combines these two concerns in one project. At the workflow level,
-\texttt{accelera\_pipe} represents the pipeline as a graph, executes independent
-branches, stores the executed graph, and manages intermediate data lifetime. At
-the code level, the Parallelizer converts supported Python functions to C++,
-extracts loops, classifies loop patterns, applies rule-based safety checks,
-inserts OpenMP pragmas, and compiles native Python-callable extensions. The
-integration between the two modules is the main point: a preprocessing node in a
-machine learning pipeline can be accelerated if its custom function is supported
-by the Parallelizer.
+This issue is especially important for pragma insertion because unsafe generated
+pragmas can produce incorrect results. For that reason, \systemname{} uses the
+classifier to support the decision process, but keeps the final pragma
+construction deterministic. If a loop matches a supported independent-iteration
+pattern, the rewriter can insert a parallel-for pragma. If it matches a
+recognized reduction pattern, it can insert a reduction pragma. If the loop is
+unclear or unsafe, it is left unchanged. This conservative design makes the
+system easier to inspect and reduces the risk of unsafe transformations caused
+by biased or insufficient training data.
 
-This positioning also defines the boundary of the contribution. The project does
-not attempt to be a full AutoML system, a general compiler, or a fully generative
-OpenMP assistant. It focuses on a narrower but practical path: graph-based
-execution for pipeline alternatives and conservative acceleration for supported
-loop-heavy preprocessing code. This makes \texttt{scikit-learn} the most relevant
-baseline for the pipeline module and OMPar the closest conceptual inspiration
-for the parallelization module. The final design borrows the staged structure of
-AI-assisted parallelization, but replaces generative pragma production with a
-rule-based generator because the available training material was limited and
-partly synthetic. In this way, \systemname{} prioritizes reproducible behavior,
-clear safety boundaries, and integration with Python machine learning workflows.
+\section{Implemented Approach}
 
-The rest of this report builds on this literature review. The methodology
-chapter explains how the graph backend, branching model, Python-to-C++ converter,
-loop feature extraction, classifier, safety resolver, OpenMP rewriter, caching
-layer, and native compilation path are implemented. The experiments then compare
-the resulting system with baseline pipeline execution and standalone loop
-parallelization examples to show where the graph abstraction and conservative
-OpenMP insertion improve end-to-end execution.
+The implemented approach in \systemname{} combines two levels of optimization:
+workflow-level optimization and code-level optimization. At the workflow level,
+\texttt{accelera\_pipe} uses a graph representation instead of a purely linear
+pipeline. This allows preprocessing, model, prediction, metric, merge, and branch
+operations to be represented as connected nodes. The graph executor can then
+schedule independent branches, reuse intermediate results, and release data when
+it is no longer required. This design was chosen because it preserves the
+high-level usability of pipeline frameworks while providing more control over
+execution.
+
+At the code level, the Parallelizer module targets loop-heavy preprocessing
+functions. The system accepts supported input forms, converts supported Python
+functions into C++, extracts loops using a compiler-style analysis path, computes
+loop features, classifies candidate loops, applies deterministic safety rules,
+inserts OpenMP pragmas when safe, and compiles the transformed code into a
+Python-callable native extension. This allows selected custom preprocessing
+functions to be accelerated while still being called from a Python machine
+learning workflow.
+
+The connection between \texttt{accelera\_pipe} and the Parallelizer is the main
+implemented contribution. A pipeline node can contain a custom preprocessing
+function. If that function is supported by the Parallelizer, the system attempts
+to optimize it by converting and compiling the function. The optimized callable
+can then be attached back to the pipeline node. In this way, the project does
+not only optimize the order of pipeline execution; it can also optimize the
+implementation of selected operations inside the graph.
+
+The project adopts a conservative rule-based pragma generator rather than a
+fully generative AI pragma generator. This choice was made because the available
+parallelization data was limited and partly synthetic. A fully generative model
+could produce unsafe pragmas if it learns biased patterns from synthetic
+examples. By contrast, a rule-based generator makes the final rewrite easier to
+control and verify. The classifier and feature extractor still help identify
+candidate loops, but deterministic rules decide whether the final output should
+be a parallel-for pragma, a reduction pragma, or no transformation.
+
+Accelera combines ideas from scikit-learn pipeline frameworks and OMPar-style automatic parallelization. 
+It uses graph-based workflow execution for machine learning pipelines and conservative rule-based OpenMP 
+acceleration for supported loop-heavy preprocessing code.
 
 
 % -----------------------------------------------------------------------------
