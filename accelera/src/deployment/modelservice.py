@@ -1,16 +1,12 @@
 import json
+import os
 import pickle
 from typing import Any
 from typing import List
 
 import numpy as np
-
-try:
-    from .schema_validation import InputSchema
-    from .tracking import PredictionTracker
-except ImportError:
-    from schema_validation import InputSchema
-    from tracking import PredictionTracker
+from schema_validation import InputSchema
+from tracking import PredictionTracker
 
 
 class ModelService:
@@ -38,8 +34,12 @@ class ModelService:
         self.tracker = PredictionTracker(cfg.get("tracking"))
         model_obj = None
         preprocessors = []
+        config_dir = os.path.dirname(os.path.abspath(self.config_path))
         for _, path in models.items():
-            with open(path, "rb") as f:
+            abs_path = (
+                os.path.join(config_dir, path) if not os.path.isabs(path) else path
+            )
+            with open(abs_path, "rb") as f:
                 obj = pickle.load(f)
             if hasattr(obj, "predict"):
                 model_obj = obj
@@ -47,20 +47,16 @@ class ModelService:
                 preprocessors.append(obj)
 
         if model_obj is None:
-            raise RuntimeError("No predict-capable model artifact found")
+            raise RuntimeError("no model with predict attr found")
 
         self._model = model_obj
         self._preprocessors = preprocessors
         self._loaded = True
 
     def validate_input(self, input_data):
-        if not self._loaded:
-            self.load()
         return self.schema.validate(input_data)
 
     def predict(self, input_data, validate=True):
-        if not self._loaded:
-            self.load()
         rows = self.validate_input(input_data) if validate else input_data
         X = np.array(rows)
         if X.ndim == 1:

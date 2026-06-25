@@ -12,14 +12,9 @@ from fastapi import HTTPException
 from fastapi import UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.responses import RedirectResponse
+from modelservice import service
 from pydantic import BaseModel
-
-try:
-    from .modelservice import service  # the models
-    from .schema_validation import SchemaValidationError
-except ImportError:
-    from modelservice import service  # the models
-    from schema_validation import SchemaValidationError
+from schema_validation import SchemaValidationError
 
 
 class PredictPayload(BaseModel):
@@ -66,19 +61,19 @@ def predict(payload: PredictPayload):
     if payload.input is not None:
         return _predict(payload.input, endpoint="/predict")
 
-    raise HTTPException(status_code=400, detail="No input provided")
+    raise HTTPException(status_code=400, detail="No input")
 
 
 @app.post("/predict/csv")
 async def predict_csv(file: UploadFile = File(...)):
     if not file.filename.endswith(".csv"):
-        raise HTTPException(status_code=400, detail="file must be a CSV")
+        raise HTTPException(status_code=400, detail="file must be CSV")
 
     contents = await file.read()
     df = pd.read_csv(io.StringIO(contents.decode("utf-8")))
 
     if df.empty:
-        raise HTTPException(status_code=400, detail="CSV file is empty")
+        raise HTTPException(status_code=400, detail="file is empty")
 
     return _predict(df, endpoint="/predict/csv", filename=file.filename)
 
@@ -169,6 +164,8 @@ def _latency_ms(started):
     return round((time.perf_counter() - started) * 1000, 2)
 
 
+###Reviewers
+##I generated this function with AI
 def _render_gui(schema):
     schema_json = json.dumps(schema)
     return f"""<!doctype html>
