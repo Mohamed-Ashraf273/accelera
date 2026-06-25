@@ -8,16 +8,18 @@ from time import sleep
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 
-from ..evaluation import EvaluationResult
-from ..evaluation import TrialSpecs
+from accelera.src.accelera_automl.base_evaluation import EvaluationResult
+from accelera.src.accelera_automl.base_evaluation import TrialSpecs
 
 
 class OptimizationResult:
-    def __init__(self, best_config, best_cost, runhistory, best_config_result):
+    def __init__(self, best_config, best_cost, trails_history, best_config_trial):
         self.best_config = best_config
         self.best_cost = best_cost
-        self.runhistory = runhistory
-        self.best_config_result = best_config_result
+        self.trails_history = trails_history
+        self.runhistory = trails_history
+        self.best_config_trial = best_config_trial
+        self.best_config_result = best_config_trial
 
 
 class Trial:
@@ -37,13 +39,9 @@ class ConfigState:
     ):
         self.config = config
         self.signature = signature
-        self.successful_stages = (
-            {} if successful_stages is None else successful_stages
-        )
+        self.successful_stages = successful_stages or {}
         self.stages_this_config_get_promoted_to = (
-            set()
-            if stages_this_config_get_promoted_to is None
-            else stages_this_config_get_promoted_to
+            stages_this_config_get_promoted_to or set()
         )
 
 
@@ -51,108 +49,106 @@ class Optimizer:
     def __init__(
         self,
         *,
-        configspace,
+        config_space=None,
+        configspace=None,
         evaluator,
         X,
         y,
-        n_trials=50,
-        time_budget=None,
-        random_state=None,
-        per_run_time_limit=None,
-        initial_configurations=None,
-        n_initial_points=5,
-        candidate_pool_size=256,
-        verbose=1,
-        n_parallel=3,
+        time_budget,
+        per_trial_timelimit=None,
         evaluation_level=None,
+        n_trials=None,
+        random=None,
+        warm_start_configs=[],
+        num_of_initail_points_to_try=5,
+        sample_size_from_configspace=256,
+        verbose=1,
+        num_of_trials_to_run_parralel=3,
+        n_parallel=None,
     ):
-        self.configspace = configspace
+        self.config_space = config_space if config_space is not None else configspace
         self.evaluator = evaluator
         self.X = X
         self.y = y
-        self.n_trials = n_trials
         self.time_budget = time_budget
-        self.random_state = random_state
-        self.per_run_time_limit = per_run_time_limit
-        self.initial_configurations = list(initial_configurations or [])
-        self.n_initial_points = max(1, n_initial_points)
-        self.candidate_pool_size = max(16, candidate_pool_size)
+        self.n_trials = n_trials
+        self.random = random
+        self.per_trial_timelimit = per_trial_timelimit
+        self.warm_start_configs = warm_start_configs
+        self.num_of_initail_points_to_try = num_of_initail_points_to_try
+        self.sample_size_from_configspace = sample_size_from_configspace
         self.verbose = verbose
-        self.n_parallel = max(1, n_parallel)
-        self.evaluation_level = list(
-            evaluation_level
-            or [
-                TrialSpecs(
-                    stage=0, sample_fraction=1.0, cv_folds=None, model_budget=1.0
-                )
-            ]
+        self.num_of_trials_to_run_parralel = (
+            n_parallel if n_parallel is not None else num_of_trials_to_run_parralel
         )
+        self.evaluation_level = evaluation_level or [
+            TrialSpecs(stage=0, sample_fraction=1.0, cv_folds=5, model_budget=1.0)
+        ]
 
-        self.rng = np.random.default_rng(random_state)
-        self.observations = []
+        # optimization output
+        self.trials = []
         self.best_config = None
-        self.best_config_cost = float("inf")
-        self.best_config_result = None
+        self.best_cost = float("inf")
+        self.best_config_trial = None
+
         self.seen_signatures = set()
         self.promotion_queue = []
         self.candidate_states = {}
-        self.promotion_quantile = 0.35
-        self.min_stage_observations_for_promotion = max(3, self.n_parallel + 1)
+        self.promotion_quantile = 0.4
+        self.min_stage_observations_for_promotion = max(
+            3, self.num_of_trials_to_run_parralel + 1
+        )
 
-        if hasattr(self.configspace, "seed"):
-            self.configspace.seed(random_state)
+        if hasattr(self.config_space, "seed"):
+            self.config_space.seed(random)
 
     def optimize(self):
         if self.n_trials is None and self.time_budget is None:
             raise ValueError("n_trials=None requires a finite time_budget.")
 
         started_at = perf_counter()
-        trial_id = 0
+        trial_num = 0
 
-        while self.n_trials is None or trial_id < self.n_trials:
+        while self.n_trials is None or trial_num < self.n_trials:
             if self.time_budget_exceeded(started_at):
                 break
 
-            batch_size = (
-                self.n_parallel
-                if self.n_trials is None
-                else min(self.n_parallel, self.n_trials - trial_id)
-            )
-
+            batch_size = self.num_of_trials_to_run_parralel
+            if self.n_trials is not None:
+                batch_size = min(batch_size, self.n_trials - trial_num)
             trials = self.suggest_batch(batch_size)
 
             if self.verbose:
                 print(
-                    f"starting batch of {batch_size} trials "
-                    f"({trial_id + 1}/{self.n_trials or 'time budget'})"
+                    f"starting batch of {self.num_of_trials_to_run_parralel} trials "
+                    f"({trial_num + 1}/{self.n_trials or 'time budget'})"
                 )
 
-            if batch_size > 1:
-                batch_results = self.evaluate_batch_with_processes(trials)
+            if self.num_of_trials_to_run_parralel > 1:
+                batch_results = self.evaluate_batch(trials)
             else:
                 batch_results = [self.evaluate_single_config(trials[0])]
 
-            for batch_idx, (trial, result) in enumerate(zip(trials, batch_results)):
-                current_trial_id = trial_id + batch_idx
-                config = trial.config
-
+            for idx, (trial, result) in enumerate(zip(trials, batch_results)):
+                current_trial_num = trial_num + idx
+                config_dict = dict(trial.config)
                 if self.verbose:
-                    model_name = self.safe_model_name(config)
+                    model_name = config_dict.get("model_name")
                     print(
-                        f"Trial {current_trial_id + 1}/{self.n_trials} - "
+                        f"Trial {current_trial_num + 1}/{self.n_trials} - "
                         f"{model_name}: score={result.score:.6f} "
-                        f"cost={result.cost:.6f} status={result.status} "
+                        f"cost={result.cost:.4f} status={result.status} "
                         f"stage={result.evaluation_level_stage}"
                     )
                     if result.error and self.verbose > 1:
                         print(
-                            f"Trial {current_trial_id + 1}/{self.n_trials} - "
+                            f"Trial {current_trial_num + 1}/{self.n_trials} - "
                             f"error: {result.error}"
                         )
 
-                row = {
-                    "trial_id": current_trial_id,
-                    "config": config,
+                trial_dict = {
+                    "trial_id": current_trial_num,
+                    "config": trial.config,
                     "model_name": result.model_name,
                     "params": result.params,
                     "preprocessing": result.preprocessing,
@@ -166,284 +162,126 @@ class Optimizer:
                     "cv_folds": result.cv_folds,
                     "model_budget": result.model_budget,
                 }
-                self.observations.append(row)
-                self.record_observation(config, result)
 
-                if (
-                    self.is_full_fidelity(result)
-                    and result.cost < self.best_config_cost
-                ):
-                    self.best_config = config
-                    self.best_config_cost = float(result.cost)
-                    self.best_config_result = result
+                self.trials.append(trial_dict)
+                self.record_trial(trial.config, result)
+
+                if self.is_full_fidelity(result) and result.cost < self.best_cost:
+                    self.best_config = trial.config
+                    self.best_cost = result.cost
+                    self.best_config_trial = result
                     if self.verbose:
                         print(
-                            f"New best_config - model={result.model_name} "
+                            f"new best_config - model={result.model_name} "
                             f"preprocessing={result.preprocessing} "
                             f"score={result.score:.6f}"
                         )
 
-            trial_id += batch_size
+            trial_num += self.num_of_trials_to_run_parralel
 
-        if self.best_config is None and self.observations:
-            finite_rows = [
-                row for row in self.observations if np.isfinite(row["cost"])
+        if self.best_config is None:
+            successful_trials = [
+                trial for trial in self.trials if trial.get("status") == "success"
             ]
-            if finite_rows:
-                best_row = min(finite_rows, key=lambda item: item["cost"])
-                self.best_config = best_row["config"]
-                self.best_config_cost = float(best_row["cost"])
-                self.best_config_result = EvaluationResult(
-                    model_name=best_row["model_name"],
-                    params=best_row["params"],
-                    preprocessing=best_row["preprocessing"],
-                    score=best_row["score"],
-                    cost=best_row["cost"],
-                    duration=best_row["duration"],
-                    status=best_row["status"],
-                    error=best_row["error"],
-                    evaluation_level_stage=best_row.get("evaluation_level_stage", 0),
-                    sample_fraction=best_row.get("sample_fraction", 1.0),
-                    cv_folds=best_row.get(
-                        "cv_folds", self.evaluation_level[-1].cv_folds or 1
-                    ),
-                    model_budget=best_row.get("model_budget", 1.0),
+            if successful_trials:
+                best_trial = min(successful_trials, key=lambda trial: trial["cost"])
+                self.best_config = best_trial["config"]
+                self.best_cost = best_trial["cost"]
+                self.best_config_trial = EvaluationResult(
+                    model_name=best_trial["model_name"],
+                    params=best_trial["params"],
+                    preprocessing=best_trial["preprocessing"],
+                    score=best_trial["score"],
+                    cost=best_trial["cost"],
+                    duration=best_trial["duration"],
+                    status=best_trial["status"],
+                    error=best_trial["error"],
+                    evaluation_level_stage=best_trial["evaluation_level_stage"],
+                    sample_fraction=best_trial["sample_fraction"],
+                    cv_folds=best_trial["cv_folds"],
+                    model_budget=best_trial["model_budget"],
                 )
 
         return OptimizationResult(
-            best_config=self.best_config,
-            best_cost=self.best_config_cost,
-            runhistory=list(self.observations),
-            best_config_result=self.best_config_result,
+            self.best_config,
+            self.best_cost,
+            self.trials,
+            self.best_config_trial,
         )
 
-    def suggest_batch(self, batch_size):
-        next_trials = []
+    def is_full_fidelity(self, result):
+        stage = result.evaluation_level_stage
+        return stage == (len(self.evaluation_level) - 1)
 
-        num_of_promoted_trials = self.return_num_of_promoted_trials(batch_size)
-        next_trials.extend(self.return_promotions(num_of_promoted_trials))
+    def should_promote(self, state, cur_stage):
+        states = [
+            state
+            for state in self.candidate_states.values()
+            if cur_stage in state.successful_stages
+        ]
 
-        # any init configurations first
-        for _ in range(batch_size - len(next_trials)):
-            initial_config = self.pop_next_initial_configuration()
-            if initial_config is not None:
-                next_trials.append(
-                    Trial(
-                        config=initial_config,
-                        evaluation_level=self.evaluation_level[0],
-                        priority=1.0,
-                    )
-                )
-                self.register_scheduled_trial(next_trials[-1])
-            else:
-                break
+        if not states:
+            return True
 
-        # if we just started prefer exploration
+        if len(states) < self.min_stage_observations_for_promotion:
+            return True
 
-        if len(self.observations) < self.n_initial_points:
-            for _ in range(batch_size - len(next_trials)):
-                config = self.sample_random_unseen_configuration()
-                next_trials.append(
-                    Trial(
-                        config=config,
-                        evaluation_level=self.evaluation_level[0],
-                        priority=1.0,
-                    )
-                )
-                self.register_scheduled_trial(next_trials[-1])
-            return next_trials
-
-        # use acquisition function to suggest promising candidates
-        finite_observations = self.finite_vectorized_observations()
-        if len(finite_observations) < self.n_initial_points:
-            for _ in range(batch_size - len(next_trials)):
-                config = self.sample_random_unseen_configuration()
-                next_trials.append(
-                    Trial(
-                        config=config,
-                        evaluation_level=self.evaluation_level[0],
-                        priority=1.0,
-                    )
-                )
-                self.register_scheduled_trial(next_trials[-1])
-            return next_trials
-
-        X_obs = np.vstack([row["augmented_vector"] for row in finite_observations])
-        y_obs = np.asarray([row["cost"] for row in finite_observations], dtype=float)
-
-        if len(np.unique(y_obs)) <= 1:
-            # Not enough variance, sample randomly
-            for _ in range(batch_size - len(next_trials)):
-                config = self.sample_random_unseen_configuration()
-                next_trials.append(
-                    Trial(
-                        config=config,
-                        evaluation_level=self.evaluation_level[0],
-                        priority=1.0,  # placeholder
-                    )
-                )
-                self.register_scheduled_trial(next_trials[-1])
-            return next_trials
-
-        # fit surrogate model
-        surrogate = RandomForestRegressor(
-            n_estimators=100,
-            bootstrap=True,
-            max_features=5 / 6,
-            min_samples_split=3,
-            min_samples_leaf=3,
-            max_depth=20,
-            n_jobs=1,
-            random_state=self.random_state,
+        ranked_states = sorted(
+            states, key=lambda state: state.successful_stages[cur_stage]
         )
-        surrogate.fit(X_obs, y_obs)
+        promotion_count = max(1, ceil(len(ranked_states) * self.promotion_quantile))
+        promoted_signs = {
+            state.signature for state in ranked_states[:promotion_count]
+        }
 
-        candidate_configs = self.sample_candidate_pool()
-        candidate_vectors = np.vstack(
-            [
-                self.augment_vector(
-                    self.config_to_vector(config), self.evaluation_level[0]
-                )
-                for config in candidate_configs
-            ]
+        return state.signature in promoted_signs
+
+    def record_trial(self, config, result):
+        sign = self.config_to_sign(config)
+        state = self.candidate_states.get(sign)
+        if state is None:
+            state = ConfigState(config, sign)
+            self.candidate_states[sign] = state
+
+        cur_stage = result.evaluation_level_stage
+
+        if result.status == "success":
+            state.successful_stages[cur_stage] = result.cost
+
+        next_stage = cur_stage + 1
+        if next_stage >= len(self.evaluation_level):
+            return
+
+        if result.status != "success":
+            return
+
+        if next_stage in state.stages_this_config_get_promoted_to:
+            return
+
+        if not self.should_promote(state, cur_stage):
+            return
+
+        promoted_trial = Trial(
+            config, self.evaluation_level[next_stage], result.cost
         )
-        mean, std = self.predict_with_uncertainty(surrogate, candidate_vectors)
-        acquisition = self.expected_improvement(
-            mean, std, best=self.best_observed_cost()
+        self.promotion_queue.append(promoted_trial)
+        self.promotion_queue.sort(
+            key=lambda trial: (trial.evaluation_level.stage, trial.priority)
         )
-        ranked_indices = np.argsort(acquisition)[::-1]
+        state.stages_this_config_get_promoted_to.add(next_stage)
 
-        # select top N
-        for idx in ranked_indices:
-            if len(next_trials) >= batch_size:
-                break
-            candidate = candidate_configs[int(idx)]
-            if self.is_unseen(candidate):
-                next_trials.append(
-                    Trial(
-                        config=candidate,
-                        evaluation_level=self.evaluation_level[0],
-                        priority=float(mean[int(idx)]),
-                    )
-                )
-                self.register_scheduled_trial(next_trials[-1])
-
-        # If we still need more configurations, sample randomly
-        while len(next_trials) < batch_size:
-            config = self.sample_random_unseen_configuration()
-            next_trials.append(
-                Trial(
-                    config=config,
-                    evaluation_level=self.evaluation_level[0],
-                    priority=1.0,  # placeholder
-                )
-            )
-            self.register_scheduled_trial(next_trials[-1])
-
-        return next_trials
-
-    def evaluate_batch_with_processes(self, trials):
-        processes = []
-        queues = []  # to collect results from processes
-        results = [None] * len(trials)
-        start_times = {}
-
-        for i, trial in enumerate(trials):
-            queue = Queue()
-            queues.append(queue)
-
-            process = Process(
-                target=self.evaluate_worker,
-                args=(queue, trial.config, trial.evaluation_level),
-                daemon=True,
-            )
-            processes.append(process)
-            start_times[i] = perf_counter()
-            process.start()
-
-        # handle timeout and collect results
-        num_of_completed_processes = 0
-        remaining_indices = list(range(len(trials)))
-
-        while num_of_completed_processes < len(trials) and remaining_indices:
-            current_time = perf_counter()
-
-            # Check for num_of_completed_processes processes
-            still_running = []
-            for idx in remaining_indices:
-                if not queues[idx].empty():
-                    try:
-                        result = queues[idx].get_nowait()
-                        results[idx] = result
-                        num_of_completed_processes += 1
-                        processes[idx].join()  # clean up
-                    except Exception:
-                        pass
-                else:
-                    still_running.append(idx)
-
-            remaining_indices = still_running
-
-            # Kill timed-out processes
-            if self.per_run_time_limit is not None:
-                for idx in remaining_indices:
-                    time_out = (
-                        current_time - start_times[idx]
-                    )  # Individual process time_out time
-                    if time_out >= self.per_run_time_limit:
-                        if processes[idx].is_alive():
-                            if self.verbose > 1:
-                                config_dict = dict(trials[idx].config)
-                                model_name = config_dict.get("model_name", "unknown")
-                                print(
-                                    f"[AutoML] Killing process for {model_name} "
-                                    "(timeout)"
-                                )
-                            processes[idx].terminate()
-                            processes[idx].join(timeout=1.0)
-                            if processes[idx].is_alive():
-                                processes[idx].kill()  # force kill
-
-                            config_dict = dict(trials[idx].config)
-                            results[idx] = EvaluationResult(
-                                model_name=config_dict.get("model_name", "unknown"),
-                                params=config_dict,
-                                preprocessing="none",
-                                score=0.0,
-                                cost=1.0,
-                                duration=time_out,
-                                status="timeout",
-                                error=(
-                                    "per_run_time_limit exceeded "
-                                    f"({self.per_run_time_limit:.2f}s)"
-                                ),
-                                evaluation_level_stage=trials[
-                                    idx
-                                ].evaluation_level.stage,
-                                sample_fraction=trials[
-                                    idx
-                                ].evaluation_level.sample_fraction,
-                                cv_folds=trials[idx].evaluation_level.cv_folds or 0,
-                                model_budget=trials[
-                                    idx
-                                ].evaluation_level.model_budget,
-                            )
-                            num_of_completed_processes += 1
-
-            if remaining_indices:
-                sleep(1)
-
-        return results
-
-    def evaluate_single_config(self, trial):
-        if self.per_run_time_limit is None:
-            return self.evaluator.direct_evaluation(
+    def evaluate_single(self, trial):
+        if self.per_trial_timelimit is None:
+            return self.evaluator.evaluate(
                 trial.config,
                 self.X,
                 self.y,
                 evaluation_level=trial.evaluation_level,
             )
-        return self.evaluate_batch_with_processes([trial])[0]
+        return self.evaluate_batch([trial])[0]
+
+    def evaluate_single_config(self, trial):
+        return self.evaluate_single(trial)
 
     def evaluate_worker(self, queue, config, evaluation_level):
         try:
@@ -453,7 +291,7 @@ class Optimizer:
             config_dict = dict(config)
             queue.put(
                 EvaluationResult(
-                    model_name=config_dict.get("model_name", "unknown"),
+                    model_name=config_dict.get("model_name"),
                     params=config_dict,
                     preprocessing="none",
                     score=0.0,
@@ -473,67 +311,303 @@ class Optimizer:
             config, self.X, self.y, evaluation_level=evaluation_level
         )
 
-    def vectorized_observations(self):
-        rows = []
-        for row in self.observations:
-            vector = row.get("vector")
-            if vector is None:
-                vector = self.config_to_vector(row["config"])
-                row["vector"] = vector
-            augmented_vector = row.get("augmented_vector")
-            if augmented_vector is None:
-                evaluation_level = TrialSpecs(
-                    stage=int(
-                        row.get(
-                            "evaluation_level_stage", row.get("evaluation_level", 0)
-                        )
-                    ),
-                    sample_fraction=float(row.get("sample_fraction", 1.0)),
-                    cv_folds=int(
-                        row.get("cv_folds", self.evaluation_level[-1].cv_folds or 1)
-                    ),
-                    model_budget=float(row.get("model_budget", 1.0)),
-                )
-                augmented_vector = self.augment_vector(vector, evaluation_level)
-                row["augmented_vector"] = augmented_vector
-            rows.append(row)
-        return rows
+    def evaluate_batch(self, trials):
+        if self.per_trial_timelimit is None:
+            return [
+                self.evaluate_single_inline(trial.config, trial.evaluation_level)
+                for trial in trials
+            ]
 
-    def finite_vectorized_observations(self):
-        rows = []
-        for row in self.vectorized_observations():
-            if not np.isfinite(row.get("cost", np.nan)):
-                continue
-            augmented_vector = np.asarray(row["augmented_vector"], dtype=float)
-            if not np.all(np.isfinite(augmented_vector)):
-                continue
-            rows.append(row)
-        return rows
+        processes = []
+        queues = []
+        results = [None] * len(trials)
+        start_times = {}
+
+        for i, trial in enumerate(trials):
+            queue = Queue()
+            queues.append(queue)
+
+            process = Process(
+                target=self.evaluate_worker,
+                args=(queue, trial.config, trial.evaluation_level),
+            )
+            processes.append(process)
+            start_times[i] = perf_counter()
+            process.start()
+
+        num_of_completed_processes = 0
+        remaining = list(range(len(trials)))
+
+        while num_of_completed_processes < len(trials):
+            current_time = perf_counter()
+
+            still_running = []
+            for idx in remaining:
+                if not queues[idx].empty():
+                    result = queues[idx].get_nowait()
+                    results[idx] = result
+                    num_of_completed_processes += 1
+                    processes[idx].join()  # clean up
+
+                else:
+                    still_running.append(idx)
+
+            remaining = still_running
+
+            if self.per_trial_timelimit is not None:
+                for idx in remaining:
+                    timeout = current_time - start_times[idx]
+                    if timeout >= self.per_trial_timelimit:
+                        config_dict = dict(trials[idx].config)
+                        if self.verbose > 1:
+                            model_name = config_dict.get("model_name")
+                            print(f"Killing process for {model_name} (timeout)")
+
+                        processes[idx].terminate()
+                        processes[idx].join(timeout=1.0)
+                        if processes[idx].is_alive():
+                            processes[idx].kill()  # force kill
+
+                        results[idx] = EvaluationResult(
+                            model_name=config_dict.get("model_name"),
+                            params=config_dict,
+                            preprocessing="none",
+                            score=0.0,
+                            cost=1.0,
+                            duration=timeout,
+                            status="timeout",
+                            error=(
+                                "per_run_time_limit exceeded "
+                                f"({self.per_trial_timelimit:.2f}s)"
+                            ),
+                            evaluation_level_stage=trials[
+                                idx
+                            ].evaluation_level.stage,
+                            sample_fraction=trials[
+                                idx
+                            ].evaluation_level.sample_fraction,
+                            cv_folds=trials[idx].evaluation_level.cv_folds or 0,
+                            model_budget=trials[idx].evaluation_level.model_budget,
+                        )
+                        num_of_completed_processes += 1
+
+            if remaining:
+                sleep(0.01)
+
+        return results
+
+    def time_budget_exceeded(self, start_time):
+        if self.time_budget is None:
+            return False
+
+        return (perf_counter() - start_time) > self.time_budget
+
+    def get_num_of_promoted_trials(self):
+        if len(self.promotion_queue) == 0:
+            return 0
+
+        if len(self.trials) < self.num_of_initail_points_to_try:
+            return 0  # don't promote during initial exploration phase
+
+        if (
+            self.best_config_trial is None
+        ):  # still exploration, small promotion percentage
+            return min(
+                len(self.promotion_queue),
+                max(1, self.num_of_trials_to_run_parralel // 2),
+            )
+
+        return min(
+            len(self.promotion_queue),
+            max(1, (2 * self.num_of_trials_to_run_parralel) // 3),
+        )  # go into exploitation
+
+    def config_to_vector(self, config):
+        vector = np.asarray(config.get_array(), dtype=float)
+        return np.nan_to_num(vector, nan=-1.0, posinf=1.0, neginf=-1.0)
+
+    def config_to_sign(self, config):
+        return tuple(self.config_to_vector(config).tolist())
+
+    def mark_seen(self, sign):
+        self.seen_signatures.add(sign)
+
+    def register_trial(self, trial):
+        sign = self.config_to_sign(trial.config)
+        if trial.evaluation_level.stage == 0:
+            self.mark_seen(sign)
+
+        state = self.candidate_states.get(sign)
+        if state is None:
+            state = ConfigState(trial.config, sign)
+            self.candidate_states[sign] = state
+
+    def get_promoted_trials(self, num_of_promoted_trials):
+        if num_of_promoted_trials == 0:
+            return []
+
+        promoted_trails = self.promotion_queue[:num_of_promoted_trials]
+        self.promotion_queue = self.promotion_queue[num_of_promoted_trials:]
+
+        for trial in promoted_trails:
+            self.register_trial(trial)
+
+        return promoted_trails
+
+    def is_unseen(self, config):
+        return self.config_to_sign(config) not in self.seen_signatures
+
+    def pop_next_warmstart_config(self):
+        while self.warm_start_configs:
+            config = self.warm_start_configs.pop(0)
+            if self.is_unseen(config):
+                return config
+
+            return None
 
     def sample_random_configuration(self):
-        return self.configspace.sample_configuration()
+        return self.config_space.sample_configuration()
 
     def sample_random_unseen_configuration(self):
-        max_attempts = max(self.candidate_pool_size * 8, 128)
+        max_attempts = self.sample_size_from_configspace * 8
         for _ in range(max_attempts):
             config = self.sample_random_configuration()
             if self.is_unseen(config):
                 return config
+
         return self.sample_random_configuration()
 
-    def sample_candidate_pool(self):
+    def suggest_batch(self, batch_size=None):
+        next_trials = []
+        num = batch_size or self.num_of_trials_to_run_parralel
+        num_of_promoted_trials = self.get_num_of_promoted_trials()
+        next_trials.extend(self.get_promoted_trials(num_of_promoted_trials))
+
+        # try warmstart config first
+        for _ in range(num - len(next_trials)):
+            config = self.pop_next_warmstart_config()
+            if config is not None:
+                next_trials.append(Trial(config, self.evaluation_level[0]))
+                self.register_trial(next_trials[-1])
+            else:
+                break
+
+        # prefer exploration until we reach num_of_initail_points_to_try
+        if len(self.trials) < self.num_of_initail_points_to_try:
+            for _ in range(num - len(next_trials)):
+                config = self.sample_random_unseen_configuration()
+                next_trials.append(Trial(config, self.evaluation_level[0]))
+                self.register_trial(next_trials[-1])
+
+            return next_trials
+
+        finite_trials = self.get_finite_vectors()
+
+        if len(finite_trials) < self.num_of_initail_points_to_try:
+            for _ in range(num - len(next_trials)):
+                config = self.sample_random_unseen_configuration()
+                next_trials.append(Trial(config, self.evaluation_level[0]))
+                self.register_trial(next_trials[-1])
+
+            return next_trials
+
+        X_obs = np.vstack([trial["augmented_vector"] for trial in finite_trials])
+        y = np.asarray([trial["cost"] for trial in finite_trials], dtype=float)
+
+        # fit surrogate model
+        surrogate = RandomForestRegressor(
+            n_estimators=100,
+            bootstrap=True,
+            max_features=1.0,
+            min_samples_split=3,
+            min_samples_leaf=3,
+            max_depth=20,
+            n_jobs=1,
+            random_state=self.random,
+        )
+
+        surrogate.fit(X_obs, y)
+        sample_configs = self.sample_configurations()
+        sample_configs_vectors = np.vstack(
+            [
+                self.augment_vector(
+                    self.config_to_vector(config), self.evaluation_level[0]
+                )
+                for config in sample_configs
+            ]
+        )
+
+        mean, std = self.predict_using_surregate(surrogate, sample_configs_vectors)
+        acquisition = self.expected_improvement(mean, std, self.get_best_cost())
+        ranked_indices = np.argsort(acquisition)[::-1]
+
+        for idx in ranked_indices:
+            if len(next_trials) >= num:
+                break
+
+            candidate_config = sample_configs[idx]
+            if self.is_unseen(candidate_config):
+                next_trials.append(Trial(candidate_config, self.evaluation_level[0]))
+            self.register_trial(next_trials[-1])
+
+        while len(next_trials) < num:
+            config = self.sample_random_unseen_configuration()
+            next_trials.append(Trial(config, self.evaluation_level[0]))
+            self.register_trial(next_trials[-1])
+
+        return next_trials
+
+    def expected_improvement(self, mean, std, best_cost):
+        xi = 0.01
+        improvement = best_cost - mean - xi
+        normalized_improvement = improvement / std
+        normal = NormalDist()
+        phi = np.asarray(
+            [normal.pdf(float(value)) for value in normalized_improvement],
+            dtype=float,
+        )
+        Phi = np.asarray(
+            [normal.cdf(float(value)) for value in normalized_improvement],
+            dtype=float,
+        )
+        ei = improvement * Phi + std * phi
+        ei[std <= 1e-12] = 0.0
+        return ei
+
+    def predict_using_surregate(self, surrogate, X):
+        trees_prediction = np.vstack(
+            [tree.predict(X) for tree in surrogate.estimators_]
+        )
+        mean = trees_prediction.mean(axis=0)
+        std = trees_prediction.std(axis=0)
+        std = np.maximum(std, 1e-9)
+        return mean, std
+
+    def get_best_cost(self):
+        finite_costs = [
+            row["cost"]
+            for row in self.trials
+            if np.isfinite(row.get("cost", np.nan))
+        ]
+        if not finite_costs:
+            return float("inf")
+        return float(min(finite_costs))
+
+    def sample_configurations(self):
         candidates = []
         seen = set()
-        max_attempts = self.candidate_pool_size * 4
+        max_attempts = self.sample_size_from_configspace * 4
 
         for _ in range(max_attempts):
             config = self.sample_random_configuration()
-            vector_key = tuple(self.config_to_vector(config).tolist())
-            if vector_key in seen:
+            sign = self.config_to_sign(config)
+            if sign in seen or not self.is_unseen(config):
                 continue
-            seen.add(vector_key)
+
+            seen.add(sign)
             candidates.append(config)
-            if len(candidates) >= self.candidate_pool_size:
+
+            if len(candidates) == self.sample_size_from_configspace:
                 break
 
         if not candidates:
@@ -541,201 +615,52 @@ class Optimizer:
 
         return candidates
 
-    def best_observed_cost(self):
-        finite_costs = [
-            row["cost"]
-            for row in self.observations
-            if np.isfinite(row.get("cost", np.nan))
-        ]
-        if not finite_costs:
-            return float("inf")
-        return float(min(finite_costs))
-
-    @staticmethod
-    def predict_with_uncertainty(
-        surrogate,
-        X,
-    ):
-        tree_predictions = np.vstack(
-            [tree.predict(X) for tree in surrogate.estimators_]
-        )
-        mean = tree_predictions.mean(axis=0)
-        std = tree_predictions.std(axis=0)
-        std = np.maximum(std, 1e-9)
-        return mean, std
-
-    @staticmethod
-    def expected_improvement(
-        mean,
-        std,
-        *,
-        best,
-        xi=0.01,
-    ):
-        improvement = best - mean - xi
-        z = improvement / std
-        normal = NormalDist()
-        phi = np.asarray([normal.pdf(float(value)) for value in z], dtype=float)
-        Phi = np.asarray([normal.cdf(float(value)) for value in z], dtype=float)
-        ei = improvement * Phi + std * phi
-        ei[std <= 1e-12] = 0.0
-        return ei
-
-    @staticmethod
-    def config_to_vector(config):
-        if hasattr(config, "get_array"):
-            vector = np.asarray(config.get_array(), dtype=float)
-        else:
-            raise TypeError("Configuration object must implement `get_array()`.")
-
-        return np.nan_to_num(vector, nan=-1.0, posinf=1.0, neginf=-1.0)
-
-    def config_signature(self, config):
-        return tuple(self.config_to_vector(config).tolist())
-
-    @staticmethod
-    def augment_vector(config_vector, evaluation_level):
-        cv_component = (
-            0.0
-            if evaluation_level.cv_folds is None
-            else float(evaluation_level.cv_folds)
-        )
-        evaluation_level_vector = np.asarray(
+    def augment_vector(self, config_vector, trial_specs):
+        vector = np.asarray(
             [
-                float(evaluation_level.stage),
-                float(evaluation_level.sample_fraction),
-                cv_component,
-                float(evaluation_level.model_budget),
+                trial_specs.stage,
+                trial_specs.sample_fraction,
+                0.0 if trial_specs.cv_folds is None else trial_specs.cv_folds,
+                trial_specs.model_budget,
             ],
             dtype=float,
         )
-        return np.concatenate([config_vector, evaluation_level_vector], dtype=float)
 
-    def is_unseen(self, config):
-        return self.config_signature(config) not in self.seen_signatures
+        return np.concatenate([config_vector, vector], dtype=float)
 
-    def mark_seen(self, config):
-        self.seen_signatures.add(self.config_signature(config))
+    def vectorize_observations(self):
+        trials = []
+        for trial in self.trials:
+            vector = trial.get("vector")
+            if vector is None:
+                vector = self.config_to_vector(trial["config"])
+                trial["vector"] = vector
 
-    def record_observation(
-        self,
-        config,
-        result,
-    ):
-        signature = self.config_signature(config)
-        state = self.candidate_states.get(signature)
-        if state is None:
-            state = ConfigState(config=config, signature=signature)
-            self.candidate_states[signature] = state
+            augmented_vector = trial.get("augmented_vector")
+            if augmented_vector is None:
+                trial_specs = TrialSpecs(
+                    trial.get("evaluation_level_stage"),
+                    trial.get("sample_fraction"),
+                    trial.get("cv_folds"),
+                    trial.get("model_budget"),
+                )
+                augmented_vector = self.augment_vector(vector, trial_specs)
+                trial["augmented_vector"] = augmented_vector
 
-        current_stage = int(result.evaluation_level_stage)
+            trials.append(trial)
+        return trials
 
-        if result.status == "success":
-            state.successful_stages[current_stage] = float(result.cost)
+    def get_finite_vectors(self):
+        trials = []
 
-        next_stage = current_stage + 1
-        if next_stage >= len(self.evaluation_level):
-            return
-        if result.status != "success":
-            return
-        if next_stage in state.stages_this_config_get_promoted_to:
-            return
-        if not self.should_promote(state, current_stage):
-            return
+        for trial in self.vectorize_observations():
+            if not np.isfinite(trial.get("cost", np.nan)):
+                continue
 
-        promoted_trial = Trial(
-            config=config,
-            evaluation_level=self.evaluation_level[next_stage],
-            priority=float(result.cost),
-        )
+            augmented_vector = np.asanyarray(trial["augmented_vector"], dtype=float)
+            if not np.all(np.isfinite(augmented_vector)):
+                continue
 
-        self.promotion_queue.append(promoted_trial)
-        self.promotion_queue.sort(
-            key=lambda trial: (trial.evaluation_level.stage, trial.priority)
-        )
-        state.stages_this_config_get_promoted_to.add(next_stage)
+            trials.append(trial)
 
-    def should_promote(self, candidate_state, stage):
-        if stage not in candidate_state.successful_stages:
-            return False
-        eligible_states = [
-            state
-            for state in self.candidate_states.values()
-            if stage in state.successful_stages
-        ]
-        if not eligible_states:
-            return True
-        if len(eligible_states) < self.min_stage_observations_for_promotion:
-            return True
-
-        ranked_states = sorted(
-            eligible_states,
-            key=lambda state: state.successful_stages[stage],
-        )
-        promotion_count = max(1, ceil(len(ranked_states) * self.promotion_quantile))
-        promoted_signatures = {
-            state.signature for state in ranked_states[:promotion_count]
-        }
-        return candidate_state.signature in promoted_signatures
-
-    def is_full_fidelity(self, result):
-        stage = getattr(
-            result, "evaluation_level_stage", getattr(result, "fidelity_stage", 0)
-        )
-        return int(stage) >= (len(self.evaluation_level) - 1)
-
-    def register_scheduled_trial(self, trial):
-        signature = self.config_signature(trial.config)
-        if trial.evaluation_level.stage == 0:
-            self.mark_seen(trial.config)
-
-        state = self.candidate_states.get(signature)
-        if state is None:
-            state = ConfigState(config=trial.config, signature=signature)
-            self.candidate_states[signature] = state
-
-    def return_promotions(self, limit):
-        if limit <= 0 or not self.promotion_queue:
-            return []
-
-        taken = self.promotion_queue[:limit]
-        self.promotion_queue = self.promotion_queue[limit:]
-
-        for trial in taken:
-            self.register_scheduled_trial(trial)
-
-        return taken
-
-    def return_num_of_promoted_trials(self, batch_size):
-        if not self.promotion_queue:
-            return 0
-
-        if (
-            len(self.observations) < self.n_initial_points
-        ):  # don't promote during initial exploration phase
-            return 0
-
-        num = len(self.promotion_queue)
-        if self.best_config_result is None:
-            return min(num, max(1, batch_size // 2))
-        return min(num, max(1, (2 * batch_size) // 3))
-
-    def pop_next_initial_configuration(self):
-        while self.initial_configurations:
-            config = self.initial_configurations.pop(0)
-            if self.is_unseen(config):
-                return config
-        return None
-
-    def time_budget_exceeded(self, started_at):
-        if self.time_budget is None:
-            return False
-        return (perf_counter() - started_at) >= float(self.time_budget)
-
-    @staticmethod
-    def safe_model_name(config):
-        try:
-            config_dict = dict(config)
-            return str(config_dict.get("model_name", "<unknown>"))
-        except Exception:
-            return "<unknown>"
+        return trials

@@ -1,0 +1,5 @@
+dataset,framework,fit_time_sec,val_accuracy
+titanic_preprocessing,custom_automl,8.539,0.8156424581005587
+titanic_preprocessing,custom_automl,218.608,0.8100558659217877
+titanic_preprocessing,custom_automl,227.333,0.8100558659217877
+titanic_preprocessing,custom_automl,222.246,0.8100558659217877

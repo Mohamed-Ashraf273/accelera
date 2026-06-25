@@ -16,13 +16,15 @@ from sklearn.metrics import r2_score
 from sklearn.model_selection import KFold
 from sklearn.model_selection import cross_val_predict
 
+from accelera.src.accelera_automl.utils import log_ensemble_structure
+from accelera.src.accelera_automl.utils import log_forward_selection_step
+
 
 class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
     def __init__(
         self,
         *,
         base_estimators,
-        meta_estimators,
         cv=5,
         random_state=None,
         n_jobs=None,
@@ -33,6 +35,7 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
         verbose=0,
         min_base_models=3,
         selection_tolerance=1e-4,
+        meta_estimators=None,
     ):
         self.base_estimators = base_estimators
         self.meta_estimators = meta_estimators
@@ -44,70 +47,58 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
         self.include_original_features_in_meta = include_original_features_in_meta
         self.scoring = scoring
         self.verbose = verbose
-        self.min_base_models = max(1, int(min_base_models))
-        self.selection_tolerance = float(selection_tolerance)
+        self.min_base_models = min_base_models
+        self.selection_tolerance = selection_tolerance
 
-    def fit(self, X, y):
-        splitter = KFold(
-            n_splits=self.cv, shuffle=True, random_state=self.random_state
-        )
-        base_results = Parallel(n_jobs=self.n_jobs)(
-            delayed(self.fit_base_model)(base_name, base_estimator, X, y, splitter)
-            for base_name, base_estimator in self.base_estimators
-        )
-        if not base_results:
-            raise RuntimeError(
-                "At least one base estimator is required to fit "
-                "the stacked ensemble."
+    def combine_meta_features(self, X, selected):
+        prediction_matrix = np.hstack(selected)
+        if not self.include_original_features_in_meta:
+            return prediction_matrix
+        if sparse.issparse(X):
+            return sparse.hstack(
+                [X, sparse.csr_matrix(prediction_matrix)], format="csr"
             )
+        return np.hstack([np.asarray(X), prediction_matrix])
 
-        self.selected_names, self.score_result = self.forward_select_base_models(
-            X, np.asarray(y), base_results
-        )
-        selected_names = set(self.selected_names)
-        selected_results = [
-            (base_name, fitted_model, oof_pred)
-            for base_name, fitted_model, oof_pred in base_results
-            if base_name in selected_names
-        ]
-        if len(selected_results) < self.min_base_models:
-            raise RuntimeError(
-                "Forward selection did not produce the minimum number "
-                "of base models."
-            )
-
-        self.base_models = [
-            (base_name, fitted_model)
-            for base_name, fitted_model, _ in selected_results
-        ]
-        self.base_model_names = [base_name for base_name, _, _ in selected_results]
-        base_prediction_blocks = [
+    def evaluate_meta_subset(
+        self,
+        X,
+        y,
+        selected_results,
+    ):
+        X_train = [
             np.asarray(oof_pred, dtype=float).reshape(-1, 1)
             for _, _, oof_pred in selected_results
         ]
-        stack_train_X = self.combine_meta_features(X, base_prediction_blocks)
-
-        meta_name, meta_estimator = (
-            "meta_ridge_regressor",
-            Ridge(random_state=self.random_state, alpha=1.0),
+        stack_X_train = self.combine_meta_features(X, X_train)
+        splitter = KFold(
+            n_splits=self.cv, shuffle=True, random_state=self.random_state
         )
-        self.meta_model_name = meta_name
-        self.meta_model = clone(meta_estimator)
-        self.meta_model.fit(stack_train_X, y)
+        meta_estimator = Ridge(random_state=self.random_state, alpha=1.0)
+        meta_oof_pred = cross_val_predict(
+            clone(meta_estimator),
+            stack_X_train,
+            y,
+            cv=splitter,
+            method="predict",
+            n_jobs=self.inner_n_jobs,
+        )
+        return self.score_predictions(y, np.asarray(meta_oof_pred, dtype=float))
 
-        self.forward_selection_ = SimpleNamespace(score=float(self.score_result))
-        self.log_ensemble_structure()
-        return self
+    def make_bagged_model(self, base_estimator, n_jobs=None):
+        bagging_kwargs = {
+            "n_estimators": self.bagging_n_estimators,
+            "random_state": self.random_state,
+            "n_jobs": n_jobs,
+        }
 
-    def predict(self, X):
-        stack_features = self.build_stack_features(X)
-        return np.asarray(self.meta_model.predict(stack_features), dtype=float)
+        return BaggingRegressor(estimator=clone(base_estimator), **bagging_kwargs)
 
     def fit_base_model(self, base_name, base_estimator, X, y, splitter):
         bagged_model = self.make_bagged_model(
             base_estimator, n_jobs=self.inner_n_jobs
         )
-        oof_pred = cross_val_predict(
+        predictions = cross_val_predict(
             bagged_model,
             X,
             y,
@@ -119,7 +110,7 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
             base_estimator, n_jobs=self.inner_n_jobs
         )
         fitted_bagged_model.fit(X, y)
-        return base_name, fitted_bagged_model, np.asarray(oof_pred, dtype=float)
+        return base_name, fitted_bagged_model, np.asarray(predictions, dtype=float)
 
     def forward_select_base_models(
         self,
@@ -129,17 +120,22 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
     ):
         remaining = list(base_results)
         best_single = max(
-            remaining, key=lambda item: self.score_predictions(y, item[2])
+            remaining,
+            key=lambda item: self.score_predictions(
+                y,
+                np.asarray(item[2], dtype=float),
+            ),
         )
         selected = [best_single]
         remaining.remove(best_single)
         current_score = self.evaluate_meta_subset(X, y, selected)
-        self.log_forward_selection_step(
-            step=1,
-            selected_names=[best_single[0]],
-            score=current_score,
-            improvement=None,
-        )
+        if self.verbose > 0:
+            log_forward_selection_step(
+                step=1,
+                selected_names=[best_single[0]],
+                score=current_score,
+                improvement=None,
+            )
 
         while remaining:
             best_candidate = None
@@ -164,53 +160,60 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
             selected.append(best_candidate)
             remaining.remove(best_candidate)
             current_score = best_candidate_score
-            self.log_forward_selection_step(
-                step=len(selected),
-                selected_names=[name for name, _, _ in selected],
-                score=current_score,
-                improvement=improvement,
-            )
+            if self.verbose > 0:
+                log_forward_selection_step(
+                    step=len(selected),
+                    selected_names=[name for name, _, _ in selected],
+                    score=current_score,
+                    improvement=improvement,
+                )
+
         return [name for name, _, _ in selected], current_score
 
-    def evaluate_meta_subset(
-        self,
-        X,
-        y,
-        selected_results,
-    ):
-        blocks = [
-            np.asarray(oof_pred, dtype=float).reshape(-1, 1)
-            for _, _, oof_pred in selected_results
-        ]
-        stack_train_X = self.combine_meta_features(X, blocks)
+    def fit(self, X, y):
         splitter = KFold(
             n_splits=self.cv, shuffle=True, random_state=self.random_state
         )
-        meta_estimator = Ridge(random_state=self.random_state, alpha=1.0)
-        meta_oof_pred = cross_val_predict(
-            clone(meta_estimator),
-            stack_train_X,
-            y,
-            cv=splitter,
-            method="predict",
-            n_jobs=self.inner_n_jobs,
+        base_results = Parallel(n_jobs=self.n_jobs)(
+            delayed(self.fit_base_model)(base_name, base_estimator, X, y, splitter)
+            for base_name, base_estimator in self.base_estimators
         )
-        return self.score_predictions(y, np.asarray(meta_oof_pred, dtype=float))
 
-    def make_bagged_model(self, base_estimator, n_jobs=None):
-        bagging_kwargs = {
-            "n_estimators": self.bagging_n_estimators,
-            "random_state": self.random_state,
-            "n_jobs": n_jobs if n_jobs is not None else self.n_jobs,
-        }
-        try:
-            return BaggingRegressor(
-                estimator=clone(base_estimator), **bagging_kwargs
+        self.selected_names, self.score_result = self.forward_select_base_models(
+            X, np.asarray(y), base_results
+        )
+
+        self.base_models = [
+            (base_name, fitted_model) for base_name, fitted_model, _ in base_results
+        ]
+        self.base_model_names = [base_name for base_name, _, _ in base_results]
+        base_prediction_blocks = [
+            np.asarray(oof_pred, dtype=float).reshape(-1, 1)
+            for _, _, oof_pred in base_results
+        ]
+        stack_train_X = self.combine_meta_features(X, base_prediction_blocks)
+
+        meta_name, meta_estimator = (
+            "meta_ridge_regressor",
+            Ridge(random_state=self.random_state, alpha=1.0),
+        )
+        self.meta_model_name = meta_name
+        self.meta_model = clone(meta_estimator)
+        self.meta_model.fit(stack_train_X, y)
+        self.forward_selection_ = SimpleNamespace(score=float(self.score_result))
+
+        if self.verbose > 0:
+            log_ensemble_structure(
+                self.base_model_names,
+                self.meta_model_name,
+                float(self.score_result),
+                self.include_original_features_in_meta,
             )
-        except TypeError:
-            return BaggingRegressor(
-                base_estimator=clone(base_estimator), **bagging_kwargs
-            )
+        return self
+
+    def predict(self, X):
+        stack_features = self.build_stack_features(X)
+        return np.asarray(self.meta_model.predict(stack_features), dtype=float)
 
     def build_stack_features(self, X):
         blocks = [
@@ -218,39 +221,6 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
             for _, model in self.base_models
         ]
         return self.combine_meta_features(X, blocks)
-
-    def log_ensemble_structure(self):
-        if self.verbose <= 0:
-            return
-        print("[AutoML] Stacked ensemble summary")
-        print(f"[AutoML] Selected base models: {', '.join(self.base_model_names)}")
-        print(f"[AutoML] Meta model: {self.meta_model_name}")
-        print(
-            f"[AutoML] Forward selection score: {self.forward_selection_.score:.6f} "
-            f"(uses original features={self.include_original_features_in_meta})"
-        )
-
-    def log_forward_selection_step(
-        self,
-        *,
-        step,
-        selected_names,
-        score,
-        improvement,
-    ):
-        if self.verbose <= 0:
-            return
-        if improvement is None:
-            print(
-                f"[AutoML] Forward selection step {step}: "
-                f"selected {selected_names[-1]} score={score:.6f}"
-            )
-            return
-        print(
-            f"[AutoML] Forward selection step {step}: "
-            f"added {selected_names[-1]} score={score:.6f} "
-            f"improvement={improvement:.6f}"
-        )
 
     def score_predictions(self, y_true, prediction):
         if self.scoring in {"r2", None}:
@@ -269,16 +239,6 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
         }:
             return float(-mean_absolute_error(y_true, prediction))
         return float(r2_score(y_true, prediction))
-
-    def combine_meta_features(self, X, prediction_blocks):
-        prediction_matrix = np.hstack(prediction_blocks)
-        if not self.include_original_features_in_meta:
-            return prediction_matrix
-        if sparse.issparse(X):
-            return sparse.hstack(
-                [X, sparse.csr_matrix(prediction_matrix)], format="csr"
-            )
-        return np.hstack([np.asarray(X), prediction_matrix])
 
 
 def make_voting_regressor(estimators):

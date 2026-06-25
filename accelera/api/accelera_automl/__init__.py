@@ -5,6 +5,7 @@ since your modifications would be overwritten.
 """
 
 from accelera.src.accelera_automl import base as base
+from accelera.src.accelera_automl import base_evaluation as base_evaluation
 from accelera.src.accelera_automl import classification as classification
 from accelera.src.accelera_automl import (
     configspace_search_space as configspace_search_space,
@@ -15,6 +16,11 @@ from accelera.src.accelera_automl import stacked_ensemble as stacked_ensemble
 from accelera.src.accelera_automl import (
     stacked_ensemble_regression as stacked_ensemble_regression,
 )
+from accelera.src.accelera_automl import utils as utils
+from accelera.src.accelera_automl import (
+    automlbenchmark_custom_myautoml as automlbenchmark_custom_myautoml,
+)
+from accelera.src.accelera_automl import benchmark_results as benchmark_results
 from accelera.src.accelera_automl import components as components
 from accelera.src.accelera_automl import core as core
 from accelera.src.accelera_automl import meta_learning as meta_learning

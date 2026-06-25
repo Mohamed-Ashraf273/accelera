@@ -1,0 +1,2169 @@
+---
+
+- name: '1027_ESL'
+  dataset:
+    path: '{user}/data/pmlb_regression/1027_ESL'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 1027_ESL.tsv.gz'
+
+- name: '1028_SWD'
+  dataset:
+    path: '{user}/data/pmlb_regression/1028_SWD'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 1028_SWD.tsv.gz'
+
+- name: '1029_LEV'
+  dataset:
+    path: '{user}/data/pmlb_regression/1029_LEV'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 1029_LEV.tsv.gz'
+
+- name: '1030_ERA'
+  dataset:
+    path: '{user}/data/pmlb_regression/1030_ERA'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 1030_ERA.tsv.gz'
+
+- name: '1089_USCrime'
+  dataset:
+    path: '{user}/data/pmlb_regression/1089_USCrime'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 1089_USCrime.tsv.gz'
+
+- name: '1096_FacultySalaries'
+  dataset:
+    path: '{user}/data/pmlb_regression/1096_FacultySalaries'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 1096_FacultySalaries.tsv.gz'
+
+- name: '1191_BNG_pbc'
+  dataset:
+    path: '{user}/data/pmlb_regression/1191_BNG_pbc'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 1191_BNG_pbc.tsv.gz'
+
+- name: '1193_BNG_lowbwt'
+  dataset:
+    path: '{user}/data/pmlb_regression/1193_BNG_lowbwt'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 1193_BNG_lowbwt.tsv.gz'
+
+- name: '1196_BNG_pharynx'
+  dataset:
+    path: '{user}/data/pmlb_regression/1196_BNG_pharynx'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 1196_BNG_pharynx.tsv.gz'
+
+- name: '1199_BNG_echoMonths'
+  dataset:
+    path: '{user}/data/pmlb_regression/1199_BNG_echoMonths'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 1199_BNG_echoMonths.tsv.gz'
+
+- name: '1201_BNG_breastTumor'
+  dataset:
+    path: '{user}/data/pmlb_regression/1201_BNG_breastTumor'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 1201_BNG_breastTumor.tsv.gz'
+
+- name: '1203_BNG_pwLinear'
+  dataset:
+    path: '{user}/data/pmlb_regression/1203_BNG_pwLinear'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 1203_BNG_pwLinear.tsv.gz'
+
+- name: '1595_poker'
+  dataset:
+    path: '{user}/data/pmlb_regression/1595_poker'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 1595_poker.tsv.gz'
+
+- name: '192_vineyard'
+  dataset:
+    path: '{user}/data/pmlb_regression/192_vineyard'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 192_vineyard.tsv.gz'
+
+- name: '197_cpu_act'
+  dataset:
+    path: '{user}/data/pmlb_regression/197_cpu_act'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 197_cpu_act.tsv.gz'
+
+- name: '201_pol'
+  dataset:
+    path: '{user}/data/pmlb_regression/201_pol'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 201_pol.tsv.gz'
+
+- name: '210_cloud'
+  dataset:
+    path: '{user}/data/pmlb_regression/210_cloud'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 210_cloud.tsv.gz'
+
+- name: '215_2dplanes'
+  dataset:
+    path: '{user}/data/pmlb_regression/215_2dplanes'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 215_2dplanes.tsv.gz'
+
+- name: '218_house_8L'
+  dataset:
+    path: '{user}/data/pmlb_regression/218_house_8L'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 218_house_8L.tsv.gz'
+
+- name: '225_puma8NH'
+  dataset:
+    path: '{user}/data/pmlb_regression/225_puma8NH'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 225_puma8NH.tsv.gz'
+
+- name: '227_cpu_small'
+  dataset:
+    path: '{user}/data/pmlb_regression/227_cpu_small'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 227_cpu_small.tsv.gz'
+
+- name: '228_elusage'
+  dataset:
+    path: '{user}/data/pmlb_regression/228_elusage'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 228_elusage.tsv.gz'
+
+- name: '229_pwLinear'
+  dataset:
+    path: '{user}/data/pmlb_regression/229_pwLinear'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 229_pwLinear.tsv.gz'
+
+- name: '230_machine_cpu'
+  dataset:
+    path: '{user}/data/pmlb_regression/230_machine_cpu'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 230_machine_cpu.tsv.gz'
+
+- name: '294_satellite_image'
+  dataset:
+    path: '{user}/data/pmlb_regression/294_satellite_image'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 294_satellite_image.tsv.gz'
+
+- name: '344_mv'
+  dataset:
+    path: '{user}/data/pmlb_regression/344_mv'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 344_mv.tsv.gz'
+
+- name: '4544_GeographicalOriginalofMusic'
+  dataset:
+    path: '{user}/data/pmlb_regression/4544_GeographicalOriginalofMusic'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 4544_GeographicalOriginalofMusic.tsv.gz'
+
+- name: '485_analcatdata_vehicle'
+  dataset:
+    path: '{user}/data/pmlb_regression/485_analcatdata_vehicle'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 485_analcatdata_vehicle.tsv.gz'
+
+- name: '503_wind'
+  dataset:
+    path: '{user}/data/pmlb_regression/503_wind'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 503_wind.tsv.gz'
+
+- name: '505_tecator'
+  dataset:
+    path: '{user}/data/pmlb_regression/505_tecator'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 505_tecator.tsv.gz'
+
+- name: '519_vinnie'
+  dataset:
+    path: '{user}/data/pmlb_regression/519_vinnie'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 519_vinnie.tsv.gz'
+
+- name: '522_pm10'
+  dataset:
+    path: '{user}/data/pmlb_regression/522_pm10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 522_pm10.tsv.gz'
+
+- name: '523_analcatdata_neavote'
+  dataset:
+    path: '{user}/data/pmlb_regression/523_analcatdata_neavote'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 523_analcatdata_neavote.tsv.gz'
+
+- name: '527_analcatdata_election2000'
+  dataset:
+    path: '{user}/data/pmlb_regression/527_analcatdata_election2000'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 527_analcatdata_election2000.tsv.gz'
+
+- name: '529_pollen'
+  dataset:
+    path: '{user}/data/pmlb_regression/529_pollen'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 529_pollen.tsv.gz'
+
+- name: '537_houses'
+  dataset:
+    path: '{user}/data/pmlb_regression/537_houses'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 537_houses.tsv.gz'
+
+- name: '542_pollution'
+  dataset:
+    path: '{user}/data/pmlb_regression/542_pollution'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 542_pollution.tsv.gz'
+
+- name: '547_no2'
+  dataset:
+    path: '{user}/data/pmlb_regression/547_no2'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 547_no2.tsv.gz'
+
+- name: '556_analcatdata_apnea2'
+  dataset:
+    path: '{user}/data/pmlb_regression/556_analcatdata_apnea2'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 556_analcatdata_apnea2.tsv.gz'
+
+- name: '557_analcatdata_apnea1'
+  dataset:
+    path: '{user}/data/pmlb_regression/557_analcatdata_apnea1'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 557_analcatdata_apnea1.tsv.gz'
+
+- name: '560_bodyfat'
+  dataset:
+    path: '{user}/data/pmlb_regression/560_bodyfat'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 560_bodyfat.tsv.gz'
+
+- name: '561_cpu'
+  dataset:
+    path: '{user}/data/pmlb_regression/561_cpu'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 561_cpu.tsv.gz'
+
+- name: '562_cpu_small'
+  dataset:
+    path: '{user}/data/pmlb_regression/562_cpu_small'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 562_cpu_small.tsv.gz'
+
+- name: '564_fried'
+  dataset:
+    path: '{user}/data/pmlb_regression/564_fried'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 564_fried.tsv.gz'
+
+- name: '573_cpu_act'
+  dataset:
+    path: '{user}/data/pmlb_regression/573_cpu_act'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 573_cpu_act.tsv.gz'
+
+- name: '574_house_16H'
+  dataset:
+    path: '{user}/data/pmlb_regression/574_house_16H'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 574_house_16H.tsv.gz'
+
+- name: '579_fri_c0_250_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/579_fri_c0_250_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 579_fri_c0_250_5.tsv.gz'
+
+- name: '581_fri_c3_500_25'
+  dataset:
+    path: '{user}/data/pmlb_regression/581_fri_c3_500_25'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 581_fri_c3_500_25.tsv.gz'
+
+- name: '582_fri_c1_500_25'
+  dataset:
+    path: '{user}/data/pmlb_regression/582_fri_c1_500_25'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 582_fri_c1_500_25.tsv.gz'
+
+- name: '583_fri_c1_1000_50'
+  dataset:
+    path: '{user}/data/pmlb_regression/583_fri_c1_1000_50'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 583_fri_c1_1000_50.tsv.gz'
+
+- name: '584_fri_c4_500_25'
+  dataset:
+    path: '{user}/data/pmlb_regression/584_fri_c4_500_25'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 584_fri_c4_500_25.tsv.gz'
+
+- name: '586_fri_c3_1000_25'
+  dataset:
+    path: '{user}/data/pmlb_regression/586_fri_c3_1000_25'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 586_fri_c3_1000_25.tsv.gz'
+
+- name: '588_fri_c4_1000_100'
+  dataset:
+    path: '{user}/data/pmlb_regression/588_fri_c4_1000_100'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 588_fri_c4_1000_100.tsv.gz'
+
+- name: '589_fri_c2_1000_25'
+  dataset:
+    path: '{user}/data/pmlb_regression/589_fri_c2_1000_25'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 589_fri_c2_1000_25.tsv.gz'
+
+- name: '590_fri_c0_1000_50'
+  dataset:
+    path: '{user}/data/pmlb_regression/590_fri_c0_1000_50'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 590_fri_c0_1000_50.tsv.gz'
+
+- name: '591_fri_c1_100_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/591_fri_c1_100_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 591_fri_c1_100_10.tsv.gz'
+
+- name: '592_fri_c4_1000_25'
+  dataset:
+    path: '{user}/data/pmlb_regression/592_fri_c4_1000_25'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 592_fri_c4_1000_25.tsv.gz'
+
+- name: '593_fri_c1_1000_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/593_fri_c1_1000_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 593_fri_c1_1000_10.tsv.gz'
+
+- name: '594_fri_c2_100_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/594_fri_c2_100_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 594_fri_c2_100_5.tsv.gz'
+
+- name: '595_fri_c0_1000_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/595_fri_c0_1000_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 595_fri_c0_1000_10.tsv.gz'
+
+- name: '596_fri_c2_250_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/596_fri_c2_250_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 596_fri_c2_250_5.tsv.gz'
+
+- name: '597_fri_c2_500_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/597_fri_c2_500_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 597_fri_c2_500_5.tsv.gz'
+
+- name: '598_fri_c0_1000_25'
+  dataset:
+    path: '{user}/data/pmlb_regression/598_fri_c0_1000_25'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 598_fri_c0_1000_25.tsv.gz'
+
+- name: '599_fri_c2_1000_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/599_fri_c2_1000_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 599_fri_c2_1000_5.tsv.gz'
+
+- name: '601_fri_c1_250_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/601_fri_c1_250_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 601_fri_c1_250_5.tsv.gz'
+
+- name: '602_fri_c3_250_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/602_fri_c3_250_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 602_fri_c3_250_10.tsv.gz'
+
+- name: '603_fri_c0_250_50'
+  dataset:
+    path: '{user}/data/pmlb_regression/603_fri_c0_250_50'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 603_fri_c0_250_50.tsv.gz'
+
+- name: '604_fri_c4_500_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/604_fri_c4_500_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 604_fri_c4_500_10.tsv.gz'
+
+- name: '605_fri_c2_250_25'
+  dataset:
+    path: '{user}/data/pmlb_regression/605_fri_c2_250_25'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 605_fri_c2_250_25.tsv.gz'
+
+- name: '606_fri_c2_1000_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/606_fri_c2_1000_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 606_fri_c2_1000_10.tsv.gz'
+
+- name: '607_fri_c4_1000_50'
+  dataset:
+    path: '{user}/data/pmlb_regression/607_fri_c4_1000_50'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 607_fri_c4_1000_50.tsv.gz'
+
+- name: '608_fri_c3_1000_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/608_fri_c3_1000_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 608_fri_c3_1000_10.tsv.gz'
+
+- name: '609_fri_c0_1000_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/609_fri_c0_1000_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 609_fri_c0_1000_5.tsv.gz'
+
+- name: '611_fri_c3_100_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/611_fri_c3_100_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 611_fri_c3_100_5.tsv.gz'
+
+- name: '612_fri_c1_1000_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/612_fri_c1_1000_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 612_fri_c1_1000_5.tsv.gz'
+
+- name: '613_fri_c3_250_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/613_fri_c3_250_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 613_fri_c3_250_5.tsv.gz'
+
+- name: '615_fri_c4_250_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/615_fri_c4_250_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 615_fri_c4_250_10.tsv.gz'
+
+- name: '616_fri_c4_500_50'
+  dataset:
+    path: '{user}/data/pmlb_regression/616_fri_c4_500_50'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 616_fri_c4_500_50.tsv.gz'
+
+- name: '617_fri_c3_500_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/617_fri_c3_500_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 617_fri_c3_500_5.tsv.gz'
+
+- name: '618_fri_c3_1000_50'
+  dataset:
+    path: '{user}/data/pmlb_regression/618_fri_c3_1000_50'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 618_fri_c3_1000_50.tsv.gz'
+
+- name: '620_fri_c1_1000_25'
+  dataset:
+    path: '{user}/data/pmlb_regression/620_fri_c1_1000_25'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 620_fri_c1_1000_25.tsv.gz'
+
+- name: '621_fri_c0_100_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/621_fri_c0_100_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 621_fri_c0_100_10.tsv.gz'
+
+- name: '622_fri_c2_1000_50'
+  dataset:
+    path: '{user}/data/pmlb_regression/622_fri_c2_1000_50'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 622_fri_c2_1000_50.tsv.gz'
+
+- name: '623_fri_c4_1000_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/623_fri_c4_1000_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 623_fri_c4_1000_10.tsv.gz'
+
+- name: '624_fri_c0_100_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/624_fri_c0_100_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 624_fri_c0_100_5.tsv.gz'
+
+- name: '626_fri_c2_500_50'
+  dataset:
+    path: '{user}/data/pmlb_regression/626_fri_c2_500_50'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 626_fri_c2_500_50.tsv.gz'
+
+- name: '627_fri_c2_500_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/627_fri_c2_500_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 627_fri_c2_500_10.tsv.gz'
+
+- name: '628_fri_c3_1000_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/628_fri_c3_1000_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 628_fri_c3_1000_5.tsv.gz'
+
+- name: '631_fri_c1_500_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/631_fri_c1_500_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 631_fri_c1_500_5.tsv.gz'
+
+- name: '633_fri_c0_500_25'
+  dataset:
+    path: '{user}/data/pmlb_regression/633_fri_c0_500_25'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 633_fri_c0_500_25.tsv.gz'
+
+- name: '634_fri_c2_100_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/634_fri_c2_100_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 634_fri_c2_100_10.tsv.gz'
+
+- name: '635_fri_c0_250_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/635_fri_c0_250_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 635_fri_c0_250_10.tsv.gz'
+
+- name: '637_fri_c1_500_50'
+  dataset:
+    path: '{user}/data/pmlb_regression/637_fri_c1_500_50'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 637_fri_c1_500_50.tsv.gz'
+
+- name: '641_fri_c1_500_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/641_fri_c1_500_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 641_fri_c1_500_10.tsv.gz'
+
+- name: '643_fri_c2_500_25'
+  dataset:
+    path: '{user}/data/pmlb_regression/643_fri_c2_500_25'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 643_fri_c2_500_25.tsv.gz'
+
+- name: '644_fri_c4_250_25'
+  dataset:
+    path: '{user}/data/pmlb_regression/644_fri_c4_250_25'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 644_fri_c4_250_25.tsv.gz'
+
+- name: '645_fri_c3_500_50'
+  dataset:
+    path: '{user}/data/pmlb_regression/645_fri_c3_500_50'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 645_fri_c3_500_50.tsv.gz'
+
+- name: '646_fri_c3_500_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/646_fri_c3_500_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 646_fri_c3_500_10.tsv.gz'
+
+- name: '647_fri_c1_250_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/647_fri_c1_250_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 647_fri_c1_250_10.tsv.gz'
+
+- name: '648_fri_c1_250_50'
+  dataset:
+    path: '{user}/data/pmlb_regression/648_fri_c1_250_50'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 648_fri_c1_250_50.tsv.gz'
+
+- name: '649_fri_c0_500_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/649_fri_c0_500_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 649_fri_c0_500_5.tsv.gz'
+
+- name: '650_fri_c0_500_50'
+  dataset:
+    path: '{user}/data/pmlb_regression/650_fri_c0_500_50'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 650_fri_c0_500_50.tsv.gz'
+
+- name: '651_fri_c0_100_25'
+  dataset:
+    path: '{user}/data/pmlb_regression/651_fri_c0_100_25'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 651_fri_c0_100_25.tsv.gz'
+
+- name: '653_fri_c0_250_25'
+  dataset:
+    path: '{user}/data/pmlb_regression/653_fri_c0_250_25'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 653_fri_c0_250_25.tsv.gz'
+
+- name: '654_fri_c0_500_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/654_fri_c0_500_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 654_fri_c0_500_10.tsv.gz'
+
+- name: '656_fri_c1_100_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/656_fri_c1_100_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 656_fri_c1_100_5.tsv.gz'
+
+- name: '657_fri_c2_250_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/657_fri_c2_250_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 657_fri_c2_250_10.tsv.gz'
+
+- name: '658_fri_c3_250_25'
+  dataset:
+    path: '{user}/data/pmlb_regression/658_fri_c3_250_25'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 658_fri_c3_250_25.tsv.gz'
+
+- name: '659_sleuth_ex1714'
+  dataset:
+    path: '{user}/data/pmlb_regression/659_sleuth_ex1714'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 659_sleuth_ex1714.tsv.gz'
+
+- name: '663_rabe_266'
+  dataset:
+    path: '{user}/data/pmlb_regression/663_rabe_266'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 663_rabe_266.tsv.gz'
+
+- name: '665_sleuth_case2002'
+  dataset:
+    path: '{user}/data/pmlb_regression/665_sleuth_case2002'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 665_sleuth_case2002.tsv.gz'
+
+- name: '666_rmftsa_ladata'
+  dataset:
+    path: '{user}/data/pmlb_regression/666_rmftsa_ladata'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 666_rmftsa_ladata.tsv.gz'
+
+- name: '678_visualizing_environmental'
+  dataset:
+    path: '{user}/data/pmlb_regression/678_visualizing_environmental'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 678_visualizing_environmental.tsv.gz'
+
+- name: '687_sleuth_ex1605'
+  dataset:
+    path: '{user}/data/pmlb_regression/687_sleuth_ex1605'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 687_sleuth_ex1605.tsv.gz'
+
+- name: '690_visualizing_galaxy'
+  dataset:
+    path: '{user}/data/pmlb_regression/690_visualizing_galaxy'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 690_visualizing_galaxy.tsv.gz'
+
+- name: '695_chatfield_4'
+  dataset:
+    path: '{user}/data/pmlb_regression/695_chatfield_4'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 695_chatfield_4.tsv.gz'
+
+- name: '706_sleuth_case1202'
+  dataset:
+    path: '{user}/data/pmlb_regression/706_sleuth_case1202'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 706_sleuth_case1202.tsv.gz'
+
+- name: '712_chscase_geyser1'
+  dataset:
+    path: '{user}/data/pmlb_regression/712_chscase_geyser1'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from 712_chscase_geyser1.tsv.gz'
+
+- name: '_deprecated_195_auto_price'
+  dataset:
+    path: '{user}/data/pmlb_regression/_deprecated_195_auto_price'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from _deprecated_195_auto_price.tsv.gz'
+
+- name: '_deprecated_207_autoPrice'
+  dataset:
+    path: '{user}/data/pmlb_regression/_deprecated_207_autoPrice'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from _deprecated_207_autoPrice.tsv.gz'
+
+- name: 'auto_insurance_losses'
+  dataset:
+    path: '{user}/data/pmlb_regression/auto_insurance_losses'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from auto_insurance_losses.tsv.gz'
+
+- name: 'auto_insurance_price'
+  dataset:
+    path: '{user}/data/pmlb_regression/auto_insurance_price'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from auto_insurance_price.tsv.gz'
+
+- name: 'feynman_III_10_19'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_III_10_19'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_III_10_19.tsv.gz'
+
+- name: 'feynman_III_12_43'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_III_12_43'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_III_12_43.tsv.gz'
+
+- name: 'feynman_III_13_18'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_III_13_18'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_III_13_18.tsv.gz'
+
+- name: 'feynman_III_14_14'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_III_14_14'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_III_14_14.tsv.gz'
+
+- name: 'feynman_III_15_12'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_III_15_12'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_III_15_12.tsv.gz'
+
+- name: 'feynman_III_15_14'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_III_15_14'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_III_15_14.tsv.gz'
+
+- name: 'feynman_III_15_27'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_III_15_27'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_III_15_27.tsv.gz'
+
+- name: 'feynman_III_17_37'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_III_17_37'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_III_17_37.tsv.gz'
+
+- name: 'feynman_III_19_51'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_III_19_51'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_III_19_51.tsv.gz'
+
+- name: 'feynman_III_21_20'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_III_21_20'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_III_21_20.tsv.gz'
+
+- name: 'feynman_III_4_32'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_III_4_32'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_III_4_32.tsv.gz'
+
+- name: 'feynman_III_4_33'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_III_4_33'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_III_4_33.tsv.gz'
+
+- name: 'feynman_III_7_38'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_III_7_38'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_III_7_38.tsv.gz'
+
+- name: 'feynman_III_8_54'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_III_8_54'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_III_8_54.tsv.gz'
+
+- name: 'feynman_III_9_52'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_III_9_52'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_III_9_52.tsv.gz'
+
+- name: 'feynman_II_10_9'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_10_9'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_10_9.tsv.gz'
+
+- name: 'feynman_II_11_20'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_11_20'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_11_20.tsv.gz'
+
+- name: 'feynman_II_11_27'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_11_27'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_11_27.tsv.gz'
+
+- name: 'feynman_II_11_28'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_11_28'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_11_28.tsv.gz'
+
+- name: 'feynman_II_11_3'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_11_3'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_11_3.tsv.gz'
+
+- name: 'feynman_II_13_17'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_13_17'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_13_17.tsv.gz'
+
+- name: 'feynman_II_13_23'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_13_23'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_13_23.tsv.gz'
+
+- name: 'feynman_II_13_34'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_13_34'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_13_34.tsv.gz'
+
+- name: 'feynman_II_15_4'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_15_4'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_15_4.tsv.gz'
+
+- name: 'feynman_II_15_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_15_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_15_5.tsv.gz'
+
+- name: 'feynman_II_21_32'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_21_32'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_21_32.tsv.gz'
+
+- name: 'feynman_II_24_17'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_24_17'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_24_17.tsv.gz'
+
+- name: 'feynman_II_27_16'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_27_16'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_27_16.tsv.gz'
+
+- name: 'feynman_II_27_18'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_27_18'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_27_18.tsv.gz'
+
+- name: 'feynman_II_2_42'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_2_42'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_2_42.tsv.gz'
+
+- name: 'feynman_II_34_11'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_34_11'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_34_11.tsv.gz'
+
+- name: 'feynman_II_34_2'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_34_2'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_34_2.tsv.gz'
+
+- name: 'feynman_II_34_29a'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_34_29a'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_34_29a.tsv.gz'
+
+- name: 'feynman_II_34_29b'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_34_29b'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_34_29b.tsv.gz'
+
+- name: 'feynman_II_34_2a'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_34_2a'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_34_2a.tsv.gz'
+
+- name: 'feynman_II_35_18'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_35_18'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_35_18.tsv.gz'
+
+- name: 'feynman_II_35_21'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_35_21'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_35_21.tsv.gz'
+
+- name: 'feynman_II_36_38'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_36_38'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_36_38.tsv.gz'
+
+- name: 'feynman_II_37_1'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_37_1'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_37_1.tsv.gz'
+
+- name: 'feynman_II_38_14'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_38_14'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_38_14.tsv.gz'
+
+- name: 'feynman_II_38_3'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_38_3'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_38_3.tsv.gz'
+
+- name: 'feynman_II_3_24'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_3_24'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_3_24.tsv.gz'
+
+- name: 'feynman_II_4_23'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_4_23'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_4_23.tsv.gz'
+
+- name: 'feynman_II_6_11'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_6_11'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_6_11.tsv.gz'
+
+- name: 'feynman_II_6_15a'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_6_15a'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_6_15a.tsv.gz'
+
+- name: 'feynman_II_6_15b'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_6_15b'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_6_15b.tsv.gz'
+
+- name: 'feynman_II_8_31'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_8_31'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_8_31.tsv.gz'
+
+- name: 'feynman_II_8_7'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_II_8_7'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_II_8_7.tsv.gz'
+
+- name: 'feynman_I_10_7'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_10_7'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_10_7.tsv.gz'
+
+- name: 'feynman_I_11_19'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_11_19'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_11_19.tsv.gz'
+
+- name: 'feynman_I_12_1'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_12_1'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_12_1.tsv.gz'
+
+- name: 'feynman_I_12_11'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_12_11'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_12_11.tsv.gz'
+
+- name: 'feynman_I_12_2'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_12_2'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_12_2.tsv.gz'
+
+- name: 'feynman_I_12_4'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_12_4'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_12_4.tsv.gz'
+
+- name: 'feynman_I_12_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_12_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_12_5.tsv.gz'
+
+- name: 'feynman_I_13_12'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_13_12'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_13_12.tsv.gz'
+
+- name: 'feynman_I_13_4'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_13_4'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_13_4.tsv.gz'
+
+- name: 'feynman_I_14_3'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_14_3'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_14_3.tsv.gz'
+
+- name: 'feynman_I_14_4'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_14_4'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_14_4.tsv.gz'
+
+- name: 'feynman_I_15_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_15_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_15_10.tsv.gz'
+
+- name: 'feynman_I_15_3t'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_15_3t'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_15_3t.tsv.gz'
+
+- name: 'feynman_I_15_3x'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_15_3x'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_15_3x.tsv.gz'
+
+- name: 'feynman_I_16_6'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_16_6'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_16_6.tsv.gz'
+
+- name: 'feynman_I_18_12'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_18_12'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_18_12.tsv.gz'
+
+- name: 'feynman_I_18_14'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_18_14'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_18_14.tsv.gz'
+
+- name: 'feynman_I_18_4'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_18_4'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_18_4.tsv.gz'
+
+- name: 'feynman_I_24_6'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_24_6'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_24_6.tsv.gz'
+
+- name: 'feynman_I_25_13'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_25_13'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_25_13.tsv.gz'
+
+- name: 'feynman_I_26_2'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_26_2'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_26_2.tsv.gz'
+
+- name: 'feynman_I_27_6'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_27_6'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_27_6.tsv.gz'
+
+- name: 'feynman_I_29_16'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_29_16'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_29_16.tsv.gz'
+
+- name: 'feynman_I_29_4'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_29_4'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_29_4.tsv.gz'
+
+- name: 'feynman_I_30_3'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_30_3'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_30_3.tsv.gz'
+
+- name: 'feynman_I_30_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_30_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_30_5.tsv.gz'
+
+- name: 'feynman_I_32_17'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_32_17'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_32_17.tsv.gz'
+
+- name: 'feynman_I_32_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_32_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_32_5.tsv.gz'
+
+- name: 'feynman_I_34_1'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_34_1'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_34_1.tsv.gz'
+
+- name: 'feynman_I_34_14'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_34_14'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_34_14.tsv.gz'
+
+- name: 'feynman_I_34_27'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_34_27'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_34_27.tsv.gz'
+
+- name: 'feynman_I_34_8'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_34_8'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_34_8.tsv.gz'
+
+- name: 'feynman_I_37_4'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_37_4'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_37_4.tsv.gz'
+
+- name: 'feynman_I_38_12'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_38_12'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_38_12.tsv.gz'
+
+- name: 'feynman_I_39_1'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_39_1'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_39_1.tsv.gz'
+
+- name: 'feynman_I_39_11'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_39_11'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_39_11.tsv.gz'
+
+- name: 'feynman_I_39_22'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_39_22'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_39_22.tsv.gz'
+
+- name: 'feynman_I_40_1'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_40_1'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_40_1.tsv.gz'
+
+- name: 'feynman_I_41_16'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_41_16'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_41_16.tsv.gz'
+
+- name: 'feynman_I_43_16'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_43_16'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_43_16.tsv.gz'
+
+- name: 'feynman_I_43_31'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_43_31'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_43_31.tsv.gz'
+
+- name: 'feynman_I_43_43'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_43_43'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_43_43.tsv.gz'
+
+- name: 'feynman_I_44_4'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_44_4'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_44_4.tsv.gz'
+
+- name: 'feynman_I_47_23'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_47_23'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_47_23.tsv.gz'
+
+- name: 'feynman_I_48_2'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_48_2'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_48_2.tsv.gz'
+
+- name: 'feynman_I_50_26'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_50_26'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_50_26.tsv.gz'
+
+- name: 'feynman_I_6_2'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_6_2'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_6_2.tsv.gz'
+
+- name: 'feynman_I_6_2a'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_6_2a'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_6_2a.tsv.gz'
+
+- name: 'feynman_I_6_2b'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_6_2b'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_6_2b.tsv.gz'
+
+- name: 'feynman_I_8_14'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_8_14'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_8_14.tsv.gz'
+
+- name: 'feynman_I_9_18'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_I_9_18'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_I_9_18.tsv.gz'
+
+- name: 'feynman_test_1'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_1'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_1.tsv.gz'
+
+- name: 'feynman_test_10'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_10'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_10.tsv.gz'
+
+- name: 'feynman_test_11'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_11'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_11.tsv.gz'
+
+- name: 'feynman_test_12'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_12'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_12.tsv.gz'
+
+- name: 'feynman_test_13'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_13'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_13.tsv.gz'
+
+- name: 'feynman_test_14'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_14'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_14.tsv.gz'
+
+- name: 'feynman_test_15'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_15'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_15.tsv.gz'
+
+- name: 'feynman_test_16'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_16'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_16.tsv.gz'
+
+- name: 'feynman_test_17'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_17'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_17.tsv.gz'
+
+- name: 'feynman_test_18'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_18'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_18.tsv.gz'
+
+- name: 'feynman_test_19'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_19'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_19.tsv.gz'
+
+- name: 'feynman_test_2'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_2'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_2.tsv.gz'
+
+- name: 'feynman_test_20'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_20'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_20.tsv.gz'
+
+- name: 'feynman_test_3'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_3'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_3.tsv.gz'
+
+- name: 'feynman_test_4'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_4'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_4.tsv.gz'
+
+- name: 'feynman_test_5'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_5'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_5.tsv.gz'
+
+- name: 'feynman_test_6'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_6'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_6.tsv.gz'
+
+- name: 'feynman_test_7'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_7'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_7.tsv.gz'
+
+- name: 'feynman_test_8'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_8'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_8.tsv.gz'
+
+- name: 'feynman_test_9'
+  dataset:
+    path: '{user}/data/pmlb_regression/feynman_test_9'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from feynman_test_9.tsv.gz'
+
+- name: 'first_principles_absorption'
+  dataset:
+    path: '{user}/data/pmlb_regression/first_principles_absorption'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from first_principles_absorption.tsv.gz'
+
+- name: 'first_principles_bode'
+  dataset:
+    path: '{user}/data/pmlb_regression/first_principles_bode'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from first_principles_bode.tsv.gz'
+
+- name: 'first_principles_hubble'
+  dataset:
+    path: '{user}/data/pmlb_regression/first_principles_hubble'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from first_principles_hubble.tsv.gz'
+
+- name: 'first_principles_ideal_gas'
+  dataset:
+    path: '{user}/data/pmlb_regression/first_principles_ideal_gas'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from first_principles_ideal_gas.tsv.gz'
+
+- name: 'first_principles_kepler'
+  dataset:
+    path: '{user}/data/pmlb_regression/first_principles_kepler'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from first_principles_kepler.tsv.gz'
+
+- name: 'first_principles_leavitt'
+  dataset:
+    path: '{user}/data/pmlb_regression/first_principles_leavitt'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from first_principles_leavitt.tsv.gz'
+
+- name: 'first_principles_newton'
+  dataset:
+    path: '{user}/data/pmlb_regression/first_principles_newton'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from first_principles_newton.tsv.gz'
+
+- name: 'first_principles_planck'
+  dataset:
+    path: '{user}/data/pmlb_regression/first_principles_planck'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from first_principles_planck.tsv.gz'
+
+- name: 'first_principles_rydberg'
+  dataset:
+    path: '{user}/data/pmlb_regression/first_principles_rydberg'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from first_principles_rydberg.tsv.gz'
+
+- name: 'first_principles_schechter'
+  dataset:
+    path: '{user}/data/pmlb_regression/first_principles_schechter'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from first_principles_schechter.tsv.gz'
+
+- name: 'first_principles_supernovae_zg'
+  dataset:
+    path: '{user}/data/pmlb_regression/first_principles_supernovae_zg'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from first_principles_supernovae_zg.tsv.gz'
+
+- name: 'first_principles_supernovae_zr'
+  dataset:
+    path: '{user}/data/pmlb_regression/first_principles_supernovae_zr'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from first_principles_supernovae_zr.tsv.gz'
+
+- name: 'first_principles_tully_fisher'
+  dataset:
+    path: '{user}/data/pmlb_regression/first_principles_tully_fisher'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from first_principles_tully_fisher.tsv.gz'
+
+- name: 'nikuradse_1'
+  dataset:
+    path: '{user}/data/pmlb_regression/nikuradse_1'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from nikuradse_1.tsv.gz'
+
+- name: 'nikuradse_2'
+  dataset:
+    path: '{user}/data/pmlb_regression/nikuradse_2'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from nikuradse_2.tsv.gz'
+
+- name: 'solar_flare'
+  dataset:
+    path: '{user}/data/pmlb_regression/solar_flare'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from solar_flare.tsv.gz'
+
+- name: 'strogatz_bacres1'
+  dataset:
+    path: '{user}/data/pmlb_regression/strogatz_bacres1'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from strogatz_bacres1.tsv.gz'
+
+- name: 'strogatz_bacres2'
+  dataset:
+    path: '{user}/data/pmlb_regression/strogatz_bacres2'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from strogatz_bacres2.tsv.gz'
+
+- name: 'strogatz_barmag1'
+  dataset:
+    path: '{user}/data/pmlb_regression/strogatz_barmag1'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from strogatz_barmag1.tsv.gz'
+
+- name: 'strogatz_barmag2'
+  dataset:
+    path: '{user}/data/pmlb_regression/strogatz_barmag2'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from strogatz_barmag2.tsv.gz'
+
+- name: 'strogatz_glider1'
+  dataset:
+    path: '{user}/data/pmlb_regression/strogatz_glider1'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from strogatz_glider1.tsv.gz'
+
+- name: 'strogatz_glider2'
+  dataset:
+    path: '{user}/data/pmlb_regression/strogatz_glider2'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from strogatz_glider2.tsv.gz'
+
+- name: 'strogatz_lv1'
+  dataset:
+    path: '{user}/data/pmlb_regression/strogatz_lv1'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from strogatz_lv1.tsv.gz'
+
+- name: 'strogatz_lv2'
+  dataset:
+    path: '{user}/data/pmlb_regression/strogatz_lv2'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from strogatz_lv2.tsv.gz'
+
+- name: 'strogatz_predprey1'
+  dataset:
+    path: '{user}/data/pmlb_regression/strogatz_predprey1'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from strogatz_predprey1.tsv.gz'
+
+- name: 'strogatz_predprey2'
+  dataset:
+    path: '{user}/data/pmlb_regression/strogatz_predprey2'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from strogatz_predprey2.tsv.gz'
+
+- name: 'strogatz_shearflow1'
+  dataset:
+    path: '{user}/data/pmlb_regression/strogatz_shearflow1'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from strogatz_shearflow1.tsv.gz'
+
+- name: 'strogatz_shearflow2'
+  dataset:
+    path: '{user}/data/pmlb_regression/strogatz_shearflow2'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from strogatz_shearflow2.tsv.gz'
+
+- name: 'strogatz_vdp1'
+  dataset:
+    path: '{user}/data/pmlb_regression/strogatz_vdp1'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from strogatz_vdp1.tsv.gz'
+
+- name: 'strogatz_vdp2'
+  dataset:
+    path: '{user}/data/pmlb_regression/strogatz_vdp2'
+    target: 'target'
+    type: 'regression'
+  folds: 1
+  description: 'PMLB regression dataset prepared from strogatz_vdp2.tsv.gz'

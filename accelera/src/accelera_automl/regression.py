@@ -1,8 +1,8 @@
 import numpy as np
 from sklearn.metrics import r2_score
 
-from .base import BaseAutoML
-from .core.automl import AutoMLEngine
+from accelera.src.accelera_automl.base import BaseAutoML
+from accelera.src.accelera_automl.core.automl import AutoMLEngine
 
 
 class AutoMLRegressor(BaseAutoML):
@@ -21,9 +21,9 @@ class AutoMLRegressor(BaseAutoML):
         stacked_base_size=4,
         stacked_bagging_n_estimators=5,
         stacked_include_original_features_in_meta=False,
-        n_jobs=None,
         search_n_parallel=3,
-        stack_n_jobs=None,
+        stack_n_jobs=-1,
+        n_jobs=None,
         inner_n_jobs=1,
         verbose=1,
         disable_evaluation_timeout=False,
@@ -37,26 +37,26 @@ class AutoMLRegressor(BaseAutoML):
     ):
         super().__init__(
             time_budget=time_budget,
-            per_run_time_limit=per_run_time_limit,
             n_trials=n_trials,
             cv=cv,
-            scoring=scoring,
-            random_state=random_state,
             use_ensemble=use_ensemble,
-            ensemble_voting_size=ensemble_voting_size,
+            scoring=scoring,
+            per_run_time_limit=per_run_time_limit,
+            random_state=random_state,
             ensemble_strategy=ensemble_strategy,
             stacked_base_size=stacked_base_size,
-            stacked_bagging_n_estimators=stacked_bagging_n_estimators,
             stacked_include_original_features_in_meta=stacked_include_original_features_in_meta,
-            n_jobs=n_jobs,
-            search_n_parallel=search_n_parallel,
-            stack_n_jobs=stack_n_jobs,
+            num_of_trial_to_try_in_parallel=search_n_parallel,
+            stacked_bagging_n_estimators=stacked_bagging_n_estimators,
+            stack_n_jobs=n_jobs if n_jobs is not None else stack_n_jobs,
+            ensemble_voting_size=ensemble_voting_size,
             inner_n_jobs=inner_n_jobs,
-            verbose=verbose,
             disable_evaluation_timeout=disable_evaluation_timeout,
-            candidate_pool_size=candidate_pool_size,
+            sample_size_from_config_space=candidate_pool_size,
+            verbose=verbose,
             n_initial_points=n_initial_points,
         )
+
         self.allowed_models = allowed_models
         self.use_meta_learning = use_meta_learning
         self.meta_learning_top_datasets = meta_learning_top_datasets
@@ -76,15 +76,14 @@ class AutoMLRegressor(BaseAutoML):
             n_trials=self.n_trials,
             cv=self.cv,
             scoring=self.get_effective_scoring(),
-            random_state=self.random_state,
+            random_state=self.random,
             use_ensemble=self.use_ensemble,
             ensemble_voting_size=self.ensemble_voting_size,
             ensemble_strategy=self.ensemble_strategy,
             stacked_base_size=self.stacked_base_size,
             stacked_bagging_n_estimators=self.stacked_bagging_n_estimators,
             stacked_include_original_features_in_meta=self.stacked_include_original_features_in_meta,
-            n_jobs=self.n_jobs,
-            search_n_parallel=self.search_n_parallel,
+            search_n_parallel=self.num_of_trial_to_try_in_parallel,
             stack_n_jobs=self.stack_n_jobs,
             inner_n_jobs=self.inner_n_jobs,
             verbose=self.verbose,
@@ -94,7 +93,7 @@ class AutoMLRegressor(BaseAutoML):
             meta_learning_top_datasets=self.meta_learning_top_datasets,
             meta_learning_top_configs_per_dataset=self.meta_learning_top_configs_per_dataset,
             max_meta_learning_warmstarts=self.max_meta_learning_warmstarts,
-            candidate_pool_size=self.candidate_pool_size,
+            candidate_pool_size=self.sample_size_from_config_space,
             n_initial_points=self.n_initial_points,
         )
 

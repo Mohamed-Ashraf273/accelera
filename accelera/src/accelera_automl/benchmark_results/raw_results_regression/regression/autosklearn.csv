@@ -1,0 +1,11 @@
+id,task,framework,constraint,fold,type,result,metric,mode,version,params,app_version,utc,duration,training_duration,predict_duration,models_count,seed,info,mae,r2,rmse
+1027_ESL,1027_ESL,autosklearn,pmlb_30m,0,regression,-0.518103,neg_rmse,local,stable,,2.1.7,2026-06-22T14:30:17,1864.9,1811.6,0.3,5,1252533494,,0.406108,0.829237,0.518103
+1028_SWD,1028_SWD,autosklearn,pmlb_30m,0,regression,-0.65066,neg_rmse,local,stable,,2.1.7,2026-06-22T15:01:35,1877.5,1791.7,0.07,7,1252533494,,0.527207,0.349655,0.65066
+1029_LEV,1029_LEV,autosklearn,pmlb_30m,0,regression,-0.673042,neg_rmse,local,stable,,2.1.7,2026-06-22T15:31:39,1803.4,1801.4,0.08,4,1252533494,,0.509984,0.469324,0.673042
+1030_ERA,1030_ERA,autosklearn,pmlb_30m,0,regression,-1.58643,neg_rmse,local,stable,,2.1.7,2026-06-22T16:01:41,1802.0,1799.4,0.05,6,1252533494,,1.26797,0.392089,1.58643
+1089_USCrime,1089_USCrime,autosklearn,pmlb_30m,0,regression,-18.8088,neg_rmse,local,stable,,2.1.7,2026-06-22T16:31:41,1800.4,1798.1,0.05,8,1252533494,,14.4807,0.698888,18.8088
+1096_FacultySalaries,1096_FacultySalaries,autosklearn,pmlb_30m,0,regression,-1.74767,neg_rmse,local,stable,,2.1.7,2026-06-22T17:01:41,1800.2,1798.0,0.03,6,1252533494,,1.50973,0.834251,1.74767
+1191_BNG_pbc,1191_BNG_pbc,autosklearn,pmlb_30m,0,regression,-823.878,neg_rmse,local,stable,,2.1.7,2026-06-22T17:31:52,1805.7,1787.6,7.7,1,1252533494,,629.83,0.441921,823.878
+1193_BNG_lowbwt,1193_BNG_lowbwt,autosklearn,pmlb_30m,0,regression,-457.452,neg_rmse,local,stable,,2.1.7,2026-06-22T18:24:38,1808.6,1799.8,2.7,10,2139357945,,364.086,0.605387,457.452
+1196_BNG_pharynx,1196_BNG_pharynx,autosklearn,pmlb_30m,0,regression,-291.101,neg_rmse,local,stable,,2.1.7,2026-06-23T13:17:12,1815.5,1794.6,11.5,2,957196927,,214.39,0.513406,291.101
+1199_BNG_echoMonths,1199_BNG_echoMonths,autosklearn,pmlb_30m,0,regression,-11.3688,neg_rmse,local,stable,,2.1.7,2026-06-23T13:47:37,1823.6,1809.1,11.5,13,957196927,,8.80142,0.475317,11.3688

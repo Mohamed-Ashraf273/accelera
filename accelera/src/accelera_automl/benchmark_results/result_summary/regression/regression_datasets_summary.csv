@@ -1,0 +1,5 @@
+,mean_r2,median_r2,mean_duration_seconds,r2_wins,rmse_wins,mae_wins,speed_wins
+Auto-sklearn,0.560947,0.494362,1820.180000,2,2,2,2
+TPOT,0.559238,0.493144,1849.700000,2,2,2,0
+Accelera,0.529389,0.432577,892.640000,2,2,2,6
+FLAML,0.522743,0.497530,1863.850000,4,4,4,2

@@ -1,0 +1,11 @@
+id,task,framework,constraint,fold,type,result,metric,mode,version,params,app_version,utc,duration,training_duration,predict_duration,models_count,seed,info,mae,r2,rmse
+1027_ESL,1027_ESL,flaml,pmlb_30m,0,regression,-0.519422,neg_rmse,local,1.2.4,,2.1.7,2026-06-21T23:23:37,1804.4,1800.0,0.007,19,1326687865,,0.408337,0.828367,0.519422
+1028_SWD,1028_SWD,flaml,pmlb_30m,0,regression,-0.656994,neg_rmse,local,1.2.4,,2.1.7,2026-06-21T23:53:40,1802.9,1800.0,0.01,25,1326687865,,0.537011,0.336931,0.656994
+1029_LEV,1029_LEV,flaml,pmlb_30m,0,regression,-0.693845,neg_rmse,local,1.2.4,,2.1.7,2026-06-22T00:23:43,1803.2,1800.1,0.01,29,1326687865,,0.532587,0.43601,0.693845
+1030_ERA,1030_ERA,flaml,pmlb_30m,0,regression,-1.61055,neg_rmse,local,1.2.4,,2.1.7,2026-06-22T10:19:00,1805.9,1800.0,0.007,21,946327022,,1.27704,0.373459,1.61055
+1089_USCrime,1089_USCrime,flaml,pmlb_30m,0,regression,-19.9336,neg_rmse,local,1.2.4,,2.1.7,2026-06-22T10:49:03,1802.6,1800.0,0.007,19,946327022,,15.9513,0.661798,19.9336
+1096_FacultySalaries,1096_FacultySalaries,flaml,pmlb_30m,0,regression,-2.94282,neg_rmse,local,1.2.4,,2.1.7,2026-06-22T11:19:05,1802.3,1800.0,0.006,16,946327022,,2.2571,0.530041,2.94282
+1191_BNG_pbc,1191_BNG_pbc,flaml,pmlb_30m,0,regression,-813.668,neg_rmse,local,1.2.4,,2.1.7,2026-06-22T11:56:57,2269.9,2153.7,111.0,17,946327022,,618.501,0.455667,813.668
+1193_BNG_lowbwt,1193_BNG_lowbwt,flaml,pmlb_30m,0,regression,-454.716,neg_rmse,local,1.2.4,,2.1.7,2026-06-22T12:27:04,1806.6,1803.9,0.07,12,946327022,,362.402,0.610094,454.716
+1196_BNG_pharynx,1196_BNG_pharynx,flaml,pmlb_30m,0,regression,-291.071,neg_rmse,local,1.2.4,,2.1.7,2026-06-22T12:59:22,1938.0,1921.6,11.9,14,946327022,,214.269,0.513508,291.071
+1199_BNG_echoMonths,1199_BNG_echoMonths,flaml,pmlb_30m,0,regression,-11.301,neg_rmse,local,1.2.4,,2.1.7,2026-06-22T13:29:25,1802.7,1799.2,0.07,14,946327022,,8.68251,0.481552,11.301

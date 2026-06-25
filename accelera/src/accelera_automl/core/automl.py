@@ -1,168 +1,124 @@
 import numpy as np
-from sklearn.base import clone
 from sklearn.ensemble import VotingClassifier
 from sklearn.ensemble import VotingRegressor
-from sklearn.linear_model import LogisticRegression
-from sklearn.linear_model import Ridge
-from sklearn.model_selection import KFold
-from sklearn.model_selection import StratifiedKFold
-from sklearn.model_selection import cross_val_score
 
-from ..configspace_search_space import configuration_space_to_dict
-from ..configspace_search_space import return_classification_config_space
-from ..configspace_search_space import return_regression_config_space
-from ..evaluation import ClassificationEvaluator
-from ..evaluation import RegressionEvaluator
-from ..evaluation import TrialSpecs
-from ..meta_learning import compute_basic_classification_metafeatures
-from ..meta_learning import compute_basic_regression_metafeatures
-from ..meta_learning import get_meta_learning_warmstarts
-from ..optimization.smac_optimizer import Optimizer
-from ..stacked_ensemble import StackedEnsembleClassifier
-from ..stacked_ensemble_regression import StackedEnsembleRegressor
+from accelera.src.accelera_automl.base_evaluation import TrialSpecs
+from accelera.src.accelera_automl.configspace_search_space import (
+    configuration_space_to_dict,
+)
+from accelera.src.accelera_automl.configspace_search_space import (
+    return_classification_config_space,
+)
+from accelera.src.accelera_automl.configspace_search_space import (
+    return_regression_config_space,
+)
+from accelera.src.accelera_automl.evaluation import ClassificationEvaluator
+from accelera.src.accelera_automl.evaluation import RegressionEvaluator
+from accelera.src.accelera_automl.meta_learning import (
+    compute_basic_classification_metafeatures,
+)
+from accelera.src.accelera_automl.meta_learning import (
+    compute_basic_regression_metafeatures,
+)
+from accelera.src.accelera_automl.meta_learning import get_meta_learning_warmstarts
+from accelera.src.accelera_automl.optimization.smac_optimizer import Optimizer
+from accelera.src.accelera_automl.stacked_ensemble import StackedEnsembleClassifier
+from accelera.src.accelera_automl.stacked_ensemble_regression import (
+    StackedEnsembleRegressor,
+)
 
 
 class AutoMLResult:
     def __init__(
         self,
-        best_model,
-        best_score,
-        leaderboard,
-        ensemble,
-        final_model,
+        leaderboard=None,
+        final_model=None,
+        best_model=None,
+        best_score=None,
+        ensemble=None,
         runhistory=None,
     ):
         self.best_model = best_model
         self.best_score = best_score
-        self.leaderboard = leaderboard
         self.ensemble = ensemble
-        self.final_model = final_model
         self.runhistory = runhistory
+        self.leaderboard = leaderboard
+        self.final_model = final_model
+
+
+Automlresult = AutoMLResult
+
+
+fidality_stages = (
+    TrialSpecs(stage=0, sample_fraction=0.2, cv_folds=2, model_budget=0.25),
+    TrialSpecs(stage=1, sample_fraction=0.5, cv_folds=3, model_budget=0.6),
+    TrialSpecs(stage=2, sample_fraction=1.0, cv_folds=None, model_budget=1.0),
+)
 
 
 class AutoMLEngine:
-    DEFAULT_FIDELITY_STAGES = (
-        TrialSpecs(stage=0, sample_fraction=0.2, cv_folds=2, model_budget=0.25),
-        TrialSpecs(stage=1, sample_fraction=0.5, cv_folds=3, model_budget=0.6),
-        TrialSpecs(stage=2, sample_fraction=1.0, cv_folds=None, model_budget=1.0),
-    )
-
     def __init__(
         self,
         *,
-        task,
         time_budget=None,
+        task,
         per_run_time_limit=None,
         n_trials=50,
-        cv=5,
         scoring=None,
-        random_state=None,
+        cv=5,
         use_ensemble=True,
-        ensemble_voting_size=10,
+        random_state=None,
         ensemble_strategy="stacked",
         stacked_base_size=4,
-        stacked_bagging_n_estimators=5,
+        ensemble_voting_size=10,
         stacked_include_original_features_in_meta=False,
-        n_jobs=None,
         search_n_parallel=3,
-        stack_n_jobs=None,
+        stacked_bagging_n_estimators=5,
         inner_n_jobs=1,
         verbose=1,
-        disable_evaluation_timeout=False,
+        stack_n_jobs=None,
         balance_classes=False,
-        allowed_models=None,
         use_meta_learning=True,
+        allowed_models=None,
         meta_learning_top_datasets=5,
+        disable_evaluation_timeout=False,
         meta_learning_top_configs_per_dataset=3,
-        max_meta_learning_warmstarts=10,
         candidate_pool_size=256,
+        max_meta_learning_warmstarts=10,
         n_initial_points=5,
     ):
         self.task = task
         self.time_budget = time_budget
-        self.per_run_time_limit = per_run_time_limit
         self.n_trials = n_trials
         self.cv = cv
-        self.scoring = scoring
         self.random_state = random_state
-        self.ensemble = use_ensemble
+        self.scoring = scoring
         self.ensemble_voting_size = ensemble_voting_size
+        self.ensemble = use_ensemble
+        self.use_meta_learning = use_meta_learning
+        self.per_run_time_limit = per_run_time_limit
         self.ensemble_strategy = ensemble_strategy
         self.stacked_base_size = stacked_base_size
         self.stacked_bagging_n_estimators = stacked_bagging_n_estimators
         self.stacked_include_original_features_in_meta = (
             stacked_include_original_features_in_meta
         )
-        self.n_jobs = n_jobs
-        self.search_n_parallel = max(1, int(search_n_parallel))
-        self.stack_n_jobs = n_jobs if stack_n_jobs is None else stack_n_jobs
+        self.search_n_parallel = search_n_parallel
+        self.stack_n_jobs = (
+            1 if stack_n_jobs is None or stack_n_jobs < 1 else stack_n_jobs
+        )
         self.inner_n_jobs = inner_n_jobs
-        self.verbose = verbose
         self.disable_evaluation_timeout = disable_evaluation_timeout
-        self.balance_classes = balance_classes
         self.allowed_models = allowed_models
-        self.use_meta_learning = use_meta_learning
-        self.meta_learning_top_datasets = meta_learning_top_datasets
+        self.balance_classes = balance_classes
         self.meta_learning_top_configs_per_dataset = (
             meta_learning_top_configs_per_dataset
         )
-        self.max_meta_learning_warmstarts = max_meta_learning_warmstarts
-        self.candidate_pool_size = candidate_pool_size
+        self.verbose = verbose
         self.n_initial_points = n_initial_points
-
-    def search(self, X, y):
-        models = self.resolve_allowed_models(X)
-        configspace = self.build_configspace(models)
-        warmstart_configs = self.get_meta_learning_warmstarts(configspace, X, y)
-        evaluator = self.build_evaluator()
-        optimizer = self.build_optimizer(
-            configspace, evaluator, X, y, warmstart_configs
-        )
-
-        optimization_result = optimizer.optimize()
-        best_config = optimization_result.best_config
-        if best_config is None:
-            raise RuntimeError("optimizer did not return a best configuration.")
-
-        best_config_result = optimization_result.best_config_result
-        leaderboard = self.build_leaderboard(optimization_result.runhistory)
-
-        best_model = self.fit_final_model(
-            best_config,
-            evaluator,
-            X,
-            y,
-            preprocessing=best_config_result.preprocessing,
-        )
-        ensemble_model, ensemble_score = self.build_ensemble(
-            optimization_result.runhistory, evaluator, X, y
-        )
-        best_model_score = float(best_config_result.score)
-        final_model = best_model
-        final_score = best_model_score
-
-        if ensemble_model is not None and ensemble_score is not None:
-            leaderboard = self.append_ensemble_to_leaderboard(
-                leaderboard=leaderboard,
-                ensemble_score=ensemble_score,
-            )
-            if ensemble_score >= best_model_score:
-                final_model = ensemble_model
-                final_score = ensemble_score
-
-        return AutoMLResult(
-            best_model=best_model,
-            best_score=float(final_score),
-            leaderboard=leaderboard,
-            ensemble=ensemble_model,
-            final_model=final_model,
-            runhistory=optimization_result.runhistory,
-        )
-
-    def build_configspace(self, models):
-        if self.task == "classification":
-            return return_classification_config_space(allowed_models=models)
-        return return_regression_config_space(allowed_models=models)
+        self.meta_learning_top_datasets = meta_learning_top_datasets
+        self.candidate_pool_size = candidate_pool_size
+        self.max_meta_learning_warmstarts = max_meta_learning_warmstarts
 
     def build_evaluator(self):
         if self.task == "classification":
@@ -172,40 +128,75 @@ class AutoMLEngine:
                 random_state=self.random_state,
                 n_jobs=self.inner_n_jobs,
                 balance_classes=self.balance_classes,
-                per_run_time_limit=self.resolve_per_run_time_limit(),
             )
         return RegressionEvaluator(
             cv=self.cv,
             scoring=self.scoring,
             random_state=self.random_state,
             n_jobs=self.inner_n_jobs,
-            per_run_time_limit=self.resolve_per_run_time_limit(),
         )
 
-    def build_optimizer(
+    def resolve_per_run_time_limit(self):
+        if self.disable_evaluation_timeout:
+            return None
+
+        if self.per_run_time_limit is not None:
+            return float(self.per_run_time_limit)
+
+        if self.time_budget is None:
+            return 60.0
+
+        per_run_time_limit = max(1.0, float(self.time_budget) / 10.0)
+
+        return per_run_time_limit
+
+    def get_optimizer(
         self,
         configspace,
         evaluator,
         X,
         y,
-        initial_configurations,
+        warm_start,
     ):
         return Optimizer(
-            configspace=configspace,
+            config_space=configspace,
             evaluator=evaluator,
             X=X,
             y=y,
             n_trials=self.n_trials,
             time_budget=self.time_budget,
-            random_state=self.random_state,
-            per_run_time_limit=self.resolve_per_run_time_limit(),
-            initial_configurations=initial_configurations,
-            n_parallel=self.search_n_parallel,
+            random=self.random_state,
+            per_trial_timelimit=self.resolve_per_run_time_limit(),
+            warm_start_configs=warm_start,
+            num_of_trials_to_run_parralel=self.search_n_parallel,
             verbose=self.verbose,
-            evaluation_level=list(self.DEFAULT_FIDELITY_STAGES),
-            candidate_pool_size=self.candidate_pool_size,
-            n_initial_points=self.n_initial_points,
+            evaluation_level=list(fidality_stages),
+            sample_size_from_configspace=self.candidate_pool_size,
+            num_of_initail_points_to_try=self.n_initial_points,
         )
+
+    def build_leaderboard(self, result):
+        ranked = sorted(
+            result,
+            key=lambda row: row.get("score", float("-inf")),
+            reverse=True,
+        )
+
+        leaderboard = []
+        for rank, row in enumerate(ranked, start=1):
+            leaderboard.append(
+                {
+                    "rank": rank,
+                    "trial_id": row.get("trial_id"),
+                    "model_name": row["model_name"],
+                    "preprocessing": row.get("preprocessing", "none"),
+                    "cv_score": row["score"],
+                    "error": row.get("error"),
+                    "params": row["params"],
+                }
+            )
+
+        return leaderboard
 
     def fit_final_model(
         self,
@@ -224,371 +215,58 @@ class AutoMLEngine:
         model.fit(X, y)
         return model
 
-    def build_ensemble(
-        self,
-        results,
-        evaluator,
-        X,
-        y,
-    ):
-        if not self.ensemble:
-            return None, None
-
-        effective_ensemble_strategy = self.resolve_ensemble_strategy(X)
-
-        if effective_ensemble_strategy == "stacked":
-            return self.build_stacked_ensemble(results, evaluator, X, y)
-        if effective_ensemble_strategy != "voting":
-            raise ValueError(
-                f"unsupported ensemble strategy `{effective_ensemble_strategy}`."
-            )
-
-        if self.task == "regression":
-            return self.build_regression_voting_ensemble(results, evaluator, X, y)
-
-        ranked_rows = [
-            row
-            for row in sorted(
-                results,
-                key=lambda item: item.get("score", float("-inf")),
-                reverse=True,
-            )
-            if row.get("status") == "success" and row.get("config") is not None
-        ]
-
-        if len(ranked_rows) < 2:
-            return None, None
-
-        candidate_estimators = []
-        seen_signatures = set()
-        for row in ranked_rows:
-            config_dict = configuration_space_to_dict(row["config"])
-            signature = (
-                config_dict["model_name"],
-                tuple(sorted(config_dict["params"].items())),
-                row.get("preprocessing", "none"),
-            )
-            if signature in seen_signatures:
-                continue
-
-            estimator = evaluator.build_model(
-                config_dict["model_name"],
-                config_dict["params"],
-                preprocessing=row.get("preprocessing", "none"),
-            )
-            estimator_name = (
-                f"{config_dict['model_name']}_{len(candidate_estimators)}"
-            )
-            candidate_estimators.append((estimator_name, estimator))
-            seen_signatures.add(signature)
-
-            if len(candidate_estimators) == self.ensemble_voting_size * 3:
-                break
-
-        if len(candidate_estimators) < 2:
-            return None, None
-
-        selected_estimators = []
-        remaining_candidates = list(candidate_estimators)
-        best_ensemble_score = float("-inf")
-
-        while (
-            remaining_candidates
-            and len(selected_estimators) < self.ensemble_voting_size
-        ):
-            best_candidate_idx = None
-            best_candidate_score = best_ensemble_score
-
-            for idx, (candidate_name, candidate_estimator) in enumerate(
-                remaining_candidates
-            ):
-                trial_estimators = selected_estimators + [
-                    (candidate_name, candidate_estimator)
-                ]
-                voting = self.get_voting_strategy(trial_estimators)
-                trial_ensemble = VotingClassifier(
-                    estimators=trial_estimators,
-                    voting=voting,
-                    n_jobs=self.inner_n_jobs,
-                )
-                trial_score = self.evaluate_estimator(trial_ensemble, X, y)
-                if trial_score > best_candidate_score:
-                    best_candidate_score = trial_score
-                    best_candidate_idx = idx
-
-            if best_candidate_idx is None:
-                break
-
-            candidate_estimator = remaining_candidates.pop(best_candidate_idx)
-            selected_estimators.append(candidate_estimator)
-            best_ensemble_score = best_candidate_score
-
-        if len(selected_estimators) < 2:
-            return None, None
-
-        ensemble_model = VotingClassifier(
-            estimators=selected_estimators,
-            voting=self.get_voting_strategy(selected_estimators),
-            n_jobs=self.inner_n_jobs,
-        )
-        ensemble_model.fit(X, y)
-        return ensemble_model, float(best_ensemble_score)
-
-    def build_regression_voting_ensemble(
-        self,
-        results,
-        evaluator,
-        X,
-        y,
-    ):
-        ranked_rows = [
-            row
-            for row in sorted(
-                results,
-                key=lambda item: item.get("score", float("-inf")),
-                reverse=True,
-            )
-            if row.get("status") == "success" and row.get("config") is not None
-        ]
-        if len(ranked_rows) < 2:
-            return None, None
-
-        candidate_estimators = []
-        seen_signatures = set()
-        for row in ranked_rows:
-            config_dict = configuration_space_to_dict(row["config"])
-            signature = (
-                config_dict["model_name"],
-                tuple(sorted(config_dict["params"].items())),
-                row.get("preprocessing", "none"),
-            )
-            if signature in seen_signatures:
-                continue
-            estimator = evaluator.build_model(
-                config_dict["model_name"],
-                config_dict["params"],
-                preprocessing=row.get("preprocessing", "none"),
-            )
-            candidate_estimators.append(
-                (
-                    f"{config_dict['model_name']}_{len(candidate_estimators)}",
-                    estimator,
-                )
-            )
-            seen_signatures.add(signature)
-            if len(candidate_estimators) == 3 * self.ensemble_voting_size:
-                break
-
-        if len(candidate_estimators) < 2:
-            return None, None
-
-        selected_estimators = []
-        best_ensemble_score = float("-inf")
-        while (
-            candidate_estimators
-            and len(selected_estimators) < self.ensemble_voting_size
-        ):
-            best_candidate_idx = None
-            best_candidate_score = best_ensemble_score
-            for idx, (candidate_name, candidate_estimator) in enumerate(
-                candidate_estimators
-            ):
-                trial_ensemble = VotingRegressor(
-                    estimators=selected_estimators
-                    + [(candidate_name, candidate_estimator)]
-                )
-                trial_score = self.evaluate_estimator(trial_ensemble, X, y)
-                if trial_score > best_candidate_score:
-                    best_candidate_score = trial_score
-                    best_candidate_idx = idx
-            if best_candidate_idx is None:
-                break
-            candidate_name, candidate_estimator = candidate_estimators.pop(
-                best_candidate_idx
-            )
-            selected_estimators.append((candidate_name, candidate_estimator))
-            best_ensemble_score = best_candidate_score
-
-        if len(selected_estimators) < 2:
-            return None, None
-
-        ensemble_model = VotingRegressor(estimators=selected_estimators)
-        ensemble_model.fit(X, y)
-        return ensemble_model, float(best_ensemble_score)
-
     def resolve_ensemble_strategy(self, X):
         n_rows = len(X)
         if self.ensemble_strategy == "stacked" and n_rows > 50_000:
             if self.verbose:
                 print(
-                    "[AutoML] Large dataset detected; switching ensemble strategy "
+                    "large dataset detected; switching ensemble strategy "
                     "from stacked to voting."
                 )
             return "voting"
         return self.ensemble_strategy
 
-    def build_stacked_ensemble(
-        self,
-        cv_results,
-        evaluator,
-        X,
-        y,
-    ):
-        ranked_rows = [
-            row
-            for row in sorted(
-                cv_results,
-                key=lambda item: item.get("score", float("-inf")),
-                reverse=True,
-            )
-            if row.get("status") == "success" and row.get("config") is not None
-        ]
-        if len(ranked_rows) < 2:
-            return None, None
+    def get_voting_strategy(self, estimators):
+        if all(hasattr(estimator[1], "predict_proba") for estimator in estimators):
+            return "soft"
+        return "hard"
 
-        base_estimators = self.select_diverse_base_estimators(ranked_rows, evaluator)
-        if len(base_estimators) < 3:
-            return None, None
-
-        meta_estimators = self.select_meta_estimators()
-        if len(meta_estimators) < 1:
-            return None, None
-
-        if self.task == "regression":
-            ensemble_model = StackedEnsembleRegressor(
-                base_estimators=base_estimators,
-                meta_estimators=meta_estimators,
-                cv=self.cv,
-                random_state=self.random_state,
-                n_jobs=self.stack_n_jobs,
-                inner_n_jobs=self.inner_n_jobs,
-                bagging_n_estimators=self.stacked_bagging_n_estimators,
-                include_original_features_in_meta=self.stacked_include_original_features_in_meta,
-                scoring=self.scoring,
-                verbose=self.verbose,
-            )
-            ensemble_model.fit(X, y)
-            return ensemble_model, float(ensemble_model.forward_selection_.score)
-
-        ensemble_model = StackedEnsembleClassifier(
-            base_estimators=base_estimators,
-            meta_estimators=meta_estimators,
-            cv=self.cv,
-            random_state=self.random_state,
-            n_jobs=self.stack_n_jobs,
-            inner_n_jobs=self.inner_n_jobs,
-            bagging_n_estimators=self.stacked_bagging_n_estimators,
-            include_original_features_in_meta=self.stacked_include_original_features_in_meta,
-            scoring=self.scoring,
-            verbose=self.verbose,
-        )
-        ensemble_model.fit(X, y)
-        return ensemble_model, float(ensemble_model.forward_selection_.score)
-
-    def select_meta_estimators(
-        self,
-    ):
-        if self.task == "classification":
-            return [
-                (
-                    "meta_logistic_regression",
-                    LogisticRegression(
-                        C=1.0,
-                        solver="lbfgs",
-                        penalty="l2",
-                        max_iter=1000,
-                        random_state=self.random_state,
-                    ),
-                ),
-            ]
-        else:
-            return [
-                (
-                    "meta_ridge_regressor",
-                    Ridge(alpha=1.0),
-                ),
-            ]
-
-    def select_diverse_base_estimators(
-        self,
-        ranked_rows,
-        evaluator,
-    ):
-        candidate_rows = []
-        seen_signatures = set()
-        num_of_candidates = 10
-
-        for row in ranked_rows:
-            config_dict = configuration_space_to_dict(row["config"])
-            family_name = config_dict["model_name"]
-            signature = (
-                family_name,
-                tuple(sorted(config_dict["params"].items())),
-                row.get("preprocessing", "none"),
-            )
-            if signature in seen_signatures:
-                continue
-
-            estimator = evaluator.build_model(
-                config_dict["model_name"],
-                config_dict["params"],
-                preprocessing=row.get("preprocessing", "none"),
-            )
-            estimator_name = f"base_{family_name}_{len(candidate_rows)}"
-            candidate_rows.append((estimator_name, estimator))
-            seen_signatures.add(signature)
-
-            if len(candidate_rows) >= num_of_candidates:
-                break
-
-        return [(name, estimator) for name, estimator in candidate_rows]
-
-    def evaluate_estimator(self, estimator, X, y):
-        if self.task == "classification":
-            splitter = StratifiedKFold(
-                n_splits=self.cv,
-                shuffle=True,
-                random_state=self.random_state,
-            )
-        else:
-            splitter = KFold(
-                n_splits=self.cv,
-                shuffle=True,
-                random_state=self.random_state,
-            )
-        scores = cross_val_score(
-            clone(estimator),
-            X,
-            y,
-            cv=splitter,
-            scoring=self.scoring,
+    def make_voting_classifier(self, estimators):
+        return VotingClassifier(
+            estimators=estimators,
+            voting=self.get_voting_strategy(estimators),
             n_jobs=self.inner_n_jobs,
         )
-        return float(scores.mean())
 
-    @staticmethod
-    def build_leaderboard(result):
-        ranked = sorted(
-            result,
-            key=lambda row: row.get("score", float("-inf")),
-            reverse=True,
+    def build_ensemble(self, results, evaluator, X, y):
+        if not self.ensemble:
+            return None, None
+
+        strategy = self.resolve_ensemble_strategy(X)
+        if strategy == "stacked":
+            return self.build_stacked_ensemble(results, evaluator, X, y)
+        if strategy != "voting":
+            raise ValueError("unsupported ensemble strategy.")
+        if self.task == "regression":
+            return self.build_regression_voting_ensemble(results, evaluator, X, y)
+
+        ranked = self.rank_successful(results)
+        if len(ranked) < 2:
+            return None, None
+
+        candidates = self.build_candidate_pool(ranked, evaluator)
+        if len(candidates) < 2:
+            return None, None
+
+        selected, score = self.greedy_forward_select(
+            candidates, self.make_voting_classifier, X, y
         )
+        if len(selected) < 2:
+            return None, None
 
-        leaderboard = []
-        for rank, row in enumerate(ranked, start=1):
-            leaderboard.append(
-                {
-                    "rank": rank,
-                    "trial_id": row.get("trial_id", rank - 1),
-                    "model_name": row["model_name"],
-                    "preprocessing": row.get("preprocessing", "none"),
-                    "cv_score": row["score"],
-                    "error": row.get("error"),
-                    "params": row["params"],
-                }
-            )
-
-        return leaderboard
+        model = self.make_voting_classifier(selected)
+        model.fit(X, y)
+        return model, float(score)
 
     def append_ensemble_to_leaderboard(
         self,
@@ -672,29 +350,18 @@ class AutoMLEngine:
             print("dataset-aware filtering disabled models:", disabled_set)
         return filtered_models
 
-    @staticmethod
-    def features_have_negative_values(X):
+    def features_have_negative_values(self, X):
         try:
-            if hasattr(X, "select_dtypes"):
-                numeric_frame = X.select_dtypes(include=["number"])
-                if numeric_frame.shape[1] == 0:
-                    return False
-                numeric_values = numeric_frame.to_numpy()
-            else:
-                numeric_values = np.asarray(X)
-                if numeric_values.dtype.kind not in {"i", "u", "f", "b"}:
-                    return False
-            return bool(np.nanmin(numeric_values) < 0)
-        except Exception:
-            return False
+            return bool((X < 0).any().any())
+        except AttributeError:
+            return bool(np.asarray(X).min() < 0)
 
-    @staticmethod
-    def get_voting_strategy(estimators):
-        if all(hasattr(estimator[1], "predict_proba") for estimator in estimators):
-            return "soft"
-        return "hard"
+    def build_configspace(self, models):
+        if self.task == "classification":
+            return return_classification_config_space(allowed_models=models)
+        return return_regression_config_space(allowed_models=models)
 
-    def get_meta_learning_warmstarts(self, configspace, X, y):
+    def get_warmstart(self, configspace, X, y):
         if not self.use_meta_learning:
             return []
 
@@ -722,16 +389,219 @@ class AutoMLEngine:
             print(f"meta-learning warmstarts loaded: {len(warmstarts)}")
         return warmstarts
 
-    def resolve_per_run_time_limit(self):
-        if self.disable_evaluation_timeout:
-            return None
+    def search(self, X, y):
+        allowed_models = self.resolve_allowed_models(X)
+        config_space = self.build_configspace(allowed_models)
+        warm_start = self.get_warmstart(config_space, X, y)
+        evaluator = self.build_evaluator()
+        optimizer = self.get_optimizer(config_space, evaluator, X, y, warm_start)
+        optimization_result = optimizer.optimize()
+        best_config = optimization_result.best_config
+        if best_config is None:
+            raise RuntimeError("optimizer did not return a best configuration.")
+        best_config_result = optimization_result.best_config_result
+        preprocessing = best_config_result.preprocessing
+        leaderboard = self.build_leaderboard(optimization_result.runhistory)
 
-        if self.per_run_time_limit is not None:
-            return float(self.per_run_time_limit)
+        best_model = self.fit_final_model(
+            best_config, evaluator, X, y, preprocessing=preprocessing
+        )
+        ensemble, ensemble_score = self.build_ensemble(
+            optimization_result.runhistory,
+            evaluator,
+            X,
+            y,
+        )
+        best_model_score = float(best_config_result.score)
+        final_model = best_model
+        final_score = best_model_score
 
-        if self.time_budget is None:
-            return 60.0
+        if ensemble is not None and ensemble_score is not None:
+            if ensemble_score > best_model_score:
+                final_model = ensemble
+                final_score = ensemble_score
 
-        per_run_time_limit = max(1.0, float(self.time_budget) / 10.0)
+            leaderboard = self.append_ensemble_to_leaderboard(
+                leaderboard=leaderboard,
+                ensemble_score=ensemble_score,
+            )
 
-        return per_run_time_limit
+        return AutoMLResult(
+            leaderboard=leaderboard,
+            final_model=final_model,
+            best_model=best_model,
+            best_score=final_score,
+            ensemble=ensemble,
+            runhistory=optimization_result.runhistory,
+        )
+
+    def build_stacked_ensemble(
+        self,
+        cv_results,
+        evaluator,
+        X,
+        y,
+    ):
+        ranked_rows = [
+            row
+            for row in sorted(
+                cv_results,
+                key=lambda item: item.get("score", float("-inf")),
+                reverse=True,
+            )
+            if row.get("status") == "success" and row.get("config") is not None
+        ]
+        if len(ranked_rows) < 2:
+            return None, None
+
+        base_estimators = self.select_diverse_base_estimators(ranked_rows, evaluator)
+        if len(base_estimators) < 3:
+            return None, None
+
+        if self.task == "regression":
+            ensemble_model = StackedEnsembleRegressor(
+                base_estimators=base_estimators,
+                cv=self.cv,
+                random_state=self.random_state,
+                n_jobs=self.stack_n_jobs,
+                inner_n_jobs=self.inner_n_jobs,
+                bagging_n_estimators=self.stacked_bagging_n_estimators,
+                include_original_features_in_meta=self.stacked_include_original_features_in_meta,
+                scoring=self.scoring,
+                verbose=self.verbose,
+            )
+            ensemble_model.fit(X, y)
+            return ensemble_model, float(ensemble_model.forward_selection_.score)
+
+        ensemble_model = StackedEnsembleClassifier(
+            base_estimators=base_estimators,
+            cv=self.cv,
+            random_state=self.random_state,
+            n_jobs=self.stack_n_jobs,
+            inner_n_jobs=self.inner_n_jobs,
+            bagging_n_estimators=self.stacked_bagging_n_estimators,
+            include_original_features_in_meta=self.stacked_include_original_features_in_meta,
+            scoring=self.scoring,
+            verbose=self.verbose,
+        )
+        ensemble_model.fit(X, y)
+        return ensemble_model, float(ensemble_model.forward_selection_.score)
+
+    def select_diverse_base_estimators(
+        self,
+        ranked_rows,
+        evaluator,
+    ):
+        candidate_rows = []
+        seen_signatures = set()
+        num_of_candidates = 10
+
+        for row in ranked_rows:
+            config_dict = configuration_space_to_dict(row["config"])
+            family_name = config_dict["model_name"]
+            signature = (
+                family_name,
+                tuple(sorted(config_dict["params"].items())),
+                row.get("preprocessing", "none"),
+            )
+            if signature in seen_signatures:
+                continue
+
+            estimator = evaluator.build_model(
+                config_dict["model_name"],
+                config_dict["params"],
+                preprocessing=row.get("preprocessing", "none"),
+            )
+            estimator_name = f"base_{family_name}_{len(candidate_rows)}"
+            candidate_rows.append((estimator_name, estimator))
+            seen_signatures.add(signature)
+
+            if len(candidate_rows) >= num_of_candidates:
+                break
+
+        return [(name, estimator) for name, estimator in candidate_rows]
+
+    def make_voting_regressor(self, estimators):
+        return VotingRegressor(estimators=estimators)
+
+    def build_candidate_pool(self, ranked_rows, evaluator):
+        candidates = []
+        seen = set()
+        cap = self.ensemble_voting_size * 3
+
+        for row in ranked_rows:
+            cfg = configuration_space_to_dict(row["config"])
+            sig = (
+                cfg["model_name"],
+                tuple(sorted(cfg["params"].items())),
+                row.get("preprocessing", "none"),
+            )
+            if sig in seen:
+                continue
+
+            estimator = evaluator.build_model(
+                cfg["model_name"],
+                cfg["params"],
+                preprocessing=row.get("preprocessing", "none"),
+            )
+            candidates.append((f"{cfg['model_name']}_{len(candidates)}", estimator))
+            seen.add(sig)
+
+            if len(candidates) == cap:
+                break
+
+        return candidates
+
+    def build_regression_voting_ensemble(self, results, evaluator, X, y):
+        ranked = self.rank_successful(results)
+        if len(ranked) < 2:
+            return None, None
+
+        candidates = self.build_candidate_pool(ranked, evaluator)
+        if len(candidates) < 2:
+            return None, None
+
+        selected, score = self.greedy_forward_select(
+            candidates, self.make_voting_regressor, X, y
+        )
+        if len(selected) < 2:
+            return None, None
+
+        model = self.make_voting_regressor(selected)
+        model.fit(X, y)
+        return model, float(score)
+
+    def rank_successful(self, results):
+        return [
+            result
+            for result in sorted(
+                results,
+                key=lambda r: r.get("score", float("-inf")),
+                reverse=True,
+            )
+            if result.get("status") == "success" and result.get("config") is not None
+        ]
+
+    def greedy_forward_select(self, candidates, make_ensemble, X, y):
+        selected = []
+        best_score = float("-inf")
+        pool = list(candidates)
+
+        while pool and len(selected) < self.ensemble_voting_size:
+            best_idx = None
+            best_candidate_score = best_score
+
+            for idx, (name, est) in enumerate(pool):
+                trial = make_ensemble(selected + [(name, est)])
+                score = self.evaluate_estimator(trial, X, y)
+                if score > best_candidate_score:
+                    best_candidate_score = score
+                    best_idx = idx
+
+            if best_idx is None:
+                break
+
+            selected.append(pool.pop(best_idx))
+            best_score = best_candidate_score
+
+        return selected, best_score
