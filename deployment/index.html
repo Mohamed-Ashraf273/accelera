@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#deployment-module" class="md-skip">
+        <a href="#deployment-module-reference-configuration-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -655,10 +655,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#key-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        Key Architecture
       
     </span>
   </a>
@@ -666,10 +666,60 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
+  <a href="#detailed-configjson-explanation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Prerequisites
+        Detailed config.json Explanation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Detailed config.json Explanation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-models-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. models Object
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-schema-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. schema Object
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-tracking-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. tracking Object
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-version-control-vcs-cli-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Version Control (VCS) CLI Reference
       
     </span>
   </a>
@@ -677,10 +727,77 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#prediction-api" class="md-nav__link">
+  <a href="#deployment-orchestration-cli-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Prediction API
+        Deployment Orchestration CLI Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deployment Orchestration CLI Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-local-docker-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Local &amp; Docker Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-heroku-deployment-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Heroku Deployment Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-aws-ec2-deployment-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. AWS EC2 Deployment Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. AWS EC2 Deployment Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-arguments-for-ec2-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported Arguments for EC2 Commands:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-e2e-example-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete E2E Example Script
       
     </span>
   </a>
@@ -688,98 +805,99 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#input-validation" class="md-nav__link">
+  <a href="#setup-running-from-a-custom-directory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Input Validation
+        Setup &amp; Running from a Custom Directory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setup &amp; Running from a Custom Directory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-initialize-the-vcs-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Initialize the VCS Registry
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#prediction-tracking" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#2-generate-the-config-and-models" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Prediction Tracking
+        2. Generate the Config and Models
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#model-snapshot-commands" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#3-commit-the-model-to-vcs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Model Snapshot Commands
+        3. Commit the Model to VCS
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#docker-commands" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#4-build-and-run-the-container-service" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Docker Commands
+        4. Build and Run the Container Service
       
     </span>
   </a>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
-  <a href="#heroku-commands" class="md-nav__link">
+  <a href="#prediction-api-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Heroku Commands
+        Prediction API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prediction API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#json-inference-call-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON Inference Call Example
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#ec2-commands" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        EC2 Commands
-      
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#generated-docker-image" class="md-nav__link">
+  <a href="#testing-the-module" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Generated Docker Image
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#notes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Notes
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#related-modules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Related Modules
+        Testing the Module
       
     </span>
   </a>
@@ -973,10 +1091,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#key-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        Key Architecture
       
     </span>
   </a>
@@ -984,10 +1102,60 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
+  <a href="#detailed-configjson-explanation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Prerequisites
+        Detailed config.json Explanation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Detailed config.json Explanation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-models-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. models Object
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-schema-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. schema Object
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-tracking-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. tracking Object
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-version-control-vcs-cli-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Version Control (VCS) CLI Reference
       
     </span>
   </a>
@@ -995,10 +1163,77 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#prediction-api" class="md-nav__link">
+  <a href="#deployment-orchestration-cli-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Prediction API
+        Deployment Orchestration CLI Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deployment Orchestration CLI Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-local-docker-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Local &amp; Docker Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-heroku-deployment-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Heroku Deployment Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-aws-ec2-deployment-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. AWS EC2 Deployment Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. AWS EC2 Deployment Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-arguments-for-ec2-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported Arguments for EC2 Commands:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-e2e-example-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete E2E Example Script
       
     </span>
   </a>
@@ -1006,98 +1241,99 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#input-validation" class="md-nav__link">
+  <a href="#setup-running-from-a-custom-directory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Input Validation
+        Setup &amp; Running from a Custom Directory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setup &amp; Running from a Custom Directory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-initialize-the-vcs-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Initialize the VCS Registry
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#prediction-tracking" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#2-generate-the-config-and-models" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Prediction Tracking
+        2. Generate the Config and Models
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#model-snapshot-commands" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#3-commit-the-model-to-vcs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Model Snapshot Commands
+        3. Commit the Model to VCS
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#docker-commands" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#4-build-and-run-the-container-service" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Docker Commands
+        4. Build and Run the Container Service
       
     </span>
   </a>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
-  <a href="#heroku-commands" class="md-nav__link">
+  <a href="#prediction-api-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Heroku Commands
+        Prediction API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prediction API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#json-inference-call-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON Inference Call Example
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#ec2-commands" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        EC2 Commands
-      
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#generated-docker-image" class="md-nav__link">
+  <a href="#testing-the-module" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Generated Docker Image
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#notes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Notes
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#related-modules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Related Modules
+        Testing the Module
       
     </span>
   </a>
@@ -1124,411 +1360,309 @@
   
 
 
-<h1 id="deployment-module">Deployment Module<a class="headerlink" href="#deployment-module" title="Permanent link">&para;</a></h1>
-<p>The Deployment Module provides command-line utilities for packaging trained model
-artifacts, running them behind a FastAPI prediction service, and deploying the
-service with Docker, Heroku, or EC2.</p>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>Deployment code lives in <code>accelera/src/deployment_module</code>.</p>
-<ul>
-<li><code>vcs.py</code> stores and restores snapshots of <code>config.json</code> and <code>models/</code>.</li>
-<li><code>accelera_deployment/deployment.py</code> prepares Docker build files and runs
-  local, Heroku, or EC2 deployment commands.</li>
-<li><code>accelera_deployment/server.py</code> serves predictions through FastAPI.</li>
-</ul>
-<p>Most examples below assume you are running commands from the deployment module
-directory:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>accelera/src/deployment_module
+<h1 id="deployment-module-reference-configuration-guide">Deployment Module Reference &amp; Configuration Guide<a class="headerlink" href="#deployment-module-reference-configuration-guide" title="Permanent link">&para;</a></h1>
+<p>The Accelera Deployment Module streamlines transitioning machine learning pipelines from local training environments to production-ready API services. It packages trained estimators and preprocessing models, performs schema validation at runtime using Great Expectations, logs request and response telemetry, and manages deployments to local Docker environments, Heroku, or AWS EC2 instances.</p>
+<hr />
+<h2 id="key-architecture">Key Architecture<a class="headerlink" href="#key-architecture" title="Permanent link">&para;</a></h2>
+<p>The deployment pipeline is built around a standardized prediction pipeline:
+1. <strong>Three-Artifact Pipeline Structure</strong>: Models are composed of exactly three hardcoded pickle (<code>.pkl</code>) artifacts:
+   - <code>preprocessing_pipeline.pkl</code>: Contains all standard scikit-learn transformers (imputers, scaling, one-hot encoders, category-encoders, etc.).
+   - <code>feature_selector.pkl</code>: Handles selecting the relevant feature set (e.g., <code>SelectPercentile</code>).
+   - <code>final_model.pkl</code>: The final trained model estimator (e.g., <code>RandomForestClassifier</code>).
+2. <strong>Path Resolution</strong>: The model configuration metadata schema is defined inside the training script and written to <code>config.json</code>. The <code>ModelService</code> looks up config settings and relative model files dynamically based on the active registry root.
+3. <strong>Import Isolation</strong>: Test and server modules resolve dependencies cleanly using isolated namespace mapping.</p>
+<hr />
+<h2 id="detailed-configjson-explanation">Detailed <code>config.json</code> Explanation<a class="headerlink" href="#detailed-configjson-explanation" title="Permanent link">&para;</a></h2>
+<p>The service runtime and schema validation logic are defined entirely by the <code>config.json</code> configuration file. Below is an annotated structure showing every field's purpose:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;models&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&quot;preprocessing_pipeline&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;models/preprocessing_pipeline.pkl&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">&quot;feature_selector&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;models/feature_selector.pkl&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">&quot;final_model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;models/final_model.pkl&quot;</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="nt">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nt">&quot;features&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">      </span><span class="p">{</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;alcohol&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">        </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">        </span><span class="nt">&quot;min&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">        </span><span class="nt">&quot;max&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">15.0</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">      </span><span class="p">},</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">      </span><span class="p">{</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;origin&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">        </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">        </span><span class="nt">&quot;allowed_values&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;domestic&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;imported&quot;</span><span class="p">]</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">      </span><span class="p">}</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">  </span><span class="nt">&quot;tracking&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">    </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">    </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prediction_logs/predictions.jsonl&quot;</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="p">}</span>
 </code></pre></div>
-<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<h3 id="1-models-object">1. <code>models</code> Object<a class="headerlink" href="#1-models-object" title="Permanent link">&para;</a></h3>
+<p>Defines relative file system paths to the serialized pipeline artifacts. Paths must be relative to the <code>.accelera_deployment/</code> directory so they can be copied correctly during containerization.
+* <strong><code>preprocessing_pipeline</code></strong> <em>(string)</em>: Path to the preprocessor pipeline.
+* <strong><code>feature_selector</code></strong> <em>(string)</em>: Path to the feature selection model.
+* <strong><code>final_model</code></strong> <em>(string)</em>: Path to the core estimator model.</p>
+<h3 id="2-schema-object">2. <code>schema</code> Object<a class="headerlink" href="#2-schema-object" title="Permanent link">&para;</a></h3>
+<p>Specifies validation constraints for incoming payloads. If <code>schema</code> contains a non-empty <code>features</code> list, the validation engine runs Great Expectations suites on every prediction request.
+* <strong><code>features</code></strong> <em>(array of objects)</em>: List of expected input fields. Each feature object supports:
+  * <strong><code>name</code></strong> <em>(string, required)</em>: The exact key name expected in JSON requests or the column name in uploaded CSVs.
+  * <strong><code>type</code></strong> <em>(string, default: <code>"number"</code>)</em>: Datatype coercion target. Supported options:
+    * <code>"number"</code>: Coerces values into float.
+    * <code>"integer"</code>: Coerces values into integer and raises a validation error if any decimal value is found.
+    * <code>"string"</code>: Coerces values into string representations.
+    * <code>"boolean"</code>: Auto-coerces boolean values and representations (e.g. <code>True</code>, <code>False</code>, <code>"true"</code>, <code>"false"</code>, <code>1</code>, <code>0</code>) to python boolean states.
+  * <strong><code>required</code></strong> <em>(boolean, default: <code>true</code>)</em>: If true, returns a validation error if the field is null or missing.
+  * <strong><code>min</code></strong> / <strong><code>max</code></strong> <em>(numeric, optional)</em>: Declares numeric lower and upper bounds.
+  * <strong><code>allowed_values</code></strong> <em>(array, optional)</em>: Explicit list of allowed values (e.g., <code>["domestic", "imported"]</code>).</p>
+<h3 id="3-tracking-object">3. <code>tracking</code> Object<a class="headerlink" href="#3-tracking-object" title="Permanent link">&para;</a></h3>
+<p>Controls prediction request logging.
+* <strong><code>enabled</code></strong> <em>(boolean)</em>: Toggles telemetry logging.
+* <strong><code>path</code></strong> <em>(string)</em>: Path to log predictions. Logs are stored as a line-separated JSON file (JSONL).</p>
+<hr />
+<h2 id="model-version-control-vcs-cli-reference">Model Version Control (VCS) CLI Reference<a class="headerlink" href="#model-version-control-vcs-cli-reference" title="Permanent link">&para;</a></h2>
+<p>The <code>vcs.py</code> module manages snapshots of models and active configuration files. Snapshots are stored under <code>experiments/&lt;commit-hash&gt;/</code> using a 7-character commit SHA key.</p>
+<p>All commands below should be prefixed with <code>PYTHONPATH=.</code> (or <code>PYTHONPATH=/home/mazen/Desktop/GP/Accelera</code> when running from a custom directory).</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Usage Example</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>init</code></strong></td>
+<td><code>python -m accelera.src.deployment.vcs init</code></td>
+<td>Initializes the <code>.accelera_deployment</code> directory, establishing the default <code>experiments/</code> registry and creating an empty <code>experiments.json</code> configuration file.</td>
+</tr>
+<tr>
+<td><strong><code>commit</code></strong></td>
+<td><code>python -m accelera.src.deployment.vcs commit -m "message"</code></td>
+<td>Snapshots the active model binaries and <code>config.json</code>, calculates the commit SHA, and saves the commit details under the <code>experiments/</code> registry.</td>
+</tr>
+<tr>
+<td><strong><code>status</code></strong></td>
+<td><code>python -m accelera.src.deployment.vcs status</code></td>
+<td>Displays the status of the local registry, showing the total number of commits, the current <code>HEAD</code> commit, and which commit is marked as currently deployed.</td>
+</tr>
+<tr>
+<td><strong><code>log</code></strong></td>
+<td><code>python -m accelera.src.deployment.vcs log</code></td>
+<td>Lists all committed model snapshots in reverse chronological order, including hashes, creation dates, messages, and deployment flags.</td>
+</tr>
+<tr>
+<td><strong><code>show</code></strong></td>
+<td><code>python -m accelera.src.deployment.vcs show &lt;hash&gt;</code></td>
+<td>Outputs detailed information for a specific commit hash, including its full config, metadata, and files included.</td>
+</tr>
+<tr>
+<td><strong><code>deploy</code></strong></td>
+<td><code>python -m accelera.src.deployment.vcs deploy &lt;hash&gt;</code></td>
+<td>Roll back or deploy a historical model snapshot. Copies the corresponding files and configuration back into the active runtime workspace.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="deployment-orchestration-cli-reference">Deployment Orchestration CLI Reference<a class="headerlink" href="#deployment-orchestration-cli-reference" title="Permanent link">&para;</a></h2>
+<p>The <code>deployment.py</code> module coordinates the building of Docker images and deployment to local and remote hosts.</p>
+<h3 id="1-local-docker-commands">1. Local &amp; Docker Commands<a class="headerlink" href="#1-local-docker-commands" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Usage Example</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>prepare</code></strong></td>
+<td><code>python accelera/src/deployment/deployment.py prepare</code></td>
+<td>Staging step. Copies project dependencies, serving scripts, and serialized models to a temporary staging workspace, and compiles the <code>Dockerfile</code> and <code>requirements.txt</code>.</td>
+</tr>
+<tr>
+<td><strong><code>build</code></strong></td>
+<td><code>python accelera/src/deployment/deployment.py build [--no-cache]</code></td>
+<td>Compiles a Docker image named <code>ml-model</code> from the staging workspace. Use <code>--no-cache</code> to force rebuilds from scratch.</td>
+</tr>
+<tr>
+<td><strong><code>run-local</code></strong></td>
+<td><code>python accelera/src/deployment/deployment.py run-local</code></td>
+<td>Exposes the service locally on a target port. Stops any existing Docker container using the port and runs the container. Read port using the <code>PORT</code> env variable (default: <code>8000</code>).</td>
+</tr>
+<tr>
+<td><strong><code>local</code></strong></td>
+<td><code>python accelera/src/deployment/deployment.py local [--no-cache]</code></td>
+<td>Combines the <code>prepare</code>, <code>build</code>, and <code>run-local</code> steps in sequence for a complete local run.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-heroku-deployment-commands">2. Heroku Deployment Commands<a class="headerlink" href="#2-heroku-deployment-commands" title="Permanent link">&para;</a></h3>
+<p>Heroku deployment coordinates pushed Docker images to Heroku's Container Registry. Pass <code>--app &lt;app_name&gt;</code> to specify the target application.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Usage Example</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>heroku-login</code></strong></td>
+<td><code>python accelera/src/deployment/deployment.py heroku-login</code></td>
+<td>Triggers the interactive Heroku CLI authentication workflow.</td>
+</tr>
+<tr>
+<td><strong><code>heroku-create</code></strong></td>
+<td><code>python accelera/src/deployment/deployment.py heroku-create --app my-app</code></td>
+<td>Creates a new Heroku app under the specified name with container deployment stack configuration.</td>
+</tr>
+<tr>
+<td><strong><code>heroku-container-login</code></strong></td>
+<td><code>python accelera/src/deployment/deployment.py heroku-container-login</code></td>
+<td>Logs Docker CLI into the Heroku Container Registry (<code>registry.heroku.com</code>).</td>
+</tr>
+<tr>
+<td><strong><code>heroku-push</code></strong></td>
+<td><code>python accelera/src/deployment/deployment.py heroku-push --app my-app</code></td>
+<td>Prepares the staging folder, builds the Docker container, and pushes it to the Heroku registry.</td>
+</tr>
+<tr>
+<td><strong><code>heroku-release</code></strong></td>
+<td><code>python accelera/src/deployment/deployment.py heroku-release --app my-app</code></td>
+<td>Activates and releases the pushed web container to serve traffic on Heroku.</td>
+</tr>
+<tr>
+<td><strong><code>heroku-open</code></strong></td>
+<td><code>python accelera/src/deployment/deployment.py heroku-open --app my-app</code></td>
+<td>Launches the default browser pointing to the active Heroku application.</td>
+</tr>
+<tr>
+<td><strong><code>heroku-deploy</code></strong></td>
+<td><code>python accelera/src/deployment/deployment.py heroku-deploy --app my-app [--create]</code></td>
+<td>Sequentially logs in, builds, pushes, releases, and opens the Heroku app. Use <code>--create</code> to create it first.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-aws-ec2-deployment-commands">3. AWS EC2 Deployment Commands<a class="headerlink" href="#3-aws-ec2-deployment-commands" title="Permanent link">&para;</a></h3>
+<p>Orchestrates syncing files, building Docker, and running containers on remote EC2 instances over SSH.</p>
+<table>
+<thead>
+<tr>
+<th>Argument / Subcommand</th>
+<th>Usage Example</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>ec2-deploy</code></strong></td>
+<td><code>python accelera/src/deployment/deployment.py ec2-deploy --host 54.12.34.56 --key key.pem</code></td>
+<td>Main EC2 deployment script. Syncs files via <code>rsync</code>, installs Docker if missing (if <code>--install-docker</code> is passed), builds the container on the target host, and boots it.</td>
+</tr>
+<tr>
+<td><strong><code>ec2-stop</code></strong></td>
+<td><code>python accelera/src/deployment/deployment.py ec2-stop --host 54.12.34.56 --key key.pem</code></td>
+<td>Stops and removes the active model container running on the EC2 host.</td>
+</tr>
+<tr>
+<td><strong><code>ec2-logs</code></strong></td>
+<td><code>python accelera/src/deployment/deployment.py ec2-logs --host 54.12.34.56 --key key.pem</code></td>
+<td>Follows and displays real-time container log output on the remote EC2 instance.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="supported-arguments-for-ec2-commands">Supported Arguments for EC2 Commands:<a class="headerlink" href="#supported-arguments-for-ec2-commands" title="Permanent link">&para;</a></h4>
 <ul>
-<li>Docker for local and container deployments.</li>
-<li>Heroku CLI for Heroku commands.</li>
-<li>SSH access and <code>rsync</code> for EC2 commands.</li>
-<li>A valid <code>config.json</code> with model artifact paths relative to
-  <code>accelera/src/deployment_module</code>.</li>
+<li><code>--host</code> <em>(required)</em>: Target public DNS name or IP address of the EC2 instance.</li>
+<li><code>--user</code> <em>(default: <code>ec2-user</code>)</em>: SSH login username (e.g. <code>ubuntu</code>, <code>admin</code>).</li>
+<li><code>--key</code> <em>(optional)</em>: Local path to the private SSH key file (<code>.pem</code>).</li>
+<li><code>--port</code> <em>(default: <code>8000</code>)</em>: Public port to publish and expose on the remote instance.</li>
+<li><code>--remote-dir</code> <em>(default: <code>~/deployment-app</code>)</em>: Server path where the code and staging files are uploaded.</li>
+<li><code>--image</code> / <code>--container</code> <em>(default: <code>ml-model</code>)</em>: Override names for the built image and running container.</li>
+<li><code>--install-docker</code>: If present, attempts to automatically install and start the Docker daemon on the EC2 instance using remote packet managers.</li>
 </ul>
-<p>Example <code>config.json</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;models&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">&quot;scaler_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;models/scaler.pkl&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">&quot;model_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;models/model.pkl&quot;</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="p">},</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nt">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nt">&quot;features&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sepal length (cm)&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;min&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">},</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sepal width (cm)&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;min&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">},</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;petal length (cm)&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;min&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">},</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;petal width (cm)&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;min&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">}</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="p">]</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="p">},</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">  </span><span class="nt">&quot;tracking&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">    </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prediction_logs/predictions.jsonl&quot;</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="p">}</span>
+<h2 id="complete-e2e-example-script">Complete E2E Example Script<a class="headerlink" href="#complete-e2e-example-script" title="Permanent link">&para;</a></h2>
+<p>For a complete, automated demonstration of the entire pipeline, see the example script:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>examples/deployment_demo.py
 </code></pre></div>
-<p>Absolute model paths are rejected during Docker preparation because artifacts
-must be copied into the Docker image from inside the deployment module.</p>
-<h2 id="prediction-api">Prediction API<a class="headerlink" href="#prediction-api" title="Permanent link">&para;</a></h2>
-<p>The generated service exposes:</p>
+This script acts as a reference example that automates downloading the required SSH credentials, initializing the VCS registry, training a classification pipeline, committing the artifacts, and executing an AWS EC2 container deployment.</p>
+<hr />
+<h2 id="setup-running-from-a-custom-directory">Setup &amp; Running from a Custom Directory<a class="headerlink" href="#setup-running-from-a-custom-directory" title="Permanent link">&para;</a></h2>
+<p>To run deployment workflows from a custom subdirectory (e.g. <code>deployment_test/</code>), you must set the <code>PYTHONPATH</code> environment variable so Python can find the <code>accelera</code> library.</p>
+<h3 id="1-initialize-the-vcs-registry">1. Initialize the VCS Registry<a class="headerlink" href="#1-initialize-the-vcs-registry" title="Permanent link">&para;</a></h3>
+<p>Create the <code>.accelera_deployment</code> workspace in your current folder:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">PYTHONPATH</span><span class="o">=</span>/home/mazen/Desktop/GP/Accelera<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>accelera.src.deployment.vcs<span class="w"> </span>init
+</code></pre></div></p>
+<h3 id="2-generate-the-config-and-models">2. Generate the Config and Models<a class="headerlink" href="#2-generate-the-config-and-models" title="Permanent link">&para;</a></h3>
+<p>Ensure <code>config.json</code> and model pickle files are generated by running the model training script:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">PYTHONPATH</span><span class="o">=</span>/home/mazen/Desktop/GP/Accelera<span class="w"> </span>python<span class="w"> </span>/home/mazen/Desktop/GP/Accelera/examples/model.py
+</code></pre></div>
+This writes <code>config.json</code> and the models to <code>models/</code> under the active directory.</p>
+<h3 id="3-commit-the-model-to-vcs">3. Commit the Model to VCS<a class="headerlink" href="#3-commit-the-model-to-vcs" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">PYTHONPATH</span><span class="o">=</span>/home/mazen/Desktop/GP/Accelera<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>accelera.src.deployment.vcs<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Your commit message&quot;</span>
+</code></pre></div>
+<h3 id="4-build-and-run-the-container-service">4. Build and Run the Container Service<a class="headerlink" href="#4-build-and-run-the-container-service" title="Permanent link">&para;</a></h3>
+<p>Automatically stage, build, and run the container locally:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nv">PYTHONPATH</span><span class="o">=</span>/home/mazen/Desktop/GP/Accelera<span class="w"> </span>python<span class="w"> </span>/home/mazen/Desktop/GP/Accelera/accelera/src/deployment/deployment.py<span class="w"> </span><span class="nb">local</span>
+</code></pre></div></p>
+<hr />
+<h2 id="prediction-api-reference">Prediction API Reference<a class="headerlink" href="#prediction-api-reference" title="Permanent link">&para;</a></h2>
+<p>The serving application exposes the following endpoints:</p>
 <table>
 <thead>
 <tr>
 <th>Endpoint</th>
 <th>Method</th>
-<th>Input</th>
-<th>Output</th>
+<th>Purpose</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>/health</code></td>
 <td><code>GET</code></td>
-<td>None</td>
-<td>Service, model, schema, and tracking status</td>
+<td>Return service status, model path config, and tracking details.</td>
 </tr>
 <tr>
 <td><code>/gui</code></td>
 <td><code>GET</code></td>
-<td>Browser</td>
-<td>Schema-driven prediction GUI</td>
+<td>Render an interactive form for predictions based on the input schema.</td>
 </tr>
 <tr>
 <td><code>/tracking/summary</code></td>
 <td><code>GET</code></td>
-<td>None</td>
-<td>Tracking totals from the prediction log</td>
+<td>Retrieve prediction tracking aggregates (total calls, successful, failed).</td>
 </tr>
 <tr>
 <td><code>/predict</code></td>
 <td><code>POST</code></td>
-<td>JSON payload with an <code>input</code> field</td>
-<td>row count and predictions</td>
+<td>Input list of JSON objects to perform batch or single predictions.</td>
 </tr>
 <tr>
 <td><code>/predict/csv</code></td>
 <td><code>POST</code></td>
-<td>Multipart CSV upload named <code>file</code></td>
-<td>filename, row count, predictions</td>
+<td>Upload a multipart CSV file to perform batch predictions.</td>
 </tr>
 </tbody>
 </table>
-<p>JSON prediction example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/predict<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;input&quot;: [[5.1, 3.5, 1.4, 0.2]]}&#39;</span>
+<h3 id="json-inference-call-example">JSON Inference Call Example<a class="headerlink" href="#json-inference-call-example" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/predict<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;input&quot;: [[13.71, 1.86, 2.36, 16.6, 101.0, 2.61, 2.88, 0.27, 1.69, 3.8, 1.11, 4.0, 1035.0]]}&#39;</span>
 </code></pre></div>
-<p>CSV prediction example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/predict/csv<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;file=@sample_input.csv&quot;</span>
-</code></pre></div>
-<p>Browser GUI:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>http://localhost:8000/gui
-</code></pre></div>
-<p>If <code>config.json</code> includes <code>schema.features</code>, the GUI builds a single-row input
-form from that schema and also keeps CSV upload available. If no schema is
-configured, the GUI shows CSV upload only.</p>
-<h2 id="input-validation">Input Validation<a class="headerlink" href="#input-validation" title="Permanent link">&para;</a></h2>
-<p>The prediction service can validate request data with Great Expectations before
-running the model. Configure expected columns under <code>schema.features</code> in
-<code>config.json</code>. Each feature supports:</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>name</code></td>
-<td>Input column name. CSV validation uses this directly.</td>
-</tr>
-<tr>
-<td><code>type</code></td>
-<td>One of <code>number</code>, <code>integer</code>, <code>string</code>, or <code>boolean</code>. Defaults to <code>number</code>.</td>
-</tr>
-<tr>
-<td><code>required</code></td>
-<td>Whether values must be non-null. Defaults to <code>true</code>.</td>
-</tr>
-<tr>
-<td><code>min</code> / <code>max</code></td>
-<td>Numeric lower and upper bounds.</td>
-</tr>
-<tr>
-<td><code>allowed_values</code></td>
-<td>Explicit list of accepted values.</td>
-</tr>
-</tbody>
-</table>
-<p>Validation failures return HTTP <code>422</code> with the failed schema checks.</p>
-<h2 id="prediction-tracking">Prediction Tracking<a class="headerlink" href="#prediction-tracking" title="Permanent link">&para;</a></h2>
-<p>When <code>tracking.enabled</code> is true, each prediction request is appended to a JSONL
-file. The log records timestamp, endpoint, status, row count, latency,
-predictions for successful requests, and error details for failed requests.</p>
-<p>The default log path is:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>prediction_logs/predictions.jsonl
-</code></pre></div>
-<p>Use <code>/tracking/summary</code> to inspect total requests, total rows, status counts,
-and the most recent event.</p>
-<h2 id="model-snapshot-commands">Model Snapshot Commands<a class="headerlink" href="#model-snapshot-commands" title="Permanent link">&para;</a></h2>
-<p>Use <code>vcs.py</code> to save, inspect, and restore deployable model snapshots. Each
-snapshot stores the current <code>config.json</code> and <code>models/</code> directory under
-<code>experiments/&lt;commit-hash&gt;/</code>.</p>
-<table>
-<thead>
-<tr>
-<th>Command</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>python vcs.py init</code></td>
-<td>Create the deployment experiment index.</td>
-</tr>
-<tr>
-<td><code>python vcs.py commit -m "message"</code></td>
-<td>Snapshot the current config and model files.</td>
-</tr>
-<tr>
-<td><code>python vcs.py log</code></td>
-<td>Show saved snapshots, newest first.</td>
-</tr>
-<tr>
-<td><code>python vcs.py show &lt;hash&gt;</code></td>
-<td>Show one snapshot's metadata, config, and model files.</td>
-</tr>
-<tr>
-<td><code>python vcs.py deploy &lt;hash&gt;</code></td>
-<td>Restore a snapshot into the live <code>config.json</code> and <code>models/</code>.</td>
-</tr>
-<tr>
-<td><code>python vcs.py status</code></td>
-<td>Show snapshot count, HEAD, and deployed snapshot.</td>
-</tr>
-</tbody>
-</table>
-<p>Typical snapshot workflow:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>vcs.py<span class="w"> </span>init
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>python<span class="w"> </span>vcs.py<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;baseline random forest&quot;</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>python<span class="w"> </span>vcs.py<span class="w"> </span>log
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>python<span class="w"> </span>vcs.py<span class="w"> </span>deploy<span class="w"> </span>&lt;commit-hash&gt;
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>python<span class="w"> </span>vcs.py<span class="w"> </span>status
-</code></pre></div>
-<p><code>&lt;hash&gt;</code> can be a short prefix. Use enough characters to avoid matching the
-wrong snapshot.</p>
-<h2 id="docker-commands">Docker Commands<a class="headerlink" href="#docker-commands" title="Permanent link">&para;</a></h2>
-<p>Use <code>accelera_deployment/deployment.py</code> for container preparation and local
-Docker runs.</p>
-<table>
-<thead>
-<tr>
-<th>Command</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>python accelera_deployment/deployment.py prepare</code></td>
-<td>Write <code>accelera_deployment/requirements.txt</code> and <code>Dockerfile</code>.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py build</code></td>
-<td>Build the local Docker image named <code>ml-model</code>.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py build --no-cache</code></td>
-<td>Build <code>ml-model</code> without using Docker layer cache.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py run-local</code></td>
-<td>Run the existing local <code>ml-model</code> image.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py local</code></td>
-<td>Run <code>prepare</code>, <code>build</code>, and <code>run-local</code> in sequence.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py local --no-cache</code></td>
-<td>Run the full local workflow with a fresh Docker build.</td>
-</tr>
-</tbody>
-</table>
-<p>Local deployment:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>accelera_deployment/deployment.py<span class="w"> </span><span class="nb">local</span>
-</code></pre></div>
-<p>The container defaults to port <code>8000</code>. Set <code>PORT</code> before running to use another
-port:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nv">PORT</span><span class="o">=</span><span class="m">9000</span><span class="w"> </span>python<span class="w"> </span>accelera_deployment/deployment.py<span class="w"> </span><span class="nb">local</span>
-</code></pre></div>
-<p><code>run-local</code> stops any existing Docker container publishing the selected port
-before starting the new container. Deployment commands print the browser GUI URL
-after the service starts or is released.</p>
-<h2 id="heroku-commands">Heroku Commands<a class="headerlink" href="#heroku-commands" title="Permanent link">&para;</a></h2>
-<p>Heroku commands default to app name <code>accelera1</code>. Pass <code>--app &lt;name&gt;</code> to use a
-different app.</p>
-<table>
-<thead>
-<tr>
-<th>Command</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>python accelera_deployment/deployment.py heroku-login</code></td>
-<td>Run <code>heroku login</code>.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py heroku-create --app &lt;name&gt;</code></td>
-<td>Create a Heroku app with the container stack.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py heroku-container-login</code></td>
-<td>Log in to the Heroku container registry.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py heroku-push --app &lt;name&gt;</code></td>
-<td>Prepare files and push the <code>web</code> container.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py heroku-release --app &lt;name&gt;</code></td>
-<td>Release the pushed <code>web</code> container.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py heroku-open --app &lt;name&gt;</code></td>
-<td>Open the Heroku app.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py heroku-deploy --app &lt;name&gt;</code></td>
-<td>Run login, container login, push, release, and open.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py heroku-deploy --app &lt;name&gt; --create</code></td>
-<td>Create the app before running the full deployment flow.</td>
-</tr>
-</tbody>
-</table>
-<p>Full Heroku deployment:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>python<span class="w"> </span>accelera_deployment/deployment.py<span class="w"> </span>heroku-deploy<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span>--app<span class="w"> </span>accelera-production<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span>--create
-</code></pre></div>
-<p>Incremental push and release:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>python<span class="w"> </span>accelera_deployment/deployment.py<span class="w"> </span>heroku-container-login
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>python<span class="w"> </span>accelera_deployment/deployment.py<span class="w"> </span>heroku-push<span class="w"> </span>--app<span class="w"> </span>accelera-production
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>python<span class="w"> </span>accelera_deployment/deployment.py<span class="w"> </span>heroku-release<span class="w"> </span>--app<span class="w"> </span>accelera-production
-</code></pre></div>
-<h2 id="ec2-commands">EC2 Commands<a class="headerlink" href="#ec2-commands" title="Permanent link">&para;</a></h2>
-<p>EC2 commands require <code>--host</code>. The default SSH user is <code>ec2-user</code>, the default
-remote directory is <code>~/deployment-app</code>, and the default Docker image and
-container names are both <code>ml-model</code>.</p>
-<table>
-<thead>
-<tr>
-<th>Command</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>python accelera_deployment/deployment.py ec2-deploy --host &lt;host&gt;</code></td>
-<td>Sync deployment files to EC2, build the Docker image, and run the container.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py ec2-deploy --host &lt;host&gt; --key ~/.ssh/key.pem</code></td>
-<td>Deploy using an SSH private key.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py ec2-deploy --host &lt;host&gt; --user ubuntu</code></td>
-<td>Deploy with a non-default SSH user.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py ec2-deploy --host &lt;host&gt; --remote-dir ~/apps/accelera</code></td>
-<td>Sync into a custom remote directory.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py ec2-deploy --host &lt;host&gt; --port 9000</code></td>
-<td>Expose the service on a custom public port.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py ec2-deploy --host &lt;host&gt; --image &lt;image&gt; --container &lt;name&gt;</code></td>
-<td>Use custom Docker image and container names.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py ec2-deploy --host &lt;host&gt; --install-docker</code></td>
-<td>Install and start Docker on the EC2 host if missing.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py ec2-deploy --host &lt;host&gt; --no-cache</code></td>
-<td>Build the remote Docker image without cache.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py ec2-stop --host &lt;host&gt;</code></td>
-<td>Stop the default EC2 container.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py ec2-stop --host &lt;host&gt; --container &lt;name&gt;</code></td>
-<td>Stop a named EC2 container.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py ec2-logs --host &lt;host&gt;</code></td>
-<td>Follow logs from the default EC2 container.</td>
-</tr>
-<tr>
-<td><code>python accelera_deployment/deployment.py ec2-logs --host &lt;host&gt; --container &lt;name&gt;</code></td>
-<td>Follow logs from a named EC2 container.</td>
-</tr>
-</tbody>
-</table>
-<p>Basic EC2 deployment:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python<span class="w"> </span>accelera_deployment/deployment.py<span class="w"> </span>ec2-deploy<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span>--host<span class="w"> </span><span class="m">1</span>.2.3.4<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span>--user<span class="w"> </span>ec2-user<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span>--key<span class="w"> </span>~/.ssh/accelera.pem<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span>--install-docker
-</code></pre></div>
-<p>After deployment, open the selected port, <code>8000</code> by default:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>http://&lt;host&gt;:8000
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>http://&lt;host&gt;:8000/gui
-</code></pre></div>
-<p>Make sure the EC2 security group allows inbound traffic on the selected port.
-The deployment script verifies that the container is healthy inside EC2 and then
-checks the public URL. If the internal check passes but the public check times
-out, add an inbound security group rule:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>Type: Custom TCP
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>Port: 8000
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>Source: your IP address, or 0.0.0.0/0 for a public demo
-</code></pre></div>
-<p>Use the same port you pass with <code>--port</code> if you do not use the default <code>8000</code>.</p>
-<h2 id="generated-docker-image">Generated Docker Image<a class="headerlink" href="#generated-docker-image" title="Permanent link">&para;</a></h2>
-<p><code>prepare</code> writes a Dockerfile that:</p>
-<ul>
-<li>Uses <code>python:3.11-slim</code>.</li>
-<li>Installs FastAPI, Uvicorn, Great Expectations, scikit-learn, category
-  encoders, NumPy, Pandas, Pydantic, and multipart upload support.</li>
-<li>Copies <code>server.py</code>, <code>modelservice.py</code>, <code>schema_validation.py</code>, <code>tracking.py</code>,
-  <code>config.json</code>, and configured model artifacts into <code>/app</code>.</li>
-<li>Starts Uvicorn on <code>0.0.0.0</code> with <code>${PORT:-8000}</code>.</li>
-</ul>
-<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h2>
-<ul>
-<li><code>python model.py</code> runs the sample Iris training and prediction script. It is
-  not a subcommand-based CLI.</li>
-<li>The EC2 deployment command performs a post-start health check against
-  <code>/health</code>, which is exposed by the FastAPI service.</li>
-</ul>
-<h2 id="related-modules">Related Modules<a class="headerlink" href="#related-modules" title="Permanent link">&para;</a></h2>
-<ul>
-<li><a href="../core-pipeline/">Core Pipeline</a> - Train models for deployment.</li>
-<li><a href="../automl/">AutoML Module</a> - Auto-generate deployable pipelines.</li>
-<li><a href="../benchmark/">Benchmark Platform</a> - Track deployed model performance.</li>
-</ul>
 <hr />
-<p><strong>Last Updated</strong>: June 2026</p>
+<h2 id="testing-the-module">Testing the Module<a class="headerlink" href="#testing-the-module" title="Permanent link">&para;</a></h2>
+<p>To run all unit and integration tests for the deployment engine, run:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nv">PYTHONPATH</span><span class="o">=</span>accelera/src/deployment:accelera/src<span class="w"> </span>pytest<span class="w"> </span>accelera/src/deployment/tests
+</code></pre></div></p>
 
 
 
