@@ -72,7 +72,7 @@ def run(dataset: Dataset, config: TaskConfig):
         scoring=scoring,
         random_state=config.seed,
         verbose=framework_params.pop("verbose", 1),
-        n_jobs=min(config.cores, 1),
+        stack_n_jobs=config.cores,
         search_n_parallel=framework_params.pop("search_n_parallel", 1),
         inner_n_jobs=framework_params.pop("inner_n_jobs", 1),
         disable_evaluation_timeout=framework_params.pop(

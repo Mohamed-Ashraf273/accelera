@@ -38,7 +38,6 @@ def test_regressor_runs_with_all_options(monkeypatch):
         stacked_base_size=2,
         stacked_bagging_n_estimators=2,
         stacked_include_original_features_in_meta=True,
-        n_jobs=1,
         search_n_parallel=1,
         stack_n_jobs=1,
         inner_n_jobs=1,
@@ -74,7 +73,6 @@ def test_regressor_runs_with_all_options(monkeypatch):
     assert engine.stacked_base_size == 2
     assert engine.stacked_bagging_n_estimators == 2
     assert engine.stacked_include_original_features_in_meta
-    assert engine.n_jobs == 1
     assert engine.search_n_parallel == 1
     assert engine.stack_n_jobs == 1
     assert engine.inner_n_jobs == 1

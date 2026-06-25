@@ -748,7 +748,7 @@ model = AutoMLClassifier(
     n_trials=20,
     cv=3,
     random_state=42,
-    n_jobs=1,
+    stack_n_jobs=-1,
 )
 model.fit(X_train, y_train)
 predictions = model.predict(X_test)
@@ -782,7 +782,7 @@ model = AutoMLRegressor(
     n_trials=20,
     cv=3,
     random_state=42,
-    n_jobs=1,
+    stack_n_jobs=-1,
 )
 model.fit(X_train, y_train)
 predictions = model.predict(X_test)
@@ -799,7 +799,8 @@ python examples/run_regression_task_automl.py --time-budget 300 --n-trials 10
 ```
 
 These scripts read prepared splits from `data/accelera_automl/`. The regression
-script accepts `--time-budget`, `--n-trials`, `--cv`, and `--n-jobs` options.
+script accepts `--time-budget`, `--n-trials`, `--cv`, and
+`--stack-n-jobs` options.
 
 
 ### Deployment Module
