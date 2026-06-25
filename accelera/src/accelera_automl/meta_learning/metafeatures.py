@@ -1,13 +1,14 @@
 import numpy as np
 import pandas as pd
 
+
 def as_dataframe(X):
     if isinstance(X, pd.DataFrame):
         return X
     return pd.DataFrame(X)
 
 
-def compute_classification_metafeatures(X,y):
+def compute_classification_metafeatures(X, y):
     X = as_dataframe(X)
     y = np.asarray(y)
 
@@ -15,7 +16,7 @@ def compute_classification_metafeatures(X,y):
     classes, counts = np.unique(y, return_counts=True)
     probs = counts / counts.sum()
     class_entropy = float(-(probs * np.log2(probs + 1e-12)).sum())
-    num_cols,cat_cols = get_num_and_cat_cols(X)
+    num_cols, cat_cols = get_num_and_cat_cols(X)
     num_arr = (
         num_cols.to_numpy(dtype=float)
         if not num_cols.empty
@@ -35,19 +36,14 @@ def compute_classification_metafeatures(X,y):
     missing_mask = X.isna().to_numpy()
     num_of_missings = float(missing_mask.sum())
 
-    n_instances_with_missing = (
-        float(np.any(missing_mask, axis=1).sum()) 
-    )
-    n_features_with_missing = (
-        float(np.any(missing_mask, axis=0).sum())
-    )
+    n_instances_with_missing = float(np.any(missing_mask, axis=1).sum())
+    n_features_with_missing = float(np.any(missing_mask, axis=0).sum())
 
     dataset_ratio = float(num_of_rows / max(num_of_features, 1))
     inverse_dataset_ratio = float(num_of_rows / max(num_of_features, 1))
     n_categorical = float(cat_cols.shape[1])
     n_numeric = float(num_cols.shape[1])
     symbol_counts = categorical_symbol_counts(cat_cols)
-
 
     return {
         "ClassEntropy": class_entropy,
@@ -121,21 +117,15 @@ def compute_basic_regression_metafeatures(X, y):
     target_mean = float(np.nanmean(y))
     target_std = float(np.nanstd(y))
     centered_y = y - target_mean
-    target_skew = (
-        float(np.nanmean((centered_y / (target_std + 1e-12)) ** 3))
-    )
-    target_kurtosis = (
-        float(np.nanmean((centered_y / (target_std + 1e-12)) ** 4) - 3.0)
+    target_skew = float(np.nanmean((centered_y / (target_std + 1e-12)) ** 3))
+    target_kurtosis = float(
+        np.nanmean((centered_y / (target_std + 1e-12)) ** 4) - 3.0
     )
 
     missing_mask = X.isna().to_numpy()
     n_missing_values = float(missing_mask.sum())
-    n_instances_with_missing = (
-        float(np.any(missing_mask, axis=1).sum()) 
-    )
-    n_features_with_missing = (
-        float(np.any(missing_mask, axis=0).sum())
-    )
+    n_instances_with_missing = float(np.any(missing_mask, axis=1).sum())
+    n_features_with_missing = float(np.any(missing_mask, axis=0).sum())
 
     dataset_ratio = float(n_features / max(n_instances, 1))
     inverse_dataset_ratio = float(n_instances / max(n_features, 1))
@@ -188,6 +178,7 @@ def compute_basic_regression_metafeatures(X, y):
         "LogTargetSTD": float(np.log(max(abs(target_std), 1e-12))),
     }
 
+
 def get_num_and_cat_cols(X):
     num_cols = []
     cat_cols = []
@@ -211,11 +202,7 @@ def get_num_and_cat_cols(X):
         if num_cols
         else pd.DataFrame(index=X.index)
     )
-    categorical_df = (
-        X[cat_cols]
-        if cat_cols
-        else pd.DataFrame(index=X.index)
-    )
+    categorical_df = X[cat_cols] if cat_cols else pd.DataFrame(index=X.index)
     return numeric_df, categorical_df
 
 

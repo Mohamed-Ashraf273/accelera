@@ -1,8 +1,8 @@
 import numpy as np
 from sklearn.metrics import r2_score
 
-from .base import BaseAutoML
-from .core.automl import AutoMLEngine
+from accelera.src.accelera_automl.base import BaseAutoML
+from accelera.src.accelera_automl.core.automl import AutoMLEngine
 
 
 class AutoMLRegressor(BaseAutoML):
@@ -60,7 +60,9 @@ class AutoMLRegressor(BaseAutoML):
         self.allowed_models = allowed_models
         self.use_meta_learning = use_meta_learning
         self.meta_learning_top_datasets = meta_learning_top_datasets
-        self.meta_learning_top_configs_per_dataset = meta_learning_top_configs_per_dataset
+        self.meta_learning_top_configs_per_dataset = (
+            meta_learning_top_configs_per_dataset
+        )
         self.max_meta_learning_warmstarts = max_meta_learning_warmstarts
 
     def get_default_scoring(self):

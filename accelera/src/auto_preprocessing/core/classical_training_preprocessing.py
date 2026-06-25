@@ -513,7 +513,11 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         return y_train, y_val
 
     def handel_bool_types(self):
-        bool_type_col = self.df.select_dtypes(include=["bool"]).columns
+        bool_type_col = (
+            self.df.drop(columns=[self.target_col])
+            .select_dtypes(include=["bool"])
+            .columns
+        )
         save_pickle(self.folder_path, bool_type_col, "bool_type_col.pkl")
         if len(bool_type_col) == 0:
             return

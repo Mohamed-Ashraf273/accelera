@@ -1,27 +1,36 @@
-from sklearn.base import BaseEstimator,ClassifierMixin,clone
-import numpy as np
-from sklearn.model_selection import StratifiedKFold,cross_val_predict
-from joblib import Parallel,delayed
-from sklearn.ensemble import BaggingClassifier
-from .utils import score_predictions
-from sklearn.linear_model import LogisticRegression
-from scipy import sparse
-from .utils import log_forward_selection_step,log_ensemble_structure
 from types import SimpleNamespace
+
+import numpy as np
+from joblib import Parallel
+from joblib import delayed
+from scipy import sparse
+from sklearn.base import BaseEstimator
+from sklearn.base import ClassifierMixin
+from sklearn.base import clone
+from sklearn.ensemble import BaggingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import cross_val_predict
+
+from accelera.src.accelera_automl.utils import log_ensemble_structure
+from accelera.src.accelera_automl.utils import log_forward_selection_step
+from accelera.src.accelera_automl.utils import score_predictions
+
 
 def softmax(logits):
     stable_numbers = logits - np.max(logits, axis=1, keepdims=True)
     exp_logits = np.exp(stable_numbers)
     return exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
 
-# use this class to make the model output prob
-class ClassifierAdapter(BaseEstimator,ClassifierMixin):
-    def __init__(self,model):
-        self.model = model 
 
-    def fit(self,X,y):
+# use this class to make the model output prob
+class ClassifierAdapter(BaseEstimator, ClassifierMixin):
+    def __init__(self, model):
+        self.model = model
+
+    def fit(self, X, y):
         self.estimator = clone(self.model)
-        self.estimator.fit(X,y)
+        self.estimator.fit(X, y)
         self.classes_ = getattr(
             self.estimator,
             "classes_",
@@ -30,9 +39,8 @@ class ClassifierAdapter(BaseEstimator,ClassifierMixin):
         self.classes = self.classes_
 
         return self
-    
-    
-    def predict_proba(self,X):
+
+    def predict_proba(self, X):
         if hasattr(self.estimator, "predict_proba"):
             proba = self.estimator.predict_proba(X)
             return np.asarray(proba, dtype=float)
@@ -50,52 +58,51 @@ class ClassifierAdapter(BaseEstimator,ClassifierMixin):
         for idx, class_label in enumerate(self.classes_):
             proba[:, idx] = (predictions == class_label).astype(float)
         return proba
-    
-    def predict(self,X):
+
+    def predict(self, X):
         probability = self.predict_proba(X)
         return self.classes_[np.argmax(probability, axis=1)]
-    
+
 
 class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
     def __init__(
-            self,
-            *,
-            base_estimators,
-            cv=5,
-            random_state=None,
-            n_jobs=None,
-            inner_n_jobs=1,
-            bagging_n_estimators=5,
-            include_original_features_in_meta=True,
-            scoring="accuracy",
-            verbose=0,
-            min_base_models=3,
-            selection_tolerance=1e-4,
+        self,
+        *,
+        base_estimators,
+        cv=5,
+        random_state=None,
+        n_jobs=None,
+        inner_n_jobs=1,
+        bagging_n_estimators=5,
+        include_original_features_in_meta=True,
+        scoring="accuracy",
+        verbose=0,
+        min_base_models=3,
+        selection_tolerance=1e-4,
     ):
-                self.base_estimators = base_estimators
-                self.cv = cv
-                self.random_state = random_state
-                self.n_jobs = n_jobs
-                self.inner_n_jobs = inner_n_jobs
-                self.bagging_n_estimators = bagging_n_estimators
-                self.include_original_features_in_meta = include_original_features_in_meta
-                self.scoring = scoring
-                self.verbose = verbose
-                self.min_base_models = min_base_models
-                self.selection_tolerance = selection_tolerance
+        self.base_estimators = base_estimators
+        self.cv = cv
+        self.random_state = random_state
+        self.n_jobs = n_jobs
+        self.inner_n_jobs = inner_n_jobs
+        self.bagging_n_estimators = bagging_n_estimators
+        self.include_original_features_in_meta = include_original_features_in_meta
+        self.scoring = scoring
+        self.verbose = verbose
+        self.min_base_models = min_base_models
+        self.selection_tolerance = selection_tolerance
 
-    def make_bagged_model(self,model,n_jobs):
+    def make_bagged_model(self, model, n_jobs):
         adapted_estimator = ClassifierAdapter(model)
         bagging_kwargs = {
-                    "n_estimators": self.bagging_n_estimators,
-                    "random_state": self.random_state,
-                    "n_jobs": n_jobs,
-                }
-        
+            "n_estimators": self.bagging_n_estimators,
+            "random_state": self.random_state,
+            "n_jobs": n_jobs,
+        }
+
         return BaggingClassifier(estimator=adapted_estimator, **bagging_kwargs)
-    
-    
-    def fit_base_model(self,model_name,model,X,y,splitter):
+
+    def fit_base_model(self, model_name, model, X, y, splitter):
         inner_n_jobs = self.inner_n_jobs
         bagged_model = self.make_bagged_model(model, n_jobs=inner_n_jobs)
         oof_proba = cross_val_predict(
@@ -106,21 +113,22 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
             method="predict_proba",
             n_jobs=inner_n_jobs,
         )
-        fitted_bagged_model = self.make_bagged_model(
-            model, n_jobs=inner_n_jobs
-        )
+        fitted_bagged_model = self.make_bagged_model(model, n_jobs=inner_n_jobs)
         fitted_bagged_model.fit(X, y)
         return model_name, fitted_bagged_model, np.asarray(oof_proba, dtype=float)
 
-    def stack_features(self,proba):
+    def stack_features(self, proba):
         proba = np.asarray(proba, dtype=float)
 
         if proba.shape[1] == 2:
             return proba[:, [1]]
         return proba
-    
-    def combine_meta_features(self,X,prediction,):
 
+    def combine_meta_features(
+        self,
+        X,
+        prediction,
+    ):
         prediction_matrix = np.hstack(prediction)
         if not self.include_original_features_in_meta:
             return prediction_matrix
@@ -132,9 +140,11 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
 
         original_matrix = np.asarray(X)
         return np.hstack([original_matrix, prediction_matrix])
-    
-    def evaluate_meta_subset(self,X,y,selected):
-        X_train = [self.stack_features(predictions) for _,_,predictions in selected]
+
+    def evaluate_meta_subset(self, X, y, selected):
+        X_train = [
+            self.stack_features(predictions) for _, _, predictions in selected
+        ]
         stack_X_train = self.combine_meta_features(X, X_train)
         splitter = StratifiedKFold(
             n_splits=self.cv,
@@ -165,8 +175,7 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
             np.asarray(meta_oof_proba, dtype=float),
         )
 
-    
-    def forward_select_base_models(self,X,y,base_results):
+    def forward_select_base_models(self, X, y, base_results):
         remaining = list(base_results)
         selected = []
         best_single = max(
@@ -203,7 +212,10 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
                 break
 
             improvement = best_candidate_score - current_score
-            if (len(selected) >= self.min_base_models and improvement <= self.selection_tolerance):
+            if (
+                len(selected) >= self.min_base_models
+                and improvement <= self.selection_tolerance
+            ):
                 break
 
             selected.append(best_candidate)
@@ -218,9 +230,7 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
                 )
         return [name for name, _, _ in selected], current_score
 
-        
-
-    def fit(self,X,y):
+    def fit(self, X, y):
         self.classes_ = np.unique(y)
         self.classes = self.classes_
         splitter = StratifiedKFold(
@@ -232,8 +242,10 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
             delayed(self.fit_base_model)(base_name, base_estimator, X, y, splitter)
             for base_name, base_estimator in self.base_estimators
         )
-        
-        self.selected_names, self.score_result = self.forward_select_base_models(X, y, base_results)
+
+        self.selected_names, self.score_result = self.forward_select_base_models(
+            X, y, base_results
+        )
         selected_name_set = set(self.selected_names)
         selected_results = [
             result for result in base_results if result[0] in selected_name_set
@@ -245,7 +257,7 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
         ]
 
         self.base_model_names = [base_name for base_name, _, _ in selected_results]
-        
+
         base_features = [
             self.stack_features(predictions)
             for _, _, predictions in selected_results
@@ -271,12 +283,9 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
                 self.base_model_names,
                 self.meta_modelname,
                 float(self.score_result),
-                self.include_original_features_in_meta
+                self.include_original_features_in_meta,
             )
         return self
-
-
-
 
     def predict_proba(self, X):
         stack_features = self.build_stack_features(X)

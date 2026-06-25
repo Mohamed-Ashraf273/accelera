@@ -1,5 +1,5 @@
-from accelera.src.accelera_automl.evaluation import EvaluationResult
-from accelera.src.accelera_automl.evaluation import TrialSpecs
+from accelera.src.accelera_automl.base_evaluation import EvaluationResult
+from accelera.src.accelera_automl.base_evaluation import TrialSpecs
 from accelera.src.accelera_automl.optimization.smac_optimizer import Optimizer
 from accelera.src.accelera_automl.optimization.smac_optimizer import Trial
 
