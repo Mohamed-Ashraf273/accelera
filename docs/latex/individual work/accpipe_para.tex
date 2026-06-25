@@ -462,7 +462,11 @@ These indicators are encoded into a 40-dimensional vector for the classifier,
 then refined by deterministic safety rules that can still detect safe cases such as reductions, 
 independent array writes, and nested loop patterns.
 
-\begin{lstlisting}[style=algostyle,caption={Loop classification and pragma insertion}]
+\clearpage
+
+\noindent
+\begin{minipage}{\textwidth}
+\begin{lstlisting}[style=algostyle,caption={Loop classification and pragma insertion},label={alg:loop-classification}]
 Input: source program P
 Output: source program P' with safe OpenMP pragmas
 
@@ -484,6 +488,7 @@ Output: source program P' with safe OpenMP pragmas
 16: end for
 17: Cache and return the transformed source code
 \end{lstlisting}
+\end{minipage}
 
 
 The compilation path is used when the input is a Python callable. The
@@ -977,26 +982,68 @@ same accuracy, 0.268 \\
 \end{tabular}
 \end{center}
 
-\newpage
-\begin{center}
-\captionof{table}{Windows compilation and process overhead.}
+\begin{table}[!htbp]
+\centering
+\caption{Windows compilation and process overhead.}
 \label{tab:direct-example-runs-windows-overhead}
-\footnotesize
-\renewcommand{\arraystretch}{0.88}
-\begin{tabular}{llrrl}
+
+\scriptsize
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{3pt}
+
+\begin{tabularx}{\textwidth}{
+  >{\raggedright\arraybackslash}p{0.25\textwidth}
+  >{\raggedright\arraybackslash}p{0.21\textwidth}
+  >{\centering\arraybackslash}p{0.13\textwidth}
+  >{\centering\arraybackslash}p{0.12\textwidth}
+  >{\raggedright\arraybackslash}X
+}
 \toprule
 Example & Run/cache state & Compile/link (s) & Wall time (s) & Interpretation \\
 \midrule
-\texttt{accpipe\_demo.py} & normal & -- & 6.53 & graph example startup \\
-\texttt{parallel\_accpipe.py} & isolated cache, run 1 & included & 14.37 & cold compile path \\
-\texttt{parallel\_accpipe.py} & isolated cache, run 2 & cached & 8.33 & warm cache path \\
-\texttt{code\_parallelizer\_demo.py} & isolated cache, run 1 & 0.87 & 8.74 & temporary executable \\
-\texttt{code\_parallelizer\_demo.py} & isolated cache, run 2 & 1.04 & 9.00 & temporary executable \\
-\texttt{save\_load.py} & normal & -- & 2.71 & persistence example \\
+
+\path{accpipe_demo.py} &
+normal &
+-- &
+6.53 &
+Graph example startup \\
+
+\path{parallel_accpipe.py} &
+isolated cache, run 1 &
+included &
+14.37 &
+Cold compile path \\
+
+\path{parallel_accpipe.py} &
+isolated cache, run 2 &
+cached &
+8.33 &
+Warm cache path \\
+
+\path{code_parallelizer_demo.py} &
+isolated cache, run 1 &
+0.87 &
+8.74 &
+Temporary executable \\
+
+\path{code_parallelizer_demo.py} &
+isolated cache, run 2 &
+1.04 &
+9.00 &
+Temporary executable \\
+
+\path{save_load.py} &
+normal &
+-- &
+2.71 &
+Persistence example \\
+
 \bottomrule
-\end{tabular}
+\end{tabularx}
+
 \renewcommand{\arraystretch}{1.0}
-\end{center}
+\normalsize
+\end{table}
 
 Tables~\ref{tab:direct-example-runs-windows}
 and~\ref{tab:direct-example-runs-windows-overhead} report the same Makefile
@@ -1021,18 +1068,11 @@ cache avoid repeating those setup stages. This verifies that Windows execution
 benefits from the same cache design as Linux, even though the process-level
 wall time remains higher.
 
-The Windows \texttt{code\_parallelizer\_demo.py} runs show a different
-limitation. The generated C/OpenMP executable is compiled into a temporary
-directory on every run, so the second run does not reuse the final linked
-program. The measured C executable subprocess takes about 1.04 seconds, while
-the instrumented main-body timer inside the generated program reports only
-about 0.024--0.025 seconds. This gap is Windows process startup, OpenMP runtime
-initialization, dynamic library loading, executable loading overhead, and
-temporary executable creation. The compile/link step itself adds about
-0.87--1.04 seconds. On Linux, the same benchmark has lower launch and linking
-overhead in the reported measurements, so executable runtime is closer to the
-timed main-body work. For this reason, Windows results should be interpreted as
-end-to-end toolchain latency results, not only as loop-kernel speed results.
+The Windows \texttt{code\_parallelizer\_demo.py} runs mainly measure end-to-end toolchain latency rather than pure loop speed. 
+Each run rebuilds a temporary executable, so the reported wall time includes compilation, process startup, 
+OpenMP initialization, dynamic loading, and executable creation. 
+The generated program itself reports only about 0.024--0.025 seconds for the timed main-body work, 
+while Linux has lower launch and linking overhead, making its runtime closer to the measured kernel work.
 
 % -----------------------------------------------------------------------------
 \chapter{Conclusion}
