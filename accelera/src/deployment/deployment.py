@@ -9,32 +9,24 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+from accelera.src.config import config
 
-def _repo_root_from_this_file():
-    current = Path(__file__).resolve()
-    for parent in current.parents:
-        if (parent / "accelera" / "src" / "config.py").exists():
-            return parent
-    return None
+current = Path(__file__).resolve()
+for parent in current.parents:
+    if (parent / "accelera" / "src" / "config.py").exists():
+        break
+
+repo_root = parent
+sys.path.insert(0, str(repo_root))
 
 
-repo_root = _repo_root_from_this_file()
-if repo_root and str(repo_root) not in sys.path:
-    sys.path.insert(0, str(repo_root))
-
-try:
-    from accelera.src.config import config
-except ImportError:
-    config = None
-
-source_root = Path(__file__).resolve().parents[1]
-service_source_dir = source_root / "accelera_deployment"
-project_root = str(config.deployment_root if config else source_root)
+service_source_dir = Path(__file__).resolve().parent
+project_root = str(config.deployment_root if config else service_source_dir)
 os.makedirs(project_root, exist_ok=True)
 os.chdir(project_root)
 
 
-def sync_service_sources():
+def sync_files():
     service_runtime_dir = Path("accelera_deployment")
     service_runtime_dir.mkdir(exist_ok=True)
     for name in (
@@ -46,48 +38,75 @@ def sync_service_sources():
     ):
         shutil.copy2(service_source_dir / name, service_runtime_dir / name)
 
+    accelera_pkg_src = Path(config.REPO_ROOT) / "accelera"
+    accelera_pkg_dest = service_runtime_dir / "accelera"
+    os.makedirs(accelera_pkg_dest, exist_ok=True)
+    subprocess.run(
+        [
+            "rsync",
+            "-a",
+            "--delete",
+            "--exclude",
+            "__pycache__",
+            "--exclude",
+            "*.pyc",
+            str(accelera_pkg_src) + "/",
+            str(accelera_pkg_dest) + "/",
+        ],
+        check=True,
+    )
+
 
 def load_configurations():
     with open("config.json", "r", encoding="utf-8") as f:
         return json.load(f)
 
 
-def validate_configured_model_paths(configurations):
+def validate_model_paths(configurations):
     models = configurations.get("models")
     if not isinstance(models, dict) or not models:
-        raise ValueError("config.json must contain a non-empty 'models' mapping")
+        raise ValueError("config.json must contain a 'models' dict ")
 
-    absolute_paths = []
+    config_file = config.deployment_config_file
+    config_dir = os.path.dirname(os.path.abspath(config_file))
+    resolved_models = {}
     missing_paths = []
     for name, path in models.items():
-        if os.path.isabs(path):
-            absolute_paths.append(f"{name}: {path}")
-        elif not os.path.isfile(path):
-            missing_paths.append(f"{name}: {path}")
-
-    if absolute_paths:
-        raise ValueError(
-            "Docker deployments require model paths in config.json to be relative "
-            f"to deployment_module: {', '.join(absolute_paths)}"
+        abs_path = (
+            os.path.join(config_dir, path) if not os.path.isabs(path) else path
         )
+        abs_path = os.path.abspath(abs_path)
+        if not os.path.isfile(abs_path):
+            missing_paths.append(f"{name}: {path} (resolved: {abs_path})")
+        else:
+            resolved_models[name] = abs_path
 
     if missing_paths:
-        raise FileNotFoundError(
-            f"Configured model artifact(s) are missing: {', '.join(missing_paths)}"
-        )
+        print(f"no exist model at this path {', '.join(missing_paths)}")
+        raise SystemExit(1)
 
-    return models
+    local_models_dir = os.path.join(config.deployment_root, "models")
+    os.makedirs(local_models_dir, exist_ok=True)
+
+    dest_models = {}
+    for name, abs_path in resolved_models.items():
+        filename = os.path.basename(abs_path)
+        dest_path = os.path.join(local_models_dir, filename)
+        if abs_path != dest_path:
+            shutil.copy2(abs_path, dest_path)
+        dest_models[name] = f"models/{filename}"
+
+    configurations["models"] = dest_models
+    with open(config_file, "w", encoding="utf-8") as f:
+        json.dump(configurations, f, indent=2)
+
+    return dest_models
 
 
 def validate_port(port):
-    port = str(port)
-    if not port.isdigit():
-        raise ValueError(f"Port must be numeric, got {port!r}")
-
-    port_number = int(port)
-    if port_number < 1 or port_number > 65535:
-        raise ValueError(f"Port must be between 1 and 65535, got {port!r}")
-
+    port = int(str(port))
+    if port < 1 or port > 65535:
+        raise ValueError(f"port should be between 1 and 65535 {port}")
     return port
 
 
@@ -102,13 +121,23 @@ def write_requirements():
         req.write("pandas==3.0.2\n")
         req.write("pydantic==2.13.3\n")
         req.write("python-multipart==0.0.27\n")
+        req.write("joblib\n")
+        req.write("lightgbm\n")
+        req.write("catboost\n")
+        req.write("xgboost\n")
+        req.write("ConfigSpace\n")
 
 
 def write_dockerfile(configurations):
-    models = validate_configured_model_paths(configurations)
+    models = validate_model_paths(configurations)
 
     with open("Dockerfile", "w", encoding="utf-8") as f:
         f.write("FROM python:3.11-slim\n")
+        f.write(
+            "RUN apt-get update && \\\n"
+            "    apt-get install -y --no-install-recommends libgomp1 && \\\n"
+            "    rm -rf /var/lib/apt/lists/*\n"
+        )
         f.write("WORKDIR /app\n")
         f.write("COPY accelera_deployment/requirements.txt requirements.txt \n")
         f.write(
@@ -121,6 +150,7 @@ def write_dockerfile(configurations):
             "COPY accelera_deployment/schema_validation.py schema_validation.py\n"
         )
         f.write("COPY accelera_deployment/tracking.py tracking.py\n")
+        f.write("COPY accelera_deployment/accelera/ /app/accelera/\n")
         f.write("COPY config.json config.json\n")
         for pkl in models.values():
             f.write(f"COPY {pkl} /app/{pkl}\n")
@@ -129,28 +159,22 @@ def write_dockerfile(configurations):
             'CMD ["sh", "-c", '
             '"uvicorn server:app --host 0.0.0.0 --port ${PORT:-8000}"]\n'
         )
-    print("Dockerfile written successfully")
+    print("Dockerfile written sucessfully")
 
 
-def prepare(_args):
-    sync_service_sources()
+def write_files(_args):
+    sync_files()
     configurations = load_configurations()
     write_requirements()
     write_dockerfile(configurations)
 
 
-def _docker_build_command(image_name, no_cache=False):
-    command = ["docker", "build", "-t", image_name, "."]
-    if no_cache:
-        command.insert(2, "--no-cache")
-    return command
-
-
 def build(args):
-    subprocess.run(
-        _docker_build_command("ml-model", no_cache=getattr(args, "no_cache", False)),
-        check=True,
-    )
+    cmd = ["docker", "build"]
+    if getattr(args, "no_cache", False):
+        cmd.append("--no-cache")
+    cmd.extend(["-t", "ml-model", "."])
+    subprocess.run(cmd, check=True)
 
 
 def run_local(_args):
@@ -167,7 +191,7 @@ def run_local(_args):
 
     print("\n--- Starting container  ---\n")
     print(f" API: http://localhost:{port}")
-    print(f" GUI: http://localhost:{port}/gui")
+    print(f" gui: http://localhost:{port}/gui")
     subprocess.run(
         [
             "docker",
@@ -184,7 +208,7 @@ def run_local(_args):
 
 
 def local(_args):
-    prepare(_args)
+    write_files(_args)
     build(_args)
     run_local(_args)
 
@@ -204,7 +228,7 @@ def heroku_container_login(_args):
 
 
 def heroku_push(args):
-    prepare(args)
+    write_files(args)
     subprocess.run(
         ["heroku", "container:push", "web", "--app", args.app], check=True
     )
@@ -232,192 +256,232 @@ def heroku_deploy(args):
 
 
 def ec2_deploy(args):
-    prepare(args)
+    write_files(args)
 
-    target = _remote_target(args)
-    script = _remote_script(args)
-    remote_root = _remote_root(args)
+    target = f"{args.user}@{args.host}"
+    remote_root = f"{args.remote_dir.rstrip('/')}/deployment_module"
+    quoted_remote_root = shlex.quote(remote_root)
+    if remote_root.startswith("~/"):
+        quoted_remote_root = "~/" + shlex.quote(remote_root[2:])
+    script = remote_script(args)
 
-    print(f"Creating remote deployment directory at {remote_root}...")
-    _run_remote(args, f"mkdir -p {_quote_remote_path(remote_root)}")
+    run_remote(args, f"mkdir -p {quoted_remote_root}")
 
-    rsync_target = f"{target}:{args.remote_dir.rstrip('/')}/deployment_module"
+    rsync_target = f"{target}:{remote_root}"
     rsync_sources = ["Dockerfile", "config.json", "accelera_deployment", "models"]
     print("Syncing build inputs to EC2...")
+
+    ssh_trans = " ".join(shlex.quote(part) for part in configure_ssh(args))
     subprocess.run(
         [
             "rsync",
             "-av",
             "--info=progress2",
             "--delete",
+            "--exclude",
+            "__pycache__",
+            "--exclude",
+            "*.pyc",
             "-e",
-            _ssh_transport(args),
+            ssh_trans,
             *rsync_sources,
             rsync_target,
         ],
         check=True,
     )
 
-    print("Building and starting the Docker container on EC2...")
-    _run_remote(args, script)
-    _check_ec2_public_url(args)
+    print("starting container on EC2")
+    run_remote(args, script)
+    check_ec2_public_url(args)
 
 
 def ec2_stop(args):
     container_name = args.container
-
     cmd = f"sudo docker stop {shlex.quote(container_name)} || true"
-    _run_remote(args, cmd)
-    print(f"Stopped container '{container_name}' on {args.host}")
+    run_remote(args, cmd)
+    print(f"stopped container '{container_name}'")
 
 
-def ec2_logs(args):
+def ec2_get_logs(args):
     container_name = args.container
-
     cmd = f"sudo docker logs -f {shlex.quote(container_name)}"
-    _run_remote(args, cmd)
+    run_remote(args, cmd)
 
 
-def _ssh_command(args):
+def configure_ssh(args):
     command = ["ssh", "-o", "StrictHostKeyChecking=accept-new"]
     if args.key:
         command.extend(["-i", os.path.expanduser(args.key)])
     return command
 
 
-def _ssh_transport(args):
-    return " ".join(shlex.quote(part) for part in _ssh_command(args))
-
-
-def _run_remote(args, command):
+def run_remote(args, command):
     remote_command = f"bash -lc {shlex.quote(command)}"
     subprocess.run(
-        [*_ssh_command(args), _remote_target(args), remote_command], check=True
+        [*configure_ssh(args), f"{args.user}@{args.host}", remote_command],
+        check=True,
     )
 
 
-def _check_ec2_public_url(args):
+def check_ec2_public_url(args):
     port = validate_port(args.port)
     url = f"http://{args.host}:{port}/health"
     gui_url = f"http://{args.host}:{port}/gui"
 
-    print("Checking public EC2 URL...")
+    print("Checking API")
     try:
         with urllib.request.urlopen(url, timeout=8) as response:
             if response.status < 400:
                 print("Public health check: OK")
                 print(f"GUI URL: {gui_url}")
                 return
-    except (urllib.error.URLError, TimeoutError, OSError) as exc:
-        print(
-            "Public health check failed. The container is healthy on the EC2 "
-            "host, but the public URL is not reachable."
-        )
-        print(
-            "Open the EC2 security group inbound rule for "
-            f"TCP port {port} from your IP, then retry:"
-        )
-        print(f"  {gui_url}")
-        print(f"Details: {exc}")
+    except OSError as err:
+        print("API health check failed")
+        print("You need to open the TCP port")
+        print(f"error {err}")
 
 
-def _remote_target(args):
-    return f"{args.user}@{args.host}"
-
-
-def _remote_root(args):
-    return f"{args.remote_dir.rstrip('/')}/deployment_module"
-
-
-def _quote_remote_path(path):
-    if path == "~":
-        return "~"
-    if path.startswith("~/"):
-        return "~/" + shlex.quote(path[2:])
-    return shlex.quote(path)
-
-
-def _remote_script(args):
-    remote_root = _remote_root(args)
+def remote_script(args):
+    remote_root = f"{args.remote_dir.rstrip('/')}/deployment_module"
+    quoted_remote_root = shlex.quote(remote_root)
+    if remote_root.startswith("~/"):
+        quoted_remote_root = "~/" + shlex.quote(remote_root[2:])
 
     port = validate_port(args.port)
     image_name = args.image
     container_name = args.container
     docker_ps_format = (
-        "container={.Names} image={.Image} status={.Status} ports={.Ports}"
+        "container={{.Names}} image={{.Image}} status={{.Status}} ports={{.Ports}}"
     )
-    docker_build = "sudo " + " ".join(
-        shlex.quote(part)
-        for part in _docker_build_command(
-            image_name,
-            no_cache=getattr(args, "no_cache", False),
-        )
-    )
+    build_cmd = ["docker", "build"]
+    if getattr(args, "no_cache", False):
+        build_cmd.append("--no-cache")
+    build_cmd.extend(["-t", image_name, "."])
+    docker_build = "sudo " + " ".join(shlex.quote(part) for part in build_cmd)
     health_command = (
         f"sudo docker exec {shlex.quote(container_name)} "
         'python -c "import urllib.request; '
         f"urllib.request.urlopen('http://127.0.0.1:{port}/health', "
         'timeout=3).read()"'
     )
-
-    install_docker = ""
     if args.install_docker:
-        install_docker = """
+        docker_setup = """
 if ! command -v docker >/dev/null 2>&1; then
-  echo "Installing Docker..."
+  sudo apt-get update || true
+
   if command -v apt-get >/dev/null 2>&1; then
-    sudo apt-get update
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io
+    sudo apt-get install -y docker.io
   elif command -v yum >/dev/null 2>&1; then
     sudo yum install -y docker
   else
-    echo "No supported package manager found to install Docker" >&2
+    echo "No supported package manager found for Docker install" >&2
     exit 1
   fi
+
   sudo systemctl enable docker
   sudo systemctl start docker
-  echo "Docker installed and started"
 fi
 """
-
-    docker_check = ""
-    if not args.install_docker:
-        docker_check = """
+    else:
+        docker_setup = """
 if ! command -v docker >/dev/null 2>&1; then
-  echo "Docker is not installed on the EC2 host. Use --install-docker to "\
-"install it automatically." >&2
+  echo "Docker not installed on EC2 h Use --install-docker." >&2
   exit 1
 fi
 """
 
     return f"""
 set -e
-cd {_quote_remote_path(remote_root)}
-{install_docker}{docker_check}
+
+cd {quoted_remote_root}
+
+{docker_setup.strip()}
+
 {docker_build}
-sudo docker rm -f {shlex.quote(container_name)} >/dev/null 2>&1 || true
-sudo docker run -d --restart unless-stopped \
-  --name {shlex.quote(container_name)} \
-  -p {port}:{port} \
-  -e PORT={port} \
-  {shlex.quote(image_name)}
-echo "Waiting for container health endpoint..."
-for attempt in 1 2 3 4 5; do
+
+CONTAINER_NAME={shlex.quote(container_name)}
+IMAGE_NAME={shlex.quote(image_name)}
+DOCKER_PS_FORMAT={shlex.quote(docker_ps_format)}
+
+sudo docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
+
+sudo docker run -d \\
+  --restart unless-stopped \\
+  --name "$CONTAINER_NAME" \\
+  -p {port}:{port} \\
+  -e PORT={port} \\
+  "$IMAGE_NAME"
+
+echo "Waiting for health check..."
+
+for attempt in {{1..15}}; do
   if {health_command} >/dev/null 2>&1; then
     echo "Local container health check: OK"
     break
   fi
-  if [ "$attempt" = "5" ]; then
-    echo "Local container health check failed; inspect logs with ec2-logs." >&2
-    exit 1
-  fi
   sleep 2
 done
-sudo docker ps --filter name={shlex.quote(container_name)} \
-  --format {shlex.quote(docker_ps_format)}
+
+{health_command} >/dev/null 2>&1 || (echo "health check failed" >&2 && exit 1)
+
+sudo docker ps \\
+  --filter "name=$CONTAINER_NAME" \\
+  --format "$DOCKER_PS_FORMAT"
+
 echo "Application URL: http://{args.host}:{port}"
 echo "GUI URL: http://{args.host}:{port}/gui"
 """.strip()
+
+
+def configure_deployment(model_path: str, df=None, target_col=None) -> None:
+    abs_models_path = os.path.abspath(model_path)
+    models_dir = str(config.deployment_models_dir)
+    os.makedirs(models_dir, exist_ok=True)
+
+    filename = os.path.basename(abs_models_path)
+    shutil.copy2(abs_models_path, os.path.join(models_dir, filename))
+
+    config_file = str(config.deployment_config_file)
+    config_data = {}
+    if os.path.exists(config_file):
+        try:
+            with open(config_file, "r", encoding="utf-8") as f:
+                config_data = json.load(f)
+        except Exception:
+            pass
+
+    config_data["models"] = {"model_path": f"models/{filename}"}
+
+    if df is not None:
+        features = []
+        for col in df.columns:
+            if col != target_col:
+                dtype = str(df[col].dtype)
+                feat_type = (
+                    "integer"
+                    if "int" in dtype
+                    else ("number" if "float" in dtype else "string")
+                )
+                features.append({"name": col, "type": feat_type})
+        config_data["schema"] = {"features": features}
+    else:
+        config_data.setdefault("schema", {"features": []})
+
+    config_data.setdefault(
+        "tracking", {"enabled": True, "path": "prediction_logs/predictions.jsonl"}
+    )
+
+    with open(config_file, "w", encoding="utf-8") as f:
+        json.dump(config_data, f, indent=2)
+
+    orig_cwd = os.getcwd()
+    try:
+        os.chdir(str(config.deployment_root))
+        sync_files()
+        write_requirements()
+        write_dockerfile(config_data)
+    finally:
+        os.chdir(orig_cwd)
 
 
 def main():
@@ -433,8 +497,8 @@ examples:
 """,
     )
 
-    subparsers = parser.add_subparsers(dest="command", help="available commands")
-    subparsers.add_parser("prepare", help="write requirements and Dockerfile")
+    subparsers = parser.add_subparsers(dest="command", help="avalable commands")
+    subparsers.add_parser("prepare", help="write requirements and files")
     build_parser = subparsers.add_parser("build", help="build the Docker image")
     build_parser.add_argument(
         "--no-cache",
@@ -553,7 +617,7 @@ examples:
         return
 
     commands = {
-        "prepare": prepare,
+        "prepare": write_files,
         "build": build,
         "run-local": run_local,
         "local": local,
@@ -566,7 +630,7 @@ examples:
         "heroku-deploy": heroku_deploy,
         "ec2-deploy": ec2_deploy,
         "ec2-stop": ec2_stop,
-        "ec2-logs": ec2_logs,
+        "ec2-logs": ec2_get_logs,
     }
 
     commands[args.command](args)

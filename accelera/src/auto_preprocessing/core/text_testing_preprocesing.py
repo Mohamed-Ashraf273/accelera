@@ -13,7 +13,6 @@ class TextTestingPreprocessing(TestingTabularPreprocessingBase):
         self.data_info = load_pickle(self.folder_path, "data_info.pkl")
         self.target_col = self.data_info["target_col"]
         self.text_col = self.data_info["text_col"]
-        self.target_mode = self.data_info["target_mode"]
         if self.text_col == self.target_col:
             raise ValueError("target column and text column must not be the same")
         if self.text_col not in self.df.columns:
@@ -34,7 +33,7 @@ class TextTestingPreprocessing(TestingTabularPreprocessingBase):
             if self.features_only:
                 return None
             else:
-                y_test = self.df[self.target_col].fillna(self.target_mode)
+                y_test = self.df[self.target_col]
                 y_test = self.target_preprocessor.transform(y_test)
             return y_test
         except Exception as e:

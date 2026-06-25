@@ -68,13 +68,11 @@ def schema_module(monkeypatch):
         ),
     )
     sys.modules.pop(
-        "accelera.src.deployment.accelera_deployment.schema_validation",
+        "accelera.src.deployment.schema_validation",
         None,
     )
 
-    return importlib.import_module(
-        "accelera.src.deployment.accelera_deployment.schema_validation"
-    )
+    return importlib.import_module("accelera.src.deployment.schema_validation")
 
 
 def test_disabled_schema_describes_and_passes_input_through(schema_module):
@@ -100,8 +98,8 @@ def test_validate_reports_missing_columns(schema_module):
     with pytest.raises(schema_module.SchemaValidationError) as exc:
         schema.validate({"age": 30})
 
-    assert exc.value.errors == ["missing columns: ['income']"]
-    assert str(exc.value) == "missing columns: ['income']"
+    assert exc.value.errors == ["missing columns ['income']"]
+    assert str(exc.value) == "missing columns ['income']"
 
 
 def test_validate_reports_unexpected_columns(schema_module):
@@ -110,4 +108,4 @@ def test_validate_reports_unexpected_columns(schema_module):
     with pytest.raises(schema_module.SchemaValidationError) as exc:
         schema.validate({"age": 30, "extra": True})
 
-    assert exc.value.errors == ["unexpected columns: ['extra']"]
+    assert exc.value.errors == ["unexpected columns ['extra']"]

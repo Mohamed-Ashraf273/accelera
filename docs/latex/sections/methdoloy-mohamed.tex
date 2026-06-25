@@ -90,14 +90,17 @@ with \texttt{p4(X)}.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.92\textwidth]{imgs/before_sharing.png}
-\caption{Branch graph before duplicate first-node sharing}
-\end{figure}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.92\textwidth]{imgs/after_sharing.png}
-\caption{Branch graph after duplicate first-node sharing}
+\begin{minipage}{0.49\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{imgs/before_sharing.png}
+    \caption{Before duplicate first-node sharing}
+\end{minipage}
+\hfill
+\begin{minipage}{0.49\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{imgs/after_sharing.png}
+    \caption{After duplicate first-node sharing}
+\end{minipage}
 \end{figure}
 
 \subsection{Memory-Lifetime Optimizations}
@@ -170,6 +173,23 @@ The workflow has four stages:
   \item Predict the loop class using a classifier and rule checks.
   \item Insert OpenMP pragmas and return the transformed C++ code.
 \end{enumerate}
+
+Figure~\ref{fig:parallelizer_workflow} shows the complete workflow of the Code
+Parallelizer module. The process starts by receiving either Python or C/C++
+source code. If the input is Python, it is first converted into a restricted C++
+representation. The generated or original C++ code is then parsed and analyzed
+to extract loop-level features such as nesting, assignments, array accesses,
+dependencies, and reduction patterns. These features are passed to the trained
+classifier, while an additional rule-based validation layer checks whether the
+predicted pragma is safe to apply. Finally, the module inserts the appropriate
+OpenMP directive and returns the optimized C++ code.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{imgs/parallelizer_module_workflow.pdf}
+\caption{Code Parallelizer module workflow}
+\label{fig:parallelizer_workflow}
+\end{figure}
 
 \subsection{Loop Analysis and Pragma Selection}
 

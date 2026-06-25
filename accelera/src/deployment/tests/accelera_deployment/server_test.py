@@ -133,20 +133,30 @@ def server_module(monkeypatch):
     monkeypatch.setitem(sys.modules, "pydantic", SimpleNamespace(BaseModel=object))
     monkeypatch.setitem(
         sys.modules,
-        "accelera.src.deployment.accelera_deployment.modelservice",
+        "accelera.src.deployment.modelservice",
         SimpleNamespace(service=service),
     )
     monkeypatch.setitem(
         sys.modules,
-        "accelera.src.deployment.accelera_deployment.schema_validation",
+        "modelservice",
+        SimpleNamespace(service=service),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "accelera.src.deployment.schema_validation",
         SimpleNamespace(SchemaValidationError=FakeSchemaValidationError),
     )
-    sys.modules.pop("accelera.src.deployment.accelera_deployment.server", None)
-
-    module = importlib.import_module(
-        "accelera.src.deployment.accelera_deployment.server"
+    monkeypatch.setitem(
+        sys.modules,
+        "schema_validation",
+        SimpleNamespace(SchemaValidationError=FakeSchemaValidationError),
     )
+    sys.modules.pop("accelera.src.deployment.server", None)
+    sys.modules.pop("server", None)
+
+    module = importlib.import_module("accelera.src.deployment.server")
     module.service = service
+    sys.modules["server"] = module
     return module
 
 
@@ -171,7 +181,7 @@ def test_predict_rejects_missing_input(server_module):
         server_module.predict(SimpleNamespace(input=None))
 
     assert exc.value.status_code == 400
-    assert exc.value.detail == "No input provided"
+    assert exc.value.detail == "No input"
 
 
 def test_predict_success_records_event(server_module):
