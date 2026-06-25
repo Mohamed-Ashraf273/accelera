@@ -14,12 +14,6 @@
           "report_path": "healthy_diet_calorie_intake",
           "columns_need_to_drop": ["Person_ID"]
         },
-        "ai_student": {
-          "link": "https://drive.google.com/uc?id=1RLeMoVvEUe_PsnEZfGH7PI5q_F0jOzBY",
-          "target_column": "Burnout_Risk_Level",
-          "report_path": "ai_student_impact_dataset",
-          "columns_need_to_drop": ["Student_ID"]
-        },
         "gaming_addiction": {
           "link": "https://drive.google.com/uc?id=1Cr0UzQszWJ_B8zlepWjLngOuBwMHRAXY",
           "target_column": "addiction_binary",
