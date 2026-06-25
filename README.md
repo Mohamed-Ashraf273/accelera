@@ -894,6 +894,12 @@ python accelera/src/deployment/deployment.py heroku-deploy \
   --create
 ```
 
+#### Running Deployment Tests
+```bash
+# Run all deployment module unit tests
+PYTHONPATH=accelera/src/deployment:accelera/src pytest accelera/src/deployment/tests
+```
+
 
 
 ### Runtime Requirements and Common Blockers

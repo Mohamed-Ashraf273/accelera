@@ -57,11 +57,23 @@ def service_module(monkeypatch):
     )
     monkeypatch.setitem(
         sys.modules,
+        "schema_validation",
+        SimpleNamespace(InputSchema=DummySchema),
+    )
+    monkeypatch.setitem(
+        sys.modules,
         "accelera.src.deployment.tracking",
         SimpleNamespace(PredictionTracker=DummyTracker),
     )
+    monkeypatch.setitem(
+        sys.modules,
+        "tracking",
+        SimpleNamespace(PredictionTracker=DummyTracker),
+    )
     sys.modules.pop("accelera.src.deployment.modelservice", None)
+    sys.modules.pop("modelservice", None)
     module = importlib.import_module("accelera.src.deployment.modelservice")
+    sys.modules["modelservice"] = module
     return module
 
 
@@ -132,7 +144,7 @@ def test_load_requires_predict_capable_artifact(service_module, tmp_path):
     )
     service = service_module.ModelService(config_path=str(config_path))
 
-    with pytest.raises(RuntimeError, match="No predict-capable model"):
+    with pytest.raises(RuntimeError, match="no model with predict attr found"):
         service.load()
 
 
@@ -173,6 +185,7 @@ def test_predict_validates_preprocesses_and_returns_predictions(
         encoding="utf-8",
     )
     service = service_module.ModelService(config_path=str(config_path))
+    service.load()
 
     predictions = service.predict([1, 2])
 
