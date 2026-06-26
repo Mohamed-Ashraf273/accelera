@@ -51,16 +51,24 @@ lifetime management.
 
 \begin{table}[H]
 \centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
 \caption{Main components of the Accelera Pipe module}
 \begin{tabular}{p{0.30\textwidth}p{0.62\textwidth}}
 \toprule
 Component & Responsibility \\
 \midrule
 Pipeline Builder Interface & Provides the user-facing fluent API used to define preprocessing stages, models, prediction steps, metrics, merge operations, and branches. It translates each user call into a typed computational node instead of immediately executing the operation. \\
+\midrule
 Pipeline State and Persistence Manager & Owns the native graph object, maps high-level node categories to graph node types, controls graph execution settings, and provides save/load behavior for reusable pipeline objects. \\
+\midrule
 Executed Graph Runtime & Represents the fitted execution path selected after training. It allows the same trained transformations and models to be reused for inference without keeping unnecessary validation data or temporary training branches. \\
+\midrule
 Metric and Display Wrappers & Adapt supervised metrics, unsupervised metrics, arrays, figures, dictionaries, and reports into graph-compatible outputs that can be stored, selected, displayed, or used in branch-selection strategies. \\
+\midrule
 Native Graph Engine & Stores the pipeline as a directed acyclic graph, validates node connections, computes execution order, schedules sequential or parallel execution, manages branch selection, and controls intermediate-memory lifetime. \\
+\midrule
 Node Abstraction Layer & Defines the common behavior of input, preprocessing, model, prediction, merge, and metric nodes, including source-node relationships, stored data, GPU usage flags, and selected-path markers. \\
 \bottomrule
 \end{tabular}
@@ -73,22 +81,46 @@ preprocessing function is stored, the module attempts to parallelize it through
 \texttt{parallelizer.parallelize}. Model nodes store estimators, prediction nodes
 store test data and the prediction method name, metric nodes store metric
 wrappers, and merge nodes store the merge strategy.
-
 \begin{table}[H]
 \centering
-\caption{Mapping from builder calls to graph node semantics}
-\begin{tabular}{lll}
+\acceleraTableStyle
+\caption{Mapping from builder calls to graph node semantics.}
+\begin{tabularx}{\textwidth}{p{0.31\textwidth}p{0.18\textwidth}X}
 \toprule
-Builder method & Node type & Main role \\
+\textbf{Builder method} & \textbf{Node type} & \textbf{Main role} \\
 \midrule
-\texttt{preprocess(name, func)} & \texttt{PREPROCESS} & Transform input data or selected columns \\
-\texttt{model(name, model)} & \texttt{MODEL} & Fit or apply a machine-learning estimator \\
-\texttt{predict(name, test\_data)} & \texttt{PREDICT} & Run a model output function such as \texttt{predict} \\
-\texttt{metric(name, metric)} & \texttt{METRIC} & Evaluate predictions using a supervised or unsupervised metric \\
-\texttt{merge(name, strategy)} & \texttt{MERGE} & Combine outputs from multiple prediction branches \\
-\texttt{branch(name, ...)} & Multiple nodes & Create alternative candidate paths in the DAG \\
+
+\texttt{preprocess(name, func)} &
+\texttt{PREPROCESS} &
+Transform input data or selected columns. \\
+\midrule
+
+\texttt{model(name, model)} &
+\texttt{MODEL} &
+Fit or apply a machine-learning estimator. \\
+\midrule
+
+\texttt{predict(name, test\_data)} &
+\texttt{PREDICT} &
+Run a model output function such as \texttt{predict}. \\
+\midrule
+
+\texttt{metric(name, metric)} &
+\texttt{METRIC} &
+Evaluate predictions using a supervised or unsupervised metric. \\
+\midrule
+
+\texttt{merge(name, strategy)} &
+\texttt{MERGE} &
+Combine outputs from multiple prediction branches. \\
+\midrule
+
+\texttt{branch(name, ...)} &
+Multiple nodes &
+Create alternative candidate paths in the DAG. \\
+
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 The native backend uses a graph abstraction rather than a linear pipeline. The
@@ -202,7 +234,7 @@ graph are released. This constraint is essential because the executed graph is
 intended to be saved or reused for inference, not to duplicate the whole training
 runtime state.
 
-\subsection{Other Description of Module}
+\subsection{Summary}
 
 The Accelera Pipe module also supports persistence. The Python \texttt{PipelineBase}
 class saves and loads pipeline objects using pickle. The C++ graph exposes its
@@ -249,24 +281,34 @@ pipelines and ensures that both Python and C++ inputs are judged using the same
 loop features and safety checks.
 \begin{table}[H]
 \centering
-\footnotesize
-\setlength{\tabcolsep}{5pt}
-\renewcommand{\arraystretch}{0.95}
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
 \caption{Supported operations in the Python-to-C++ converter}
 \begin{tabular}{p{0.27\textwidth}p{0.60\textwidth}}
 \toprule
 Category & Supported forms and notes \\
 \midrule
 Constants and names & \texttt{None}, booleans, integers, floats, strings, and variables. \\
+\midrule
 Arithmetic & Addition, subtraction, multiplication, division, modulo, and power using \texttt{std::pow}. \\
+\midrule
 Unary and boolean & Unary plus, unary minus, logical not, logical and, and logical or. \\
+\midrule
 Comparisons & Equality, inequality, less-than, less-than-or-equal, greater-than, and greater-than-or-equal; chained comparisons rejected. \\
+\midrule
 Calls and printing & Ordinary function calls and \texttt{print}; keyword arguments are generally unsupported. \\
+\midrule
 Access operations & Attribute access and indexing are supported; slicing is rejected. \\
+\midrule
 Assignment & Single-target assignment and indexed assignment are supported; multi-target assignment is rejected. \\
+\midrule
 Augmented assignment & Simple-name \texttt{+=}, \texttt{-=}, \texttt{*=}, \texttt{/=}, and \texttt{\%=}. \\
+\midrule
 Control flow & \texttt{if}/\texttt{else} blocks and \texttt{return} statements. \\
+\midrule
 Loops & \texttt{for i in range(...)} loops with one, two, or three range arguments. \\
+\midrule
 Functions & Function definitions are emitted as C++ template-style functions; decorators are rejected. \\
 \bottomrule
 \end{tabular}
@@ -296,22 +338,31 @@ and OpenMP/native-extension generation.
 
 \begin{table}[H]
 \centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
 \fontsize{8.8}{10.5}\selectfont
-\setlength{\tabcolsep}{5pt}
-\renewcommand{\arraystretch}{0.88}
 \caption{Main components of the Code Parallelizer module}
 \begin{tabular}{p{0.27\textwidth}p{0.63\textwidth}}
 \toprule
 Component & Responsibility \\
 \midrule
 Parallelization Orchestrator & Receives source strings, file paths, custom functions, and transformer instances. It coordinates conversion, loop extraction, feature analysis, classification, pragma insertion, caching, compilation, and fallback behavior. \\
+\midrule
 Input Normalization Layer & Converts accepted input forms into a common source-analysis representation. Files are read, source strings are analyzed directly, functions are captured from source, and transformer instances are inspected through their transformation method. \\
+\midrule
 Python-to-C++ Converter & Translates a restricted subset of Python into C++ so Python preprocessing logic can enter the same static loop-analysis pipeline as native C/C++ code. \\
+\midrule
 Loop Extraction Engine & Uses a compiler-style front end to locate loops, record source ranges, and expose structured loop information for feature extraction and rewriting. \\
+\midrule
 Feature Extraction and Embedding Generator & Computes structural, dependency, memory-access, control-flow, arithmetic, and reduction features, then maps them into a fixed-size numeric representation. \\
+\midrule
 Parallelization Classifier and Safety Resolver & Combines classifier predictions with deterministic safety rules to decide whether a loop remains sequential, receives a parallel-for pragma, or receives a reduction pragma. \\
+\midrule
 OpenMP Rewriter & Inserts the selected OpenMP directive while avoiding unsafe duplicate insertion, especially when an outer loop already contains selected inner loops. \\
+\midrule
 Native Compilation and Loading Layer & Wraps optimized C++ into a Python-callable extension, adds OpenMP flags only when needed, builds the native module, loads it at runtime, and returns the optimized callable. \\
+\midrule
 Caching Layer & Stores processed source and compiled native functions using source-based hashes to avoid repeated conversion and compilation. \\
 \bottomrule
 \end{tabular}
@@ -323,7 +374,7 @@ while callable Python inputs additionally proceed to PyBind11 extension generati
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth,keepaspectratio]{imgs/pp.png}
+\includegraphics[width=\textwidth,keepaspectratio]{dots/parallelizer_workflow.pdf}
 \caption{Code Parallelizer module workflow}
 \label{fig:parallelizer_workflow}
 \end{figure}
@@ -410,7 +461,7 @@ incorrect reuse when compiler options, cache version, function name, source code
 or extension suffix changes. This design improves repeated execution time while
 keeping cache invalidation explicit.
 
-\subsection{Other Description of Module}
+\subsection{Summary}
 
 The Code Parallelizer is directly integrated with Accelera Pipe. When a
 preprocessing node is added, the pipeline calls the parallelizer before storing
@@ -423,7 +474,7 @@ an unsupported callable, it is returned unchanged.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.95\textwidth]{imgs/parallelizer_accelera_pipe_flow.pdf}
+\includegraphics[width=\textwidth]{imgs/parallelizer_accelera_pipe_flow.pdf}
 \caption{Integration flow for compiled preprocessing inside Accelera Pipe}
 \end{figure}
 

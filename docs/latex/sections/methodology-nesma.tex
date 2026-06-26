@@ -56,6 +56,9 @@ During initialization, all user-defined parameters are assigned and validated to
 These validations help prevent invalid configurations such as incorrect problem types, wrong target column name, or invalid parameter values, which could otherwise lead to runtime errors or incorrect model behavior.
 \begin{table}[!htbp]
 \centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
 
 \caption{Classical Training Data Preprocessing Parameters - Description}
 \label{tab:params_description}
@@ -107,6 +110,9 @@ Enables or disables preprocessing report generation. \\
 
 \begin{table}[!htbp]
 \centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
 
 \caption{Classical Training Data Preprocessing Parameters - Constraints}
 \label{tab:params_constraints}
@@ -245,6 +251,9 @@ The specified columns are removed from both \texttt{X\_train} and \texttt{X\_val
 Each feature is automatically assigned a column type. The detected type determines the preprocessing techniques that will be applied later in the pipeline.
 \begin{table}[!htbp]
 \centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
 \caption{Detected column types.}
 \begin{tabular}{p{0.25\linewidth}p{0.70\linewidth}}
 \toprule
@@ -403,6 +412,9 @@ When the \texttt{is\_report} flag is enabled, the tabular preprocessing report p
 
 \begin{table}[!htbp]
 \centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
 \caption{Feature preprocessing applied by column type.}
 \begin{tabular}{p{0.30\linewidth}p{0.65\linewidth}}
 \toprule
@@ -418,6 +430,9 @@ When the \texttt{is\_report} flag is enabled, the tabular preprocessing report p
 \end{table}
 \begin{table}[!htbp]
 \centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
 \caption{Justification of preprocessing techniques by feature type.}
 \begin{tabular}{p{0.30\linewidth}p{0.65\linewidth}}
 \toprule
@@ -496,6 +511,9 @@ The preprocessing pipeline persists the objects required for later inference and
 
 \begin{table}[H]
 \centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
 \caption{Saved preprocessing artifacts for test-time reuse.}
 \begin{tabular}{p{0.30\linewidth}p{0.65\linewidth}}
 \toprule
@@ -548,6 +566,9 @@ The testing preprocessing workflow is designed to reuse the exact training prepr
 This ensures the test pipeline uses the same feature transformation and target encoding logic as training.
 \begin{table}[!htbp]
 \centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
 
 \caption{Classical Testing Data Preprocessing Parameters}
 \label{tab:classicaltestingparams}
@@ -597,6 +618,9 @@ The constructor initializes all required parameters. During initialization, the 
 
 \begin{table}[!htbp]
 \centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
 \caption{Text Training Data Preprocessing Parameters }
 \label{tab:text_constructor_params}
 
@@ -658,6 +682,9 @@ If enabled, the system generates visualizations such as text distribution plots 
 
 \begin{table}[!htbp]
 \centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
 \caption{Optional Graph Generation in Text Preprocessing}
 \begin{tabular}{p{0.35\linewidth}p{0.60\linewidth}}
 \toprule
@@ -769,6 +796,9 @@ The testing constructor loads \texttt{data\_info.pkl} from the saved folder path
 
 \begin{table}[!htbp]
 \centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
 \caption{Text Testing Preprocessing Parameters}
 \label{tab:text_testing_params}
 \begin{tabular}{p{0.30\linewidth}p{0.65\linewidth}}
@@ -824,6 +854,9 @@ Output: X_test, y_test or None
 
 \begin{table}[!htbp]
 \centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
 \caption{Artifacts consumed by Text Testing Preprocessing}
 \begin{tabular}{p{0.30\linewidth}p{0.65\linewidth}}
 \toprule
@@ -874,10 +907,13 @@ Validation/
 
 \begin{table}[h!]
 \centering
-\begin{tabular}{|l|l|}
-\hline
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{ll}
+\toprule
 \textbf{Parameter} & \textbf{Description} \\
-\hline
+\midrule
 
 training\_folder\_images & Path to training image folder (class-wise structure) \\
 validation\_folder\_images & Path to validation image folder (optional) \\
@@ -898,16 +934,19 @@ brightness\_factors & Range for brightness adjustment \\
 contrast & Enable contrast augmentation \\
 contrast\_factors & Range for contrast adjustment \\
 
-\hline
+\bottomrule
 \end{tabular}
 \caption{Classification Image Training Preprocessing Parameters}
 \end{table}
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|l|}
-\hline
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{ll}
+\toprule
 \textbf{Parameter} & \textbf{Validation Rules} \\
-\hline
+\midrule
 
 training\_folder &
 Must not be None and must exist in filesystem \\
@@ -960,7 +999,7 @@ Must be a tuple of two numeric values (int/float) \\
 contrast\_factors &
 Must be a tuple of two numeric values (int/float) \\
 
-\hline
+\bottomrule
 \end{tabular}
 \caption{Validation Rules for Classification Image Training Preprocessing Parameters}
 \end{table}
@@ -1028,38 +1067,44 @@ The preprocessing pipeline concludes by returning the generated training and val
 The preprocessing pipeline initializes the testing configuration and validates the provided inputs. It verifies that the image path list is not empty, ensures that optional class names are provided as a list, and confirms that the number of class names matches the number of image paths when labels are supplied.
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|p{9cm}|}
-\hline
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lp{9cm}}
+\toprule
 \textbf{Parameter} & \textbf{Description} \\
-\hline
+\midrule
 image\_paths & List of image file paths to be preprocessed and loaded for testing. \\
-\hline
+\midrule
 image\_class\_names & Optional list containing the class name corresponding to each image path. Used when labels are available for evaluation. \\
-\hline
+\midrule
 folder\_path & Directory containing the preprocessing artifacts generated during training, including image size information and class mappings. \\
-\hline
+\midrule
 batch\_size & Number of images processed together in each batch by the DataLoader. \\
-\hline
+\bottomrule
 \end{tabular}
 \caption{Parameters of ClassificationImageTestingPreprocessing}
 \label{tab:image_testing_parameters}
 \end{table}
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|p{9cm}|}
-\hline
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lp{9cm}}
+\toprule
 \textbf{Parameter} & \textbf{Validation Rules} \\
-\hline
+\midrule
 image\_paths & Must be a non-empty list and contain at least one valid image. \\
-\hline
+\midrule
 image\_class\_names & If provided, it must be a list with the same length as image\_paths. \\
-\hline
+\midrule
 folder\_path & Must contain the files data\_info.pkl and class2label\_mapping.pkl generated during training. \\
-\hline
+\midrule
 batch\_size & Used as the DataLoader batch size. \\
-\hline
+\midrule
 class names & If provided, every class name must exist in the training class-to-label mapping. \\
-\hline
+\bottomrule
 \end{tabular}
 \caption{Validation Rules for ClassificationImageTestingPreprocessing}
 \label{tab:image_testing_validation}
