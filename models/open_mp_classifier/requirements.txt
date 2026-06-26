@@ -1,0 +1,12 @@
+# Core Python Utilities
+setuptools
+regex
+packaging
+build
+dm-tree
+scikit-learn
+pandas
+numpy
+xgboost==2.0.3
+fastapi
+uvicorn[standard]
