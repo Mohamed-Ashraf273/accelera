@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 import pandas as pd
 
 from accelera.src.config import config as acc_config
+from accelera.src.deployment.deployment import configure_deployment
 from accelera.src.utils.dataset_retriever import retriever
 
 
@@ -38,12 +39,12 @@ class E2EBase:
             return content.copy()
         raise ValueError("Content must be a Google Drive URL or a pandas DataFrame.")
 
-    def _check_predict(self):
+    def _check_predict(self, X):
         if (
             "model" in self.graph.included_types
             and "predict" not in self.graph.included_types
         ):
-            return self.graph.predict("predict")
+            return self.graph.predict("predict", test_data=X)
 
     def _get_xy(self, df: pd.DataFrame, target: str):
         if target not in df.columns:
@@ -58,13 +59,13 @@ class E2EBase:
         if target is None:
             raise ValueError("You must pass your target column in config file.")
 
-        self._check_predict()
         X, y = self._get_xy(self.df, target)
+        self._check_predict(X)
         results, executed_graph = self.graph(
             X, y, select_strategy=self.config.get("select_strategy", "max")
         )
-        executed_graph.save()
         path = os.path.join(acc_config.REPO_ROOT, "pipeline.pkl")
+        executed_graph.save(path)
         self._deploy(path)
         return (results, executed_graph)
 
@@ -74,8 +75,7 @@ class E2EBase:
         joblib.dump(model, path)
 
     def _deploy(self, path: str):
-        # To be implemented
-        pass
+        configure_deployment(path)
 
     def _run(self, content, config=None, graph=None):
         raise NotImplementedError(

@@ -25,6 +25,7 @@ demo_dir = Path(__file__).resolve().parent / "demo_deployment_env"
 if demo_dir.exists():
     shutil.rmtree(demo_dir)
 demo_dir.mkdir(parents=True, exist_ok=True)
+(demo_dir / ".accelera_deployment").mkdir()
 
 os.chdir(demo_dir)
 
@@ -62,7 +63,7 @@ cmd = [
     str(deploy_script),
     "ec2-deploy",
     "--host",
-    "13.60.235.233",
+    "16.171.151.79",
     "--user",
     "ubuntu",
     "--key",

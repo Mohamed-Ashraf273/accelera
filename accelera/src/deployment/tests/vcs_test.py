@@ -20,7 +20,6 @@ def isolated_vcs(tmp_path, monkeypatch):
     monkeypatch.setattr(vcs, "models_dir", str(models_dir))
     monkeypatch.setattr(vcs, "config_file", str(config_file))
     monkeypatch.setattr(vcs, "index_file", str(index_file))
-
     return SimpleNamespace(
         root=deployment_root,
         experiments_dir=experiments_dir,
@@ -41,14 +40,14 @@ def write_json(path, data):
         json.dump(data, f)
 
 
-def test_calculate_hash_is_stable_short_sha1():
-    hash_value = vcs.calc_hash("2026-06-21T00:00:00", "deploy")
-    assert hash_value == vcs.calc_hash("2026-06-21T00:00:00", "deploy")
-    assert len(hash_value) == 7
+def test_calculate_hash_is_stable_short_sha():
+    hah_value = vcs.calc_hash("2026-06-21T00:00:00", "deploy")
+    assert hah_value == vcs.calc_hash("2026-06-21T00:00:00", "deploy")
+    assert len(hah_value) == 7
     assert vcs.calc_hash("t1", "deploy") != vcs.calc_hash("t2", "deploy")
 
 
-def test_resolve_hash_matches_short_prefix():
+def test_resolv_hash_matches_short_prefix():
     index = {
         "commits": [
             {"hash": "abcdef1", "message": "first"},
@@ -59,7 +58,7 @@ def test_resolve_hash_matches_short_prefix():
     assert vcs.resolve_hash(index, "abc")["message"] == "first"
 
 
-def test_resolve_hash_raises_for_unknown_prefix():
+def test_resolve_hash_raisesfor_unknown_prefix():
     with pytest.raises(IndexError):
         vcs.resolve_hash({"commits": []}, "missing")
 
@@ -77,7 +76,7 @@ def test_save_and_load_index_round_trip(isolated_vcs):
     assert vcs.load_index() == index
 
 
-def test_init_creates_empty_index_and_is_idempotent(isolated_vcs, capsys):
+def test_init_creates_empty_inex_and_is_idempotent(isolated_vcs, capsys):
     vcs.init(SimpleNamespace())
 
     assert read_json(isolated_vcs.index_file) == {
@@ -92,7 +91,7 @@ def test_init_creates_empty_index_and_is_idempotent(isolated_vcs, capsys):
     assert "initialized already" in capsys.readouterr().out
 
 
-def test_commit_snapshots_config_models_and_updates_head(isolated_vcs):
+def test_commit_snapshots_conig_models_and_updates_head(isolated_vcs):
     vcs.init(SimpleNamespace())
     write_json(
         isolated_vcs.config_file,
@@ -120,7 +119,7 @@ def test_commit_snapshots_config_models_and_updates_head(isolated_vcs):
     assert read_json(commit_dir / "metadata.json")["hash"] == commit["hash"]
 
 
-def test_second_commit_records_previous_head_as_parent(isolated_vcs):
+def test_second_commit_records_previos_head_as_parent(isolated_vcs):
     vcs.init(SimpleNamespace())
     write_json(isolated_vcs.config_file, {"version": 1})
     isolated_vcs.models_dir.mkdir()
@@ -139,7 +138,7 @@ def test_second_commit_records_previous_head_as_parent(isolated_vcs):
     assert index["head"] == index["commits"][1]["hash"]
 
 
-def test_commit_requires_message_config_and_models(isolated_vcs, capsys):
+def test_commit_requires_message_confg_and_models(isolated_vcs, capsys):
     with pytest.raises(SystemExit):
         vcs.commit(SimpleNamespace(message=""))
     assert "Commit mesage is required" in capsys.readouterr().out
@@ -154,7 +153,7 @@ def test_commit_requires_message_config_and_models(isolated_vcs, capsys):
     assert "no exist model" in capsys.readouterr().out
 
 
-def test_deploy_restores_config_models_and_marks_deployed(isolated_vcs):
+def test_deploy_restres_config_models_and_marks_deployed(isolated_vcs):
     commit_hash = "abcdef1"
     commit_dir = isolated_vcs.experiments_dir / commit_hash
     write_json(
@@ -175,13 +174,11 @@ def test_deploy_restores_config_models_and_marks_deployed(isolated_vcs):
     write_json(commit_dir / "config.json", {"active": True})
     (commit_dir / "models").mkdir(parents=True)
     (commit_dir / "models" / "model.pkl").write_bytes(b"deployed-model")
-
     write_json(isolated_vcs.config_file, {"active": False})
     isolated_vcs.models_dir.mkdir()
     (isolated_vcs.models_dir / "stale.pkl").write_bytes(b"stale")
 
     vcs.deploy(SimpleNamespace(hash="abc"))
-
     assert read_json(isolated_vcs.config_file) == {"active": True}
     assert not (isolated_vcs.models_dir / "stale.pkl").exists()
     assert (isolated_vcs.models_dir / "model.pkl").read_bytes() == b"deployed-model"
@@ -210,7 +207,6 @@ def test_log_prints_commits_in_reverse_order_with_tags(isolated_vcs, capsys):
             ],
         },
     )
-
     vcs.log(SimpleNamespace())
 
     output = capsys.readouterr().out
@@ -253,9 +249,7 @@ def test_show_prints_commit_config_and_model_files(isolated_vcs, capsys):
     (commit_dir / "models").mkdir(parents=True)
     (commit_dir / "models" / "b.pkl").write_bytes(b"b")
     (commit_dir / "models" / "a.pkl").write_bytes(b"a")
-
     vcs.show(SimpleNamespace(hash="abc"))
-
     output = capsys.readouterr().out
     assert "commit abcdef1 (HEAD)(deployed)" in output
     assert '"active": true' in output
@@ -274,39 +268,28 @@ def test_status_prints_head_and_deployed_commits(isolated_vcs, capsys):
             ],
         },
     )
-
     vcs.status(SimpleNamespace())
-
     output = capsys.readouterr().out
     assert "commits number: 2" in output
     assert "Head: 2222222 latest" in output
     assert "Deployed: 1111111 prod" in output
 
 
-def test_load_index_exits_when_index_is_missing(isolated_vcs, capsys):
+def test_load_index_exits_when_index_is_mising(isolated_vcs, capsys):
     with pytest.raises(SystemExit):
         vcs.load_index()
-
     assert "Index file not found" in capsys.readouterr().out
 
 
 def test_main_dispatches_selected_command(monkeypatch):
     called = []
-
-    def fake_status(args):
-        called.append(args.command)
-
-    monkeypatch.setattr(vcs, "status", fake_status)
+    monkeypatch.setattr(vcs, "status", lambda args: called.append(args.command))
     monkeypatch.setattr(sys, "argv", ["vcs.py", "status"])
-
     vcs.main()
-
     assert called == ["status"]
 
 
 def test_main_without_command_prints_help(monkeypatch, capsys):
     monkeypatch.setattr(sys, "argv", ["vcs.py"])
-
     vcs.main()
-
     assert "available commands" in capsys.readouterr().out

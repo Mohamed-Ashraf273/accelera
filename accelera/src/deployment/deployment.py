@@ -32,6 +32,7 @@ def sync_files():
     for name in (
         "deployment.py",
         "modelservice.py",
+        "gui.py",
         "schema_validation.py",
         "server.py",
         "tracking.py",
@@ -55,6 +56,16 @@ def sync_files():
         ],
         check=True,
     )
+
+    # Copy C++ shared libraries/bindings if built
+    bindings_dir = Path(config.bindings_dir)
+    if bindings_dir.is_dir():
+        for item in bindings_dir.glob("*.so"):
+            shutil.copy2(item, service_runtime_dir)
+        for item in bindings_dir.glob("*.pyd"):
+            shutil.copy2(item, service_runtime_dir)
+        for item in bindings_dir.glob("*.dylib"):
+            shutil.copy2(item, service_runtime_dir)
 
 
 def load_configurations():
@@ -125,29 +136,56 @@ def write_requirements():
         req.write("ConfigSpace\n")
 
 
-def write_dockerfile(configurations):
+def write_dockerfile(configurations, graph_runtime=False):
     models = validate_model_paths(configurations)
 
     with open("Dockerfile", "w", encoding="utf-8") as f:
-        f.write("FROM python:3.11-slim\n")
+        f.write(
+            f"FROM python:{sys.version_info.major}.{sys.version_info.minor}-slim\n"
+        )
+        apt_packages = ["libgomp1"]
+        if graph_runtime:
+            apt_packages.append("libllvm18")
         f.write(
             "RUN apt-get update && \\\n"
-            "    apt-get install -y --no-install-recommends libgomp1 && \\\n"
+            "    apt-get install -y --no-install-recommends "
+            f"{' '.join(apt_packages)} && \\\n"
             "    rm -rf /var/lib/apt/lists/*\n"
         )
         f.write("WORKDIR /app\n")
         f.write("COPY accelera_deployment/requirements.txt requirements.txt \n")
         f.write(
-            "RUN python -m pip install --no-cache-dir --prefer-binary "
-            "--timeout 120 --retries 10 -r requirements.txt\n"
+            "RUN python -m pip install \\\n"
+            "    --no-cache-dir \\\n"
+            "    --prefer-binary \\\n"
+            "    --ignore-requires-python \\\n"
+            "    --root-user-action=ignore \\\n"
+            "    --timeout 120 \\\n"
+            "    --retries 10 \\\n"
+            "    -r requirements.txt\n"
         )
         f.write("COPY accelera_deployment/server.py server.py\n")
+        f.write("COPY accelera_deployment/gui.py gui.py\n")
         f.write("COPY accelera_deployment/modelservice.py modelservice.py\n")
         f.write(
             "COPY accelera_deployment/schema_validation.py schema_validation.py\n"
         )
         f.write("COPY accelera_deployment/tracking.py tracking.py\n")
         f.write("COPY accelera_deployment/accelera/ /app/accelera/\n")
+
+        # Copy C++ dynamic library bindings if they were staged
+        has_so = any(Path("accelera_deployment").glob("*.so"))
+        has_pyd = any(Path("accelera_deployment").glob("*.pyd"))
+        has_dylib = any(Path("accelera_deployment").glob("*.dylib"))
+        if has_so:
+            f.write("COPY accelera_deployment/*.so /app/\n")
+        if has_pyd:
+            f.write("COPY accelera_deployment/*.pyd /app/\n")
+        if has_dylib:
+            f.write("COPY accelera_deployment/*.dylib /app/\n")
+        if has_so or has_pyd or has_dylib:
+            f.write("ENV LD_LIBRARY_PATH=/app\n")
+
         f.write("COPY config.json config.json\n")
         for pkl in models.values():
             f.write(f"COPY {pkl} /app/{pkl}\n")
@@ -163,7 +201,10 @@ def write_files(_args):
     sync_files()
     configurations = load_configurations()
     write_requirements()
-    write_dockerfile(configurations)
+    write_dockerfile(
+        configurations,
+        graph_runtime=getattr(_args, "graph_runtime", False),
+    )
 
 
 def build(args):
@@ -355,6 +396,14 @@ def remote_script(args):
         build_cmd.append("--no-cache")
     build_cmd.extend(["-t", image_name, "."])
     docker_build = "sudo " + " ".join(shlex.quote(part) for part in build_cmd)
+    if getattr(args, "prune_docker", False):
+        docker_prune = """
+echo "Pruning unused Docker data before build..."
+sudo docker builder prune -af || true
+sudo docker system prune -af || true
+"""
+    else:
+        docker_prune = ""
     health_command = (
         f"sudo docker exec {shlex.quote(container_name)} "
         'python -c "import urllib.request; '
@@ -393,6 +442,8 @@ set -e
 cd {quoted_remote_root}
 
 {docker_setup.strip()}
+
+{docker_prune.strip()}
 
 {docker_build}
 
@@ -471,7 +522,15 @@ examples:
     )
 
     subparsers = parser.add_subparsers(dest="command", help="avalable commands")
-    subparsers.add_parser("prepare", help="write requirements and files")
+    prepare_parser = subparsers.add_parser(
+        "prepare",
+        help="write requirements and files",
+    )
+    prepare_parser.add_argument(
+        "--graph-runtime",
+        action="store_true",
+        help="install the native graph runtime libraries in the Docker image",
+    )
     build_parser = subparsers.add_parser("build", help="build the Docker image")
     build_parser.add_argument(
         "--no-cache",
@@ -488,6 +547,11 @@ examples:
         "--no-cache",
         action="store_true",
         help="force Docker to rebuild all layers instead of using the cache",
+    )
+    local_parser.add_argument(
+        "--graph-runtime",
+        action="store_true",
+        help="install the native graph runtime libraries in the Docker image",
     )
 
     subparsers.add_parser("heroku-login", help="run Heroku login")
@@ -557,6 +621,16 @@ examples:
         "--no-cache",
         action="store_true",
         help="force Docker to rebuild all layers on EC2 instead of using the cache",
+    )
+    ec2_parser.add_argument(
+        "--graph-runtime",
+        action="store_true",
+        help="install the native graph runtime libraries in the Docker image",
+    )
+    ec2_parser.add_argument(
+        "--prune-docker",
+        action="store_true",
+        help="remove unused Docker data on EC2 before building the image",
     )
 
     ec2_stop_parser = subparsers.add_parser(

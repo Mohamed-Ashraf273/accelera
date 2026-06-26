@@ -1,0 +1,112 @@
+{
+  "models": {
+    "pipeline": "models/pipeline.pkl"
+  },
+  "schema": {
+    "features": [
+      {
+        "name": "area",
+        "type": "integer",
+        "required": true,
+        "min": 1650,
+        "max": 16200
+      },
+      {
+        "name": "bedrooms",
+        "type": "integer",
+        "required": true,
+        "min": 1,
+        "max": 6
+      },
+      {
+        "name": "bathrooms",
+        "type": "integer",
+        "required": true,
+        "min": 1,
+        "max": 4
+      },
+      {
+        "name": "stories",
+        "type": "integer",
+        "required": true,
+        "min": 1,
+        "max": 4
+      },
+      {
+        "name": "mainroad",
+        "type": "string",
+        "required": true,
+        "allowed_values": [
+          "yes",
+          "no"
+        ]
+      },
+      {
+        "name": "guestroom",
+        "type": "string",
+        "required": true,
+        "allowed_values": [
+          "yes",
+          "no"
+        ]
+      },
+      {
+        "name": "basement",
+        "type": "string",
+        "required": true,
+        "allowed_values": [
+          "yes",
+          "no"
+        ]
+      },
+      {
+        "name": "hotwaterheating",
+        "type": "string",
+        "required": true,
+        "allowed_values": [
+          "yes",
+          "no"
+        ]
+      },
+      {
+        "name": "airconditioning",
+        "type": "string",
+        "required": true,
+        "allowed_values": [
+          "yes",
+          "no"
+        ]
+      },
+      {
+        "name": "parking",
+        "type": "integer",
+        "required": true,
+        "min": 0,
+        "max": 3
+      },
+      {
+        "name": "prefarea",
+        "type": "string",
+        "required": true,
+        "allowed_values": [
+          "yes",
+          "no"
+        ]
+      },
+      {
+        "name": "furnishingstatus",
+        "type": "string",
+        "required": true,
+        "allowed_values": [
+          "furnished",
+          "semi-furnished",
+          "unfurnished"
+        ]
+      }
+    ]
+  },
+  "tracking": {
+    "enabled": true,
+    "path": "prediction_logs/predictions.jsonl"
+  }
+}
