@@ -56,5 +56,4 @@ class E2E(E2EBase):
             os.path.join(self.config["folder_path"], "text_model.pkl"),
         )
         self._save_model(model, model_path)
-        self._deploy(model_path)
         return (predictions, y_test), model

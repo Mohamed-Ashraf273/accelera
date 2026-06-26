@@ -53,4 +53,4 @@ class E2E(E2EBase):
         model.fit(X_train, y_train)
         predictions = model.predict(X_test)
         self._save_model(model, self.config.get("model_save_path", "model.pkl"))
-        return ((predictions, y_test), model)
+        return (predictions, y_test), model
