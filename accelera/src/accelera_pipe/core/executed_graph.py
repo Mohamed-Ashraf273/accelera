@@ -11,9 +11,13 @@ class ExecutedGraph(PipelineBase):
                 y_true=y_true, enable=True
             )
 
-        results = self._PipelineBase__graph.execute(X)
+        results = self.predict(X)
 
         if y_true is not None:
             self._PipelineBase__graph.enableDisableMetrics(enable=False)
 
+        return results
+
+    def predict(self, X):
+        results = self._PipelineBase__graph.execute(X)
         return results

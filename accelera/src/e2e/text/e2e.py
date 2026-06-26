@@ -1,9 +1,6 @@
 import os
 
-import pandas as pd
-
 from accelera.src.e2e.e2e import E2EBase
-from accelera.src.utils.dataset_retriever import retriever
 
 
 class E2E(E2EBase):
@@ -11,29 +8,13 @@ class E2E(E2EBase):
         super().__init__()
         self.df = None
 
-    def _load_content(self, content):
-        if self._is_google_drive_url(content):
-            retriever.connect()
-            try:
-                return retriever.retrieve_dataset("dataset", url=content, df=True)
-            finally:
-                retriever.close()
-        if isinstance(content, pd.DataFrame):
-            return content.copy()
-        raise ValueError("Content must be a Google Drive URL or a pandas DataFrame.")
-
-    def _run(self, content, config=None, graph=None):
+    def _run(self, content, config, graph=None):
         self.config = config
         self.graph = graph
         self.df = self._load_content(content)
 
         if self.graph is not None:
-            predictions, executed_graph = self.graph(self.df)
-            executed_graph.save()
-            return predictions, executed_graph
-
-        if self.config is None:
-            raise ValueError("Config must be provided when graph is None.")
+            return self._run_graph()
 
         required_keys = {"target_col", "text_col", "folder_path"}
         missing_keys = required_keys - self.config.keys()
@@ -75,5 +56,4 @@ class E2E(E2EBase):
             os.path.join(self.config["folder_path"], "text_model.pkl"),
         )
         self._save_model(model, model_path)
-        self._deploy(model_path)
         return (predictions, y_test), model

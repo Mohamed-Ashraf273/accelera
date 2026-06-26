@@ -5,6 +5,5 @@ since your modifications would be overwritten.
 """
 
 from accelera.src.e2e import e2e as e2e
-from accelera.src.e2e import image as image
 from accelera.src.e2e import tabular as tabular
 from accelera.src.e2e import text as text

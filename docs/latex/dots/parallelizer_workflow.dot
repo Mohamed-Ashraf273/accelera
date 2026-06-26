@@ -1,0 +1,118 @@
+digraph AcceleraParallelizerWorkflowHugeFont {
+    graph [
+        rankdir=LR,
+        bgcolor="white",
+        pad="0.05",
+        margin=0,
+        nodesep="0.18",
+        ranksep="0.30",
+        splines=ortho,
+        concentrate=false,
+        fontname="DejaVu Sans",
+        labelloc=t,
+        labeljust=c,
+        size="10.5,4.4!",
+        ratio=fill,
+        label=<
+            <FONT POINT-SIZE="56"><B>Accelera Parallelizer Workflow</B></FONT>
+        >
+    ];
+
+    node [
+        shape=rect,
+        style="rounded,filled",
+        color="#174EA6",
+        fillcolor="#F7FAFF",
+        fontname="DejaVu Sans",
+        fontsize=42,
+        margin="0.22,0.16",
+        penwidth=2.8,
+        width=2.05,
+        height=0.90
+    ];
+
+    edge [
+        color="#174EA6",
+        fontname="DejaVu Sans",
+        fontsize=32,
+        arrowsize=1.15,
+        penwidth=2.4
+    ];
+
+    subgraph cluster_inputs {
+        label="1. Inputs";
+        color="#2F7BFF";
+        penwidth=2.5;
+        style="rounded,dashed";
+        fontname="DejaVu Sans";
+        fontsize=38;
+        margin=10;
+
+        cfile [label="File\npath"];
+        csource [label="Source\nstring"];
+        pyfunc [label="Python\nfunction"];
+        transformer [label="Custom\nTransformer"];
+
+        read [label="Read /\nconvert"];
+        parse [label="Parse /\nconvert"];
+        capture [label="Capture\nsource"];
+        extract_method [label="Extract\nmethod"];
+
+        cfile -> read;
+        csource -> parse;
+        pyfunc -> capture;
+        transformer -> extract_method;
+    }
+
+    subgraph cluster_pipeline {
+        label="2. Analysis";
+        color="#2F7BFF";
+        penwidth=2.5;
+        style="rounded,dashed";
+        fontname="DejaVu Sans";
+        fontsize=38;
+        margin=10;
+
+        normalized [label="C++\nsource", fillcolor="#EAF2FF"];
+        clang [label="Clang\nAST"];
+        features [label="Loop\nfeatures"];
+        classifier [label="OpenMP\nclassifier"];
+        rules [label="Safety\nrules"];
+        inject [label="Insert\npragmas"];
+        cached_source [label="Parallelized\nC++ cache", shape=cylinder, fillcolor="#EAF2FF"];
+
+        normalized -> clang -> features -> classifier -> rules -> inject -> cached_source;
+    }
+
+    subgraph cluster_outputs {
+        label="3. Outputs";
+        color="#2F7BFF";
+        penwidth=2.5;
+        style="rounded,dashed";
+        fontname="DejaVu Sans";
+        fontsize=38;
+        margin=10;
+
+        file_mode [label="File\noutput"];
+        string_mode [label="Source\ntext"];
+        pybind [label="PyBind\nwrapper"];
+        compile [label="Compile\nnative"];
+        load [label="Optimized\ncallable"];
+        fallback [label="Fallback\noriginal", style="rounded,dashed,filled", fillcolor="#FFFFFF"];
+
+        cached_source -> file_mode;
+        cached_source -> string_mode;
+        cached_source -> pybind -> compile -> load;
+        pybind -> fallback [style=dashed, xlabel="fail"];
+        compile -> fallback [style=dashed, xlabel="fail"];
+    }
+
+    read -> normalized;
+    parse -> normalized;
+    capture -> normalized;
+    extract_method -> normalized;
+
+    { rank=same; cfile; csource; pyfunc; transformer; }
+    { rank=same; read; parse; capture; extract_method; }
+    { rank=same; file_mode; string_mode; pybind; }
+}

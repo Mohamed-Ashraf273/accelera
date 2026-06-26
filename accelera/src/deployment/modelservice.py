@@ -39,8 +39,13 @@ class ModelService:
             abs_path = (
                 os.path.join(config_dir, path) if not os.path.isabs(path) else path
             )
-            with open(abs_path, "rb") as f:
-                obj = pickle.load(f)
+            try:
+                import joblib
+
+                obj = joblib.load(abs_path)
+            except Exception:
+                with open(abs_path, "rb") as f:
+                    obj = pickle.load(f)
             if hasattr(obj, "predict"):
                 model_obj = obj
             elif hasattr(obj, "transform"):

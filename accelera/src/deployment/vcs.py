@@ -76,9 +76,8 @@ def init(args):
         print(f"Deployment initialized at {experiments_dir}")
         return
 
-    local_root = Path(os.getcwd()).resolve() / ".accelera_deployment"
-    experiments_dir = local_root / "experiments"
-    index_file = experiments_dir / "experiments.json"
+    experiments_dir = _path("experiments_dir")
+    index_file = _path("index_file")
     if os.path.exists(index_file):
         print("Deployment module already initialized")
         return

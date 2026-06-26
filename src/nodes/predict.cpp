@@ -58,7 +58,10 @@ void PredictNode::execute() {
 
     py::object test_data = py_func["test_data"];
     if (!getGraph()->getIsExecuted() && test_data.is_none()) {
-      throw std::runtime_error("PredictNode: No test data provided");
+      py::object predictions = py::int_(0);
+      auto predictions_ptr = std::make_shared<py::object>(predictions);
+      setData(predictions_ptr);
+      return;
     }
 
     py::object preprocessed_test_data;

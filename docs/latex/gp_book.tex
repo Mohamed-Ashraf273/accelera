@@ -18,6 +18,13 @@
 \usepackage{float}
 \usepackage{tabularx}
 \usepackage{array}
+
+% Unified table style
+\newcommand{\acceleraTableStyle}{%
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}%
+}
 \usepackage{caption}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -252,9 +259,7 @@ $F(L)$ & Feature representation of loop $L$ \\
 
 \begin{table}[h!]
 \centering
-\small
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{4pt}
+\acceleraTableStyle
 
 \begin{tabularx}{\textwidth}{|p{0.25\textwidth}|>{\raggedright\arraybackslash}X|p{0.22\textwidth}|}
 \hline
@@ -309,46 +314,49 @@ and how they contribute to the full system.
 
 \begin{table}[!htbp]
 \centering
+\acceleraTableStyle
 \caption{Main Accelera modules and their roles.}
 \label{tab:intro-modules-overview}
-\small
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{4pt}
 \begin{tabular}{p{0.23\textwidth}p{0.34\textwidth}p{0.33\textwidth}}
 \toprule
-Module & Main role & Why it matters \\
+\textbf{Module} & \textbf{Main role} & \textbf{Why it matters} \\
 \midrule
+
 \texttt{auto\_preprocessing} &
 Prepares tabular, text, and image data using automated preprocessing steps. &
 Reduces repeated manual data-cleaning work and produces reusable preprocessing
 artifacts and reports. \\
+\midrule
 
 \texttt{accelera\_automl} &
 Searches for suitable classification and regression models under time and trial
 budgets. &
 Helps users compare model candidates systematically instead of manually testing
 each model. \\
+\midrule
 
 \texttt{accelera\_pipe} &
 Builds graph-based machine-learning workflows with preprocessing, model,
 prediction, metric, merge, and branch nodes. &
 Exposes workflow structure, supports branch execution, and allows fitted paths
 to be reused through an executed graph. \\
+\midrule
 
 \texttt{parallelizer} &
 Analyzes supported Python/C++ loop-heavy code, inserts safe OpenMP pragmas, and
 compiles native callable extensions. &
 Targets custom preprocessing bottlenecks that would otherwise remain slow in
 pure Python. \\
+\midrule
 
 Benchmark platform &
 Provides a prototype web platform for datasets, metrics, submissions, and
 leaderboard-style comparison. &
 Connects the framework to a future environment for fair pipeline evaluation and
 community comparison. \\
+
 \bottomrule
 \end{tabular}
-\renewcommand{\arraystretch}{1.0}
 \end{table}
 
 \section{Motivation and Justification}
@@ -430,37 +438,40 @@ leaderboard-style results can help users evaluate their solutions fairly.
 
 \begin{table}[!htbp]
 \centering
+\acceleraTableStyle
 \caption{Problems addressed by Accelera.}
 \label{tab:intro-problems-solutions}
-\small
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{4pt}
 \begin{tabular}{p{0.30\textwidth}p{0.29\textwidth}p{0.31\textwidth}}
 \toprule
-Problem & Accelera component & Expected benefit \\
+\textbf{Problem} & \textbf{Accelera component} & \textbf{Expected benefit} \\
 \midrule
+
 Manual and repetitive data preparation &
 \texttt{auto\_preprocessing} &
 Automates common preprocessing and produces saved artifacts and reports. \\
+\midrule
 
 Time-consuming model selection &
 \texttt{accelera\_automl} &
 Searches candidate models and configurations under controlled budgets. \\
+\midrule
 
 Repeated work in branch-heavy workflows &
 \texttt{accelera\_pipe} &
 Represents the workflow as a graph and exposes shared execution structure. \\
+\midrule
 
 Slow custom Python loops &
 \texttt{parallelizer} &
 Converts supported functions to native code and inserts safe OpenMP pragmas. \\
+\midrule
 
 Difficult result comparison &
 Benchmark platform &
 Stores benchmark information, metrics, submissions, and leaderboard views. \\
+
 \bottomrule
 \end{tabular}
-\renewcommand{\arraystretch}{1.0}
 \end{table}
 
 \section{Project Objectives and Problem Definition}
@@ -580,73 +591,50 @@ These outcomes improve visibility and comparison.
 
 \begin{table}[!htbp]
 \centering
+\acceleraTableStyle
 \caption{Summary of project outcomes.}
 \label{tab:intro-outcomes}
-\small
-\renewcommand{\arraystretch}{1.12}
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{p{0.28\textwidth}p{0.62\textwidth}}
+\begin{tabular}{p{0.30\textwidth}p{0.60\textwidth}}
 \toprule
-Outcome & Description \\
+\textbf{Outcome} & \textbf{Description} \\
 \midrule
+
 Automated preprocessing &
-Reusable preprocessing for tabular, text, and image datasets with saved
-artifacts and reports. \\
+The project provides reusable preprocessing support for tabular, text, and image
+data, with generated reports and saved preprocessing artifacts. \\
+\midrule
 
-AutoML search &
-Budgeted model search for classification and regression with leaderboard and
-optional ensembles. \\
+Automated model selection &
+The AutoML module helps search and compare candidate classification and
+regression models under time and trial constraints. \\
+\midrule
 
-Graph pipeline execution &
-DAG-style workflow representation with branches, metrics, merges, and executed
-graph reuse. \\
+Graph-based pipeline execution &
+Accelera Pipe represents machine-learning workflows as executable graphs,
+supporting preprocessing, modelling, prediction, metrics, branching, and merging. \\
+\midrule
 
-Code parallelization &
-Supported Python/C++ loop analysis, OpenMP insertion, native compilation, and
-safe fallback. \\
+Code-level acceleration &
+The Parallelizer attempts to optimize supported loop-heavy Python/C++ code using
+static analysis, safety checks, OpenMP pragmas, compilation, and caching. \\
+\midrule
 
-Integrated acceleration &
-Automatic attempt to optimize eligible custom preprocessing functions inside
-pipeline nodes. \\
+Benchmarking support &
+The Benchmark Platform provides a foundation for dataset-based evaluation,
+prediction submission, metric calculation, and leaderboard-style comparison. \\
 
-Benchmark platform &
-Prototype for benchmark datasets, submissions, metrics, and leaderboards. \\
 \bottomrule
 \end{tabular}
-\renewcommand{\arraystretch}{1.0}
 \end{table}
 
 \section{Document Organization}
 
-The rest of this report is organized as follows:
-
-\begin{itemize}
-  \item \textbf{Chapter 2} presents the required market visibility study and
-  discusses the project from a practical and application-oriented perspective.
-
-  \item \textbf{Chapter 3} presents the literature survey. It explains the
-  background concepts and previous work related to machine-learning pipelines,
-  preprocessing, AutoML, OpenMP, automatic parallelization, and related systems
-  such as \texttt{scikit-learn} and OMPar.
-
-  \item \textbf{Chapter 4} presents the methodology and system design. It
-  explains how the main modules are implemented, including
-  \texttt{auto\_preprocessing}, \texttt{accelera\_automl},
-  \texttt{accelera\_pipe}, the \texttt{parallelizer}, and the benchmark
-  platform.
-
-  \item \textbf{Chapter 5} presents testing, verification, and experimental
-  results. It discusses correctness checks, runtime measurements, pipeline
-  comparisons, Windows and Linux execution behavior, and the effect of caching
-  and native compilation.
-
-  \item \textbf{Chapter 6} concludes the report by summarizing the project
-  contributions, limitations, and possible future improvements.
-
-  \item \textbf{Appendices} include supporting material such as development
-  documentation, usage instructions, feasibility details, and additional
-  implementation notes.
-\end{itemize}
+The rest of this report is organized into five main parts: Chapter 2 presents the market visibility study, 
+Chapter 3 discusses the literature survey and related work, Chapter 4 explains the methodology and system 
+design of the main Accelera modules, Chapter 5 presents testing, verification, and experimental results, 
+and Chapter 6 concludes the report by summarizing the contributions, limitations, and possible future improvements. 
+The appendices include supporting material such as documentation, usage instructions, feasibility details, 
+and additional implementation notes.
 
 
 \chapter{Market Visibility Study}
@@ -673,46 +661,49 @@ divided into several groups, as shown in Table~\ref{tab:target-customers}.
 
 \begin{table}[!htbp]
 \centering
+\acceleraTableStyle
 \caption{Targeted customers for Accelera.}
 \label{tab:target-customers}
-\small
-\renewcommand{\arraystretch}{1.18}
-\setlength{\tabcolsep}{4pt}
 \begin{tabular}{p{0.25\textwidth}p{0.33\textwidth}p{0.32\textwidth}}
 \toprule
-Customer group & Main need & How Accelera helps \\
+\textbf{Customer group} & \textbf{Main need} & \textbf{How Accelera helps} \\
 \midrule
+
 Students and beginners &
 Need an easier way to build complete machine-learning workflows without writing
 every step manually. &
 Provides automated preprocessing, model search, reports, and a pipeline
 interface that organizes the workflow. \\
+\midrule
 
 Data scientists &
 Need to prepare data, compare models, and repeat experiments quickly. &
 Reduces repetitive preprocessing, supports AutoML search, and gives reports and
 leaderboards for comparison. \\
+\midrule
 
 Machine-learning engineers &
 Need structured, reusable, and optimized workflows that can be inspected and
 executed reliably. &
 Provides graph-based pipeline execution, executed-graph reuse, and integration
 with custom preprocessing acceleration. \\
+\midrule
 
 Researchers &
 Need to compare approaches, measure results, and experiment with workflow and
 code optimization. &
 Provides modular components for benchmarking, graph execution, OpenMP
 parallelization, and performance evaluation. \\
+\midrule
 
 Small teams and startups &
 Need a practical toolkit that reduces development time without building an
 internal ML platform from scratch. &
 Combines preprocessing, AutoML, pipeline execution, reports, and benchmark
 support in one project. \\
+
 \bottomrule
 \end{tabular}
-\renewcommand{\arraystretch}{1.0}
 \end{table}
 
 The most important customer segment is the data-science and machine-learning
@@ -763,32 +754,33 @@ different because it tries to connect these ideas into one toolkit.
 
 \begin{table}[!htbp]
 \centering
+\acceleraTableStyle
 \caption{Market comparison summary.}
 \label{tab:market-comparison}
-\small
-\renewcommand{\arraystretch}{1.18}
-\setlength{\tabcolsep}{4pt}
 \begin{tabular}{p{0.22\textwidth}p{0.28\textwidth}p{0.19\textwidth}p{0.21\textwidth}}
 \toprule
-Tool or platform & Main focus & Limitation & Accelera difference \\
+\textbf{Tool or platform} & \textbf{Main focus} & \textbf{Limitation} & \textbf{Accelera difference} \\
 \midrule
+
 \texttt{scikit-learn} &
 Machine-learning models, preprocessing tools, and linear pipelines. &
 Pipeline execution is mainly linear and does not focus on graph-based branch
 execution or custom code parallelization. &
 Adds graph-based pipeline execution and integration with the Parallelizer. \\
+\midrule
 
 AutoCleanML &
 Automatic data cleaning and preprocessing. &
 Focused mainly on data cleaning and does not cover the whole workflow. &
 Adds AutoML, graph pipelines, parallelization, reports, and benchmarks. \\
-
+\midrule
 
 Auto-sklearn / TPOT / AutoGluon &
 Automated model selection and machine-learning search. &
 Focus mainly on model search, not graph execution or source-level code
 parallelization. &
 Combines AutoML with preprocessing, graph pipelines, and the Parallelizer. \\
+\midrule
 
 Numba / Cython &
 Python performance acceleration. &
@@ -796,9 +788,9 @@ Require user knowledge of acceleration syntax and do not manage ML workflow
 structure. &
 Provides an automatic attempt to optimize supported preprocessing functions
 inside the pipeline. \\
+
 \bottomrule
 \end{tabular}
-\renewcommand{\arraystretch}{1.0}
 \end{table}
 
 \subsection{AutoCleanML}
@@ -931,37 +923,40 @@ workflow.
 
 \begin{table}[!htbp]
 \centering
+\acceleraTableStyle
 \caption{Possible business value of Accelera.}
 \label{tab:business-value}
-\small
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{4pt}
 \begin{tabular}{p{0.30\textwidth}p{0.30\textwidth}p{0.30\textwidth}}
 \toprule
-Business value & Reason & Possible customer \\
+\textbf{Business value} & \textbf{Reason} & \textbf{Possible customer} \\
 \midrule
+
 Faster experimentation &
 Automated preprocessing and AutoML reduce repeated manual trials. &
 Students, data scientists, small teams. \\
+\midrule
 
 Better organization &
 Graph pipelines and executed graphs make workflows easier to inspect and reuse. &
 ML engineers and research teams. \\
+\midrule
 
 Performance improvement &
 Parallelizer can speed up supported loop-heavy preprocessing code. &
 Teams with custom preprocessing bottlenecks. \\
+\midrule
 
 Better comparison &
 Benchmark platform supports submissions, metrics, and leaderboards. &
 Universities, communities, and organizations. \\
+\midrule
 
 Lower entry barrier &
 Reports and automation make ML workflows easier for beginners. &
 Education and training programs. \\
+
 \bottomrule
 \end{tabular}
-\renewcommand{\arraystretch}{1.0}
 \end{table}
 
 The first possible product direction is a hosted benchmark platform. Users can
@@ -988,37 +983,40 @@ hosting, cloud resources, storage, and maintenance.
 
 \begin{table}[!htbp]
 \centering
+\acceleraTableStyle
 \caption{Expected cost categories.}
 \label{tab:expected-costs}
-\small
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{4pt}
 \begin{tabular}{p{0.28\textwidth}p{0.32\textwidth}p{0.30\textwidth}}
 \toprule
-Cost category & Description & Notes \\
+\textbf{Cost category} & \textbf{Description} & \textbf{Notes} \\
 \midrule
+
 Development cost &
 Time spent implementing, testing, documenting, and maintaining the framework. &
 Main cost during early stages. \\
+\midrule
 
 Cloud hosting &
 Servers for benchmark backend, database, frontend, and possible job execution. &
 Can start small and scale with users. \\
+\midrule
 
 Storage &
 Datasets, submissions, reports, and model artifacts. &
 Increases with benchmark usage. \\
+\midrule
 
 Compute resources &
 Running benchmark submissions or managed experiments. &
 Can be limited by quotas or paid tiers. \\
+\midrule
 
 Maintenance and support &
 Bug fixes, user support, documentation, and security updates. &
 Needed for long-term usage. \\
+
 \bottomrule
 \end{tabular}
-\renewcommand{\arraystretch}{1.0}
 \end{table}
 
 Possible revenue streams include:
@@ -1045,35 +1043,37 @@ added if the user base grows.
 
 \begin{table}[!htbp]
 \centering
+\acceleraTableStyle
 \caption{Simplified business plan stages.}
 \label{tab:business-plan-stages}
-\small
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{4pt}
 \begin{tabular}{p{0.22\textwidth}p{0.34\textwidth}p{0.34\textwidth}}
 \toprule
-Stage & Focus & Expected result \\
+\textbf{Stage} & \textbf{Focus} & \textbf{Expected result} \\
 \midrule
+
 Stage 1 &
 Release open-source framework, documentation, examples, and local benchmark
 prototype. &
 Build trust, collect users, and validate the technical direction. \\
+\midrule
 
 Stage 2 &
 Launch hosted benchmark features, public leaderboards, and private team
 workspaces. &
 Create first revenue stream through hosted services. \\
+\midrule
 
 Stage 3 &
 Add managed experiment dashboards, larger storage, and paid support. &
 Serve teams and organizations with more advanced workflow needs. \\
+\midrule
 
 Stage 4 &
 Provide enterprise integration and managed compute for benchmark execution. &
 Scale the platform into a commercial ML workflow service. \\
+
 \bottomrule
 \end{tabular}
-\renewcommand{\arraystretch}{1.0}
 \end{table}
 
 The expected break-even point depends on hosting cost, development effort, and
@@ -1329,17 +1329,6 @@ a loop to distribute loop iterations across multiple threads. OpenMP is useful
 because it does not require rewriting the whole program. However, the pragma must
 be inserted only when the loop is safe to parallelize.
 
-\subsection{Synthetic Data}
-Synthetic data is artificially generated data instead of data collected from real
-examples. It can be useful when real training data is limited, because it allows
-more examples to be created. However, synthetic data can also introduce bias if
-it does not represent real-world cases well.
-
-In automatic parallelization, this is important because a model trained mainly on
-synthetic examples may learn repeated artificial patterns instead of learning
-robust rules from real code. For this reason, relying completely on AI-generated
-pragma generation can be risky when the available dataset is limited or biased.
-
 \newpage
 
 \section{Comparative Study of Previous Work}
@@ -1444,26 +1433,41 @@ on predictions made by base models on their own training rows.
 
 \begin{table}[H]
 \centering
-\caption{Selected AutoML systems and their design emphasis}
+\acceleraTableStyle
+\caption{Selected AutoML systems and their design emphasis.}
 \label{tab:automl_related_systems}
-\renewcommand{\arraystretch}{1.15}
 \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.22\textwidth}X}
 \toprule
 \textbf{System} & \textbf{Design emphasis} \\
 \midrule
-Auto-WEKA & Combined algorithm selection and hyperparameter optimization over
-WEKA components ~\cite{autoweka}. \\
-Auto-sklearn & Bayesian optimization, dataset metafeatures, and post-hoc
-ensembles for Scikit-learn workflows ~\cite{autosklearn}. \\
-TPOT & Evolutionary search over tree-structured machine-learning pipelines
-~\cite{tpot}. \\
-FLAML & Cost-aware lightweight AutoML for limited resource budgets
-~\cite{flaml}. \\
-AutoGluon Tabular & Multi-layer stacking and ensembling with a high-level
-tabular prediction interface ~\cite{autogluon}. \\
-Accelera AutoML & Conditional model spaces, staged fidelity,
-surrogate-guided sampling, packaged warm starts, and voting or stacking inside
-Accelera. \\
+
+Auto-WEKA &
+Combined algorithm selection and hyperparameter optimization over WEKA
+components~\cite{autoweka}. \\
+\midrule
+
+Auto-sklearn &
+Bayesian optimization, dataset metafeatures, and post-hoc ensembles for
+Scikit-learn workflows~\cite{autosklearn}. \\
+\midrule
+
+TPOT &
+Evolutionary search over tree-structured machine-learning pipelines~\cite{tpot}. \\
+\midrule
+
+FLAML &
+Cost-aware lightweight AutoML for limited resource budgets~\cite{flaml}. \\
+\midrule
+
+AutoGluon Tabular &
+Multi-layer stacking and ensembling with a high-level tabular prediction
+interface~\cite{autogluon}. \\
+\midrule
+
+Accelera AutoML &
+Conditional model spaces, staged fidelity, surrogate-guided sampling, packaged
+warm starts, and voting or stacking inside Accelera. \\
+
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -1636,42 +1640,46 @@ workflow path.
 
 \begin{table}[H]
 \centering
+\acceleraTableStyle
 \caption{Main blocks in the Accelera architecture.}
 \label{tab:block-diagram-modules}
-\small
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{4pt}
 \begin{tabularx}{\textwidth}{p{0.24\textwidth}X X}
 \toprule
-Block & Main responsibility & Output \\
+\textbf{Block} & \textbf{Main responsibility} & \textbf{Output} \\
 \midrule
+
 Auto Preprocessing &
 Prepares datasets according to their type: tabular, text, or image. &
 Processed data, reports, and saved preprocessing artifacts. \\
+\midrule
 
 Accelera AutoML &
 Searches for good model and preprocessing configurations. &
 Best model, score, leaderboard, and run history. \\
+\midrule
 
 Accelera Pipe &
 Builds and executes graph-based machine-learning workflows. &
 Predictions, executed graph, selected path, and reports. \\
+\midrule
 
 Parallelizer &
 Optimizes supported loop-heavy Python/C++ code using analysis, safety rules,
 OpenMP, compilation, and caching. &
 Parallelized C++ code or optimized Python-callable native module. \\
+\midrule
 
 Benchmark Platform &
 Evaluates user prediction files against benchmark ground truth. &
 Score, ranking, and benchmark results. \\
+\midrule
 
 Deployment &
 Turns a saved model or pipeline into a deployed service. &
 Model URL, service endpoint, and optional inference UI. \\
+
 \bottomrule
 \end{tabularx}
-\renewcommand{\arraystretch}{1.0}
 \end{table}
 
 \subsubsection*{Auto Preprocessing flow}
@@ -1704,29 +1712,30 @@ result from Accelera Pipe. This is why the diagram contains a selection switch.
 
 \begin{table}[!htbp]
 \centering
+\acceleraTableStyle
 \caption{Possible paths to the deployment selection switch.}
 \label{tab:selection-switch-paths}
-\small
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{4pt}
 \begin{tabularx}{\textwidth}{p{0.26\textwidth}X}
 \toprule
-Path & Meaning \\
+\textbf{Path} & \textbf{Meaning} \\
 \midrule
+
 AutoML path &
 The user lets \texttt{accelera\_automl} search for the best model, then chooses
 the selected model for deployment. \\
+\midrule
 
 Graph pipeline path &
 The user builds a workflow using \texttt{accelera\_pipe}, executes the graph,
 and selects the executed graph or best pipeline path for deployment. \\
+\midrule
 
 Standalone path &
 The user may stop after any module and use its output directly without
 continuing to deployment. \\
+
 \bottomrule
 \end{tabularx}
-\renewcommand{\arraystretch}{1.0}
 \end{table}
 
 \subsubsection*{Accelera Pipe and Parallelizer interaction}
@@ -1779,42 +1788,47 @@ decide whether a loop can be parallelized.
 
 \begin{table}[!htbp]
 \centering
+\acceleraTableStyle
 \caption{Parallelizer stages.}
 \label{tab:parallelizer-stages}
-\small
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{4pt}
 \begin{tabularx}{\textwidth}{p{0.23\textwidth}X}
 \toprule
-Stage & Description \\
+\textbf{Stage} & \textbf{Description} \\
 \midrule
+
 Input normalization &
 Accepts source code, files, functions, or transformer methods and prepares them
 for analysis. \\
+\midrule
 
 Python-to-C++ conversion &
 Converts supported Python code into C++ so it can enter the same loop-analysis
 path. \\
+\midrule
 
 Loop extraction &
 Uses compiler-style analysis to locate loops and record loop ranges. \\
+\midrule
 
 Feature extraction &
 Computes indicators such as reductions, dependencies, array access, branches,
 function calls, and vectorization potential. \\
+\midrule
 
 Safety decision &
 Combines classifier output with deterministic rule-based checks. \\
+\midrule
 
 Pragma insertion &
 Adds OpenMP pragmas only when the loop is considered safe. \\
+\midrule
 
 Compilation and caching &
 Builds optimized native code when needed and reuses cached results when
 possible. \\
+
 \bottomrule
 \end{tabularx}
-\renewcommand{\arraystretch}{1.0}
 \end{table}
 
 The final pragma generation is intentionally rule-based. This makes the behavior
@@ -1868,32 +1882,32 @@ has two possible meanings:
 The main idea of the block diagram is that Accelera is modular but connected.
 Each module gives value by itself, but the full system becomes stronger when the
 modules are combined.
-
 \begin{table}[!htbp]
 \centering
+\acceleraTableStyle
 \caption{Standalone use versus end-to-end use.}
 \label{tab:standalone-vs-e2e}
-\small
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{4pt}
 \begin{tabularx}{\textwidth}{p{0.24\textwidth}X X}
 \toprule
-Mode & Description & Example \\
+\textbf{Mode} & \textbf{Description} & \textbf{Example} \\
 \midrule
+
 Standalone use &
 The user uses one module and stops at its output. &
 Use Auto Preprocessing only to generate processed data and reports. \\
+\midrule
 
 End-to-end use &
 The user connects several modules together to move from data to deployed result. &
 Preprocess data, run AutoML or graph pipeline, select output, deploy service. \\
+\midrule
 
 Integrated acceleration &
 A module internally uses another module to improve execution. &
 Accelera Pipe sends supported custom preprocessing methods to the Parallelizer. \\
+
 \bottomrule
 \end{tabularx}
-\renewcommand{\arraystretch}{1.0}
 \end{table}
 
 Therefore, the block diagram communicates three important ideas. First, the
@@ -2004,53 +2018,55 @@ different structure and needs different techniques:
     column to be shown later in the report.
     \begin{table}[!htbp]
     \centering
+\acceleraTableStyle
     \caption{Detected Column Types in Tabular Data}
     \label{tab:feature_types}
     \renewcommand{\arraystretch}{1.15}
     \begin{tabularx}{\textwidth}{p{0.23\textwidth}X p{0.25\textwidth}}
     \hline
+
     \textbf{Feature Type} & \textbf{Description} & \textbf{Examples} \\
-    \hline
+    \midrule
 
     Binary &
     Columns containing exactly two unique values. &
     yes/no, 1/0 \\
-    \hline
+    \midrule
 
     Ordinal &
     Integer columns with a small number of unique values less than or equal to
     \texttt{max\_ordinal\_unique}. &
     Ratings or levels such as 1, 2, 3, 4 \\
-    \hline
+    \midrule
 
     Numerical &
     Integer columns with a number of unique values greater than
     \texttt{max\_ordinal\_unique}. &
     Age, number of transactions \\
-    \hline
+    \midrule
 
     Continuous &
     Floating point columns. &
     Height = 175.5, price = 19.99, temperature = 36.6 \\
-    \hline
+    \midrule
 
     Low Cardinality Categorical &
     Object or string columns with a number of unique values less than or equal to
     \texttt{cardinality\_threshold}. &
     Product categories, country group \\
-    \hline
+    \midrule
 
     High Cardinality Categorical &
     Object or string columns with a number of unique values greater than
     \texttt{cardinality\_threshold}. &
     Product names, cities \\
-    \hline
+    \midrule
 
     Other &
     Columns with unsupported or non standard data types. These columns are excluded from
     the preprocessing pipeline. &
     Dates, complex objects, unsupported formats \\
-    \hline
+    \bottomrule
 
     \end{tabularx}
     \renewcommand{\arraystretch}{1.0}
@@ -2533,10 +2549,9 @@ than the best individual model.
 \subsection{Modular Decomposition}
 \begin{table}[H]
 \centering
+\acceleraTableStyle
 \caption{AutoML implementation units}
 \label{tab:automl_implementation_units}
-\small
-\renewcommand{\arraystretch}{1.15}
 \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.35\textwidth}X}
 \toprule
 \textbf{File or directory} & \textbf{Responsibility} \\
@@ -2804,6 +2819,7 @@ training or evaluation step would fail or give invalid results.
 
 \begin{table}[H]
 \centering
+\acceleraTableStyle
 \caption{Datasets Used in Module Testing}
 \label{tab:module_testing_datasets}
 \small
@@ -2815,43 +2831,46 @@ training or evaluation step would fail or give invalid results.
 >{\centering\arraybackslash}p{0.18\textwidth}
 @{}}
 \hline
+
 \textbf{Dataset Name} & \textbf{Shape} & \textbf{Dataset Type} & \textbf{Problem Type} \\
-\hline
+\midrule
 startup\_founder\_burnout\_2026 & (50000, 29) & Tabular & Classification \\
-\hline
+\midrule
 healthy\_diet\_calorie\_intake & (6000, 15) & Tabular & Classification \\
 \hline
+ main
 gaming\_addiction & (250, 49) & Tabular & Classification \\
-\hline
+\midrule
 student\_exam\_performance\_dataset & (10000, 17) & Tabular & Classification \\
-\hline
+\midrule
 heart & (1025, 14) & Tabular & Classification \\
-\hline
+\midrule
 Dataset\_spine & (310, 7) & Tabular & Classification \\
-\hline
+\midrule
 diabetes\_dataset & (100000, 31) & Tabular & Classification \\
-\hline
+\midrule
 student\_placement\_synthetic & (100000, 18) & Tabular & Classification \\
-\hline
+\midrule
 Titanic-Dataset & (891, 12) & Tabular & Classification \\
-\hline
+\midrule
 customer\_purchase\_data & (1500, 9) & Tabular & Classification \\
-\hline
+\midrule
 global\_ai\_jobs & (90000, 35) & Tabular & Regression \\
-\hline
+\midrule
 CarPrice\_Assignment & (205, 26) & Tabular & Regression \\
-\hline
+\midrule
 Housing & (545, 13) & Tabular & Regression \\
-\hline
+\midrule
 PetImages & (24998,) & Image & Classification \\
-\hline
+\midrule
 DailyDialog & (11327, 2) & Text & Classification \\
-\hline
+\midrule
 TestReviews & (4321, 2) & Text & Classification \\
 \hline
 \end{tabularx}
 \normalsize
 \renewcommand{\arraystretch}{1.0}
+
 \end{table}
 \begin{table}[H]
 \centering
@@ -2867,32 +2886,33 @@ TestReviews & (4321, 2) & Text & Classification \\
 >{\centering\arraybackslash}p{0.15\textwidth}
 @{}}
 \hline
+
 \textbf{Dataset Name} & \textbf{Model Used} & \textbf{Evaluation Metric} & \textbf{Accelera Result} \\
-\hline
+\midrule
 startup\_founder\_burnout\_2026 & RandomForest & Macro F1-score & 0.9999 \\
-\hline
+\midrule
 healthy\_diet\_calorie\_intake & RandomForest & Macro F1-score & 1.0000 \\
-\hline
+\midrule
 gaming\_addiction & RandomForest & Macro F1-score & 1.0000 \\
-\hline
+\midrule
 student\_exam\_performance\_dataset & RandomForest & Macro F1-score & 0.8573 \\
-\hline
+\midrule
 heart & RandomForest & Macro F1-score & 0.7860 \\
-\hline
+\midrule
 Dataset\_spine & RandomForest & Macro F1-score & 0.7840 \\
-\hline
+\midrule
 diabetes\_dataset & RandomForest & Macro F1-score & 0.9985 \\
-\hline
+\midrule
 student\_placement\_synthetic & RandomForest & Macro F1-score & 0.9986 \\
-\hline
+\midrule
 Titanic-Dataset & RandomForest & Macro F1-score & 0.7906 \\
-\hline
+\midrule
 customer\_purchase\_data & RandomForest & Macro F1-score & 0.9385 \\
-\hline
+\midrule
 global\_ai\_jobs & RandomForest & R-squared Score & 0.9227 \\
-\hline
+\midrule
 CarPrice\_Assignment & RandomForest & R-squared Score & 0.9562 \\
-\hline
+\midrule
 Housing & RandomForest & R-squared Score & 0.6037 \\
 \hline
 PetImages & ResNet model & Accuracy & 0.9700 \\
@@ -2905,6 +2925,7 @@ TestReviews & XGBClassifier & Macro F1-score & 0.6080 \\
 \normalsize
 \setlength{\tabcolsep}{6pt}
 \renewcommand{\arraystretch}{1.0}
+
 \end{table}
 
 
@@ -2949,6 +2970,7 @@ systems.
 
 \begin{table}[H]
 \centering
+\acceleraTableStyle
 \caption{AutoML classification benchmark summary}
 \label{tab:automl_classification_results}
 \begin{tabular}{lrrrr}
@@ -2980,9 +3002,9 @@ evaluated system.
 
 \begin{table}[H]
 \centering
+\acceleraTableStyle
 \caption{AutoML regression benchmark summary over ten datasets}
 \label{tab:automl_regression_results}
-\small
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{lrrrrrrr}
 \toprule
@@ -3065,7 +3087,7 @@ The results were saved and plotted as comparison graphs between Accelera and Aut
 
 \begin{table}[H]
 \centering
-\small
+\acceleraTableStyle
 \caption{Classification comparison using Logistic Regression and Random Forest}
 \label{tab:classification-lr-rf-autoclean-accelera}
 \begin{tabular}{p{0.38\textwidth}cccc}
@@ -3090,7 +3112,7 @@ Customer purchase data & 0.8484 & 0.8375 & 0.9386 & 0.9385 \\
 
 \begin{table}[H]
 \centering
-\small
+\acceleraTableStyle
 \caption{Classification comparison using Decision Tree and KNN}
 \label{tab:classification-dt-knn-autoclean-accelera}
 \begin{tabular}{p{0.38\textwidth}cccc}
@@ -3115,7 +3137,7 @@ Customer purchase data & 0.8486 & 0.8449 & 0.8544 & 0.8806 \\
 
 \begin{table}[H]
 \centering
-\small
+\acceleraTableStyle
 \caption{Regression comparison using Linear Regression and Random Forest}
 \label{tab:regression-lr-rf-autoclean-accelera}
 \begin{tabular}{p{0.38\textwidth}cccc}
@@ -3133,7 +3155,7 @@ Housing & 0.6506 & 0.6482 & 0.6087 & 0.6037 \\
 
 \begin{table}[H]
 \centering
-\small
+\acceleraTableStyle
 \caption{Regression comparison using Decision Tree and KNN}
 \label{tab:regression-dt-knn-autoclean-accelera}
 \begin{tabular}{p{0.38\textwidth}cccc}
