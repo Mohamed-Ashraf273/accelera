@@ -80,6 +80,7 @@
 \counterwithin{table}{chapter}
 \renewcommand{\lstlistingname}{Algorithm}
 \renewcommand{\lstlistlistingname}{List of Algorithms}
+\AtBeginDocument{\numberwithin{lstlisting}{chapter}}
 
 \lstdefinestyle{code}{
   basicstyle=\ttfamily\footnotesize,
@@ -94,7 +95,7 @@
 }
 
 \lstdefinestyle{algostyle}{
-  basicstyle=\ttfamily\footnotesize,
+  basicstyle=\ttfamily\normalsize,
   backgroundcolor=\color{white},
   frame=tb,
   rulecolor=\color{black},
@@ -199,7 +200,7 @@ by photocopying or other means, without the permission of the authors or departm
 \addcontentsline{toc}{chapter}{Abstract}
 \project{} is a hybrid Python/C++ machine learning framework that combines a
 high-level Python interface with native execution components. The system is
-organized around five modules: Accelera Pipe, the Code Parallelizer,
+organized around sex modules: Accelera Pipe, the Code Parallelizer,
 Auto Preprocessing, AutoML, Deployment, and the Benchmark Platform. Accelera
 Pipe represents machine-learning workflows as directed graph nodes for
 preprocessing, modelling, prediction, metric evaluation, branching, and
@@ -223,6 +224,8 @@ the required report structure for the remaining modules.
 \listoffigures
 \clearpage
 \listoftables
+\clearpage
+\lstlistoflistings
 \clearpage
 
 \chapter*{List of Abbreviations}
@@ -772,12 +775,6 @@ Focused mainly on data cleaning and does not cover the whole workflow. &
 Adds AutoML, graph pipelines, parallelization, reports, and benchmarks. \\
 \midrule
 
-Kaggle &
-Datasets, notebooks, competitions, and leaderboards. &
-Strong for competition and sharing, but not a local integrated ML framework. &
-Adds local preprocessing, AutoML, graph execution, and code acceleration. \\
-\midrule
-
 Auto-sklearn / TPOT / AutoGluon &
 Automated model selection and machine-learning search. &
 Focus mainly on model search, not graph execution or source-level code
@@ -823,36 +820,6 @@ there. It also includes AutoML search, graph pipeline execution, source-level
 parallelization, reports, and benchmark support. Therefore, Accelera aims to be
 closer to a complete workflow framework.
 
-\subsection{Kaggle}
-
-Kaggle is one of the most popular platforms for machine-learning competitions,
-datasets, notebooks, and community learning. It is important in this market
-because it provides public datasets and leaderboards where users can compare
-solutions.
-
-\textbf{Pros:}
-\begin{itemize}
-  \item Provides many public datasets.
-  \item Supports competitions and leaderboards.
-  \item Encourages community learning and solution sharing.
-  \item Gives users a place to test ideas against other solutions.
-\end{itemize}
-
-\textbf{Cons:}
-\begin{itemize}
-  \item Mainly depends on notebook-style experimentation, which can become hard
-  to organize in large projects.
-  \item Does not provide a local graph-based machine-learning workflow engine.
-  \item Does not automatically accelerate custom preprocessing code.
-  \item Does not combine preprocessing, AutoML, graph execution, and OpenMP
-  parallelization in one local toolkit.
-\end{itemize}
-
-Accelera is not trying to replace Kaggle as a public competition platform.
-Instead, the benchmark module takes inspiration from the idea of comparing
-pipelines and results. Accelera focuses more on building and optimizing the
-pipeline itself, while the benchmark platform can later support sharing and
-comparison.
 
 \subsection{\texttt{scikit-learn}}
 
@@ -1122,46 +1089,48 @@ development.
 In this chapter, we give an overview of the topics, algorithms, and techniques needed to understand the project as a whole. We discuss the technical subjects and background knowledge, and then summarize the research papers related to our project.
 
 \section{Background and Previous Work}
-This section explains the concepts and techniques used in Accelera units.
+\noindent This section introduces the main background needed to understand the Accelera project as a whole. It explains the important concepts, techniques, and tools that were used in different parts of the system. These background topics help clarify how the project supports data preparation, pipeline execution, report generation, model evaluation, and benchmarking. The goal of this section is to give the reader enough context before moving to the methodology and implementation chapters.
 
-\subsection{Data Science}
-Data science is a field that extracts knowledge and insights from data using
-scientific methods, processes, and algorithms.
+\subsection{Data Science and Machine Learning}
+Data science is the field that uses data, statistics, programming, and domain
+knowledge to understand a problem and extract useful insights from it. It is
+usually used when we have raw data and we want to turn it into useful
+information or predictions.
 
-\subsection{Machine Learning}
-Machine learning is a field of artificial intelligence that lets computers learn patterns from data without needing to be explicitly programmed. 
-A machine learning model is trained using training data , and then it uses what it learned to make predictions on new data.
+\noindent Machine learning is one of the main parts of data science. Instead of writing
+fixed rules for every case, we train a model on examples, and the model learns
+patterns from these examples. After training, the model can use what it learned
+to make predictions on new data.
 
-\subsection{Supervised Machine Learning}
-The training dataset includes a label column that represents the target output. 
-This column is used during training to learn the mapping between the input features and the expected result.
+\noindent In supervised machine learning, the training data contains input features and a
+target label. The model learns the relationship between the features and the
+target. If the target is a class, such as spam or not spam, the problem is called
+classification. If the target is a continuous number, such as price or
+temperature, the problem is called regression.
 
-\subsection{Classification}
-Classification is a supervised machine learning task whose output is a label or category.
+\subsubsection{Data Exploration and Preprocessing ~\cite{komorowski2016exploratory}}
+Exploratory Data Analysis, or EDA, is the step where we inspect the dataset
+before building the model. We summarize columns, draw visualizations, check
+missing values, and try to understand relationships between variables. This step
+helps us notice problems early instead of discovering them after training the
+model.
 
-\subsection{Regression}
-Regression is a supervised machine learning task whose output is a continuous numerical value.
+\noindent Data preprocessing is the stage of transforming raw data into a clean and usable
+format for machine learning models. In real datasets, the data may contain
+missing values, duplicated rows, different feature scales, and categorical
+columns that cannot be used directly by many models. Because of this,
+preprocessing is usually considered an essential part of a machine learning
+workflow.
 
-\subsection{Natural Language Processing NLP}
-Natural language processing is a field that focuses on enabling computers to understand and work with human language. Text data can't be used directly by most machine learning models, so it needs to be cleaned and turned into numerical features first.
+\noindent Missing value imputation is used when some values in a dataset are empty.
+Instead of removing all rows that contain missing values, the missing values can
+be replaced using a suitable value, such as the mean, median, mode, or another
+estimated value.
 
-\subsection{Exploratory Data Analysis}
-Exploratory Data Analysis is an important step in data analysis where we explore,
-summarize, and visualize data to understand its structure, detect patterns, 
-and check relationships between variables.
-
-\subsection{Data Preprocessing}
-Data preprocessing is the stage of transforming raw data into a clean and usable
-format for machine learning models.
-
-\subsection{Missing Value Imputation}
-Missing value imputation is a preprocessing technique used when some values in a
-dataset are empty. Instead of removing all rows that contain missing
-values, the missing values can be replaced using a suitable value.
-
-\subsection{Robust Scaling}
-Robust scaling is a scaling technique that uses the median and the
-interquartile range instead of the mean and standard deviation. 
+\noindent Robust scaling is a scaling technique that uses the median and the interquartile
+range instead of the mean and standard deviation. It is useful when the data
+contains outliers, because the median and interquartile range are less affected
+by extreme values:
 \[
 x' = \frac{x - \mathop{\mathrm{median}}(X)}{\mathop{\mathrm{IQR}}(X)}
 \]
@@ -1169,19 +1138,12 @@ where $x'$ is the scaled value, $x$ is the original value,
 $\mathop{\mathrm{median}}(X)$ is the median of the feature values, and
 $\mathop{\mathrm{IQR}}(X)$ is the interquartile range.
 
-\subsection{Categorical Encoding}
-Categorical encoding is the process of converting text categories into numeric
+\noindent Categorical encoding is the process of converting text categories into numeric
 values. Many traditional machine learning models and preprocessing pipelines
-expect numerical input.
-
-\subsection{Binary Encoding}
-Binary encoding is a categorical encoding technique that first gives each
-category a number, then converts this number into binary form. The binary digits
-are then stored as separate columns. 
-
-\subsection{Frequency Encoding}
-Frequency encoding replaces each category with how often it appears in the
-dataset. If a category appears many times, it receives a higher frequency value.
+expect numerical input. Two examples are binary encoding and frequency encoding.
+Binary encoding first gives each category a number, then converts this number
+into binary form and stores the binary digits in separate columns. Frequency
+encoding replaces each category with how often it appears in the dataset:
 \[
 f(c) = \frac{\mathop{\mathrm{count}}(c)}{N}
 \]
@@ -1189,12 +1151,114 @@ where $f(c)$ is the frequency of category $c$,
 $\mathop{\mathrm{count}}(c)$ is the number of rows containing this category,
 and $N$ is the total number of rows.
 
-\subsection{ Term Frequency-Inverse Document Frequency TF-IDF}
-It is a technique used to convert text into numerical features by giving each word a weight based
-on how important it is in a document and across the whole dataset.
-Term Frequency measures how often a word appears in a document. Inverse Document
-Frequency gives lower weight to words that appear in many documents, because
-these words are usually less useful for classification.
+\subsubsection{Model Evaluation Metrics ~\cite{hossin2015review}}
+After training a model, we need metrics to check whether the model is performing
+well or not. The selected metric depends on the type of problem. Classification
+models are evaluated using metrics that compare predicted classes with actual
+classes, while regression models are evaluated using metrics that measure the
+difference between predicted numerical values and real values.\\
+
+\noindent\textbf{Classification metrics:}
+Classification metrics are used when the output is a class or category, such as
+spam or not spam, positive or negative, or one image class from many classes. The
+confusion matrix is the base idea behind many classification metrics. It compares
+the actual classes with the predicted classes. For binary classification, it
+contains four values: true positives, true negatives, false positives, and false
+negatives.
+
+\begin{itemize}
+  \item \textbf{True Positive (TP):} The model predicts positive, and the actual
+  class is positive.
+  \item \textbf{True Negative (TN):} The model predicts negative, and the actual
+  class is negative.
+  \item \textbf{False Positive (FP):} The model predicts positive, but the actual
+  class is negative.
+  \item \textbf{False Negative (FN):} The model predicts negative, but the actual
+  class is positive.
+\end{itemize}
+
+\noindent Accuracy measures how many predictions are correct out of all predictions:
+\[
+Accuracy = \frac{TP + TN}{TP + TN + FP + FN}
+\]
+\noindent where $TP$ is true positives, $TN$ is true negatives, $FP$ is false positives,
+and $FN$ is false negatives. Accuracy is simple and useful when the classes are
+balanced, but it may be misleading when one class is much larger than the other.\\
+\noindent Precision measures how many predicted positive samples are actually positive:
+\[
+Precision = \frac{TP}{TP + FP}
+\]
+\noindent Precision is useful when false positives should be reduced.\\
+
+\noindent Recall measures how many actual positive samples were correctly detected:
+\[
+Recall = \frac{TP}{TP + FN}
+\]
+\noindent Recall is useful when false negatives should be reduced.\\
+
+\noindent The F1-score combines precision and recall:
+\[
+F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}
+\]
+\noindent It is useful when both precision and recall are important, especially with
+imbalanced datasets.
+
+\noindent\textbf{Regression metrics:}
+Regression metrics are used when the output is a numerical value, such as price,
+score, or temperature.
+
+\noindent Mean Absolute Error measures the average absolute difference between the real
+values and predicted values:
+\[
+MAE = \frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|
+\]
+\noindent where $y_i$ is the actual value, $\hat{y}_i$ is the predicted value, and $n$ is
+the number of samples. MAE is easy to understand because it gives the average
+error in the same unit as the target value.\\
+
+\noindent Mean Squared Error gives more penalty to large errors:
+\[
+MSE = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
+\]
+\noindent This means large mistakes affect the score more than small mistakes.\\
+
+\noindent Root Mean Squared Error is the square root of MSE:
+\[
+RMSE = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}
+\]
+\noindent RMSE is easier to read than MSE because it returns the error to the same unit as
+the target value.\\
+
+\noindent R-squared score measures how well the regression model explains the variation in
+the actual values:
+\[
+R^2 = 1 - \frac{\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}{\sum_{i=1}^{n}(y_i - \bar{y})^2}
+\]
+\noindent where $y_i$ is the actual value, $\hat{y}_i$ is the predicted value, and
+$\bar{y}$ is the mean of the actual values. A value close to 1 means the model
+explains the data well, while a value close to 0 means the model does not explain
+the data well.
+
+\subsection{Natural Language Processing (NLP) ~\cite{sabharwal2021introduction}}
+\noindent Natural Language Processing is the field that helps computers
+understand and work with human language. It is used in many applications such as
+text classification, sentiment analysis, spam detection, and chatbots. Text data
+cannot be used directly by most machine learning models, so it needs to be
+cleaned and converted into numbers first.
+
+\noindent In text preprocessing, the text may be converted to lowercase, cleaned from
+unnecessary symbols, split into words, and simplified using stemming. After that,
+methods such as TF-IDF are used to transform the text into numerical features.
+In Accelera, these steps are used to prepare text datasets so they can be used
+for machine learning models.
+
+\subsubsection{Term Frequency-Inverse Document Frequency (TF-IDF)}
+Term Frequency-Inverse Document Frequency is one common technique used
+to convert text into numerical features. It gives each word a weight based on
+how important it is in one document and across the full dataset. Term Frequency
+measures how often a word appears in a document. Inverse Document Frequency gives
+lower weight to words that appear in many documents, because these words are
+usually less useful for classification:
 \[
 TFIDF(t,d) = TF(t,d) \times IDF(t)
 \]
@@ -1202,9 +1266,13 @@ where $TFIDF(t,d)$ is the weight of term $t$ in document $d$, $TF(t,d)$ is the
 frequency of the term in the document, and $IDF(t)$ measures how rare the term
 is across all documents.
 
-\subsection{Data augmentation}
-Is a technique used to increase diversity of a dataset without actually collecting new data. 
-It works by applying various transformations to the existing data to create new, modified versions of data that helps the model generalize better.
+\subsection{Data Augmentation}
+Data augmentation is a technique used to increase the diversity of a dataset
+without actually collecting new data. It works by applying transformations to
+existing samples to create new modified versions. For example, in image
+classification, augmentation may include flipping, rotating, cropping, or
+changing brightness. This can help the model generalize better because it sees
+more variations during training.
 
 \subsection{Machine Learning Pipelines}
 A machine learning pipeline is a sequence of steps used to prepare data, train a
@@ -1262,72 +1330,20 @@ because it does not require rewriting the whole program. However, the pragma mus
 be inserted only when the loop is safe to parallelize.
 
 \newpage
-\subsection{Classification Evaluation Metrics}
-Classification metrics are used to evaluate the performance of a classification
-model.
-
-\subsubsection{Accuracy}
-Accuracy measures how many predictions are correct out of all predictions:
-\[
-Accuracy = \frac{TP + TN}{TP + TN + FP + FN}
-\]
-where $TP$ is true positives, $TN$ is true negatives, $FP$ is false positives,
-and $FN$ is false negatives.
-
-\subsubsection{Precision}
-Precision measures how many predicted positive samples are actually positive:
-\[
-Precision = \frac{TP}{TP + FP}
-\]
-
-\subsubsection{Recall}
-Recall measures how many actual positive samples were correctly detected:
-\[
-Recall = \frac{TP}{TP + FN}
-\]
-
-\subsubsection{F1-score}
-The F1-score combines precision and recall:
-\[
-F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}
-\]
-
-\subsection{Regression Evaluation Metrics}
-Regression metrics are used when the model predicts continuous numerical values.
-
-\subsubsection{Mean Absolute Error}
-Mean Absolute Error measures the average absolute difference between the real
-values and predicted values:
-\[
-MAE = \frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|
-\]
-where $y_i$ is the actual value and $\hat{y}_i$ is the predicted value.
-
-\subsubsection{Mean Squared Error}
-Mean Squared Error gives more penalty to large errors:
-\[
-MSE = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
-\]
-
-\subsubsection{R-squared Score}
-R-squared score measures how well the regression model explains the variation in the actual values. 
-\[
-R^2 = 1 - \frac{\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}{\sum_{i=1}^{n}(y_i - \bar{y})^2}
-\]
-Where $y_i$ is the actual value, $\hat{y}_i$ is the predicted value, and $\bar{y}$ is the mean of the actual values.
 
 \section{Comparative Study of Previous Work}
 \mbox{}
 
 \subsection{Data Preprocessing and Feature Engineering for Data Mining:
-Techniques, Tools, and Best Practices ~\cite{preprocessing_feature_engineering}}
-This paper shows the role of data preprocessing and feature engineering in
-machine learning and data mining projects. It says that preprocessing is not
-only a preparation step before model training, but also an important part of the
-complete machine learning pipeline. It also presents a general preprocessing framework that includes data
-cleaning, data transformation, feature construction, feature selection, and
-dimensionality reduction. For each stage, it explains different techniques and
-discusses the advantages and disadvantages of each one.
+Techniques, Tools, and Best Practices ~\cite{paraskevas2025data}}
+Koukaras and Tjortjis discuss the role of data preprocessing and feature
+engineering in machine learning and data mining projects. They explain that
+preprocessing is not only a preparation step before model training, but also an
+important part of the complete machine learning pipeline. The paper also
+presents a general preprocessing framework that includes data cleaning, data
+transformation, feature construction, feature selection, and dimensionality
+reduction. For each stage, it explains different techniques and discusses the
+advantages and disadvantages of each one.
 
 
 \subsection{\texttt{scikit-learn} Pipeline}
@@ -1463,25 +1479,6 @@ In this module we decided to implement an automated preprocessing approach for t
 approach was designed to prepare data for machine learning models by applying
 suitable preprocessing steps automatically according to the type and
 characteristics of each column and some user configurations.
-
-\noindent The general framework of the approach is as follows:
-\begin{enumerate}
-  \item Take the dataset and some user configurations.
-  \item Remove duplicate records.
-  \item Split the data into training and validation sets.
-  \item For each column, we get this information: data type, percentage of missing values, unique values, and basic stats.
-  \item Drop unnecessary columns, such as constant columns or columns with
-  missing values above the selected threshold.
-  \item Detect column types automatically.
-  \item Make Exploratory Data Analysis.
-  \item Apply missing value imputation.
-  \item Apply categorical encoding.
-  \item Apply robust scaling.
-  \item Apply feature selection using mutual information.
-  \item Automatically saves all needed files for inference.
-  \item Generate a report.
-\end{enumerate}
-
 \noindent The chosen approach follows a classical automated preprocessing pipeline. The
 main preprocessing decisions are:
 
@@ -1590,78 +1587,29 @@ of operations and that only a restricted, analyzable subset of custom source
 code should be translated to parallel C++.
 \subsection{Auto Preprocessing Assumptions}
 
-For the Auto Preprocessing module, the assumptions depend on the type of dataset being processed. The module supports three types of data: tabular, text, and image datasets.
-
-\subsubsection{Tabular Dataset Assumptions}
-
-For tabular datasets, the Auto Preprocessing module assumes that:
+The Auto Preprocessing module was designed based on the following assumptions:
 
 \begin{itemize}
-\item The dataset consists of numerical and categorical features, and the task is either classification or regression.  
-Because we try to implement the standard structured machine learning problems where supervised learning is applied..
-\item The user provides configuration parameters to control preprocessing operations.  
-This allows the pipeline to adapt to different datasets and user requirements.
+  \item \textbf{Data assumption:} The input data should be valid, meaningful,
+  and one of the supported types, so the module can select the correct
+  preprocessing workflow.
+
+  \item \textbf{Configuration assumption:} The user should provide the needed
+  configuration values, so the module can apply the correct preprocessing steps.
 \end{itemize}
-\subsubsection{Text Dataset Assumptions}
-
-For text datasets, the Auto Preprocessing module assumes that:
-
-\begin{itemize}
-\item we assume that the dataset has one text column and one categorical target label.This makes the pipeline easier to apply and keeps the number of features smaller after converting the text into numerical values.
-\item The user provides configuration parameters for text cleaning and feature extraction.  
-To give the user a level of control over the preprocessing pipeline.
-\end{itemize}
-
-\subsubsection{Image Dataset Assumptions}
-\begin{itemize}
-
-\item The dataset is for image classification and follows this folder structure.  
-\begin{verbatim}
-Training/
-  Cats/
-  Dogs/
-
-Validation/
-  Cats/
-  Dogs/
-\end{verbatim}
-\item All images are stored in supported formats and are accessible.  
-This ensures compatibility with image loading and preprocessing libraries.
-
-\item The user provides configuration parameters for preprocessing and augmentation.  
-Because different datasets require different preprocessing strategies such as resizing, normalization, and augmentation.
-
-\end{itemize}
-
 \subsection{Benchmark Assumptions}
 
-For the Benchmark module, the following assumptions are made. These assumptions are introduced due to system design constraints, particularly the limited server storage capacity for handling large dataset uploads.
+The Benchmark Platform was designed based on the following assumptions:
 
 \begin{itemize}
-
-\item When the user creates a benchmark, they provide a tabular dataset. This ensures that the module operates on structured data suitable for standard machine learning evaluation.
-
-\item All datasets are stored in publicly accessible Google Drive links. This design choice is adopted to reduce server storage requirements.
-
-\item The user must provide three CSV files:
-\begin{itemize}
-\item A training dataset containing both features and target labels.
-\item A testing dataset containing the same feature structure as the training set but without the target column.
-\item A ground truth target file containing only the target labels for the test set.
-\end{itemize}
-This separation ensures a standard evaluation protocol and prevents data leakage during benchmarking.
-
-\item When submitting predictions, the user provides a Google Drive link to a CSV file containing the predicted results. This ensures consistency in submission format across all users.
-
-\item The submitted prediction file must have the same length and format as the expected output to ensure correct evaluation and fair comparison between different users' models.
-
-\item When creating a benchmark, it is assumed that the user selects an evaluation metric that is appropriate for the problem type and provides a correct metric configuration. This is necessary to guarantee meaningful and valid performance measurement.
-
-\item For admin users, when defining an evaluation metric, it is assumed that a valid metric from the Scikit-learn library is selected. Because we use Scikit-learn metrics for evaluation.
-\item The selected metric must be properly configured and is expected to return a single scalar value for performance comparison and ranking purposes.
-
-\item The user is allowed to have only one active submission per benchmark. The user cannot create multiple submissions, but they are allowed to update their existing submission. This constraint is enforced to reduce storage usage.
-
+ \item \textbf{Benchmark data assumption:} The user is assumed to provide the
+benchmark files correctly, including the training data, test data, and separate
+target file. The user is also responsible for ensuring that the file separation
+does not cause data leakage, so the platform can evaluate submissions fairly.
+  \item \textbf{Metric and submission assumption:} The admin is assumed to define
+  the correct metric information for the benchmark, and the user is assumed to
+  submit predictions in the required format, so the scoring script can calculate
+  the result correctly.
 \end{itemize}
 
 \newpage
@@ -1690,7 +1638,7 @@ Benchmark Platform, and Deployment. The blue arrows in the diagram represent
 standalone or module-level flows, while the red arrows represent the end-to-end
 workflow path.
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \acceleraTableStyle
 \caption{Main blocks in the Accelera architecture.}
@@ -1737,11 +1685,11 @@ Model URL, service endpoint, and optional inference UI. \\
 \subsubsection*{Auto Preprocessing flow}
 
 The Auto Preprocessing block starts from a dataset and tries to prepare it for
-machine-learning usage. The module first profiles the data and detects its type.
+machine learning usage. The module first profiles the data and detects its type.
 Then it applies preprocessing steps depending on the type of input.
 
 \begin{itemize}
-  \item \textbf{Tabular data:} missing-value imputation, categorical encoding,
+  \item \textbf{Tabular data:} missing value imputation, categorical encoding,
   robust scaling, and feature selection.
   \item \textbf{Text data:} cleaning, tokenization, stemming, and TF-IDF feature
   extraction.
@@ -1971,33 +1919,22 @@ graph-based execution with source-level acceleration.
 
 \input{sections/methdoloy-mohamed}
 
+\clearpage
 \section{Auto Preprocessing Module}
-\noindent The Auto Preprocessing module is responsible for automating the data
-understanding, exploratory data analysis, and preprocessing stages of the data
-science workflow. The module was designed to reduce repeated manual work and to
-prepare different types of datasets before model training.
+\noindent The Auto Preprocessing module automates the data understanding, exploratory data analysis, and preprocessing stages in the data science workflow. It helps reduce the repeated manual work needed to prepare datasets before modeling.
+
+\noindent The module also helps the user understand the dataset before and after preprocessing by generating a report. This report shows important information about the input data and the preprocessing steps that were applied. For tabular data, the report shows information such as the number of rows and columns, data types, missing values, duplicate records, numerical and categorical features, basic statistics and EDA . For text data, it shows information such as the number of rows, target classes, class distribution, and number of missing. For image data, it shows information such as the number of images, image classes, class distribution, image sizes, and corrupted images. After preprocessing, the report shows the steps applied to the data, such as imputation, encoding, scaling, feature selection, text cleaning, TF-IDF feature extraction, image resizing, normalization, and image preparation for classification.
+
+\noindent Another important design point is separating the training phase from the inference phase. In the training phase, the preprocessing objects are fitted on the training data and saved as artifacts. In the inference phase, these saved artifacts are loaded and applied to new data. This ensures that new data is processed in the same way as the training data before it is passed to the trained model for prediction.
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth,clip]{imgs/tabular.pdf}
-    \caption{Tabular Preprocessing Workflow}
-    \label{fig:tabular_preprocessing_workflow}
-\end{figure}
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=1\textwidth,clip]{imgs/text.pdf}
-    \caption{Text Preprocessing Workflow}
-    \label{fig:text_preprocessing_workflow}
-\end{figure}
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=1\textwidth,clip]{imgs/image_workflow.pdf}
-    \caption{Image Preprocessing Workflow}
-    \label{fig:image_preprocessing_workflow}
+    \includegraphics[width=1\textwidth,clip]{imgs/auto_preprocessed.pdf}
+    \caption{Auto Preprocessing Workflow}
+    \label{fig:Auto_preprocessing_workflow}
 \end{figure}
 \subsection{Functional Description}
-\noindent The main function of this module is to receive a dataset and user configuration,
-then return processed data that is ready for machine learning or deep learning
-models. The module supports tabular, text, and image datasets.
+\noindent This module receives a dataset with its configuration, applies the suitable preprocessing workflow based on the data type and task, and returns processed data ready for training or inference. The module supports tabular, text, and image datasets.
 \noindent The module also generates a report when this option is enabled. The report
 summarizes information about the dataset and the preprocessing steps applied.
 
@@ -2021,50 +1958,58 @@ preparing the data loaders needed for training.
 
 
 \subsection{Modular Decomposition}
-\noindent The Auto Preprocessing module is divided based on the type of input data. The
-system supports three main types of data: tabular data, text data, and image data.
-Each type has its own preprocessing workflow and functions because every data type has a different
-structure and needs different techniques.
+\noindent The Auto Preprocessing module is divided based on the type of input
+data. Each data type has its own preprocessing workflow because every type has a
+different structure and needs different techniques:
+
+\begin{itemize}
+    \item \textbf{Tabular data preprocessing:} handles structured datasets made
+    of rows and columns.
+    \item \textbf{Text data preprocessing:} handles text columns and converts
+    cleaned text into numerical features.
+    \item \textbf{Image data preprocessing:} handles image classification
+    folders and prepares image loaders for training.
+\end{itemize}
 
 \subsubsection{Tabular Data Preprocessing Functions}
 
 
-\begin{description}
-    \item[\texttt{\_\_init\_\_():}]
+\begin{itemize}
+    \item \textbf{\_\_init\_\_():}
     This is the constructor that receives the dataset and the user settings. 
     It validates these settings before starting the preprocessing process. 
-    \item[\texttt{handel\_bool\_types():}]
+    \item \textbf{handel\_bool\_types():}
     This function handles columns that have bool data type. It finds these columns and converts them into integer values.
 
-    \item[\texttt{data\_overview():}]
+    \item \textbf{data\_overview():}
     This function gives a general overview of the dataset before preprocessing.
-    \item[\texttt{drop\_target\_nulls():}]
+    \item \textbf{drop\_target\_nulls():}
     This function drops rows have null value in the target.
 
-    \item[\texttt{drop\_duplicates():}]
+    \item \textbf{drop\_duplicates():}
     This function removes repeated rows from the dataset.
 
-    \item[\texttt{split\_data():}]
+    \item \textbf{split\_data():}
     This function splits the dataset into training and validation sets. The split is
     based on the validation size and random state selected by the user. The output of
     this function is \texttt{X\_train}, \texttt{X\_val}, \texttt{y\_train}, and
     \texttt{y\_val}.
 
-    \item[\texttt{get\_data\_info():}]
+    \item \textbf{get\_data\_info():}
     This function studies each column in the training data. It collects important
     information such as data type, number of unique values,
     missing values, and missing percentage. For numerical columns, it also calculates the mean,and median.
 
-    \item[\texttt{is\_drop\_column():}]
+    \item \textbf{is\_drop\_column():}
     This function decides whether a column should be removed or kept. A column is
     removed if it is included in the user selected drop list, if it has only one constant
     value, or if its missing value percentage is higher than the selected threshold. 
-    \item[\texttt{drop\_col():}]
+    \item \textbf{drop\_col():}
     This function removes the selected columns from both the training and validation
     datasets. It also saves the dropped columns and their reasons in a file. This helps
     the system apply the same dropping step later on testing or new data.
 
-    \item[\texttt{detect\_column\_types():}]
+    \item \textbf{detect\_column\_types():}
     This function detects the type of each feature. This step is important because each
     feature type needs a different preprocessing method. The features are divided into
     binary columns, ordinal columns, numerical columns, continuous columns,
@@ -2076,8 +2021,10 @@ structure and needs different techniques.
 \acceleraTableStyle
     \caption{Detected Column Types in Tabular Data}
     \label{tab:feature_types}
-    \begin{tabular}{p{3.5cm}p{7cm}p{4cm}}
-    \toprule
+    \renewcommand{\arraystretch}{1.15}
+    \begin{tabularx}{\textwidth}{p{0.23\textwidth}X p{0.25\textwidth}}
+    \hline
+
     \textbf{Feature Type} & \textbf{Description} & \textbf{Examples} \\
     \midrule
 
@@ -2121,16 +2068,58 @@ structure and needs different techniques.
     Dates, complex objects, unsupported formats \\
     \bottomrule
 
-    \end{tabular}
+    \end{tabularx}
+    \renewcommand{\arraystretch}{1.0}
     \end{table}
 
 
 
-    \item[\texttt{make\_graphs():}]
+    \item \textbf{make\_graphs():}
     This function creates graphs when the report option is enabled. The type of graph
     depends on the feature type and the problem type.
+    \Needspace{0.58\textheight}
+    \begin{table}[!htbp]
+      \centering
+      \small
+      \caption{EDA graphs generated for tabular preprocessing}
+      \label{tab:tabular-eda-graphs}
+      \renewcommand{\arraystretch}{1.08}
+      \begin{tabularx}{\textwidth}{p{0.26\textwidth}p{0.19\textwidth}X}
+      \hline
+      \textbf{Column type} & \textbf{Problem type} & \textbf{Generated graphs} \\
+      \hline
+      Binary and categorical & Classification & Null vs non null pie chart,
+      category count plot, and category count split by target class. \\
+      \hline
+      Binary and categorical & Regression & Null vs non null pie chart, category
+      count plot, and target box plot for each category. \\
+      \hline
+      Ordinal & Classification & Null vs non null pie chart, ordered count plot, and
+      ordered count plot split by target class. \\
+      \hline
+      Ordinal & Regression & Null vs non null pie chart, ordered count plot, and
+      target box plot for each ordinal value. \\
+      \hline
+      Numerical and continuous & Classification & Null vs non null pie chart,
+      histogram with KDE, and feature box plot grouped by class. \\
+      \hline
+      Numerical and continuous & Regression & Null vs non null pie chart, histogram
+      with KDE, and scatter plot between feature and target. \\
+      \hline
+      Target column & Classification & Null vs non null pie chart and target class
+      count plot. \\
+      \hline
+      Target column & Regression & Null vs non null pie chart, target histogram with
+      KDE, and target box plot. \\
+      \hline
+      Numeric columns & Both & Correlation heatmap. \\
+      \hline
+      \end{tabularx}
+      \normalsize
+      \renewcommand{\arraystretch}{1.0}
+      \end{table}
 
-    \item[\texttt{features\_preprocessing():}]
+    \item \textbf{features\_preprocessing():}
     This function applies the preprocessing steps to the input features. It creates
     different pipelines based on the detected feature types:
     \begin{itemize}
@@ -2149,16 +2138,16 @@ structure and needs different techniques.
     fitted on the training data and then applied to the validation data. The fitted
     preprocessor and the generated feature names are saved for later use.
 
-    \item[\texttt{target\_preprocessing():}]
+    \item \textbf{target\_preprocessing():}
     This function prepares the target column based on the problem type. For
     classification label encoding is used to convert class labels into numbers. For regression robust scaling is applied. The target
     preprocessor is saved so the same transformation can be used later.
 
-    \item[\texttt{features\_importance():}]
+    \item \textbf{features\_importance():}
     This function selects the most useful features using mutual information with the target. Only features with scores
     greater than or equal to the selected threshold are kept. The selected features are
     saved in a file to use it in the inference step. 
-    \item[\texttt{common\_preprocessing():}]
+    \item \textbf{common\_preprocessing():}
     This is the main function that controls the full tabular preprocessing workflow. It
     calls the previous functions in order. It starts by handling boolean columns,
     generating the data overview,drop rows have null target, removing duplicates, and splitting the data. Then, it
@@ -2166,23 +2155,60 @@ structure and needs different techniques.
     generates graphs, preprocesses the features, preprocesses the target, applies feature
     selection, and generates the report if enabled.It returns the processed
     training and validation data.
-\end{description}
+\end{itemize}
+
+\Needspace{18\baselineskip}
+\begin{lstlisting}[style=algostyle,caption={General tabular preprocessing flow}]
+Input: DataFrame D, target column y, problem type, other configurations
+Output: X_train, X_val, y_train, y_val
+
+1:  Validate configuration
+2:  Store original dataset columns
+3:  Build data overview and report information
+4:  Remove rows that have null target values
+5:  Remove duplicate rows
+6:  Split into training and validation sets
+7:  Drop user-selected, high-missing, constant, and unsupported columns
+8:  Detect column types from training data
+9:  Generate feature and target graphs when report is enabled
+10: Fit feature preprocessing objects on X_train
+11: Transform X_train and X_val
+12: Fit target preprocessing object on y_train
+13: Transform y_train and y_val
+14: Select useful features using mutual information
+15: Save fitted objects and metadata
+16: Generate report if enabled
+\end{lstlisting}
+
+
+
+\noindent Figure~\ref{fig:tabular_preprocessing_workflow} shows the full
+tabular preprocessing workflow. It starts from the input dataset, applies data
+cleaning and feature preprocessing steps, then saves the processed training and
+validation data with the preprocessing objects needed later for testing.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth,clip]{imgs/tabular.pdf}
+    \caption{Tabular Preprocessing Workflow}
+    \label{fig:tabular_preprocessing_workflow}
+\end{figure}
 
 \subsubsection{Text Data Preprocessing Functions}
 
 
-\begin{description}
-    \item[\texttt{\_\_init\_\_():}]
+\begin{itemize}
+    \item \textbf{\_\_init\_\_():}
      This is the constructor that receives the dataset and the user settings. 
      It validates these settings before starting the preprocessing process.Also removes any columns that are not the text column or the target
      column. This keeps only the columns needed for text classification. It also
     downloads the required NLTK resources, such as \texttt{punkt} and
     \texttt{stopwords}.
-    \item[\texttt{make\_graphs():}]
+    \item \textbf{make\_graphs():}
     This function creates graphs if the report option is enabled. It creates a graph for
     the text column . It also creates a graph for the target column. These graphs help the user understand the text data and the target class distribution.
 
-    \item[\texttt{custom\_text\_tokenizer():}]
+    \item \textbf{custom\_text\_tokenizer():}
     This function is used to clean the text and split it into words. It converts the text to
     lowercase, removes extra spaces and unnecessary symbols, and handles some contractions
     such as \texttt{can't} and \texttt{won't}. It also separates numbers from letters.
@@ -2190,7 +2216,7 @@ structure and needs different techniques.
     \texttt{not} and \texttt{no} are kept because they affect the meaning. After that,
     stemming is used to reduce words to their basic form.
 
-\item[\texttt{features\_preprocessing():}]
+\item \textbf{features\_preprocessing():}
 This function applies the preprocessing steps to the text column. It fills
 missing text values in the training and validation data with empty strings. 
 Then it uses the custom tokenizer . It also stores examples of the text
@@ -2201,13 +2227,13 @@ The vectorizer is fitted on the training data and applied to the validation
 data. The fitted vectorizer is saved so the same
 text transformation can be reused later on testing or new data.
 
-\item[\texttt{target\_preprocessing():}]
+\item \textbf{target\_preprocessing():}
 This function prepares the target column for classification this function  applies label
 encoding to the target values. The fitted label encoder is saved. Also, the text
 column and target column information are saved . This helps the
 system apply the same target transformation later on testing or new data.
 
-\item[\texttt{common\_preprocessing():}]
+\item \textbf{common\_preprocessing():}
 This is the main function that controls the full text preprocessing workflow. It calls
 the other functions in the correct order.
 It creates the data overview. Then, it removes rows that have missing target
@@ -2216,8 +2242,35 @@ validation sets. If the report option is enabled, graphs are created. Then, feat
 vectorize the text. Target preprocessing is applied to encode the class
 labels. Generates the report if enabled.It returns the processed
 training and validation data.
-\end{description}
+\end{itemize}
 
+\Needspace{14\baselineskip}
+\begin{lstlisting}[style=algostyle,caption={Text tokenizer flow}]
+Input: raw text sentence
+Output: cleaned token list
+
+1:  Convert text to lowercase and remove extra spaces
+2:  Normalize apostrophe characters
+3:  Expand common negative contractions
+4:  Add spaces between letters and digits
+5:  Remove characters except letters, digits, and apostrophes
+6:  Split text into words
+7:  Remove stopwords except "not" and "no"
+8:  Remove very short tokens
+9:  Apply Porter stemming
+10: Return cleaned tokens
+\end{lstlisting}
+
+\noindent Figure~\ref{fig:text_preprocessing_workflow} summarizes the text
+preprocessing workflow. It shows how the text data is cleaned, tokenized, and
+converted into TF-IDF features before the final processed data is returned.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth,clip]{imgs/text.pdf}
+    \caption{Text Preprocessing Workflow}
+    \label{fig:text_preprocessing_workflow}
+\end{figure}
 \subsubsection{Image Data Preprocessing}
 
 \noindent It is used for image classification datasets. In this
@@ -2225,18 +2278,18 @@ module, the images are organized inside folders, where each folder represents on
 It is divided into a set of functions, and each function has a specific role in
 the image preprocessing workflow. The main functions are described as follows:
 
-\begin{description}
-    \item[\texttt{\_\_init\_\_():}]
+\begin{itemize}
+    \item \textbf{\_\_init\_\_():}
     This is the constructor that receives the dataset and the user settings. 
     It validates these settings before starting the preprocessing process.It also prepares empty lists to store invalid images and their labels.
     It saves the image size information in a file so it can be reused later.
 
-    \item[\texttt{get\_classes\_mapping():}]
+    \item \textbf{get\_classes\_mapping():}
     This function creates the class mappings. It gives each class name a numerical label.It creates two mappings:
     one from class name to label, and another from label to class name.These mappings are saved in files. This helps the system use the same labels during
     training, validation, testing, and prediction.
 
-    \item[\texttt{data\_preparing():}]
+    \item \textbf{data\_preparing():}
     This function reads the images from the class folders. It goes through each class
     folder and checks each image path.If the image is valid and can be opened, its path is added to the list of valid image
     paths, and its class label is added to the labels list. If the image is invalid or
@@ -2244,7 +2297,7 @@ the image preprocessing workflow. The main functions are described as follows:
     If there are no valid images, the function raises an error because the preprocessing
     process cannot continue without valid image data.
 
-    \item[\texttt{data\_overview():}]
+    \item \textbf{data\_overview():}
     This function collects general information about the image dataset. For the training
     folder, it stores the class names, number of valid images, random sample images,
     number of invalid images, invalid image paths, and the class mapping.
@@ -2252,7 +2305,7 @@ the image preprocessing workflow. The main functions are described as follows:
     the validation folder. This information is used later in the final preprocessing
     report.
 
-    \item[\texttt{make\_graphs\_label\_summary():}]
+    \item \textbf{make\_graphs\_label\_summary():}
     This function creates graphs that show the label distribution. It creates a label
     summary graph for the training folder. If a validation folder is provided, it also
     creates a label summary graph for the validation folder.
@@ -2261,7 +2314,7 @@ the image preprocessing workflow. The main functions are described as follows:
     creates graphs for the labels after splitting. These graphs help the user understand
     if the classes are balanced or not.
 
-    \item[\texttt{make\_garphs\_sample():}]
+    \item \textbf{make\_garphs\_sample():}
     This function creates sample image graphs. It shows random samples from the training
     folder. If a validation folder is provided, it also shows random samples from the
     validation folder.
@@ -2269,7 +2322,7 @@ the image preprocessing workflow. The main functions are described as follows:
     If the training data is split into training and validation sets, it also shows sample
     images after splitting. This helps the user visually check the image dataset.
 
-    \item[\texttt{make\_graphs\_loader():}]
+    \item \textbf{make\_graphs\_loader():}
     This function creates sample images after using the DataLoader. It takes a small
     number of images from the training DataLoader and displays them.
 
@@ -2277,12 +2330,12 @@ the image preprocessing workflow. The main functions are described as follows:
     helps confirm that the images are loaded correctly after resizing, normalization, and
     augmentation.
 
-    \item[\texttt{make\_graphs():}]
+    \item \textbf{make\_graphs():}
     This function controls all graph generation steps. It prepares the graph section in
     the report, then calls the label summary graphs, sample image graphs, and DataLoader
     sample graphs.
 
-    \item[\texttt{get\_loaders():}]
+    \item \textbf{get\_loaders():}
     This function creates the training and validation datasets and DataLoaders. First, it
     creates a \texttt{ClassificationImageDataset} for the training images using the image
     paths, labels, image size, and augmentation settings.
@@ -2295,7 +2348,7 @@ the image preprocessing workflow. The main functions are described as follows:
     DataLoader. Augmentation is not applied to the validation data, and shuffling is not
     used because validation should be more stable.
 
-    \item[\texttt{common\_preprocessing():}]
+    \item \textbf{common\_preprocessing():}
     This is the main function that controls the full image preprocessing workflow. It
     starts by creating the class mappings. Then, it prepares the training images by
     collecting valid image paths and labels and saving invalid images.
@@ -2306,12 +2359,41 @@ the image preprocessing workflow. The main functions are described as follows:
 
     At the end, the function returns the training DataLoader and validation DataLoader.
     These outputs are ready to be used for training an image classification model.
-\end{description}
+\end{itemize}
+
+\Needspace{16\baselineskip}
+\begin{lstlisting}[style=algostyle,caption={Image training preprocessing flow}]
+Input: training image folder, optional validation folder
+Output: training and validation DataLoaders
+
+1:  Read class folders from the training directory
+2:  Create class-to-label and label-to-class mappings
+3:  Save mappings and image size information
+4:  Validate image files and skip invalid images
+5:  Build the data overview for the report
+6:  Split training images if no validation folder is provided
+7:  Create training dataset with resize and optional augmentation
+8:  Create validation dataset without augmentation
+9:  Build DataLoaders
+10: Generate label, sample, and loader graphs
+11: Generate the image preprocessing report
+\end{lstlisting}
+
+\noindent Figure~\ref{fig:image_preprocessing_workflow} explains the image
+preprocessing workflow. It shows how image folders are read, invalid images are
+detected, class labels are created, images are resized and normalized, and final
+DataLoaders are prepared.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth,clip]{imgs/image_workflow.pdf}
+    \caption{Image Preprocessing Workflow}
+    \label{fig:image_preprocessing_workflow}
+\end{figure}
 
 
 
-
-\subsubsection{Testing and Reusability:}
+\subsubsection{Inference and Reusability:}
 
 For all supported data types, the saved preprocessing objects are reused during
 testing. This is important because the testing data must be processed in the same way
@@ -2326,49 +2408,30 @@ as the training data.
 
 This makes the preprocessing module reusable and consistent for training,
 validation, testing, and future prediction.
-
 \subsection{Design Constraints}
-Several constraints affected the design of the Auto Preprocessing module:
+
+The Auto Preprocessing module was designed under the following constraints:
 
 \begin{itemize}
-  \item The module must avoid data leakage. For this reason, preprocessing
-  objects are fitted only on the training data and then applied to validation
-  or testing data.
+  \item \textbf{Supported data types constraint:} The module is limited to the
+  supported data types only, which are tabular, text, and image data. Other data
+  types are not handled by this module.
 
-  \item The module must support different data types. Therefore, separate
-  preprocessing paths were designed for tabular, text, and image datasets.
+  \item \textbf{Input structure constraint:} Each supported data type must follow
+  the expected structure. Tabular and text data should be provided as structured
+  datasets with a target column, while image data should be organized in folders
+  based on class names.
 
-  \item The tabular path assumes that the data is structured in rows and
-  columns and that the task is either classification or regression.
-
-  \item The text path assumes that the dataset contains a text column and a
-  target label for a text classification task.
-
-  \item The image path assumes that image classification data follows a
-  folder-based class structure, where each folder represents one class.
-
-  \item The module must keep preprocessing reproducible. Therefore, fitted
-  preprocessing objects and selected features are saved for later use.
-
-  \item The module must be general enough for different datasets, so the design
-  uses rule-based decisions instead of manual preprocessing code for each
-  dataset.
+  \item \textbf{Automatic decision constraint:} The module depends on rule-based
+  preprocessing decisions. Therefore, the preprocessing choices are limited to
+  the implemented rules and supported configuration options.
 \end{itemize}
 
-\subsection{Other Description of the Module}
-\noindent The Auto Preprocessing module is not only designed to transform data. It is also
-designed to help the user understand the dataset before and after
-preprocessing. This is achieved through the generated report and visualizations.
-For tabular data, the report can show missing-value statistics, duplicate
-information, feature distributions, target distribution, correlation matrix,
-removed columns, preprocessing decisions, and previews of the final processed
-training and validation data.
-
-\noindent Another important design point is that the module separates training
-preprocessing from testing preprocessing. During training, the module fits the
-preprocessing objects and saves them. During testing, the saved objects are
-loaded and applied directly, which ensures that new data is transformed in the
-same way as the training data.
+\subsection{Module Summary}
+\noindent The Auto Preprocessing module provides one reusable preprocessing
+interface for tabular, text, and image data. It prepares data for training,
+generates reports when enabled, saves fitted preprocessing artifacts, and reuses
+the same artifacts during testing and prediction.
 
 
 \section{AutoML Module}
@@ -2564,6 +2627,16 @@ predicted results, and compare submissions using selected evaluation metrics.
 The module includes a backend API, database schemas, Python validation and
 scoring scripts, and a frontend interface for users and admins.
 
+\noindent The module separates benchmark creation from submission evaluation.
+This makes the workflow clearer: first, the benchmark creator defines the task
+and evaluation rules; then, users submit predictions under the same conditions.
+This separation helps ensure that all users are evaluated using the same
+ground-truth file and the same metric configuration. Another important design
+point is the use of Python scripts for file validation and metric scoring. The
+backend is implemented using Node.js and Express, while Python handles the
+machine learning evaluation part through Scikit-learn metrics and dataset
+loading utilities.
+
 \subsection{Functional Description}
 \noindent The main function of this module is to support fair comparison
 between different machine learning solutions. A user can create a benchmark by
@@ -2583,91 +2656,98 @@ their value is higher and others are better when their value is lower.
 \subsection{Modular Decomposition}
 \noindent The Benchmark Platform is decomposed into several smaller components:
 
-\subsubsection{Benchmark Management}
-\noindent This component handles benchmark creation, listing, filtering, viewing,
+\begin{itemize}
+  \item \textbf{Benchmark Management:}
+  This component handles benchmark creation, listing, filtering, viewing,
 and deletion. It stores benchmark information such as title, description,
 problem type, dataset links, target column, selected metric, metric parameters,
 creation date, and creator.
 
-\subsubsection{Metric Management}
-\noindent This component allows admin users to define evaluation metrics. Each
+  \item \textbf{Metric Management:}
+  This component allows admin users to define evaluation metrics. Each
 metric contains a display name, the corresponding Scikit-learn metric function
 name, needed parameters, problem type, and whether a higher or lower score is
 better. Metrics are linked to benchmarks and used during submission scoring.
 
-\subsubsection{Submission Management}
-\noindent This component allows users to submit prediction files for a specific
+  \item \textbf{Submission Management:}
+  This component allows users to submit prediction files for a specific
 benchmark. Each submission stores the benchmark id, submitting user, repository
 link, prediction file link, score, and submission date. Users can also update
 their existing prediction file or delete their submission if they have
 permission.
 
-\subsubsection{Validation and Scoring Scripts}
-\noindent The backend calls Python scripts to validate benchmark files and score
+  \item \textbf{Validation and Scoring Scripts:}
+  The backend calls Python scripts to validate benchmark files and score
 submissions. During benchmark creation, the validation script checks that the
 test file does not include the target column and that the target file contains
 the required target column. During submission, the scoring script loads the
 ground-truth file and the submitted prediction file, checks their length and
 target column, then computes the selected Scikit-learn metric.
 
-\subsubsection{Leaderboard Interface}
-\noindent The frontend displays benchmark submissions in a leaderboard. It shows
+  \item \textbf{Leaderboard Interface:}
+  The frontend displays benchmark submissions in a leaderboard. It shows
 the submitter information, repository link, score, and submission date. The
 sorting direction depends on the selected metric, so the platform can support
 both metrics where higher is better and metrics where lower is better.
+\end{itemize}
+
+\Needspace{12\baselineskip}
+\begin{lstlisting}[style=algostyle,caption={Benchmark creation flow}]
+Input: benchmark form data
+Output: saved benchmark or validation error
+
+1:  Receive benchmark creation request
+2:  Validate problem type
+3:  Check title uniqueness
+4:  Validate dataset, test set, and target label links
+5:  Run validate_user_links.py
+6:  If the test file contains the target column, reject benchmark
+7:  If the target file does not contain the target column, reject benchmark
+8:  Save benchmark document in MongoDB
+\end{lstlisting}
+
+\Needspace{12\baselineskip}
+\begin{lstlisting}[style=algostyle,caption={Submission scoring flow}]
+Input: benchmark target file, submitted prediction file, metric name
+Output: score or validation error
+
+1:  Retrieve true target file
+2:  Retrieve submitted prediction file
+3:  Check that both files have the same number of rows
+4:  Check that submitted file contains the target column
+5:  Load metric function from sklearn.metrics
+6:  Compute metric(true_target, predicted_target, metric_parameters)
+7:  Return score to the backend as JSON
+8:  Save submission with score
+\end{lstlisting}
 
 \subsection{Design Constraints}
 \noindent Several constraints affected the design of the Benchmark Platform:
 
 \begin{itemize}
-  \item The module currently supports classification and regression problem
-  types only.
+  \item \textbf{Task and data constraint:} The platform is limited to
+  classification and regression benchmarks that use tabular files. This includes
+  the training data, test data, prediction file, and target file.
 
-  \item Dataset, test, target, and prediction files are provided using links,
-  mainly Google Drive file links, to reduce server storage requirements.
+  \item \textbf{Storage and access constraint:} Dataset and prediction files are
+  handled through accessible links to reduce server storage usage. 
 
-  \item The test dataset must not contain the target column. This prevents data
-  leakage and makes the evaluation fair.
-
-  \item The target file and submitted prediction file must contain the selected
-  target column and must have the same number of rows.
-
-  \item Evaluation metrics must be defined using valid Scikit-learn metric
-  names because the scoring script calls Scikit-learn metrics dynamically.
-
-  \item Only authenticated users can create benchmarks or submit predictions.
-  Admin permission is required for metric creation.
-
-  \item A user is allowed to create only one active submission for the same
-  benchmark. If the user wants to change the result, the existing submission is
-  updated instead of creating duplicate submissions.
+ \item \textbf{Scoring constraint:} The platform uses Scikit-learn metrics for
+scoring. Therefore, the selected metric must be supported by Scikit-learn and
+must match the benchmark problem type.
 \end{itemize}
 
-\subsection{Other Description of the Module}
-\noindent The Benchmark Platform separates benchmark creation from submission
-evaluation. This makes the workflow clearer: first, the benchmark creator
-defines the task and evaluation rules; then, users submit predictions under the
-same conditions. This separation helps ensure that all users are evaluated
-using the same ground-truth file and the same metric configuration.
 
-\noindent Another important design point is the use of Python scripts for file
-validation and metric scoring. The backend is implemented using Node.js and
-Express, while the scoring process uses Python because it depends on
-Scikit-learn metrics and dataset loading utilities already used in the project.
-This design allows the web platform to manage users, benchmarks, and
-submissions while Python handles the machine learning evaluation part.
+\subsection{Module Summary}
+\noindent The Benchmark Platform module provides a controlled environment for
+benchmark creation, prediction submission, validation, scoring, and leaderboard
+ranking. It keeps the web management logic in the backend and frontend, while
+the metric calculation logic is handled by Python scoring scripts.
 
 \chapter{System Testing and Verification}
 This chapter explains how the project was tested to make sure that the main
 parts work correctly. The testing was not done in one way only, because each
-part of the project has a different output. Auto Preprocessing was tested using
-unit tests, real datasets, generated artifacts, and model performance. The
-pipeline reporting part was checked by generating reports from serialized
-graphs and metric results. The benchmark platform was checked by creating
-benchmarks, submitting prediction files, calculating scores, and viewing the
-leaderboard.
-
-The main purpose of testing was to make sure that each part can receive the
+part of the project has a different output. The main purpose of testing was to make sure that each part can receive the
 input, apply the required steps, save the needed files, and return the expected
 output without errors.
 \section{Testing Setup}
@@ -2675,18 +2755,8 @@ The testing was done mainly in a Python environment. The main tools used in
 testing were Python, Pytest, Pandas, NumPy, Scikit-learn, PyTorch, Matplotlib,
 and the libraries used in the implementation. For the benchmark platform,
 Node.js, Express, React, MongoDB, and Python scoring scripts were also checked.
-
-The system was tested using sample datasets and different test cases. The
-outputs were checked to make sure that they were in the expected format. For
-example, preprocessing was expected to return transformed data and save fitted
-artifacts, reports were expected to generate HTML files and graphs, and
-benchmark submissions were expected to save scores and appear in the correct
-leaderboard order.
-
-Some tests were written and run automatically using Pytest. Other parts were
-checked manually by comparing the actual output with the expected output. This
-was useful because some outputs, such as HTML reports and frontend leaderboard
-screens, need visual checking.
+\noindent Some tests were written and run automatically using Pytest. Other parts were
+checked manually by comparing the actual output with the expected output.
 \section{Testing Plan and Strategy}
 The testing plan was based on testing the project step by step. First, each
 module was tested separately. After that, the outputs were checked in a more
@@ -2694,49 +2764,81 @@ complete workflow. For example, preprocessing output was passed to machine
 learning models, generated reports were opened and inspected, and benchmark
 submissions were checked after scoring.
 
-Different testing methods were used depending on the part being tested. Some
+\noindent Different testing methods were used depending on the part being tested. Some
 parts were tested using unit tests with Pytest. Other parts were checked
 manually by comparing the actual output with the expected output. In some
-cases, the results were compared with another tool, AutoCleanML, to check if
+cases, the results were compared with another tool, to check if
 the preprocessing results were reasonable.
 \subsection{Module Testing}
 \input{sections/results-modhamed}
 \subsubsection{Auto Preprocessing Module}
 Most of the preprocessing functions were tested using unit tests. These tests
-were used to check validation rules, artifact saving, feature transformation,
-and test-time loading. Real datasets were also used to test the system in a
+were used to check validation rules, artifact saving,and feature transformation. Real datasets were also used to test the system in a
 more practical way. These datasets were collected from Kaggle for tabular,
-text, and image data. For the tabular and text experiments, the data was split
-using a validation size of 0.2 and random state 42.
+text, and image data.
+\paragraph{How the Auto Preprocessing testing works}
 
-For tabular data, both classification and regression datasets were used. After
-preprocessing, the output was passed to a Random Forest model to check that the
-processed data was ready for training and validation. For text data, the
-processed TF-IDF output was passed to an \texttt{XGBClassifier}. This checked
-that the text preprocessing steps converted raw text into numerical features
-correctly. For image data, the output DataLoaders were passed to a ResNet
-model. This checked that the image preprocessing module created usable loaders.
+The Auto Preprocessing testing was done as a practical full-flow test. The idea
+was to run preprocessing on real datasets, then pass the processed output to a
+model. This means the test does not only check that preprocessing runs without
+errors, but also checks that the returned data can actually be used for
+training, validation, and prediction.
 
-The generated preprocessing reports were also checked. The report was expected
-to contain dataset overview, missing values, duplicate information, graphs,
-preprocessing decisions, and examples of processed data. This helped verify
-that the reporting part of Auto Preprocessing was also working.
+\noindent For tabular datasets, the test starts by loading each dataset with its
+target column and problem type. The preprocessing flow splits the data, fits the
+needed encoders and scalers, transforms the features and target, applies feature
+selection, and saves the preprocessing artifacts. After that, a machine learning
+model is trained on the processed training data and evaluated on the processed
+validation data. Classification datasets are evaluated using Macro F1-score,
+and regression datasets are evaluated using the R-squared score. The same
+datasets are also processed by a baseline automated cleaning tool, so the final
+scores can be compared and the Accelera output can be checked against an
+existing preprocessing approach.
 
-\begin{table}[!htbp]
+\noindent For text datasets, the test checks that raw text can be converted into
+features that a classifier can understand. The preprocessing flow receives the
+text column and target column, cleans the text, tokenizes it, applies TF-IDF,
+encodes the labels, and returns processed training and validation data. A
+classifier is then trained on the transformed text features and evaluated using
+Macro F1-score. This confirms that the text preprocessing output is numeric,
+consistent, and usable for a normal machine learning model.
+
+\noindent For image classification, the test checks the full image preparation
+flow. The preprocessing reads images from class folders, validates image files,
+skips corrupted images, creates class-to-label mappings, resizes the images,
+applies augmentation when enabled, and returns PyTorch DataLoaders. A neural
+network model is then trained using these loaders. The inference path is also
+checked by loading the saved model and applying the testing preprocessing to new
+images. This verifies that the saved image size and class mapping can be reused
+during testing, not only during training.
+
+\noindent The main concept in all three tests is to check preprocessing through
+the next step in the machine learning pipeline. If the tabular arrays, TF-IDF
+matrices, labels, image tensors, or saved artifacts were wrong, the model
+training or evaluation step would fail or give invalid results. 
+
+\begin{table}[H]
 \centering
 \acceleraTableStyle
 \caption{Datasets Used in Module Testing}
 \label{tab:module_testing_datasets}
-\begin{tabular}{p{7cm}p{3cm}p{3cm}p{3cm}}
-\toprule
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{@{}
+>{\raggedright\arraybackslash}X
+>{\centering\arraybackslash}p{0.17\textwidth}
+>{\centering\arraybackslash}p{0.15\textwidth}
+>{\centering\arraybackslash}p{0.18\textwidth}
+@{}}
+\hline
+
 \textbf{Dataset Name} & \textbf{Shape} & \textbf{Dataset Type} & \textbf{Problem Type} \\
 \midrule
 startup\_founder\_burnout\_2026 & (50000, 29) & Tabular & Classification \\
 \midrule
 healthy\_diet\_calorie\_intake & (6000, 15) & Tabular & Classification \\
-\midrule
-ai\_student & (50000, 16) & Tabular & Classification \\
-\midrule
+\hline
+ main
 gaming\_addiction & (250, 49) & Tabular & Classification \\
 \midrule
 student\_exam\_performance\_dataset & (10000, 17) & Tabular & Classification \\
@@ -2764,17 +2866,27 @@ PetImages & (24998,) & Image & Classification \\
 DailyDialog & (11327, 2) & Text & Classification \\
 \midrule
 TestReviews & (4321, 2) & Text & Classification \\
-\bottomrule
-\end{tabular}
-\end{table}
+\hline
+\end{tabularx}
+\normalsize
+\renewcommand{\arraystretch}{1.0}
 
-\begin{table}[!htbp]
+\end{table}
+\begin{table}[H]
 \centering
-\acceleraTableStyle
 \caption{Models and Evaluation Metrics Used in Module Testing}
 \label{tab:module_testing_models}
-\begin{tabular}{p{7cm}p{2.8cm}p{3cm}p{2cm}}
-\toprule
+\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{@{}
+>{\raggedright\arraybackslash}X
+>{\centering\arraybackslash}p{0.20\textwidth}
+>{\centering\arraybackslash}p{0.22\textwidth}
+>{\centering\arraybackslash}p{0.15\textwidth}
+@{}}
+\hline
+
 \textbf{Dataset Name} & \textbf{Model Used} & \textbf{Evaluation Metric} & \textbf{Accelera Result} \\
 \midrule
 startup\_founder\_burnout\_2026 & RandomForest & Macro F1-score & 0.9999 \\
@@ -2802,18 +2914,28 @@ global\_ai\_jobs & RandomForest & R-squared Score & 0.9227 \\
 CarPrice\_Assignment & RandomForest & R-squared Score & 0.9562 \\
 \midrule
 Housing & RandomForest & R-squared Score & 0.6037 \\
-\midrule
-PetImages & ResNet model & Accuracy & 0.97 \\
-\midrule
-DailyDialog & XGBClassifier & Macro F1-score & .9 \\
-\midrule
-TestReviews & XGBClassifier & Macro F1-score & .608 \\
-\bottomrule
-\end{tabular}
+\hline
+PetImages & ResNet model & Accuracy & 0.9700 \\
+\hline
+DailyDialog & XGBClassifier & Macro F1-score & 0.9000 \\
+\hline
+TestReviews & XGBClassifier & Macro F1-score & 0.6080 \\
+\hline
+\end{tabularx}
+\normalsize
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.0}
+
 \end{table}
 
-The results show that the preprocessing output was valid and could be used directly for model training. Most tabular classification datasets achieved good Macro F1-score values, which means that the processed data was suitable for the Random Forest model. Some datasets, such as \texttt{ai\_student} and \texttt{TestReviews}, achieved lower scores, which may be because these datasets are more difficult or need more advanced model tuning.
-The regression datasets also gave acceptable R-squared scores, especially \texttt{global\_ai\_jobs} and \texttt{CarPrice\_Assignment}. For image data, the ResNet model achieved high accuracy, showing that the image preprocessing and data loaders worked correctly. Overall, the results confirm that the system produced useful outputs for tabular, text, and image datasets.
+
+
+\noindent These results show that the preprocessing output can be used by different
+models after transformation. The tabular results were strong in many datasets,
+especially the larger classification datasets and the car price regression
+dataset. The lower scores on datasets such as  TestReviews show
+that preprocessing alone does not solve every modeling problem. Some datasets
+still need better features, model tuning, or more suitable models.
 
 \subsubsection{AutoML Module}
 \paragraph{Experimental Objectives}
@@ -2930,17 +3052,11 @@ shown using different colors.
 
 \subsubsection{Benchmark Platform Module}
 
-The Benchmark Platform module was tested by checking its main functionality.
-The testing focused on creating benchmark tasks, validating dataset links,
-submitting prediction files, calculating scores, and displaying the results in
-the leaderboard. The leaderboard was checked to make sure that results were
-ordered correctly depending on whether the selected metric is better when it is
-higher or lower.
+The Benchmark Platform module was evaluated using manual functional testing to check its main features from the user side. The testing focused on creating benchmark tasks, validating dataset links, submitting prediction files, calculating scores, and displaying the results in the leaderboard.
 
-The Python scoring script was also checked by comparing the target file and
-prediction file. The script should reject files with different row counts or
-missing target columns. This testing showed that the benchmark platform was
-able to submit results and display them correctly in the leaderboard.
+\noindent The leaderboard was tested by submitting different results and checking whether they were ordered correctly based on the selected evaluation metric. This included metrics where higher values are better and metrics where lower values are better.
+
+\noindent The scoring process was also tested manually by using different target and prediction files. The platform was checked to make sure it rejects invalid submissions, such as files with different row counts or missing target columns. These tests showed that the benchmark platform can handle result submission, calculate scores, validate files, and display leaderboard results correctly.
 
 \subsection{Integration Testing}
 
@@ -2969,7 +3085,7 @@ The comparison was applied only on tabular datasets because AutoCleanML mainly w
 After preprocessing the datasets, the output data was tested using four machine learning models. For classification problems, Logistic Regression, Random Forest, Decision Tree, and KNN were used. For regression problems, Linear Regression, Random Forest, Decision Tree, and KNN were used. This helped test the preprocessing output with different model types, not only one model.
 The results were saved and plotted as comparison graphs between Accelera and AutoCleanML. These graphs show the score of each tool on the selected datasets. The purpose of this comparison was to check whether Accelera can produce preprocessing results that are close to, or better than, an existing preprocessing tool.
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \acceleraTableStyle
 \caption{Classification comparison using Logistic Regression and Random Forest}
@@ -2994,7 +3110,7 @@ Customer purchase data & 0.8484 & 0.8375 & 0.9386 & 0.9385 \\
 \end{tabular}
 \end{table}
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \acceleraTableStyle
 \caption{Classification comparison using Decision Tree and KNN}
@@ -3019,7 +3135,7 @@ Customer purchase data & 0.8486 & 0.8449 & 0.8544 & 0.8806 \\
 \end{tabular}
 \end{table}
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \acceleraTableStyle
 \caption{Regression comparison using Linear Regression and Random Forest}
@@ -3037,7 +3153,7 @@ Housing & 0.6506 & 0.6482 & 0.6087 & 0.6037 \\
 \end{tabular}
 \end{table}
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \acceleraTableStyle
 \caption{Regression comparison using Decision Tree and KNN}
@@ -3055,15 +3171,22 @@ Housing & 0.3819 & 0.3634 & 0.5312 & 0.5336 \\
 \end{tabular}
 \end{table}
 
+\noindent From the classification and regression results, Accelera preprocessing achieved
+competitive performance compared to AutoCleanML. The comparison was tested using
+different types of models, including linear models, tree based models, Random
+Forest, and KNN. In many cases, the results of Accelera were very close to
+AutoCleanML, and in some cases Accelera achieved better scores.
 
+\noindent These results show that the implemented preprocessing steps in Accelera are able
+to prepare data in a valid way for different machine learning techniques. The
+performance was not limited to one specific model type, but appeared across
+several models and datasets. This means that Accelera successfully reached
+results close to an existing automated preprocessing tool, while still using its
+own preprocessing approach.
 
-From these results, Accelera preprocessing gives very close results to
-AutoCleanML in many datasets. In some cases, such as
-\texttt{student\_placement\_synthetic}, Accelera gives much higher scores with
-tree-based models. In other cases, AutoCleanML is slightly better, especially
-in some regression results. This means the Accelera preprocessing output is
-valid and competitive, but the best tool can still depend on the dataset and
-the model used after preprocessing.
+\noindent However, the results also show that no preprocessing tool gives the best score
+in all cases. The final performance can still depend on the dataset, the problem
+type, and the model used after preprocessing.
 
 \chapter{Conclusions and Future Work}
 \section{Faced Challenges}
@@ -3077,13 +3200,28 @@ branch-level parallel execution as the main remaining graph-backend challenge.
 \mbox{}
 
 \section{Conclusions}
-Accelera Pipe provides a graph-based execution model for branch-heavy
-machine-learning pipelines and supports fitted executed graphs. The Code
-Parallelizer provides a source-to-source path from supported Python or C++
-loops to OpenMP-annotated C++ using converter rules, loop feature extraction,
-classifier guidance, and safety checks. The available experiments show runtime
-improvements on large branch-selection workloads while preserving selected
-models, accuracy, and output equivalence.
+Accelera provides a connected framework for preparing data, selecting models,
+building graph-based machine learning workflows, improving supported custom
+code, deploying trained models, and comparing results through a benchmark
+platform. The work shows that the project is not only a collection of separate
+tools, but a workflow where each module can support a different stage of the
+machine learning process.
+
+\noindent The Auto Preprocessing module reduces repeated manual preparation work
+for tabular, text, and image datasets. It saves fitted artifacts so that testing
+data can be transformed in the same way as training data. The AutoML module
+adds automated model search under time and trial limits, which helps compare
+candidate models more systematically. Accelera Pipe represents workflows as
+graphs, so shared preprocessing, branches, predictions, and metrics can be
+organized more clearly. The Code Parallelizer adds a source-level optimization
+path for supported loop-heavy code while keeping conservative safety checks.
+
+\noindent The Deployment module and Benchmark Platform complete the workflow by
+supporting model serving, version tracking, submission validation, scoring, and
+leaderboard comparison. The testing and experimental results show that the
+implemented modules can produce usable outputs, generate reports, evaluate
+models, and compare results. Overall, Accelera gives a practical base for a
+more organized and reusable machine learning workflow.
 
 \section{Future Work}
 Future work should continue reducing graph memory consumption while preserving
@@ -3091,13 +3229,30 @@ parallel branch execution, and should extend safe converter , loop-analysis
 coverage without weakening correctness checks, The preprocessing pipeline can be improved by adapting the preprocessing steps based on the selected model type and by adding techniques to handle imbalanced datasets.
 In the future, the benchmark platform can be improved by saving uploaded datasets on the server instead of using Google Drive links. It can also allow users to upload code files directly, instead of submitting only links.
 
-\chapter*{References}
-\addcontentsline{toc}{chapter}{References}
+\renewcommand{\bibname}{Reference}
+\addcontentsline{toc}{chapter}{Reference}
 \begin{thebibliography}{9}
-\bibitem{preprocessing_feature_engineering}
-``Data Preprocessing and Feature Engineering for Data Mining: Techniques,
-Tools, and Best Practices.'' Available at:
-\url{https://www.proquest.com/openview/17dfa731b6147c8939e3c5cc784897ce/1?pq-origsite=gscholar&cbl=5046920}
+
+\bibitem{komorowski2016exploratory}
+Matthieu Komorowski, Dominic C. Marshall, Justin D. Salciccioli, and Yves
+Crutain. ``Exploratory data analysis.'' In \emph{Secondary Analysis of
+Electronic Health Records}, pages 185--203. Springer, 2016.
+
+\bibitem{hossin2015review}
+Mohammad Hossin and Md Nasir Sulaiman. ``A review on evaluation metrics for
+data classification evaluations.'' \emph{International Journal of Data Mining
+and Knowledge Management Process}, 5(2):1, 2015.
+
+\bibitem{sabharwal2021introduction}
+Navin Sabharwal and Amit Agrawal. ``Introduction to Natural Language
+Processing.'' In \emph{Hands-on Question Answering Systems with BERT:
+Applications in Neural Networks and Natural Language Processing}, pages 1--14.
+Springer, 2021.
+
+\bibitem{paraskevas2025data}
+Koukaras Paraskevas and Tjortjis Christos. ``Data preprocessing and feature
+engineering for data mining: Techniques, tools, and best practices.''
+\emph{AI}, 6(10):257, 2025. MDPI AG.
 
 \bibitem{autoweka}
 Chris Thornton, Frank Hutter, Holger H. Hoos, and Kevin Leyton-Brown.
@@ -3177,6 +3332,7 @@ compared on the same task. A benchmark creator defines the dataset, test file,
 target column, and metric. Users then submit prediction files, and the platform
 calculates the score and displays the leaderboard.
 
+\renewcommand{\lstlistingname}{Code Example}
 \chapter{User Guide}
 \section{Using Tabular Auto Preprocessing}
 To use tabular preprocessing, the user first loads the dataset as a Pandas
