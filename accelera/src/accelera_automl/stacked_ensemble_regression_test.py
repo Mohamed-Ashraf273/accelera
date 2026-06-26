@@ -33,6 +33,7 @@ def test_verbose_fit_records_and_logs_forward_selection_score(capsys):
     )
 
     ensemble.fit(X, y)
+    output = capsys.readouterr().out
 
     assert ensemble.forward_selection_.score == ensemble.score_result
-    assert "Forward selection score" in capsys.readouterr().out
+    assert "Forward selection selected" in output

@@ -7,11 +7,11 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from accelera.src.config import config
+
 repo_root = Path(__file__).resolve().parents[3]
 if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
-
-from accelera.src.config import config  # noqa: E402
 
 
 def _path(name):
@@ -38,8 +38,8 @@ def __getattr__(name):
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-##helpers
-def calculate_hash(t, message):
+###helpers
+def calc_hash(t, message):
     encoded = f"{t}{message}".encode()
     return hashlib.sha1(encoded).hexdigest()[:7]
 
@@ -69,16 +69,15 @@ def init(args):
         index_file = globals()["index_file"]
         experiments_dir = globals()["experiments_dir"]
         if os.path.exists(index_file):
-            print("Deployment module already initialized")
+            print("Deployment module initialized already")
             return
         os.makedirs(experiments_dir, exist_ok=True)
         save_index({"head": None, "deployed": None, "commits": []})
         print(f"Deployment initialized at {experiments_dir}")
         return
 
-    local_root = Path(os.getcwd()).resolve() / ".accelera_deployment"
-    experiments_dir = local_root / "experiments"
-    index_file = experiments_dir / "experiments.json"
+    experiments_dir = _path("experiments_dir")
+    index_file = _path("index_file")
     if os.path.exists(index_file):
         print("Deployment module already initialized")
         return
@@ -91,36 +90,70 @@ def init(args):
 def commit(args):
     message = args.message
     if not message:
-        print("Commit Message is required")
+        print("Commit mesage is required")
         raise SystemExit(1)
 
     config_file = _path("config_file")
-    models_dir = _path("models_dir")
     experiments_dir = _path("experiments_dir")
 
     if not os.path.exists(config_file):
         print(f"Config file not found at {config_file}")
         raise SystemExit(1)
 
-    if not os.path.isdir(models_dir):
-        print(f"Models directroy not found at {models_dir}")
+    try:
+        with open(config_file, "r") as f:
+            cfg = json.load(f)
+    except Exception as e:
+        print(f"Failed to parse config file: {e}")
+        raise SystemExit(1)
+
+    models_cfg = cfg.get("models", {})
+    if not isinstance(models_cfg, dict):
+        print("Invalid config 'models' should be a dict")
+        raise SystemExit(1)
+
+    config_dir = os.path.dirname(os.path.abspath(config_file))
+    resolved_models = {}
+    missing_paths = []
+    for name, path in models_cfg.items():
+        abs_path = (
+            os.path.join(config_dir, path) if not os.path.isabs(path) else path
+        )
+        abs_path = os.path.abspath(abs_path)
+        if not os.path.isfile(abs_path):
+            missing_paths.append(f"{name}: {path} (resolved: {abs_path})")
+        else:
+            resolved_models[name] = abs_path
+
+    if missing_paths:
+        print(f"no exist model at this path {', '.join(missing_paths)}")
         raise SystemExit(1)
 
     index = load_index()
     timestamp = datetime.now().isoformat()
 
-    commit_hash = calculate_hash(timestamp, message)
+    commit_hash = calc_hash(timestamp, message)
     existing = {c["hash"] for c in index["commits"]}
     while commit_hash in existing:
-        commit_hash = calculate_hash(timestamp, message + commit_hash)
+        commit_hash = calc_hash(timestamp, message + commit_hash)
 
     commit_dir = os.path.join(experiments_dir, commit_hash)
     os.makedirs(commit_dir, exist_ok=True)
 
-    shutil.copy2(config_file, os.path.join(commit_dir, "config.json"))
-
     dest_models = os.path.join(commit_dir, "models")
-    shutil.copytree(models_dir, dest_models)
+    os.makedirs(dest_models, exist_ok=True)
+
+    new_cfg = dict(cfg)
+    new_models_cfg = {}
+    for name, abs_path in resolved_models.items():
+        filename = os.path.basename(abs_path)
+        dest_path = os.path.join(dest_models, filename)
+        shutil.copy2(abs_path, dest_path)
+        new_models_cfg[name] = f"models/{filename}"
+
+    new_cfg["models"] = new_models_cfg
+    with open(os.path.join(commit_dir, "config.json"), "w") as f:
+        json.dump(new_cfg, f, indent=2)
 
     parent = index["head"]
     metadata = {
@@ -156,7 +189,7 @@ def log(args):
     index = load_index()
 
     if not index["commits"]:
-        print("No commits yet")
+        print("no commits yet")
         return
 
     deployed = index.get("deployed")
@@ -238,18 +271,24 @@ def status(args):
     print(f"commits number: {len(index['commits'])}")
 
     if head:
-        head_commit = next((c for c in index["commits"] if c["hash"] == head), None)
+        head_commit = None
+
+        for c in index["commits"]:
+            if c["hash"] == head:
+                head_commit = c
+                break
+
         if head_commit:
             print(f"Head: {head_commit['hash']} {head_commit['message']}")
         else:
             print("HEAD: None")
 
     if deployed:
-        dep_commit = next(
+        dep_comit = next(
             (c for c in index["commits"] if c["hash"] == deployed), None
         )
-        if dep_commit:
-            print(f"Deployed: {dep_commit['hash']} {dep_commit['message']}")
+        if dep_comit:
+            print(f"Deployed: {dep_comit['hash']} {dep_comit['message']}")
         else:
             print("Deployed: None")
 
@@ -272,7 +311,7 @@ examples:
     subparsers.add_parser("init", help="init directory")
 
     commit_parser = subparsers.add_parser(
-        "commit", help="save current models and config file"
+        "commit", help="save curr models and config file"
     )
     commit_parser.add_argument(
         "-m", "--message", required=True, help="commit message"
@@ -281,12 +320,12 @@ examples:
     subparsers.add_parser("log", help="show all commits")
 
     show_parser = subparsers.add_parser(
-        "show", help="show details of a specific commit"
+        "show", help="show details of a specific commit hash"
     )
     show_parser.add_argument("hash", help="commit hash")
 
     deploy_parser = subparsers.add_parser(
-        "deploy", help="Restore this commit to deploy it"
+        "deploy", help="Restore this commit to deploy"
     )
     deploy_parser.add_argument("hash", help="commit hash")
 

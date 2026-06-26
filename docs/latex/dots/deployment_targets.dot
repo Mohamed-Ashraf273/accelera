@@ -1,0 +1,81 @@
+digraph OrchestrationFlow {
+    fontname = "Helvetica,Arial,sans-serif";
+    node [fontname = "Helvetica,Arial,sans-serif"; shape = box; style = "filled,rounded"; fillcolor = "#ffffff"; stroke = "#333333"; penwidth = 1.5;];
+    edge [fontname = "Helvetica,Arial,sans-serif"; color = "#333333"; penwidth = 1.5;];
+    rankdir = LR;
+    compound = true;
+    
+    trigger [label = "Run deployment \nmodule"; shape = square;fillcolor = "#ffffff";penwidth = 2.0;];
+    
+    subgraph cluster_target1 {
+        label = "TARGET 1: LOCAL DOCKER";
+        fontname = "Helvetica-Bold";
+        style = "filled,rounded";
+        fillcolor = "#fcfcfc";
+        color = "#333333";
+        penwidth = 2.0;
+        margin = "10,10";
+        
+        t1_build [label = "Build Docker \nImage";];
+        t1_spinup [label = "Image Running \nLocally";];
+        
+        t1_build -> t1_spinup [minlen=1];
+    }
+    
+    subgraph cluster_target2 {
+        label = "TARGET 2: HEROKU";
+        fontname = "Helvetica-Bold";
+        style = "filled,rounded";
+        fillcolor = "#fcfcfc";
+        color = "#333333";
+        penwidth = 2.0;
+        margin = "10,10";
+        
+        t2_login [label = "Docker Registery\nLogin";];
+        t2_push [label = "Push Docker\nImage";];
+        t2_release [label = "Image Running \n On Heroku";];
+        
+        t2_login -> t2_push [minlen=1];
+        t2_push -> t2_release [minlen=1];
+    }
+    
+    subgraph cluster_target3 {
+        label = "TARGET 3: AWS EC2";
+        fontname = "Helvetica-Bold";
+        style = "filled,rounded";
+        fillcolor = "#fcfcfc";
+        color = "#333333";
+        penwidth = 2.0;
+        margin = "10,10";
+        
+        t3_ssh [label = "SSH Connection\n& Sync Files";];
+        t3_daemon [label = "Build & Run\nImage on Instance";];
+        t3_health [label = "Image Running \n On AWS EC2";];
+        
+        t3_ssh -> t3_daemon [minlen=1];
+        t3_daemon -> t3_health [minlen=1];
+    }
+    
+    subgraph cluster_staging {
+        label = "1. UNIFIED\nSTAGING PHASE";
+        fontname = "Helvetica-Bold";
+        style = "filled,rounded";
+        fillcolor = "#f5f5f5";
+        color = "#999999";
+        penwidth = 1.0;
+        margin = "10,10";
+        
+        stage_copy [label = "Copy Project\nSource Files\n(code, models,\nrequirements.txt)";];
+        stage_gen [label = "Generate\nGeneric\nDockerfile";];
+        
+        stage_copy -> stage_gen [minlen=2];
+    }
+    
+    
+    trigger -> stage_copy;
+    
+    stage_gen -> t1_build;
+    stage_gen -> t2_login;
+    stage_gen -> t3_ssh;
+    
+}

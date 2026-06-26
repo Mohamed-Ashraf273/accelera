@@ -50,11 +50,11 @@ def run_accelera_automl(
         n_trials=settings["n_trials"],
         cv=3,
         random_state=42,
-        use_ensemble=True,
+        use_ensemble=False,
         ensemble_strategy="stacked",
-        verbose=1,
         stacked_include_original_features_in_meta=False,
         n_jobs=1,
+        verbose=1,
     )
 
     started_at = perf_counter()

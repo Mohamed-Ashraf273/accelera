@@ -133,6 +133,9 @@ class Config:
     def deployment_root(self) -> Path:
         cwd = Path(os.getcwd()).resolve()
         for p in [cwd] + list(cwd.parents):
+            if p.name == ".accelera_deployment":
+                return p
+        for p in [cwd] + list(cwd.parents):
             if (p / ".accelera_deployment").is_dir():
                 return p / ".accelera_deployment"
         return cwd / ".accelera_deployment"

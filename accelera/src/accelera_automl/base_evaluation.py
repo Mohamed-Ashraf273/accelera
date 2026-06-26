@@ -1,22 +1,27 @@
-
+from abc import ABC
+from abc import abstractmethod
 from time import perf_counter
-from .configspace_search_space import configuration_space_to_dict
-import numpy as np
-from abc import ABC,abstractmethod
+
+from sklearn.model_selection import cross_val_score
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import cross_val_score
-from .configspace_search_space import configuration_space_to_dict
+
+from accelera.src.accelera_automl.configspace_search_space import (
+    configuration_space_to_dict,
+)
 
 
 class TrialSpecs:
-    def __init__(self, stage = 0,sample_fraction = 1.0,cv_folds = None,model_budget = 1.0):
+    def __init__(
+        self, stage=0, sample_fraction=1.0, cv_folds=None, model_budget=1.0
+    ):
         self.stage = stage
         self.sample_fraction = sample_fraction
         self.cv_folds = cv_folds
         self.model_budget = model_budget
+
 
 class EvaluationResult(ABC):
     def __init__(
@@ -47,6 +52,7 @@ class EvaluationResult(ABC):
         self.cv_folds = cv_folds
         self.model_budget = model_budget
 
+
 class BaseEvaluation:
     def __init__(
         self,
@@ -65,10 +71,10 @@ class BaseEvaluation:
     def make_subsample_splitter(self, target_size):
         "return splitter"
 
-    def get_sample(self,X,y,sample_fraction):
+    def get_sample(self, X, y, sample_fraction):
         if sample_fraction == 1.0:
             return X, y
-        
+
         num_of_samples = len(y)
         target_size = round(num_of_samples * sample_fraction)
         splitter = self.make_subsample_splitter(target_size)
@@ -82,23 +88,22 @@ class BaseEvaluation:
         "return score in case of failture"
 
     @abstractmethod
-    def resolve_cv_folds(self,y,trial_specs):
+    def resolve_cv_folds(self, y, trial_specs):
         "return the effective num of splits for cv"
 
     @abstractmethod
-    def get_cv_splitter(self,cv_num_of_splits):
+    def get_cv_splitter(self, cv_num_of_splits):
         "return the splitter"
 
     @abstractmethod
-    def build_estimator(self,model_name,params,trial_specs):
+    def build_estimator(self, model_name, params, trial_specs):
         "return estimator from stored components"
 
     @abstractmethod
-    def get_candidate_preprocessors(model_name,params):
+    def get_candidate_preprocessors(model_name, params):
         "return preprocessing cands"
 
     def build_preprocessor(self, name):
-        
         if name == "none":
             return None
         if name == "standard":
@@ -109,40 +114,46 @@ class BaseEvaluation:
             return MinMaxScaler()
         raise ValueError(f"Unsupported preprocessing strategy `{name}`.")
 
-    def build_model(self,model_name,params,preprocessing="none",trial_specs=None):
+    def build_model(
+        self, model_name, params, preprocessing="none", trial_specs=None
+    ):
         if trial_specs is None:
             trial_specs = TrialSpecs(cv_folds=self.cv)
-        estimator = self.build_estimator(model_name,params,trial_specs)
+        estimator = self.build_estimator(model_name, params, trial_specs)
         prepros = self.build_preprocessor(preprocessing)
-        return Pipeline(steps=[("preprocessor", prepros),("estimator", estimator)])
+        return Pipeline(steps=[("preprocessor", prepros), ("estimator", estimator)])
 
-    def evaluate_different_preprocessing(self,model_name,params,X,y,trial_specs):
+    def evaluate_different_preprocessing(
+        self, model_name, params, X, y, trial_specs
+    ):
         requested_folds = trial_specs.cv_folds or self.cv
         cv_num_of_splits = self.resolve_cv_folds(y, requested_folds)
         splitter = self.get_cv_splitter(cv_num_of_splits)
         best_preprocessing = "none"
         best_score = float("-inf")
 
-        for preprocessing in self.get_candidate_preprocessors(model_name,params):
+        for preprocessing in self.get_candidate_preprocessors(model_name, params):
             model = self.build_model(
                 model_name,
                 params,
                 preprocessing=preprocessing,
                 trial_specs=trial_specs,
             )
-            scores = cross_val_score(model,X,y,cv=splitter,scoring=self.scoring,n_jobs=self.n_jobs)
+            scores = cross_val_score(
+                model, X, y, cv=splitter, scoring=self.scoring, n_jobs=self.n_jobs
+            )
             score = scores.mean()
             if score > best_score:
                 best_score = score
-                best_preprocessing = preprocessing 
+                best_preprocessing = preprocessing
 
-        return best_preprocessing,best_score
+        return best_preprocessing, best_score
 
     @abstractmethod
-    def convert_score_to_cost(self,cost):
+    def convert_score_to_cost(self, cost):
         return "convert score to cost so we can work on minimization"
 
-    def evaluate(self,config,X,y,evaluation_level):
+    def evaluate(self, config, X, y, evaluation_level):
         start_time = perf_counter()
         config_dict = configuration_space_to_dict(config)
         model_name = config_dict["model_name"]
@@ -153,7 +164,7 @@ class BaseEvaluation:
             evaluation_level.cv_folds,
             evaluation_level.model_budget,
         )
-        X_eval,y_eval = self.get_sample(X,y,evaluation_level.sample_fraction)
+        X_eval, y_eval = self.get_sample(X, y, evaluation_level.sample_fraction)
         try:
             preprocessing_name, score = self.evaluate_different_preprocessing(
                 model_name,
@@ -173,7 +184,7 @@ class BaseEvaluation:
 
         duration = perf_counter() - start_time
         cost = self.convert_score_to_cost(score)
-        
+
         return EvaluationResult(
             model_name=model_name,
             params=params,
@@ -186,15 +197,13 @@ class BaseEvaluation:
             evaluation_level_stage=trial_specs.stage,
             sample_fraction=trial_specs.sample_fraction,
             cv_folds=trial_specs.cv_folds,
-            model_budget=trial_specs.model_budget
+            model_budget=trial_specs.model_budget,
         )
 
-
-
-    def apply_model_budget(self,estimator,model_name,params,evaluation_level):
+    def apply_model_budget(self, estimator, model_name, params, evaluation_level):
         if evaluation_level.model_budget == 1.0:
             return
-        
+
         budget = {
             "random_forest": ("n_estimators", 16),  # (param,min value)
             "extra_trees": ("n_estimators", 16),
@@ -209,11 +218,10 @@ class BaseEvaluation:
             "gaussian_process": ("max_iter_predict", 10),
         }
 
-
-        budget_param = budget.get(model_name)   
+        budget_param = budget.get(model_name)
         if budget_param is None:
             return
-        
+
         param, minimum = budget_param
         base_value = params.get(param)
         if base_value is None:
@@ -221,13 +229,10 @@ class BaseEvaluation:
 
         scaled_value = max(
             minimum, int(round(base_value * evaluation_level.model_budget))
-        )    
+        )
 
         if hasattr(estimator, "set_params"):
             try:
                 estimator.set_params(**{param: scaled_value})
             except ValueError:
                 pass
-
-
-

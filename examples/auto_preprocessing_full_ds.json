@@ -1,5 +1,6 @@
 {
   "tabular_dataset": {
+    "model_name":"RandomForest",
     "problemType": {
       "classification": {
         "startup_founder_burnout_2026": {
@@ -13,22 +14,11 @@
           "report_path": "healthy_diet_calorie_intake",
           "columns_need_to_drop": ["Person_ID"]
         },
-        "ai_student": {
-          "link": "https://drive.google.com/uc?id=1RLeMoVvEUe_PsnEZfGH7PI5q_F0jOzBY",
-          "target_column": "Burnout_Risk_Level",
-          "report_path": "ai_student_impact_dataset",
-          "columns_need_to_drop": ["Student_ID"]
-        },
         "gaming_addiction": {
           "link": "https://drive.google.com/uc?id=1Cr0UzQszWJ_B8zlepWjLngOuBwMHRAXY",
           "target_column": "addiction_binary",
           "report_path": "gaming_addiction",
           "columns_need_to_drop": ["user_id"]
-        },
-        "Teen_Mental_Health_Dataset": {
-          "link": "https://drive.google.com/uc?id=10X0yimXSfqzA5XiJ4mASkSTDk-FI83Zw",
-          "target_column": "depression_label",
-          "report_path": "Teen_Mental_Health_Dataset"
         },
         "student_exam_performance_dataset": {
           "link": "https://drive.google.com/uc?id=19mH4wgsK2-zcttdTFl6jk_BR83lrKIS7",
@@ -69,7 +59,7 @@
         }
       },
       "regression": {
-        "global_ai_jobs":{
+        "global_ai_jobs": {
           "link": "https://drive.google.com/uc?id=1hyFNiZDR5kG8UzZdcPP6YSLIgDEmN4SL",
           "target_column": "salary_usd",
           "report_path": "global_ai_jobs",
@@ -80,11 +70,6 @@
           "target_column": "price",
           "report_path": "CarPrice_Assignment",
           "columns_need_to_drop": ["car_ID"]
-        },
-        "Concrete_Data_Yeh": {
-          "link": "https://drive.google.com/uc?id=11AYSyIHdlnby4DkgvmwHBYI6uNPo7NND",
-          "target_column": "csMPa",
-          "report_path": "Concrete_Data_Yeh"
         },
         "Housing": {
           "link": "https://drive.google.com/uc?id=1VMtLcWDcigwkimpf-eWVMZ7zJMUf7wxs",

@@ -4,11 +4,15 @@ import argparse
 import importlib.util
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import StratifiedKFold, StratifiedShuffleSplit
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedShuffleSplit
 
 
 def parse_args() -> argparse.Namespace:
@@ -18,7 +22,9 @@ def parse_args() -> argparse.Namespace:
             "benchmark with AMLB-compatible train/test fold files."
         )
     )
-    parser.add_argument("--pmlb-root", required=True, help="Path to a local PMLB checkout.")
+    parser.add_argument(
+        "--pmlb-root", required=True, help="Path to a local PMLB checkout."
+    )
     parser.add_argument(
         "--output-benchmark",
         required=True,
@@ -41,7 +47,8 @@ def parse_args() -> argparse.Namespace:
         "--folds",
         type=int,
         default=1,
-        help="Number of AMLB folds to generate per dataset. Use 1 for a single holdout split.",
+        help="Number of AMLB folds to generate per dataset. "
+        "Use 1 for a single holdout split.",
     )
     parser.add_argument(
         "--test-size",
@@ -91,7 +98,11 @@ def load_requested_datasets(args: argparse.Namespace) -> List[str]:
     requested = list(args.dataset)
     if args.dataset_list_file:
         lines = Path(args.dataset_list_file).read_text(encoding="utf-8").splitlines()
-        requested.extend(line.strip() for line in lines if line.strip() and not line.startswith("#"))
+        requested.extend(
+            line.strip()
+            for line in lines
+            if line.strip() and not line.startswith("#")
+        )
     seen = set()
     ordered = []
     for name in requested:
@@ -102,7 +113,9 @@ def load_requested_datasets(args: argparse.Namespace) -> List[str]:
 
 
 def discover_dataset_files(pmlb_root: Path) -> Dict[str, Path]:
-    datasets_root = pmlb_root / "datasets" if (pmlb_root / "datasets").is_dir() else pmlb_root
+    datasets_root = (
+        pmlb_root / "datasets" if (pmlb_root / "datasets").is_dir() else pmlb_root
+    )
     dataset_files: Dict[str, Path] = {}
     for dataset_dir in sorted(p for p in datasets_root.iterdir() if p.is_dir()):
         candidates = []
@@ -112,7 +125,9 @@ def discover_dataset_files(pmlb_root: Path) -> Dict[str, Path]:
                 candidates.append(top_level)
         if not candidates:
             continue
-        preferred = next((p for p in candidates if p.name.endswith(".tsv.gz")), candidates[0])
+        preferred = next(
+            (p for p in candidates if p.name.endswith(".tsv.gz")), candidates[0]
+        )
         dataset_files[dataset_dir.name] = preferred
     return dataset_files
 
@@ -160,8 +175,10 @@ def assert_not_lfs_pointer(path: Path) -> None:
         head = fh.read(128)
     if head.startswith(b"version https://git-lfs.github.com/spec/v1"):
         raise SystemExit(
-            f"Dataset file `{path}` is a Git LFS pointer. Clone PMLB with Git LFS "
-            "enabled or use a downloaded archive that contains the actual data files."
+            f"Dataset file `{path}` is a Git LFS "
+            "pointer. Clone PMLB with Git LFS "
+            "enabled or use a downloaded archive "
+            "that contains the actual data files."
         )
 
 
@@ -243,13 +260,17 @@ def select_classification_datasets(
         missing = [name for name in requested if name not in dataset_files]
         if missing:
             missing_str = ", ".join(missing)
-            raise SystemExit(f"Requested datasets not found in PMLB checkout: {missing_str}")
+            raise SystemExit(
+                f"Requested datasets not found in PMLB checkout: {missing_str}"
+            )
         return {name: dataset_files[name] for name in requested}
 
     if importlib.util.find_spec("pmlb") is not None:
         from pmlb import classification_dataset_names
 
-        names = [name for name in classification_dataset_names if name in dataset_files]
+        names = [
+            name for name in classification_dataset_names if name in dataset_files
+        ]
         return {name: dataset_files[name] for name in names}
 
     selected = {}
@@ -266,12 +287,16 @@ def select_regression_datasets(
         missing = [name for name in requested if name not in dataset_files]
         if missing:
             missing_str = ", ".join(missing)
-            raise SystemExit(f"Requested datasets not found in PMLB checkout: {missing_str}")
+            raise SystemExit(
+                f"Requested datasets not found in PMLB checkout: {missing_str}"
+            )
         selected = {}
         for name in requested:
             dataset_file = dataset_files[name]
             if not is_regression_dataset(dataset_file, max_classes=max_classes):
-                raise SystemExit(f"Requested dataset `{name}` is not a regression dataset.")
+                raise SystemExit(
+                    f"Requested dataset `{name}` is not a regression dataset."
+                )
             selected[name] = dataset_file
         return selected
 
@@ -361,7 +386,9 @@ def write_dataset_splits(
             train_idx = indices[test_count:]
             splits = [(train_idx, test_idx)]
         else:
-            splitter = StratifiedShuffleSplit(n_splits=1, test_size=test_size, random_state=seed)
+            splitter = StratifiedShuffleSplit(
+                n_splits=1, test_size=test_size, random_state=seed
+            )
             splits = splitter.split(X, y)
     else:
         if task_type == "regression":
@@ -377,7 +404,9 @@ def write_dataset_splits(
                 )
                 splits.append((train_idx, test_idx))
         else:
-            splitter = StratifiedKFold(n_splits=folds, shuffle=True, random_state=seed)
+            splitter = StratifiedKFold(
+                n_splits=folds, shuffle=True, random_state=seed
+            )
             splits = splitter.split(X, y)
 
     for fold, (train_idx, test_idx) in enumerate(splits):
@@ -405,9 +434,13 @@ def main() -> None:
 
     requested = load_requested_datasets(args)
     if args.task_type == "classification":
-        selected = select_classification_datasets(dataset_files, requested, args.max_classes)
+        selected = select_classification_datasets(
+            dataset_files, requested, args.max_classes
+        )
     else:
-        selected = select_regression_datasets(dataset_files, requested, args.max_classes)
+        selected = select_regression_datasets(
+            dataset_files, requested, args.max_classes
+        )
     selected_names = sorted(selected)
     if args.max_datasets is not None:
         selected_names = selected_names[: args.max_datasets]
@@ -439,14 +472,16 @@ def main() -> None:
                     "type": problem_type,
                 },
                 "folds": args.folds,
-                "description": f"PMLB {args.task_type} dataset prepared from {dataset_file.name}",
+                "description": f"PMLB {args.task_type} "
+                f"dataset prepared from {dataset_file.name}",
             }
         )
 
-    output_benchmark.write_text(render_benchmark_yaml(benchmark_entries), encoding="utf-8")
-
-    print(f"Wrote benchmark: {output_benchmark}")
-    print(f"Wrote dataset folds under: {output_data_dir}")
+    output_benchmark.write_text(
+        render_benchmark_yaml(benchmark_entries), encoding="utf-8"
+    )
+    print(f"Wrote benchmark definition to {output_benchmark}")
+    print(f"Wrote dataset splits under {output_data_dir}")
     print(f"Prepared {len(benchmark_entries)} {args.task_type} datasets.")
 
 

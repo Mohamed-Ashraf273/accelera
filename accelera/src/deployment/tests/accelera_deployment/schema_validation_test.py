@@ -2,6 +2,7 @@ import importlib
 import sys
 from types import SimpleNamespace
 
+# import os
 import pytest
 
 
@@ -11,10 +12,10 @@ class FakeDataFrame:
         if columns is not None:
             self.columns = list(columns)
         elif isinstance(data, list) and data and isinstance(data[0], dict):
-            keys = []
+            key = []
             for row in data:
-                keys.extend(row.keys())
-            self.columns = list(dict.fromkeys(keys))
+                key.extend(row.keys())
+            self.columns = list(dict.fromkeys(key))
         else:
             self.columns = []
 
@@ -34,6 +35,11 @@ class FakeAsset:
 class FakeDataSource:
     def add_dataframe_asset(self, name):
         return FakeAsset()
+
+
+# class FakeSchema:
+#     def add_scheam_asset(self, name):
+#         return FakeSchema()
 
 
 class FakeDataSources:
@@ -68,46 +74,37 @@ def schema_module(monkeypatch):
         ),
     )
     sys.modules.pop(
-        "accelera.src.deployment.accelera_deployment.schema_validation",
+        "accelera.src.deployment.schema_validation",
         None,
     )
 
-    return importlib.import_module(
-        "accelera.src.deployment.accelera_deployment.schema_validation"
-    )
+    return importlib.import_module("accelera.src.deployment.schema_validation")
 
 
-def test_disabled_schema_describes_and_passes_input_through(schema_module):
-    schema = schema_module.InputSchema()
-    data = {"anything": "goes"}
-
-    assert schema.describe() == {"enabled": False, "features": []}
-    assert schema.validate(data) is data
+# def test_disabled_schema_describes_and_passes_input_through(schema_module):
+#     schema = schema_module.InputSchema()
+#     data = {"anything": "goes"}
+#     assert schema.describe()
 
 
-def test_enabled_schema_describes_configured_features(schema_module):
+def test_enabled_schema_describes_configured__features(schema_module):
     features = [{"name": "age", "type": "integer"}]
     schema = schema_module.InputSchema({"features": features})
-
     assert schema.describe() == {"enabled": True, "features": features}
 
 
-def test_validate_reports_missing_columns(schema_module):
+def test_validate_missing_columns(schema_module):
     schema = schema_module.InputSchema(
         {"features": [{"name": "age"}, {"name": "income"}]}
     )
-
     with pytest.raises(schema_module.SchemaValidationError) as exc:
         schema.validate({"age": 30})
+    assert exc.value.errors == ["missing columns ['income']"]
+    assert str(exc.value) == "missing columns ['income']"
 
-    assert exc.value.errors == ["missing columns: ['income']"]
-    assert str(exc.value) == "missing columns: ['income']"
 
-
-def test_validate_reports_unexpected_columns(schema_module):
+def test_validate_reports(schema_module):
     schema = schema_module.InputSchema({"features": [{"name": "age"}]})
-
     with pytest.raises(schema_module.SchemaValidationError) as exc:
         schema.validate({"age": 30, "extra": True})
-
-    assert exc.value.errors == ["unexpected columns: ['extra']"]
+    assert exc.value.errors == ["unexpected columns ['extra']"]

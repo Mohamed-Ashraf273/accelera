@@ -56,9 +56,15 @@
 \usepackage{float}
 
 % Lists, colors, links
+\usepackage{tabularx}
+\usepackage{float}
+
+% Lists, colors, links
 \usepackage{enumitem}
 \usepackage{xcolor}
 \usepackage{hyperref}
+
+% Math and figures
 
 % Math and figures
 \usepackage{amsmath}
@@ -122,6 +128,7 @@
   urlcolor=blue!45!black,
   pdftitle={Accelera AutoML: Design and Implementation},
   pdfauthor={Mohamed Ashraf}
+  pdfauthor={Mohamed Ashraf}
 }
 
 \lstdefinestyle{pythonstyle}{
@@ -137,6 +144,7 @@
   showstringspaces=false
 }
 
+% Custom commands
 % Custom commands
 \newcommand{\systemname}{Accelera AutoML}
 \newcommand{\modulepath}[1]{\texttt{\footnotesize #1}}
@@ -387,6 +395,9 @@ budget.
 \medskip
 
 \noindent Automated machine learning (AutoML) treats these choices as a structured
+\medskip
+
+\noindent Automated machine learning (AutoML) treats these choices as a structured
 optimization problem. Instead of manually testing a short list of models, an
 AutoML system defines a search space and evaluates configurations under a
 consistent protocol. The system must balance exploration of new regions with
@@ -402,15 +413,24 @@ The central problem addressed by this work is:
 How can Accelera automatically produce a strong classification or regression
 model under explicit trial and time constraints, while reducing unnecessary
 full-cost evaluations and exposing a familiar estimator interface?
+How can Accelera automatically produce a strong classification or regression
+model under explicit trial and time constraints, while reducing unnecessary
+full-cost evaluations and exposing a familiar estimator interface?
 \end{quote}
 
+\noindent This problem contains several subproblems:
 \noindent This problem contains several subproblems:
 
 \begin{enumerate}[leftmargin=*]
   \item representing diverse hyperparameter spaces;
   \item comparing configurations using a fair task-specific evaluation protocol;
   \item allocating computational resources across low and high-fidelity evaluations efficiently;
+  \item representing diverse hyperparameter spaces;
+  \item comparing configurations using a fair task-specific evaluation protocol;
+  \item allocating computational resources across low and high-fidelity evaluations efficiently;
   \item transferring useful configurations from related historical datasets;
+  \item selecting an effective final model or ensemble;
+  \item isolating estimator failures so that individual candidates cannot terminate the entire search process.
   \item selecting an effective final model or ensemble;
   \item isolating estimator failures so that individual candidates cannot terminate the entire search process.
 \end{enumerate}
@@ -432,6 +452,12 @@ that it can share the framework's packaging, preprocessing, reporting, and
 future pipeline capabilities. The public API follows the fit/predict conventions
 of scikit-learn, reducing the learning cost for users familiar with common
 Python machine-learning libraries.
+\medskip
+\noindent The module is implemented inside Accelera instead of as an isolated script so
+that it can share the framework's packaging, preprocessing, reporting, and
+future pipeline capabilities. The public API follows the fit/predict conventions
+of scikit-learn, reducing the learning cost for users familiar with common
+Python machine-learning libraries.
 
 \section{Project Objectives}
 
@@ -446,6 +472,7 @@ for tabular classification and regression. Its objectives are:
   \item use observed trials to guide later sampling;
   \item warm-start search using dataset metafeatures and stored historical runs;
   \item construct voting or stacked ensembles from competitive candidates;
+  \item support parallel trials and per-trial timeout isolation;
   \item support parallel trials and per-trial timeout isolation;
   \item return the final model, best score, run history, and leaderboard.
 \end{itemize}
@@ -550,6 +577,8 @@ hyperparameter optimization seeks
 
 \medskip
 \noindent where $\widehat{L}$ is an estimated validation loss on dataset $D$. Auto-WEKA
+\medskip
+\noindent where $\widehat{L}$ is an estimated validation loss on dataset $D$. Auto-WEKA
 formalized this combined view by searching over both learning algorithms and
 their hyperparameters \cite{autoweka}. The domain is conditional: parameters
 belonging to a random forest are inactive when the selected model is logistic
@@ -566,6 +595,8 @@ sampling by fitting a surrogate to observed configuration costs. SMAC uses a
 random-forest model for algorithm configuration problems and selects candidates
 through an acquisition function \cite{smac}.
 
+\medskip
+\noindent \systemname{} follows this general model-based pattern. It first evaluates
 \medskip
 \noindent \systemname{} follows this general model-based pattern. It first evaluates
 initial and warm-start configurations, represents each configuration as a
@@ -586,11 +617,13 @@ model capacity. Poor candidates can be discarded early, while promising ones
 receive more resources.
 
 \noindent In this work, fidelity is represented by a tuple
+\noindent In this work, fidelity is represented by a tuple
 
 \begin{equation}
   f = (s, q, k, b),
 \end{equation}
 
+\noindent where $s$ is the stage index, $q$ is the sample fraction, $k$ is the number of
 \noindent where $s$ is the stage index, $q$ is the sample fraction, $k$ is the number of
 cross-validation folds, and $b$ is a multiplicative model budget. The fidelity
 vector is included in the surrogate input so that observations from different
@@ -606,6 +639,9 @@ meta-learning, and ensemble construction \cite{autosklearn}. The intended
 benefit is not to guarantee that a historical configuration remains optimal,
 but to reduce the cold-start period before useful observations are available.
 
+\medskip
+
+\noindent \systemname{} computes task-dependent statistical descriptors. Shared
 \medskip
 
 \noindent \systemname{} computes task-dependent statistical descriptors. Shared
@@ -630,6 +666,9 @@ optimistic result.
 \medskip
 
 \noindent The Accelera implementation provides both strategies. Stacking uses bagged
+\medskip
+
+\noindent The Accelera implementation provides both strategies. Stacking uses bagged
 base estimators, creates out-of-fold prediction blocks, performs forward
 selection, and fits a logistic-regression meta-model for classification or a
 ridge-regression meta-model for regression. The original feature matrix may
@@ -645,7 +684,12 @@ optionally be appended to the prediction blocks.
 \renewcommand{\arraystretch}{1.15}
 \begin{tabularx}{\textwidth}
 {>{\raggedright\arraybackslash}p{0.22\textwidth}X}
+
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}
+{>{\raggedright\arraybackslash}p{0.22\textwidth}X}
 \toprule
+\textbf{System} & \textbf{Design emphasis} \\
 \textbf{System} & \textbf{Design emphasis} \\
 \midrule
 
@@ -673,10 +717,40 @@ interface \cite{autogluon}. \\
 Conditional model spaces, staged fidelity, surrogate-guided sampling,
 packaged warm starts, and selectable voting or stacking within Accelera. \\
 
+
+Auto-WEKA &
+Combined algorithm selection and hyperparameter optimization over WEKA
+components \cite{autoweka}. \\
+
+auto-sklearn &
+Bayesian optimization, dataset metafeatures, and post-hoc ensembles for
+scikit-learn workflows \cite{autosklearn}. \\
+
+TPOT &
+Evolutionary search over tree-structured machine-learning pipelines
+\cite{tpot}. \\
+
+FLAML &
+Cost-aware, lightweight AutoML designed to find strong configurations under
+limited resources \cite{flaml}. \\
+
+AutoGluon Tabular &
+Multi-layer stacking and ensembling with a high-level tabular prediction
+interface \cite{autogluon}. \\
+
+\systemname{} &
+Conditional model spaces, staged fidelity, surrogate-guided sampling,
+packaged warm starts, and selectable voting or stacking within Accelera. \\
+
 \bottomrule
+\end{tabularx}
 \end{tabularx}
 \end{table}
 
+\noindent The objective of \systemname{} is not to reproduce every capability
+of these frameworks. Its role is to provide an understandable, extensible
+AutoML engine that integrates directly with the Accelera codebase and exposes
+its search state for later research and experimentation.
 \noindent The objective of \systemname{} is not to reproduce every capability
 of these frameworks. Its role is to provide an understandable, extensible
 AutoML engine that integrates directly with the Accelera codebase and exposes
@@ -715,6 +789,9 @@ be able to add a model family without rewriting the optimization engine.
 \medskip
 
 \noindent The main use cases are:
+\medskip
+
+\noindent The main use cases are:
 
 \begin{itemize}[leftmargin=*]
   \item fit a classifier and obtain labels or probabilities;
@@ -723,6 +800,7 @@ be able to add a model family without rewriting the optimization engine.
   \item select a metric and cross-validation fold count;
   \item limit the complete search or each individual trial;
   \item enable or disable meta-learning and ensembles;
+  \item inspect the best score, leaderboard, and complete run history;
   \item inspect the best score, leaderboard, and complete run history;
 \end{itemize}
 
@@ -1032,7 +1110,7 @@ Intermediate confirmation of promising configurations. \\
 2 & 100\% & Configured value & 100\% &
 Full-fidelity ranking and final comparison. \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 \noindent Let \(s \in \{0,1,2\}\) denote the fidelity stage. Each stage is described by
@@ -1538,9 +1616,47 @@ The implementation is stored under
 >{\raggedright\arraybackslash}p{0.32\textwidth}
 X
 }
+\label{tab:implementation-units}
+
+\small
+\renewcommand{\arraystretch}{1.18}
+\begin{tabularx}{\textwidth}
+{
+>{\raggedright\arraybackslash}p{0.32\textwidth}
+X
+}
 \toprule
 \textbf{File or directory} & \textbf{Responsibility} \\
+\textbf{File or directory} & \textbf{Responsibility} \\
 \midrule
+
+\modulepath{base.py} &
+Shared estimator lifecycle, validation, fitted state, leaderboard, and
+run-history access. \\
+
+\modulepath{classification.py} &
+Classification defaults and engine construction. \\
+
+\modulepath{regression.py} &
+Regression defaults and engine construction. \\
+
+\modulepath{core/automl.py} &
+Orchestration, final model fitting, compatibility checks, and ensemble
+selection. \\
+
+\modulepath{components/} &
+Model registries, hyperparameters, conditions, and estimator factories. \\
+
+\modulepath{configspace\_search\_space.py} &
+Task-specific ConfigSpace assembly and configuration conversion. \\
+
+\modulepath{evaluation.py} &
+Fidelity-aware model construction, preprocessing comparison, cross-validation,
+and cost conversion. \\
+
+\begin{tabular}[t]{@{}l@{}}
+\modulepath{optimization/} \\
+\modulepath{smac\_optimizer.py}
 
 \modulepath{base.py} &
 Shared estimator lifecycle, validation, fitted state, leaderboard, and
@@ -1584,7 +1700,29 @@ classification. \\
 \begin{tabular}[t]{@{}l@{}}
 \modulepath{stacked\_ensemble\_} \\
 \modulepath{regression.py}
+&
+Trial scheduling, surrogate modelling, expected improvement, promotions,
+parallel workers, and timeouts. \\
+
+\modulepath{meta\_learning/} &
+Metafeature extraction, similarity ranking, and warm-start retrieval. \\
+
+\modulepath{stacked\_ensemble.py} &
+Classification adapters, bagging, forward selection, and stacked
+classification. \\
+
+\begin{tabular}[t]{@{}l@{}}
+\modulepath{stacked\_ensemble\_} \\
+\modulepath{regression.py}
 \end{tabular}
+&
+Regression stacking and forward selection. \\
+
+\modulepath{meta\_learning\_data/} &
+Packaged historical classification and regression metadata. \\
+
+\bottomrule
+\end{tabularx}
 &
 Regression stacking and forward selection. \\
 
@@ -1606,6 +1744,9 @@ model. Calling prediction before fitting raises an explicit runtime error.
 \medskip
 
 \noindent The result state includes:
+\medskip
+
+\noindent The result state includes:
 
 \begin{itemize}[leftmargin=*]
   \item \texttt{best\_model}: strongest fitted individual candidate;
@@ -1623,6 +1764,9 @@ It constructs a configuration space, evaluator, optimizer, and optional
 ensemble. This separation allows the evaluator to remain task-aware while the
 optimizer operates mainly on configurations, numeric vectors, and scalar costs.
 
+\medskip
+
+\noindent The runtime interaction is:
 \medskip
 
 \noindent The runtime interaction is:
@@ -1653,6 +1797,9 @@ containing model-specific \texttt{if} statements. Adding an estimator requires
 registering a component and ensuring its parameters can be scaled at the
 defined fidelity levels when applicable.
 
+\medskip
+
+\noindent The current registries include estimators from scikit-learn and optional
 \medskip
 
 \noindent The current registries include estimators from scikit-learn and optional
@@ -1689,6 +1836,9 @@ block has consistent semantics.
 \medskip
 
 \noindent Both stackers generate out-of-fold predictions using cross-validation and fit
+\medskip
+
+\noindent Both stackers generate out-of-fold predictions using cross-validation and fit
 fresh bagged models on all training data for later inference. Forward-selection
 state is stored as a fitted attribute together with its score. This explicit
 state is also used by verbose structural logging and avoids recomputing the
@@ -1720,6 +1870,7 @@ model = AutoMLClassifier(
     cv=3,
     random_state=42,
     search_n_parallel=2,
+    stack_n_jobs=-1,
     stack_n_jobs=-1,
     use_meta_learning=True,
     use_ensemble=True,

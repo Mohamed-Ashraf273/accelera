@@ -116,6 +116,36 @@ may otherwise fail even when the package files exist locally.
 CMake also checks for Graphviz `dot` and installs it automatically on supported
 Windows and Debian/Ubuntu Linux systems so graph-rendering examples can run.
 
+### Node installation
+
+This project requires **Node.js v22.23.0**.
+
+**Linux / macOS**
+
+Using `nvm` is recommended:
+
+```bash
+nvm install 22.23.0
+nvm use 22.23.0
+node -v
+npm -v
+````
+
+**Windows**
+
+Install **Node.js v22.23.0** from the official Node.js website, then verify the installation:
+
+```powershell
+node -v
+npm -v
+```
+
+The `node -v` command should print:
+
+```bash
+v22.23.0
+```
+
 ### Needed Datasets
 
 To run the AutoPreprocessing demo correctly, you need to download two Kaggle datasets used in this project:
@@ -550,7 +580,7 @@ use the returned train/validation arrays in your model code.
 ```python
 import pandas as pd
 
-from accelera.src.autopreprocessing.core.text_training_preprocessing import (
+from accelera.src.auto_preprocessing.core.text_training_preprocessing import (
     TextTrainingPreprocessing,
 )
 from accelera.src.utils.dataset_retriever import retriever
@@ -601,7 +631,7 @@ Validation/
 └── Dogs/
 ```
 ```python
-from accelera.src.autopreprocessing.core.classification_image_training_preprocessing import (
+from accelera.src.auto_preprocessing.core.classification_image_training_preprocessing import (
     ClassificationImageTrainingPreprocessing,
 )
 
@@ -647,7 +677,7 @@ Dataset/
         └── img3.png
 ```
 ```python
-from accelera.src.automl.core.segmentation_image_training_preprocessing import (
+from accelera.src.auto_preprocessing.core.segmentation_image_training_preprocessing import (
     SegmentationImageTrainingPreprocessing,
 )
 
@@ -731,7 +761,7 @@ from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-from accelera.accelera_automl import AutoMLClassifier
+from accelera.src.accelera_automl import AutoMLClassifier
 
 X, y = make_classification(
     n_samples=1000,
@@ -764,7 +794,7 @@ from sklearn.datasets import make_regression
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 
-from accelera.accelera_automl import AutoMLRegressor
+from accelera.src.accelera_automl import AutoMLRegressor
 
 X, y = make_regression(
     n_samples=1000,
@@ -805,7 +835,7 @@ script accepts `--time-budget`, `--n-trials`, `--cv`, and
 
 ### Deployment Module
 
-The deployment module provides a dynamic, procedural (non-OOP) version control system (VCS) to track configuration files and multi-stage ML pipelines, enabling automated container builds and deployments to remote target environments like AWS EC2.
+The deployment module provides a dynamic, procedural version control system (VCS) to track configuration files and multi-stage ML pipelines, enabling automated container builds and deployments to remote target environments like AWS EC2.
 
 #### Dataset and ML Pipeline Details
 
@@ -821,11 +851,11 @@ The trained and committed artifacts form a sequenced execution pipeline:
 #### Prerequisites and Installation
 
 ##### 1. Local Environment Setup
-To run the VCS commands or execute the end-to-end demo locally, install the deployment dependencies:
+To run the VCS commands or execute the end-to-end demo locally, install the dependencies from the root `requirements.txt`:
 
 ```bash
-# Install local packages for modeling, validation, and serving
-pip install -r accelera/src/deployment/accelera_deployment/requirements.txt
+# Install local packages for modeling, validation, serving, and deployment
+pip install -r requirements.txt
 ```
 
 These include:
@@ -839,12 +869,29 @@ These include:
 - The deployment process will package the pipeline into a Docker container.
 - If Docker is not already installed on the target machine, the script will install it automatically when the `--install-docker` flag is provided.
 
+##### 3. Heroku Environment Setup
+- Register for an account at [Heroku Sign Up](https://signup.heroku.com/) or log in to [Heroku Dashboard](https://id.heroku.com/).
+- Download and install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli).
+- Before deploying, authenticate your CLI sessions:
+  ```bash
+  # Log in to your Heroku Account
+  heroku login
+
+  # Log in to the Heroku Container Registry
+  heroku container:login
+  ```
+  Alternatively, you can run these logins using the Accelera wrapper CLI:
+  ```bash
+  python accelera/src/deployment/deployment.py heroku-login
+  python accelera/src/deployment/deployment.py heroku-container-login
+  ```
+
 #### Running the End-to-End Demo
 
 The repository contains an end-to-end demo script that downloads the SSH key, initializes a registry, trains the pipeline, commits the artifacts, and deploys it to a target EC2 instance:
 
 ```bash
-# Execute the complete deployment demo pipeline
+# FOR REVIEWRS please use this to run the deployment module easily
 python examples/deployment_demo.py
 ```
 
@@ -866,12 +913,43 @@ python -m accelera.src.deployment.vcs status
 python -m accelera.src.deployment.vcs log
 
 # Deploy the module to an EC2 instance
-python accelera/src/deployment/accelera_deployment/deployment.py ec2-deploy \
+python accelera/src/deployment/deployment.py ec2-deploy \
   --host <HOST_IP> \
   --user <USER> \
   --key <PATH_TO_PRIVATE_KEY> \
   --install-docker
+
+# Deploy the module to Heroku
+python accelera/src/deployment/deployment.py heroku-deploy \
+  --app <HEROKU_APP_NAME> \
+  --create
 ```
+
+#### Running from a Custom Directory
+
+If you are running the deployment or VCS commands from a custom directory  you must prefix the commands with `PYTHONPATH` set to the project root `/home/mazen/Desktop/GP/Accelera` so Python can resolve the `accelera` imports. You must ensure that `config.json` and the model artifacts are present for more details see the deployment documentation
+  
+1. **Initialize the VCS registry** inside your custom directory:
+   ```bash
+   PYTHONPATH=/home/mazen/Desktop/GP/Accelera python -m accelera.src.deployment.vcs init
+   ```
+
+2. **Commit models and configuration** to the local registry:
+   ```bash
+   PYTHONPATH=/home/mazen/Desktop/GP/Accelera python -m accelera.src.deployment.vcs commit -m "Your commit message"
+   ```
+
+3. **Build and Run the Service Locally**:
+   ```bash
+   PYTHONPATH=/home/mazen/Desktop/GP/Accelera python /home/mazen/Desktop/GP/Accelera/accelera/src/deployment/deployment.py local
+   ```
+
+#### Running Deployment Tests
+```bash
+# Run all deployment module unit tests
+PYTHONPATH=accelera/src/deployment:accelera/src pytest accelera/src/deployment/tests
+```
+
 
 
 ### Runtime Requirements and Common Blockers

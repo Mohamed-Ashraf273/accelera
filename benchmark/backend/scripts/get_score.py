@@ -24,7 +24,20 @@ try:
     predicted_df = retriever.retrieve_dataset(
         f"{user_id}_predicted", url=predicted_url, df=True
     )
-    if target_col not in predicted_df.columns:
+    if len(predicted_df) != len(true_df):
+        print(
+            json.dumps(
+                {
+                    "message": (
+                        "Dataset must have the same "
+                        f"length predicted {len(predicted_df)} "
+                        f"expected {len(true_df)}"
+                    ),
+                    "isValid": False,
+                }
+            )
+        )
+    elif target_col not in predicted_df.columns:
         print(
             json.dumps(
                 {

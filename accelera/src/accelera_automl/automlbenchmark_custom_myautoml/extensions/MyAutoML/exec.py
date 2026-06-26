@@ -60,7 +60,8 @@ def run(dataset: Dataset, config: TaskConfig):
         backend_name, Estimator = _load_regressor()
     else:
         raise ValueError(
-            f"MyAutoML adapter currently supports classification and regression only, got: {config.type}"
+            f"MyAutoML adapter currently supports "
+            f"classification and regression only, got: {config.type}"
         )
 
     log.info("\n**** %s [local adapter] ****\n", backend_name)
@@ -71,7 +72,6 @@ def run(dataset: Dataset, config: TaskConfig):
         cv=framework_params.pop("cv", 3),
         scoring=scoring,
         random_state=config.seed,
-        verbose=framework_params.pop("verbose", 1),
         stack_n_jobs=config.cores,
         search_n_parallel=framework_params.pop("search_n_parallel", 1),
         inner_n_jobs=framework_params.pop("inner_n_jobs", 1),
@@ -79,6 +79,7 @@ def run(dataset: Dataset, config: TaskConfig):
             "disable_evaluation_timeout", True
         ),
         use_meta_learning=framework_params.pop("use_meta_learning", False),
+        verbose=framework_params.pop("verbose", 1),
     )
 
     predictor = Estimator(
@@ -97,7 +98,11 @@ def run(dataset: Dataset, config: TaskConfig):
     with Timer() as predict:
         predictions = predictor.predict(X_test)
     try:
-        probabilities = predictor.predict_proba(X_test) if config.type == "classification" else None
+        probabilities = (
+            predictor.predict_proba(X_test)
+            if config.type == "classification"
+            else None
+        )
     except AttributeError:
         probabilities = None
     log.info("Finished predict in %ss.", predict.duration)

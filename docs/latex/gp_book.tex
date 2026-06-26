@@ -16,6 +16,15 @@
 \usepackage{listings}
 \usepackage{enumitem}
 \usepackage{float}
+\usepackage{tabularx}
+\usepackage{array}
+
+% Unified table style
+\newcommand{\acceleraTableStyle}{%
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}%
+}
 \usepackage{caption}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -42,10 +51,10 @@
 }
 
 \titleformat{\chapter}[hang]
-  {\normalfont\bfseries\fontsize{24}{29}\selectfont\raggedright}
+  {\normalfont\bfseries\fontsize{21}{25}\selectfont\raggedright}
   {\chaptername\ \thechapter:}{0.5em}{}
 \titleformat{name=\chapter,numberless}[hang]
-  {\normalfont\bfseries\fontsize{24}{29}\selectfont}{}{0pt}{}
+  {\normalfont\bfseries\fontsize{21}{25}\selectfont}{}{0pt}{}
 \titlespacing*{\chapter}{0pt}{0pt}{18pt}
 \titleformat{\section}
   {\normalfont\bfseries\fontsize{18}{22}\selectfont}
@@ -71,6 +80,7 @@
 \counterwithin{table}{chapter}
 \renewcommand{\lstlistingname}{Algorithm}
 \renewcommand{\lstlistlistingname}{List of Algorithms}
+\AtBeginDocument{\numberwithin{lstlisting}{chapter}}
 
 \lstdefinestyle{code}{
   basicstyle=\ttfamily\footnotesize,
@@ -85,7 +95,7 @@
 }
 
 \lstdefinestyle{algostyle}{
-  basicstyle=\ttfamily\footnotesize,
+  basicstyle=\ttfamily\normalsize,
   backgroundcolor=\color{white},
   frame=tb,
   rulecolor=\color{black},
@@ -191,7 +201,7 @@ by photocopying or other means, without the permission of the authors or departm
 \project{} is a hybrid Python/C++ machine learning framework that combines a
 high-level Python interface with native execution components. The system is
 organized around five modules: Accelera Pipe, the Code Parallelizer,
-Auto Preprocessing, AutoML, Deployment, and the Benchmark Platform. Accelera
+AutoPreprocessing, AutoML, Deployment, and the Benchmark Platform. Accelera
 Pipe represents machine-learning workflows as directed graph nodes for
 preprocessing, modelling, prediction, metric evaluation, branching, and
 merging. The Code Parallelizer analyzes C/C++ and supported Python code,
@@ -214,6 +224,8 @@ the required report structure for the remaining modules.
 \listoffigures
 \clearpage
 \listoftables
+\clearpage
+\lstlistoflistings
 \clearpage
 
 \chapter*{List of Abbreviations}
@@ -242,392 +254,558 @@ $F(L)$ & Feature representation of loop $L$ \\
 
 \clearpage
 \chapter*{Contacts}
-
-\noindent{\fontsize{12}{14}\selectfont \underline{Team Members}}
-\begin{table}[h!]
-\centering
-\begin{tabular}{|p{0.25\textwidth}|p{0.42\textwidth}|p{0.25\textwidth}|}
-\hline
-\textbf{Name} & \textbf{Email} & \textbf{Phone Number} \\ \hline
-Name of Student 1 & \underline{abc1@email.com} & +2 01xxxxxxxx \\ \hline
-Nesma Osama & \underline{nesma.ahmed03@eng-st.cu.edu.eg} & +2 01067193062 \\ \hline
-Name of Student 3 & \underline{abc1@email.com}  & +2 01xxxxxxxx \\ \hline
-Name of Student 4 & \underline{abc1@email.com}  & +2 01xxxxxxxx \\ \hline
+\addcontentsline{toc}{chapter}{Contacts}
+\textbf{Team Members}\\[0.35cm]
+\begin{tabular}{ll}
+\textbf{Name} & \textbf{University ID} \\
+\midrule
+Mohamed Ashraf & 9220658 \\
+Nesma Osama & 9220912 \\
+Mazen Adel & 9220625 \\
+Mohamed Khater & 9220713 \\
+\end{tabular}\\[1cm]
+\textbf{Supervisor}\\[0.35cm]
+\begin{tabular}{l}
+Dr. Salma Abdel monem \\
 \end{tabular}
-\end{table}
-
-
-\noindent{\fontsize{12}{14}\selectfont \underline{Supervisor}}
-\begin{table}[h!]
-\centering
-\begin{tabular}{|p{0.25\textwidth}|p{0.42\textwidth}|p{0.25\textwidth}|}
-\hline
-\textbf{Name} & \textbf{Email} & \textbf{Number} \\ \hline
-Salma Abdelmoniem & \underline{abc1@email.com}  & +2 01114302362 \\ \hline
-\end{tabular}
-\end{table}
-
 
 \clearpage
 
 
 \chapter{Introduction}
+\label{chap:introduction}
+
+Accelera is a hybrid Python/C++ machine-learning framework designed to support
+the complete data-science workflow, starting from data preparation and model
+selection, and extending to graph-based execution, native code acceleration, and
+benchmark comparison. The project is not a single isolated algorithm. Instead,
+it is a collection of connected modules that cooperate to make machine-learning
+experiments easier to build, easier to repeat, and faster to execute when
+possible.
+
+The main idea behind Accelera is simple: Python gives developers a productive
+environment for experimentation, but real machine-learning workflows often need
+more structure and better execution control. A typical workflow may include data
+cleaning, preprocessing, feature engineering, model selection, prediction,
+metric evaluation, reporting, and comparison between several alternatives. When
+these steps are written as separate scripts, repeated work, unclear execution
+order, and performance bottlenecks become common problems.
+
+Accelera addresses this by combining five main units:
+\texttt{auto\_preprocessing}, \texttt{accelera\_automl},
+\texttt{accelera\_pipe}, \texttt{parallelizer}, and the benchmark platform.
+Table~\ref{tab:intro-modules-overview} gives a quick overview of these modules
+and how they contribute to the full system.
+
+\begin{table}[!htbp]
+\centering
+\acceleraTableStyle
+\caption{Main Accelera modules and their roles.}
+\label{tab:intro-modules-overview}
+\begin{tabular}{p{0.23\textwidth}p{0.34\textwidth}p{0.33\textwidth}}
+\toprule
+\textbf{Module} & \textbf{Main role} & \textbf{Why it matters} \\
+\midrule
+
+\texttt{auto\_preprocessing} &
+Prepares tabular, text, and image data using automated preprocessing steps. &
+Reduces repeated manual data-cleaning work and produces reusable preprocessing
+artifacts and reports. \\
+\midrule
+
+\texttt{accelera\_automl} &
+Searches for suitable classification and regression models under time and trial
+budgets. &
+Helps users compare model candidates systematically instead of manually testing
+each model. \\
+\midrule
+
+\texttt{accelera\_pipe} &
+Builds graph-based machine-learning workflows with preprocessing, model,
+prediction, metric, merge, and branch nodes. &
+Exposes workflow structure, supports branch execution, and allows fitted paths
+to be reused through an executed graph. \\
+\midrule
+
+\texttt{parallelizer} &
+Analyzes supported Python/C++ loop-heavy code, inserts safe OpenMP pragmas, and
+compiles native callable extensions. &
+Targets custom preprocessing bottlenecks that would otherwise remain slow in
+pure Python. \\
+\midrule
+
+Benchmark platform &
+Provides a prototype web platform for datasets, metrics, submissions, and
+leaderboard-style comparison. &
+Connects the framework to a future environment for fair pipeline evaluation and
+community comparison. \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
 \section{Motivation and Justification}
-\project{} addresses the practical gap between the productivity of Python and
-the performance requirements of machine-learning workflows and loop-heavy
-data processing. A sequential script evaluates alternatives one after another
-and leaves memory lifetime and parallel execution decisions to the user. The
-project provides a graph-based pipeline backend and a code parallelization path
-to make these execution decisions explicit and reusable.
 
-\section{Project Objectives and Problem Definition}
-The project objective is to provide an integrated framework for constructing,
-executing, evaluating, and accelerating data-science workflows. The problem is
-to preserve a convenient Python-level programming model while enabling native
-graph scheduling, controlled intermediate-data lifetime, and OpenMP-backed
-execution for supported custom code.
+Machine-learning development is often presented as a simple process of choosing
+a model and calling \texttt{fit}. In practice, the model is only one stage in a
+larger workflow. Before training, the data must be cleaned, split, transformed,
+encoded, scaled, and sometimes reduced. After training, the output must be
+evaluated, compared, reported, and possibly deployed or submitted to a benchmark
+system. This creates several practical problems.
 
-\section{Project Outcomes}
-The project is organized into the following modules:
 \begin{itemize}
   \item Accelera Pipe for graph-based machine-learning workflows.
   \item Code Parallelizer for source analysis and OpenMP generation.
-  \item Auto Preprocessing for tabular, text, and image data preparation.
+  \item AutoPreprocessing for tabular, text, and image data preparation.
   \item AutoML for model selection and optimization.
   \item Deployment and Benchmark Platform components for serving and evaluation.
 \end{itemize}
 
+These problems justify the need for Accelera. The project provides automation
+where the workflow is repetitive, graph execution where the workflow contains
+branches, native acceleration where supported custom code is slow, and benchmark
+components where results must be compared. The motivation is not only speed; it
+is also organization, reproducibility, and usability.
+
+The \texttt{auto\_preprocessing} module is motivated by the fact that data
+preparation usually consumes a large part of the development effort. It handles
+common preprocessing decisions for tabular datasets, such as dropping duplicate
+records, detecting column types, imputing missing values, encoding categorical
+features, applying robust scaling, selecting features, saving preprocessors, and
+generating reports. It also supports text preprocessing using cleaning,
+tokenization, stemming, TF-IDF vectorization, and target encoding. For image
+workflows, it provides preparation paths for classification and segmentation
+tasks. This makes the project useful before the model-selection stage even
+begins.
+
+The \texttt{accelera\_automl} module is motivated by the difficulty of manual
+model selection. A user may not know which estimator, preprocessing choice, or
+hyperparameter setting will perform best. AutoML reduces this burden by
+evaluating candidate configurations under controlled budgets. This makes the
+search process more systematic and provides useful outputs such as the best
+model, score, leaderboard, and run history.
+
+The \texttt{accelera\_pipe} module is motivated by the need to represent
+machine-learning workflows as graphs rather than only as linear chains. In
+branch-heavy experiments, several alternatives may share the same preprocessing
+steps. A graph representation makes these dependencies explicit. It also allows
+the system to reason about execution order, branch selection, reuse of fitted
+paths, and intermediate-data lifetime. This gives the user a high-level Python
+interface while the backend manages a more structured execution model.
+
+The \texttt{parallelizer} module is motivated by the performance gap between
+Python and native compiled code. Python is easy to write, but loop-heavy Python
+functions can be slow. The parallelizer attempts to optimize supported custom
+functions by converting them to C++, extracting loops, computing loop features,
+classifying safe parallelization opportunities, applying rule-based safety
+checks, inserting OpenMP pragmas, and compiling the result as a native
+Python-callable extension. If the optimization path fails, the original function
+is preserved, which keeps the workflow correct.
+
+Finally, the benchmark platform is motivated by the need for organized
+comparison. A machine-learning framework becomes more useful when users can
+compare pipelines on common datasets and metrics. The benchmark module therefore
+represents a future-facing part of the project, where submissions, metrics, and
+leaderboard-style results can help users evaluate their solutions fairly.
+
+\begin{table}[!htbp]
+\centering
+\acceleraTableStyle
+\caption{Problems addressed by Accelera.}
+\label{tab:intro-problems-solutions}
+\begin{tabular}{p{0.30\textwidth}p{0.29\textwidth}p{0.31\textwidth}}
+\toprule
+\textbf{Problem} & \textbf{Accelera component} & \textbf{Expected benefit} \\
+\midrule
+
+Manual and repetitive data preparation &
+\texttt{auto\_preprocessing} &
+Automates common preprocessing and produces saved artifacts and reports. \\
+\midrule
+
+Time-consuming model selection &
+\texttt{accelera\_automl} &
+Searches candidate models and configurations under controlled budgets. \\
+\midrule
+
+Repeated work in branch-heavy workflows &
+\texttt{accelera\_pipe} &
+Represents the workflow as a graph and exposes shared execution structure. \\
+\midrule
+
+Slow custom Python loops &
+\texttt{parallelizer} &
+Converts supported functions to native code and inserts safe OpenMP pragmas. \\
+\midrule
+
+Difficult result comparison &
+Benchmark platform &
+Stores benchmark information, metrics, submissions, and leaderboard views. \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Project Objectives and Problem Definition}
+
+The main objective of Accelera is to provide an integrated framework for
+constructing, preprocessing, executing, evaluating, optimizing, and comparing
+machine-learning workflows. The project aims to keep the familiar Python
+programming style while adding automation, graph execution, native acceleration,
+and benchmark-oriented evaluation.
+
+The main objectives of the project are:
+
+\begin{enumerate}
+  \item Build an automated preprocessing module for tabular, text, and image
+  datasets.
+
+  \item Support data cleaning, missing-value handling, categorical encoding,
+  robust scaling, TF-IDF text representation, image preparation, feature
+  selection, and report generation.
+
+  \item Implement AutoML classifiers and regressors that search across supported
+  model configurations using scoring metrics, cross-validation, time budgets,
+  trial budgets, and optional ensemble construction.
+
+  \item Provide a graph-based pipeline module that represents workflow steps as
+  executable graph nodes rather than only as a sequential list.
+
+  \item Support pipeline operations such as preprocessing, model fitting,
+  prediction, metric evaluation, branching, merging, and executed-graph reuse.
+
+  \item Integrate custom preprocessing functions with the parallelizer so that
+  supported loop-heavy functions can be optimized automatically.
+
+  \item Implement a conservative code parallelization path that uses C++,
+  OpenMP, loop-feature extraction, classification, rule-based safety checks, and
+  native compilation.
+
+  \item Provide reporting tools that make preprocessing outputs, model metrics,
+  and pipeline structure more visible to the user.
+
+  \item Build a benchmark platform prototype for datasets, submissions, users,
+  metrics, and leaderboard-based comparison.
+\end{enumerate}
+
+The problem addressed by the project can be stated as follows:
+
+\begin{quote}
+Machine-learning workflows in Python are easy to write but become difficult to
+organize, repeat, compare, and optimize when they include many preprocessing
+steps, model alternatives, custom functions, and evaluation paths. Accelera aims
+to preserve Python usability while adding automated preprocessing, budgeted
+model search, graph-based execution, safe loop-level acceleration, and
+benchmark-oriented evaluation.
+\end{quote}
+
+This problem has two sides. The first side is \textbf{workflow complexity}. As
+the number of preprocessing steps, branches, and candidate models increases, the
+workflow becomes harder to manage manually. The second side is
+\textbf{execution performance}. Even if the workflow is correct, it may repeat
+shared work or spend too much time in slow Python loops. Accelera addresses both
+sides by combining high-level automation with lower-level execution support.
+
+\section{Project Outcomes}
+
+The project outcomes are the implemented modules and the integration between
+them. Each module provides a different part of the final system.
+
+\subsection*{Outcome 1: Automated preprocessing}
+
+The \texttt{auto\_preprocessing} module prepares datasets for machine-learning
+models. For tabular data, it handles duplicates, missing values, column-type
+detection, categorical encoding, robust scaling, target processing, feature
+selection, and report generation. For text data, it applies cleaning,
+tokenization, stemming, TF-IDF vectorization, and label encoding. For image
+data, it supports classification and segmentation preparation. The outcome is a
+set of processed arrays, saved preprocessors, selected features, and reports.
+
+\subsection*{Outcome 2: AutoML model search}
+
+The \texttt{accelera\_automl} module provides estimator-style AutoML classes for
+classification and regression. It searches candidate configurations, evaluates
+them with cross-validation, supports warm-starting from dataset metafeatures,
+and can build voting or stacked ensembles. The outcome is a fitted final model,
+best score, leaderboard, and run history.
+
+\subsection*{Outcome 3: Graph-based pipeline execution}
+
+The \texttt{accelera\_pipe} module provides a graph-based pipeline interface.
+It represents preprocessing, model, prediction, metric, branch, and merge
+operations as graph nodes. The output of a pipeline run includes predictions and
+an \texttt{ExecutedGraph}, which stores the selected fitted path for later use.
+This outcome gives the project its workflow-execution layer.
+
+\subsection*{Outcome 4: Source-level parallelization}
+
+The \texttt{parallelizer} module accelerates supported loop-heavy code. It can
+process C/C++ code, supported Python code, custom Python functions, and
+transformer methods. It extracts loops, computes features, classifies
+parallelization opportunities, applies safety rules, inserts OpenMP pragmas, and
+compiles native Python-callable extensions when possible. If any step fails, it
+falls back to the original Python implementation.
+
+\subsection*{Outcome 5: Pipeline and parallelizer integration}
+
+One of the most important outcomes is the connection between
+\texttt{accelera\_pipe} and the \texttt{parallelizer}. When a preprocessing node
+contains a supported custom Python function, the pipeline attempts to optimize
+it before adding it to the graph. This allows the system to combine graph-level
+workflow execution with code-level acceleration.
+
+\subsection*{Outcome 6: Reporting and benchmark support}
+
+The project includes reports for preprocessing, model metrics, and graph
+visualization. It also includes a benchmark platform prototype with backend and
+frontend components for datasets, metrics, users, submissions, and leaderboards.
+These outcomes improve visibility and comparison.
+
+\begin{table}[!htbp]
+\centering
+\acceleraTableStyle
+\caption{Summary of project outcomes.}
+\label{tab:intro-outcomes}
+\begin{tabular}{p{0.30\textwidth}p{0.60\textwidth}}
+\toprule
+\textbf{Outcome} & \textbf{Description} \\
+\midrule
+
+Automated preprocessing &
+The project provides reusable preprocessing support for tabular, text, and image
+data, with generated reports and saved preprocessing artifacts. \\
+\midrule
+
+Automated model selection &
+The AutoML module helps search and compare candidate classification and
+regression models under time and trial constraints. \\
+\midrule
+
+Graph-based pipeline execution &
+Accelera Pipe represents machine-learning workflows as executable graphs,
+supporting preprocessing, modelling, prediction, metrics, branching, and merging. \\
+\midrule
+
+Code-level acceleration &
+The Parallelizer attempts to optimize supported loop-heavy Python/C++ code using
+static analysis, safety checks, OpenMP pragmas, compilation, and caching. \\
+\midrule
+
+Benchmarking support &
+The Benchmark Platform provides a foundation for dataset-based evaluation,
+prediction submission, metric calculation, and leaderboard-style comparison. \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
 \section{Document Organization}
-Chapter 2 reserves the required market visibility study. Chapter 3 contains
-the literature-survey structure. Chapter 4 documents the system design and
-implemented module methodology. Chapter 5 presents testing and verification
-results. Chapter 6 concludes the report and records future work. The appendices
-retain the required development, user-guide, and feasibility-study sections.
+
+The rest of this report is organized into five main parts: Chapter 2 presents the market visibility study, 
+Chapter 3 discusses the literature survey and related work, Chapter 4 explains the methodology and system 
+design of the main Accelera modules, Chapter 5 presents testing, verification, and experimental results, 
+and Chapter 6 concludes the report by summarizing the contributions, limitations, and possible future improvements. 
+The appendices include supporting material such as documentation, usage instructions, feasibility details, 
+and additional implementation notes.
+
 
 \chapter{Market Visibility Study}
-
-In this chapter, we’ll identify Accelera’s target customers, talk about similar tools and platforms in the market, discuss their pros and cons, and provide the business case study and financial analysis of the system.
 \section{Targeted Customers}
-
-Our targeted customers are data scientists and machine learning engineers, both beginners and experts. Accelera aims to support these users by providing a tool that automates and accelerates several steps in the data science life cycle. This helps users reduce repetitive manual work, and save time.
+\mbox{}
 
 \section{Market Survey}
-
-We found that many existing platforms provide useful features for data science and machine learning development, but these features are often available in separate tools or are limited to specific parts of the workflow. However, Accelera aims to provide these features within one toolkit.
-
 \mbox{}
-
-\subsection{AutoCleanML}
-
-It is a Python tool mainly focused on automating data cleaning and preprocessing tasks for machine learning datasets.\\
-\textbf{Pros:}
-\begin{itemize}
-\item Makes machine learning data preparation automatic and smart.
-\item Provides a report that explains the preprocessing decisions made by the tool.
-\end{itemize}
-
-\textbf{Cons:}
-\begin{itemize}
-\item Only designed for cleaning and preparing data..
-\item It does not support preprocessing for image and text datasets.
-\end{itemize}
-\subsection{Kaggle}
-
-Kaggle is an online platform where the data science and machine learning community comes together. It is best known for its competition platform.
-
-\textbf{Pros:}
-\begin{itemize}
-\item It introduces competitions.
-\item It ranks users in competitions.
-\item It has many public datasets.
-\end{itemize}
-
-\textbf{Cons:}
-\begin{itemize}
-\item It mainly depends on the notebooks style, so projects can get hard to organize.
-\item It doesn't provide a complete machine learning workflow in a single toolkit.
-
-\end{itemize}
 
 \section{Business Case and Financial Analysis}
-\mbox{}
+
+Accelera can be developed as an open-source framework with optional hosted
+services around benchmarking, reporting, team collaboration, and managed
+execution. The open-source part helps adoption because students, researchers,
+and developers can use the framework freely. The business value can come from
+hosted benchmark features, team dashboards, managed experiment tracking, and
+support services.
+
+\subsection{Business Case}
+
+The main business case is based on reducing time spent in repetitive
+data-science work. Users and teams spend time preparing data, comparing models,
+rewriting scripts, debugging pipeline steps, and measuring results. Accelera can
+reduce this time by providing one framework that handles multiple stages of the
+workflow.
+
+\begin{table}[!htbp]
+\centering
+\acceleraTableStyle
+\caption{Possible business value of Accelera.}
+\label{tab:business-value}
+\begin{tabular}{p{0.30\textwidth}p{0.30\textwidth}p{0.30\textwidth}}
+\toprule
+\textbf{Business value} & \textbf{Reason} & \textbf{Possible customer} \\
+\midrule
+
+Faster experimentation &
+Automated preprocessing and AutoML reduce repeated manual trials. &
+Students, data scientists, small teams. \\
+\midrule
+
+Better organization &
+Graph pipelines and executed graphs make workflows easier to inspect and reuse. &
+ML engineers and research teams. \\
+\midrule
+
+Performance improvement &
+Parallelizer can speed up supported loop-heavy preprocessing code. &
+Teams with custom preprocessing bottlenecks. \\
+\midrule
+
+Better comparison &
+Benchmark platform supports submissions, metrics, and leaderboards. &
+Universities, communities, and organizations. \\
+\midrule
+
+Lower entry barrier &
+Reports and automation make ML workflows easier for beginners. &
+Education and training programs. \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+The first possible product direction is a hosted benchmark platform. Users can
+submit pipelines, compare results on public datasets, and view leaderboards. A
+free tier can support public datasets and basic submissions, while paid tiers can
+support private benchmarks, team spaces, larger storage, and advanced reports.
+
+The second possible product direction is a managed workflow dashboard. This
+dashboard can visualize preprocessing results, model leaderboards, pipeline
+graphs, and runtime comparisons. Teams can use it to organize experiments and
+share results without relying only on notebooks.
+
+The third possible product direction is professional support and integration.
+Organizations that want to use Accelera internally may need help adapting the
+framework to their datasets, infrastructure, or benchmark requirements. This
+creates a possible support and consulting model.
+
+\subsection{Financial Analysis}
+
+The financial analysis can be divided into expected costs and possible revenue
+streams. Since Accelera is mainly a software project, the capital expenditure is
+limited compared with hardware-based products. Most costs come from development,
+hosting, cloud resources, storage, and maintenance.
+
+\begin{table}[!htbp]
+\centering
+\acceleraTableStyle
+\caption{Expected cost categories.}
+\label{tab:expected-costs}
+\begin{tabular}{p{0.28\textwidth}p{0.32\textwidth}p{0.30\textwidth}}
+\toprule
+\textbf{Cost category} & \textbf{Description} & \textbf{Notes} \\
+\midrule
+
+Development cost &
+Time spent implementing, testing, documenting, and maintaining the framework. &
+Main cost during early stages. \\
+\midrule
+
+Cloud hosting &
+Servers for benchmark backend, database, frontend, and possible job execution. &
+Can start small and scale with users. \\
+\midrule
+
+Storage &
+Datasets, submissions, reports, and model artifacts. &
+Increases with benchmark usage. \\
+\midrule
+
+Compute resources &
+Running benchmark submissions or managed experiments. &
+Can be limited by quotas or paid tiers. \\
+\midrule
+
+Maintenance and support &
+Bug fixes, user support, documentation, and security updates. &
+Needed for long-term usage. \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+Possible revenue streams include:
+
+\begin{itemize}
+  \item \textbf{Free open-source adoption:} increases user base and community
+  trust.
+  \item \textbf{Hosted benchmark subscriptions:} paid private benchmarks, team
+  workspaces, and larger storage limits.
+  \item \textbf{Managed experiment dashboards:} paid reporting and workflow
+  monitoring for teams.
+  \item \textbf{Enterprise support:} integration, customization, and technical
+  support for organizations.
+  \item \textbf{Education packages:} university or training-center packages for
+  teaching machine-learning workflows.
+\end{itemize}
+
+A simple financial plan can start with low-cost hosting and manual support. In
+the first stage, the focus should be adoption and validation. The open-source
+framework can attract users, while the benchmark platform can collect early
+feedback. In the second stage, private benchmark spaces and team dashboards can
+be introduced. In the third stage, enterprise support and managed compute can be
+added if the user base grows.
+
+\begin{table}[!htbp]
+\centering
+\acceleraTableStyle
+\caption{Simplified business plan stages.}
+\label{tab:business-plan-stages}
+\begin{tabular}{p{0.22\textwidth}p{0.34\textwidth}p{0.34\textwidth}}
+\toprule
+\textbf{Stage} & \textbf{Focus} & \textbf{Expected result} \\
+\midrule
+
+Stage 1 &
+Release open-source framework, documentation, examples, and local benchmark
+prototype. &
+Build trust, collect users, and validate the technical direction. \\
+\midrule
+
+Stage 2 &
+Launch hosted benchmark features, public leaderboards, and private team
+workspaces. &
+Create first revenue stream through hosted services. \\
+\midrule
+
+Stage 3 &
+Add managed experiment dashboards, larger storage, and paid support. &
+Serve teams and organizations with more advanced workflow needs. \\
+\midrule
+
+Stage 4 &
+Provide enterprise integration and managed compute for benchmark execution. &
+Scale the platform into a commercial ML workflow service. \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+The expected break-even point depends on hosting cost, development effort, and
+the number of paying users. Since the software can begin as open source, the
+initial financial risk is lower than products that require manufacturing or
+special hardware. The main challenge is user adoption. If Accelera can attract
+students, researchers, and small teams through the free framework, the benchmark
+and reporting services can become the commercial layer that supports future
+development.
+
 
 \chapter{Literature Survey}
-In this chapter, we give an overview of the topics, algorithms, and techniques needed to understand the project as a whole. We discuss the technical subjects and background knowledge, and then summarize the research papers related to our project.
 \section{Background and Previous Work}
-This section explains the concepts and techniques used in Accelera units.
-\subsection{Data Science}
-Data science is a field that extracts knowledge and insights from data using
-scientific methods, processes, and algorithms.
-\subsection{Machine Learning}
-Machine learning is a field of artificial intelligence that lets computers learn patterns from data without needing to be explicitly programmed. 
-A machine learning model is trained using training data , and then it uses what it learned to make predictions on new data.
-
-\subsection{Supervised Machine Learning}
-The training dataset includes a label column that represents the target output. 
-This column is used during training to learn the mapping between the input features and the expected result.
-\subsection{Classification}
-Classification is a supervised machine learning task whose output is a label or category.
-
-\subsection{Regression}
-Regression is a supervised machine learning task whose output is a continuous numerical value.
-\subsection{Natural Language Processing NLP}
-Natural language processing is a field that focuses on enabling computers to understand and work with human language. Text data can't be used directly by most machine learning models, so it needs to be cleaned and turned into numerical features first.
-
-\subsection{Exploratory Data Analysis}
-Exploratory Data Analysis is an important step in data analysis where we explore,
-summarize, and visualize data to understand its structure, detect patterns, 
-and check relationships between variables.
-
-\subsection{Data Preprocessing}
-Data preprocessing is the stage of transforming raw data into a clean and usable
-format for machine learning models.
-
-
-\subsection{Missing Value Imputation}
-Missing value imputation is a preprocessing technique used when some values in a
-dataset are empty. Instead of removing all rows that contain missing
-values, the missing values can be replaced using a suitable value.
-
-\subsection{Robust Scaling}
-Robust scaling is a scaling technique that uses the median and the
-interquartile range instead of the mean and standard deviation. 
-\[
-x' = \frac{x - \mathop{\mathrm{median}}(X)}{\mathop{\mathrm{IQR}}(X)}
-\]
-where $x'$ is the scaled value, $x$ is the original value,
-$\mathop{\mathrm{median}}(X)$ is the median of the feature values, and
-$\mathop{\mathrm{IQR}}(X)$ is the interquartile range.
-\subsection{Categorical Encoding}
-Categorical encoding is the process of converting text categories into numeric
-values. Many traditional machine learning models and preprocessing pipelines
-expect numerical input.
-
-\subsection{Binary Encoding}
-Binary encoding is a categorical encoding technique that first gives each
-category a number, then converts this number into binary form. The binary digits
-are then stored as separate columns. 
-
-\subsection{Frequency Encoding}
-Frequency encoding replaces each category with how often it appears in the
-dataset. If a category appears many times, it receives a higher frequency value.
-\[
-f(c) = \frac{\mathop{\mathrm{count}}(c)}{N}
-\]
-where $f(c)$ is the frequency of category $c$,
-$\mathop{\mathrm{count}}(c)$ is the number of rows containing this category,
-and $N$ is the total number of rows.
-
-\subsection{ Term Frequency-Inverse Document Frequency TF-IDF}
-It is a technique used to convert text into numerical features by giving each word a weight based
-on how important it is in a document and across the whole dataset.
-Term Frequency measures how often a word appears in a document. Inverse Document
-Frequency gives lower weight to words that appear in many documents, because
-these words are usually less useful for classification.
-\[
-TFIDF(t,d) = TF(t,d) \times IDF(t)
-\]
-where $TFIDF(t,d)$ is the weight of term $t$ in document $d$, $TF(t,d)$ is the
-frequency of the term in the document, and $IDF(t)$ measures how rare the term
-is across all documents.
-\subsection{Data augmentation}
-Is a technique used to increase diversity of a dataset without actually collecting new data. 
-It works by applying various transformations to the existing data to create new, modified versions of data that helps the model generalize better.
-\subsection{Classification Evaluation Metrics}
-Classification metrics are used to evaluate the performance of a classification
-model.
-\subsubsection{Accuracy}
-Accuracy measures how many predictions are correct out of all predictions:
-\[
-Accuracy = \frac{TP + TN}{TP + TN + FP + FN}
-\]
-where $TP$ is true positives, $TN$ is true negatives, $FP$ is false positives,
-and $FN$ is false negatives.
-\subsubsection{Precision}
-Precision measures how many predicted positive samples are actually positive:
-\[
-Precision = \frac{TP}{TP + FP}
-\]
-\subsubsection{Recall}
-Recall measures how many actual positive samples were correctly detected:
-\[
-Recall = \frac{TP}{TP + FN}
-\]
-\subsubsection{F1-score}
-The F1-score combines precision and recall:
-\[
-F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}
-\]
-
-
-\subsection{Regression Evaluation Metrics}
-Regression metrics are used when the model predicts continuous numerical values.
-\subsubsection{Mean Absolute Error}
-Mean Absolute Error measures the average absolute difference between the real
-values and predicted values:
-\[
-MAE = \frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|
-\]
-where $y_i$ is the actual value and $\hat{y}_i$ is the predicted value.
-\subsubsection{Mean Squared Error}
-Mean Squared Error gives more penalty to large errors:
-\[
-MSE = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
-\]
-\subsubsection{R-squared Score}
-
-R-squared score measures how well the regression model explains the variation in the actual values. 
-\[
-R^2 = 1 - \frac{\sum_{i=1}^{n}(y_i - \hat{y}i)^2}{\sum_{i=1}^{n}(y_i - \bar{y})^2}
-\]
-Where $y_i$ is the actual value, $\hat{y}_i$ is the predicted value, and $\bar{y}$ is the mean of the actual values.
-
+\input{sections/literature-mohamed}
 
 \section{Comparative Study of Previous Work}
 \mbox{}
-\subsection{Data Preprocessing and Feature Engineering for Data Mining:
-Techniques, Tools, and Best Practices ~\cite{preprocessing_feature_engineering}}
-This paper shows the role of data preprocessing and feature engineering in
-machine learning and data mining projects. It says that preprocessing is not
-only a preparation step before model training, but also an important part of the
-complete machine learning pipeline. It also presents a general preprocessing framework that includes data
-cleaning, data transformation, feature construction, feature selection, and
-dimensionality reduction. For each stage, it explains different techniques and
-discusses the advantages and disadvantages of each one.
-
-\subsection{Automated Machine Learning}
-Automated machine learning treats model-family selection, preprocessing choices,
-and hyperparameter tuning as one optimization problem. Instead of manually
-testing a small set of estimators, an AutoML system builds a search space and
-evaluates configurations under a consistent validation protocol. The combined
-algorithm selection and hyperparameter optimization problem can be written as
-\[
-  (a^*, \lambda^*) =
-  \arg\min_{a \in \mathcal{A},\,\lambda \in \Lambda_a}
-  \widehat{L}(a, \lambda; D),
-\]
-where $\mathcal{A}$ is the set of candidate algorithms, $\Lambda_a$ is the
-hyperparameter domain of algorithm $a$, and $\widehat{L}$ is the validation
-loss on dataset $D$. This formulation was popularized by Auto-WEKA
-~\cite{autoweka}.
-
-\subsection{Search Strategies for AutoML}
-Grid search evaluates a fixed Cartesian product and becomes expensive as the
-number of dimensions increases. Random search is often stronger when only some
-hyperparameters strongly affect performance ~\cite{randomsearch}. Sequential
-model-based optimization improves on random sampling by fitting a surrogate
-model to observed configuration costs. SMAC uses random forests for algorithm
-configuration and acquisition-function based candidate selection ~\cite{smac}.
-
-\subsection{Multi-Fidelity Evaluation and Warm Starts}
-Full cross-validation on the complete dataset is costly, especially for
-ensembles and iterative models. Multi-fidelity optimization first evaluates
-candidates using cheaper approximations, such as smaller samples, fewer folds,
-or reduced model budgets. Poor candidates can be discarded early, while
-promising candidates are promoted to more expensive stages.
-
-Meta-learning is another way to reduce cold-start cost. A new dataset can be
-described using metafeatures, compared with historical datasets, and initialized
-with configurations that worked well on similar tasks. Auto-sklearn combines
-Bayesian optimization, dataset metafeatures, and ensemble construction for
-Scikit-learn workflows ~\cite{autosklearn}.
-
-\subsection{Ensemble Learning in AutoML}
-Ensembles reduce the risk of selecting one unstable model. Voting combines
-predictions or probabilities from several models. Stacked generalization trains
-a meta-model on out-of-fold predictions from base models ~\cite{stacking}. The
-out-of-fold step is important because it prevents the meta-model from learning
-on predictions made by base models on their own training rows.
-
-\begin{table}[H]
-\centering
-\caption{Selected AutoML systems and their design emphasis}
-\label{tab:automl_related_systems}
-\renewcommand{\arraystretch}{1.15}
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.22\textwidth}X}
-\toprule
-\textbf{System} & \textbf{Design emphasis} \\
-\midrule
-Auto-WEKA & Combined algorithm selection and hyperparameter optimization over
-WEKA components ~\cite{autoweka}. \\
-Auto-sklearn & Bayesian optimization, dataset metafeatures, and post-hoc
-ensembles for Scikit-learn workflows ~\cite{autosklearn}. \\
-TPOT & Evolutionary search over tree-structured machine-learning pipelines
-~\cite{tpot}. \\
-FLAML & Cost-aware lightweight AutoML for limited resource budgets
-~\cite{flaml}. \\
-AutoGluon Tabular & Multi-layer stacking and ensembling with a high-level
-tabular prediction interface ~\cite{autogluon}. \\
-Accelera AutoML & Conditional model spaces, staged fidelity,
-surrogate-guided sampling, packaged warm starts, and voting or stacking inside
-Accelera. \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
 
 \section{Implemented Approach}
-\subsection{Auto Preprocessing}
-In this module we decided to implement an automated preprocessing approach for tabular datasets. The
-approach was designed to prepare data for machine learning models by applying
-suitable preprocessing steps automatically according to the type and
-characteristics of each column and some user configurations.
-
-\noindent The general framework of the approach is as follows:
-\begin{enumerate}
-  \item Take the dataset and some user configurations.
-  \item Remove duplicate records.
-  \item Split the data into training and validation sets.
-  \item For each column, we get this information: data type, percentage of missing values, unique values, and basic stats.
-  \item Drop unnecessary columns, such as constant columns or columns with
-  missing values above the selected threshold.
-  \item Detect column types automatically.
-  \item Make Exploratory Data Analysis.
-  \item Apply missing value imputation.
-  \item Apply categorical encoding.
-  \item Apply robust scaling.
-  \item Apply feature selection using mutual information.
-  \item Automatically saves all needed files for inference.
-  \item Generate a report.
-\end{enumerate}
-
-\noindent The chosen approach follows a classical automated preprocessing pipeline. The
-main preprocessing decisions are:
-
-\begin{itemize}
-  \item \textbf{Missing values:} Median imputation is used for numerical
-  features because it is simple and more robust to outliers than mean
-  imputation. For categorical features, most-frequent imputation is used because
-  it replaces missing values with valid existing categories.
-
-  \item \textbf{Numerical scaling:} \texttt{RobustScaler} is used for numerical
-  features because tabular datasets may contain outliers or skewed values. It
-  depends on the median and interquartile range, which makes it more stable than
-  standard scaling when extreme values exist.
-
-  \item \textbf{Categorical encoding:} The encoding method is selected according
-  to the feature type and cardinality. Binary columns are encoded using ordinal
-  encoding, low-cardinality categorical columns are encoded using binary
-  encoding, and high-cardinality categorical columns are encoded using frequency
-  encoding. This helps reduce the number of generated features and avoids high
-  dimensionality.
-
-  \item \textbf{Feature selection:} Mutual information is used because it is a
-  filter-based method that can work with both classification and regression
-  tasks. It helps keep the most informative features and remove weak features
-  before model training.
-\end{itemize}
-
-\noindent This approach was chosen because it gives a good balance between automation,
-simplicity, and speed. More advanced techniques, such as
-K-nearest neighbour imputation, autoencoders, and wrapper feature selection, can
-be useful in specific cases, but they need more computation.
-
-\noindent One of the important additions in this project is that the module is not
-only used for data preparation. It also supports exploratory data analysis report.
-
-\noindent Also the module was extended to support text and image data
-preparation, not only tabular data.
+\mbox{}
 
 \chapter{System Design and Architecture}
 \section{Overview and Assumptions}
@@ -638,986 +816,347 @@ The system combines Python-facing APIs with native execution components. The
 design assumes that machine-learning workflows can be represented as a graph
 of operations and that only a restricted, analyzable subset of custom source
 code should be translated to parallel C++.
-\subsection{Auto Preprocessing Assumptions}
 
-For the Auto Preprocessing module, the assumptions depend on the type of dataset being processed. The module supports three types of data: tabular, text, and image datasets.
-
-\subsubsection{Tabular Dataset Assumptions}
-
-For tabular datasets, the Auto Preprocessing module assumes that:
-
-\begin{itemize}
-\item The dataset consists of numerical and categorical features, and the task is either classification or regression.  
-Because we try to implement the standard structured machine learning problems where supervised learning is applied..
-\item The user provides configuration parameters to control preprocessing operations.  
-This allows the pipeline to adapt to different datasets and user requirements.
-\end{itemize}
-\subsubsection{Text Dataset Assumptions}
-
-For text datasets, the Auto Preprocessing module assumes that:
-
-\begin{itemize}
-\item we assume that the dataset has one text column and one categorical target label.This makes the pipeline easier to apply and keeps the number of features smaller after converting the text into numerical values.
-\item The user provides configuration parameters for text cleaning and feature extraction.  
-To give the user a level of control over the preprocessing pipeline.
-\end{itemize}
-
-\subsubsection{Image Dataset Assumptions}
-\begin{itemize}
-
-\item The dataset is for image classification and follows this folder structure.  
-\begin{verbatim}
-Training/
-  Cats/
-  Dogs/
-
-Validation/
-  Cats/
-  Dogs/
-\end{verbatim}
-\item All images are stored in supported formats and are accessible.  
-This ensures compatibility with image loading and preprocessing libraries.
-
-\item The user provides configuration parameters for preprocessing and augmentation.  
-Because different datasets require different preprocessing strategies such as resizing, normalization, and augmentation.
-
-\end{itemize}
-
-\subsection{Benchmark Assumptions}
-
-For the Benchmark module, the following assumptions are made. These assumptions are introduced due to system design constraints, particularly the limited server storage capacity for handling large dataset uploads.
-
-\begin{itemize}
-
-\item When the user creates a benchmark, they provide a tabular dataset. This ensures that the module operates on structured data suitable for standard machine learning evaluation.
-
-\item All datasets are stored in publicly accessible Google Drive links. This design choice is adopted to reduce server storage requirements.
-
-\item The user must provide three CSV files:
-\begin{itemize}
-\item A training dataset containing both features and target labels.
-\item A testing dataset containing the same feature structure as the training set but without the target column.
-\item A ground truth target file containing only the target labels for the test set.
-\end{itemize}
-This separation ensures a standard evaluation protocol and prevents data leakage during benchmarking.
-
-\item When submitting predictions, the user provides a Google Drive link to a CSV file containing the predicted results. This ensures consistency in submission format across all users.
-
-\item The submitted prediction file must have the same length and format as the expected output to ensure correct evaluation and fair comparison between different users' models.
-
-\item When creating a benchmark, it is assumed that the user selects an evaluation metric that is appropriate for the problem type and provides a correct metric configuration. This is necessary to guarantee meaningful and valid performance measurement.
-
-\item For admin users, when defining an evaluation metric, it is assumed that a valid metric from the Scikit-learn library is selected. Because we use Scikit-learn metrics for evaluation.
-\item The selected metric must be properly configured and is expected to return a single scalar value for performance comparison and ranking purposes.
-
-\item The user is allowed to have only one active submission per benchmark. The user cannot create multiple submissions, but they are allowed to update their existing submission. This constraint is enforced to reduce storage usage.
-
-\end{itemize}
 \section{System Architecture}
 \subsection{Block Diagram}
-The implemented system is organized around graph execution, source-code
-parallelization, automated preprocessing, model-selection, deployment, and
-benchmarking components. The following module sections describe the material
-available in the previous thesis.
+\label{subsec:block-diagram}
 
-\input{sections/methdoloy-mohamed}
+The block diagram in Figure~\ref{fig:block-diagram} gives the big picture of
+Accelera. It shows the system as a group of connected modules rather than one
+single fixed pipeline. This is intentional: a user can use each module alone, or
+can connect several modules together to build an end-to-end machine-learning
+workflow.
 
-\section{Auto Preprocessing Module}
-\noindent The Auto Preprocessing module is responsible for automating the data
-understanding, exploratory data analysis, and preprocessing stages of the data
-science workflow. The module was designed to reduce repeated manual work and to
-prepare different types of datasets before model training.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=1\textwidth]{imgs/tabular.pdf}
-    \caption{Tabular Preprocessing Workflow}
-    \label{fig:tabular_preprocessing_workflow}
+\begin{figure}[!htbp]
+\centering
+\makebox[\textwidth][c]{%
+\includegraphics[width=1.08\textwidth,height=0.55\textheight,keepaspectratio]{imgs/block_diagram.png}
+}
+\caption{Overall block diagram of the Accelera project architecture.}
+\label{fig:block-diagram}
 \end{figure}
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=1\textwidth]{imgs/text.pdf}
-    \caption{Text Preprocessing Workflow}
-    \label{fig:text_preprocessing_workflow}
-\end{figure}
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=1\textwidth]{imgs/image_workflow.pdf}
-    \caption{Image Preprocessing Workflow}
-    \label{fig:image_preprocessing_workflow}
-\end{figure}
-\subsection{Functional Description}
-\noindent The main function of this module is to receive a dataset and user configuration,
-then return processed data that is ready for machine learning or deep learning
-models. The module supports tabular, text, and image datasets.
-\noindent The module also generates a report when this option is enabled. The report
-summarizes information about the dataset and the preprocessing steps applied.
 
-\subsubsection{Tabular datasets}
-\noindent For tabular datasets it supports both classification and regression
-tasks. It analyzes the dataset, removes duplicate records, splits the data into
-training and validation sets, detects column types, handles missing values,
-encodes categorical features, scales numerical features, applies target
-preprocessing, performs feature selection, and saves the preprocessing objects
-needed later for test data.
-\subsubsection{Text datasets}
-\noindent It supports classification tasks. It cleans the text,
-tokenizes it, applies text preprocessing steps, and converts the text into a
-numerical representation suitable for machine learning models.
-\subsubsection{Image datasets}
-\noindent It supports image classification by reading images from class
-folders, validating image files, resizing images, applying augmentation, normalizing pixel values, and
-preparing the data loaders needed for training.
+At the highest level, the user can interact directly with the six main parts of
+the project: Auto Preprocessing, Accelera AutoML, Accelera Pipe, Parallelizer,
+Benchmark Platform, and Deployment. The blue arrows in the diagram represent
+standalone or module-level flows, while the red arrows represent the end-to-end
+workflow path.
 
-
-
-
-\subsection{Modular Decomposition}
-\noindent The Auto Preprocessing module is divided based on the type of input data. The
-system supports three main types of data: tabular data, text data, and image data.
-Each type has its own preprocessing workflow and functions because every data type has a different
-structure and needs different techniques.
-
-\subsubsection{Tabular Data Preprocessing Functions}
-
-
-\begin{description}
-    \item[\texttt{\_\_init\_\_():}]
-    This is the constructor that receives the dataset and the user settings. 
-    It validates these settings before starting the preprocessing process. 
-    \item[\texttt{handel\_bool\_types():}]
-    This function handles columns that have bool data type. It finds the columns that have
-    boolean values and converts them into integer values.
-
-    \item[\texttt{data\_overview():}]
-    This function gives a general overview of the dataset before preprocessing.
-    \item[\texttt{drop\_target\_nulls():}]
-    This function drops rows have null value in the target.
-
-    \item[\texttt{drop\_duplicates():}]
-    This function removes repeated rows from the dataset.
-
-    \item[\texttt{split\_data():}]
-    This function splits the dataset into training and validation sets. The split is
-    based on the validation size and random state selected by the user. The output of
-    this function is \texttt{X\_train}, \texttt{X\_val}, \texttt{y\_train}, and
-    \texttt{y\_val}.
-
-    \item[\texttt{get\_data\_info():}]
-    This function studies each column in the training data. It collects important
-    information such as data type, number of unique values,
-    missing values, and missing percentage. For numerical columns, it also calculates the mean,and median.
-
-    \item[\texttt{is\_drop\_column():}]
-    This function decides whether a column should be removed or kept. A column is
-    removed if it is included in the user selected drop list, if it has only one constant
-    value, or if its missing value percentage is higher than the selected threshold. 
-    \item[\texttt{drop\_col():}]
-    This function removes the selected columns from both the training and validation
-    datasets. It also saves the dropped columns and their reasons in a file. This helps
-    the system apply the same dropping step later on testing or new data.
-
-    \item[\texttt{detect\_column\_types():}]
-    This function detects the type of each feature. This step is important because each
-    feature type needs a different preprocessing method. The features are divided into
-    binary columns, ordinal columns, numerical columns, continuous columns,
-    low cardinality categorical columns, high cardinality categorical columns, and
-    unsupported columns. The function also stores the preprocessing steps for each
-    column to be shown later in the report.
-    \begin{table}[H]
-    \centering
-    \caption{Detected Column Types in Tabular Data}
-    \label{tab:feature_types}
-    \begin{tabular}{|p{3.5cm}|p{7cm}|p{4cm}|}
-    \hline
-    \textbf{Feature Type} & \textbf{Description} & \textbf{Examples} \\
-    \hline
-
-    Binary &
-    Columns containing exactly two unique values. &
-    yes/no, 1/0 \\
-    \hline
-
-    Ordinal &
-    Integer columns with a small number of unique values less than or equal to
-    \texttt{max\_ordinal\_unique}. &
-    Ratings or levels such as 1, 2, 3, 4 \\
-    \hline
-
-    Numerical &
-    Integer columns with a number of unique values greater than
-    \texttt{max\_ordinal\_unique}. &
-    Age, number of transactions \\
-    \hline
-
-    Continuous &
-    Floating-point columns. &
-    Height = 175.5, price = 19.99, temperature = 36.6 \\
-    \hline
-
-    Low Cardinality Categorical &
-    Object or string columns with a number of unique values less than or equal to
-    \texttt{cardinality\_threshold}. &
-    Product categories, gender, country group \\
-    \hline
-
-    High Cardinality Categorical &
-    Object or string columns with a number of unique values greater than
-    \texttt{cardinality\_threshold}. &
-    Product names, cities \\
-    \hline
-
-    Other &
-    Columns with unsupported or non-standard data types. These columns are excluded from
-    the preprocessing pipeline. &
-    Dates, complex objects, unsupported formats \\
-    \hline
-
-    \end{tabular}
-    \end{table}
-
-
-
-    \item[\texttt{make\_graphs():}]
-    This function creates graphs when the report option is enabled. The type of graph
-    depends on the feature type and the problem type.
-
-    \item[\texttt{features\_preprocessing():}]
-    This function applies the preprocessing steps to the input features. It creates
-    different pipelines based on the detected feature types:
-    \begin{itemize}
-        \item Numerical and continuous features are filled using the median and scaled
-        using robust scaling.
-        \item Binary features are filled using the most frequent value and encoded using
-        ordinal encoding.
-        \item Low cardinality categorical features are filled using the most frequent
-        value and encoded using binary encoding.
-        \item High cardinality categorical features are filled using the most frequent
-        value and encoded using frequency encoding.
-        \item Ordinal features are filled using the most frequent value and scaled using
-        robust scaling.
-    \end{itemize}
-    These pipelines are combined using \texttt{ColumnTransformer}. The transformer is
-    fitted on the training data and then applied to the validation data. The fitted
-    preprocessor and the generated feature names are saved for later use.
-
-    \item[\texttt{target\_preprocessing():}]
-    This function prepares the target column based on the problem type. For
-    classification label encoding is used to convert class labels into numbers. For regression robust scaling is applied. The target
-    preprocessor is saved so the same transformation can be used later.
-
-    \item[\texttt{features\_importance():}]
-    This function selects the most useful features using mutual information. Only features with scores
-    greater than or equal to the selected threshold are kept. The selected features are
-    saved in a file to use it in the inference step. 
-    \item[\texttt{common\_preprocessing():}]
-    This is the main function that controls the full tabular preprocessing workflow. It
-    calls the previous functions in order. It starts by handling boolean columns,
-    generating the data overview,drop rows have null target, removing duplicates, and splitting the data. Then, it
-    extracts column information, drops unsuitable columns, detects column types,
-    generates graphs, preprocesses the features, preprocesses the target, applies feature
-    selection, and generates the report if enabled.It returns the processed
-    training and validation data.
-\end{description}
-
-\subsubsection{Text Data Preprocessing Functions}
-
-
-\begin{description}
-    \item[\texttt{\_\_init\_\_():}]
-     This is the constructor that receives the dataset and the user settings. 
-     It validates these settings before starting the preprocessing process.Also removes any columns that are not the text column or the target
-     column. This keeps only the columns needed for text classification. It also
-    downloads the required NLTK resources, such as \texttt{punkt} and
-    \texttt{stopwords}.
-    \item[\texttt{make\_graphs():}]
-    This function creates graphs if the report option is enabled. It creates a graph for
-    the text column . It also creates a graph for the target column. These graphs help the user understand the text data and the target class distribution.
-
-    \item[\texttt{custom\_text\_tokenizer():}]
-    This function is used to clean the text and split it into words. It converts the text to
-    lowercase, removes extra spaces and unnecessary symbols, and handles some contractions
-    such as \texttt{can't} and \texttt{won't}. It also separates numbers from letters.
-    Then, the text is tokenized into words. Stopwords are removed, but words like
-    \texttt{not} and \texttt{no} are kept because they affect the meaning. After that,
-    stemming is used to reduce words to their basic form.
-
-\item[\texttt{features\_preprocessing():}]
-This function applies the preprocessing steps to the text column. It fills
-missing text values in the training and validation data with empty strings. 
-Then it uses the custom tokenizer . It also stores examples of the text
-before and after cleaning in the report. Then \texttt{TfidfVectorizer} is used to convert the cleaned text into numerical
-features. The vectorizer uses the user settings, such as the maximum number of
-features, n-gram range, maximum document frequency, and minimum document frequency.
-The vectorizer is fitted on the training data and applied to the validation
-data. The fitted vectorizer is saved as \texttt{training\_preprocessor.pkl} so the same
-text transformation can be reused later on testing or new data.
-
-\item[\texttt{target\_preprocessing():}]
-This function prepares the target column for classification this function  applies label
-encoding to the target values. The fitted label encoder is saved as \texttt{target\_preprocessor.pkl}. Also, the text
-column and target column information are saved in \texttt{data\_info.pkl}. This helps the
-system apply the same target transformation later on testing or new data.
-
-\item[\texttt{common\_preprocessing():}]
-This is the main function that controls the full text preprocessing workflow. It calls
-the other functions in the correct order.
-It creates the data overview. Then, it removes rows that have missing target
-values and removes duplicate rows. Then, it splits the dataset into training and
-validation sets. If the report option is enabled, graphs are created. Then, feature preprocessing is applied to clean and
-vectorize the text. Target preprocessing is applied to encode the class
-labels. Generates the report if enabled.It returns the processed
-training and validation data.
-\end{description}
-
-\subsubsection{Image Data Preprocessing}
-
-\noindent It is used for image classification datasets. In this
-module, the images are organized inside folders, where each folder represents one class.
-It is divided into a set of functions, and each function has a specific role in
-the image preprocessing workflow. The main functions are described as follows:
-
-\begin{description}
-    \item[\texttt{\_\_init\_\_():}]
-    This is the constructor that receives the dataset and the user settings. 
-    It validates these settings before starting the preprocessing process.It also prepares empty lists to store invalid images and their labels.
-    It saves the image size information in a file so it can be reused later.
-
-    \item[\texttt{get\_classes\_mapping():}]
-    This function creates the class mappings. It gives each class name a numerical label.It creates two mappings:
-    one from class name to label, and another from label to class name.These mappings are saved in files. This helps the system use the same labels during
-    training, validation, testing, and prediction.
-
-    \item[\texttt{data\_preparing():}]
-    This function reads the images from the class folders. It goes through each class
-    folder and checks each image path.If the image is valid and can be opened, its path is added to the list of valid image
-    paths, and its class label is added to the labels list. If the image is invalid or
-    corrupted, it is added to the invalid images list with its label.
-    If there are no valid images, the function raises an error because the preprocessing
-    process cannot continue without valid image data.
-
-    \item[\texttt{data\_overview():}]
-    This function collects general information about the image dataset. For the training
-    folder, it stores the class names, number of valid images, random sample images,
-    number of invalid images, invalid image paths, and the class mapping.
-    If a validation folder is provided, it also stores the same type of information for
-    the validation folder. This information is used later in the final preprocessing
-    report.
-
-    \item[\texttt{make\_graphs\_label\_summary():}]
-    This function creates graphs that show the label distribution. It creates a label
-    summary graph for the training folder. If a validation folder is provided, it also
-    creates a label summary graph for the validation folder.
-
-    If the training data is split into training and validation sets, the function also
-    creates graphs for the labels after splitting. These graphs help the user understand
-    if the classes are balanced or not.
-
-    \item[\texttt{make\_garphs\_sample():}]
-    This function creates sample image graphs. It shows random samples from the training
-    folder. If a validation folder is provided, it also shows random samples from the
-    validation folder.
-
-    If the training data is split into training and validation sets, it also shows sample
-    images after splitting. This helps the user visually check the image dataset.
-
-    \item[\texttt{make\_graphs\_loader():}]
-    This function creates sample images after using the DataLoader. It takes a small
-    number of images from the training DataLoader and displays them.
-
-    If a validation DataLoader exists, it also displays sample images from it. This step
-    helps confirm that the images are loaded correctly after resizing, normalization, and
-    augmentation.
-
-    \item[\texttt{make\_graphs():}]
-    This function controls all graph generation steps. It prepares the graph section in
-    the report, then calls the label summary graphs, sample image graphs, and DataLoader
-    sample graphs.
-
-    \item[\texttt{get\_loaders():}]
-    This function creates the training and validation datasets and DataLoaders. First, it
-    creates a \texttt{ClassificationImageDataset} for the training images using the image
-    paths, labels, image size, and augmentation settings.
-
-    Then, it creates the training DataLoader with the selected batch size and uses
-    shuffling. Shuffling is used for training because it helps the model see the data in
-    a different order.
-
-    If validation data exists, the function creates a validation dataset and validation
-    DataLoader. Augmentation is not applied to the validation data, and shuffling is not
-    used because validation should be more stable.
-
-    \item[\texttt{common\_preprocessing():}]
-    This is the main function that controls the full image preprocessing workflow. It
-    starts by creating the class mappings. Then, it prepares the training images by
-    collecting valid image paths and labels and saving invalid images.
-
-    If a validation folder is provided, it also prepares the validation images. After
-    that, it creates the data overview, splits the data if needed, creates the
-    DataLoaders, generates graphs, and creates the final image preprocessing report.
-
-    At the end, the function returns the training DataLoader and validation DataLoader.
-    These outputs are ready to be used for training an image classification model.
-\end{description}
-
-
-
-
-\subsubsection{Testing and Reusability:}
-
-For all supported data types, the saved preprocessing objects are reused during
-testing. This is important because the testing data must be processed in the same way
-as the training data.
-
-\begin{itemize}
-    \item For tabular data, the system loads the saved preprocessors, selected features,
-    dropped columns, and target preprocessor.
-    \item For text data, the system loads the saved TF-IDF vectorizer and label encoder.
-    \item For image data, the system loads the saved class mappings and image size.
-\end{itemize}
-
-This makes the preprocessing module reusable and consistent for training,
-validation, testing, and future prediction.
-
-\subsection{Design Constraints}
-Several constraints affected the design of the Auto Preprocessing module:
-
-\begin{itemize}
-  \item The module must avoid data leakage. For this reason, preprocessing
-  objects are fitted only on the training data and then applied to validation
-  or testing data.
-
-  \item The module must support different data types. Therefore, separate
-  preprocessing paths were designed for tabular, text, and image datasets.
-
-  \item The tabular path assumes that the data is structured in rows and
-  columns and that the task is either classification or regression.
-
-  \item The text path assumes that the dataset contains a text column and a
-  target label for a text classification task.
-
-  \item The image path assumes that image classification data follows a
-  folder-based class structure, where each folder represents one class.
-
-  \item The module must keep preprocessing reproducible. Therefore, fitted
-  preprocessing objects and selected features are saved for later use.
-
-  \item The module must be general enough for different datasets, so the design
-  uses rule-based decisions instead of manual preprocessing code for each
-  dataset.
-\end{itemize}
-
-\subsection{Other Description of the Module}
-\noindent The Auto Preprocessing module is not only designed to transform data. It is also
-designed to help the user understand the dataset before and after
-preprocessing. This is achieved through the generated report and visualizations.
-For tabular data, the report can show missing-value statistics, duplicate
-information, feature distributions, target distribution, correlation matrix,
-removed columns, preprocessing decisions, and previews of the final processed
-training and validation data.
-
-\noindent Another important design point is that the module separates training
-preprocessing from testing preprocessing. During training, the module fits the
-preprocessing objects and saves them. During testing, the saved objects are
-loaded and applied directly, which ensures that new data is transformed in the
-same way as the training data.
-
-
-\section{AutoML Module}
-\subsection{Module Responsibility}
-The AutoML module automates model-family selection, hyperparameter search,
-preprocessing selection, and final model construction for supervised tabular
-classification and regression. It exposes two Scikit-learn-style estimators:
-\texttt{AutoMLClassifier} and \texttt{AutoMLRegressor}. Both estimators support
-\texttt{fit}, \texttt{predict}, \texttt{score}, leaderboard inspection,
-configured scoring metrics, cross-validation folds, random seeds, time budgets,
-trial limits, meta-learning warm starts, and optional ensemble construction.
-
-The main problem solved by this module is to produce a strong model under
-explicit time and trial constraints while avoiding unnecessary full-cost
-evaluations. The design separates public estimator behavior, task-specific
-evaluation, optimization, meta-learning, and ensembling so that each part can be
-extended independently.
-
-\subsection{Functional Description}
-The AutoML workflow starts by validating the input feature matrix $X$ and target
-vector $y$. The estimator builds a task-specific engine, constructs a
-conditional configuration space, loads optional meta-learning warm starts, and
-evaluates candidate configurations through a staged optimizer. Each candidate
-contains a model family, active hyperparameters, and a preprocessing choice.
-
-Every trial is evaluated using cross-validation and converted to an optimizer
-cost. For classification, accuracy is the default score and the cost is
-$1-\text{accuracy}$. For regression, $R^2$ is the default score and the cost is
-the negative score because the optimizer minimizes cost. Failed trials are
-recorded in the run history instead of terminating the complete search.
-
-\subsection{Configuration Space Construction}
-The search space is conditional. The active hyperparameters depend on the
-selected model family, so random forest parameters are active only when
-\texttt{random\_forest} is selected, SVM parameters are active only for SVM
-models, and so on. The implementation stores model definitions in task-specific
-component registries. Each component defines its public name, hyperparameters,
-conditions, and estimator factory.
-
-The engine can also filter models according to dataset properties. For example,
-some expensive models can be disabled for large datasets, and models that
-require non-negative features can be skipped when negative input values are
-detected.
-
-\subsection{Three-Stage Fidelity Schedule}
-To avoid spending full resources on weak candidates, the optimizer evaluates
-configurations through three fidelity stages:
-\[
-  f = (s, q, k, b),
-\]
-where $s$ is the stage index, $q$ is the sample fraction, $k$ is the number of
-cross-validation folds, and $b$ is a multiplicative model budget. The current
-schedule uses:
-\begin{itemize}
-  \item stage 0: 20\% of samples, 2 folds, and 25\% model budget;
-  \item stage 1: 50\% of samples, 3 folds, and 60\% model budget;
-  \item stage 2: full samples, configured folds, and full model budget.
-\end{itemize}
-Promising candidates are promoted to higher stages. This makes the search more
-resource-aware than evaluating every sampled configuration at full cost.
-
-\subsection{Surrogate-Guided Candidate Selection}
-After initial trials are collected, the optimizer vectorizes configurations and
-augments each vector with its fidelity variables. A random-forest regressor is
-trained as a surrogate model over observed costs. Predictions from individual
-trees provide an empirical mean and standard deviation. The optimizer ranks a
-sampled candidate pool using expected improvement:
-\[
-  EI(x) =
-  (\mu^* - \mu(x) - \xi)\Phi(z) + \sigma(x)\phi(z),
-  \qquad
-  z = \frac{\mu^* - \mu(x) - \xi}{\sigma(x)} ,
-\]
-where $\mu^*$ is the best observed cost, $\mu(x)$ and $\sigma(x)$ are the
-surrogate mean and uncertainty for candidate $x$, and $\Phi$ and $\phi$ are the
-normal cumulative distribution and density functions. This balances exploring
-uncertain regions with exploiting candidates predicted to improve the current
-best result.
-
-\subsection{Meta-Learning Warm Starts}
-The module computes basic metafeatures for the input dataset. Shared
-metafeatures include the number of instances and features, numeric and
-categorical feature ratios, missing-value ratios, skewness, kurtosis, and
-categorical symbol statistics. Classification adds class entropy and class
-probability statistics. Regression adds target mean, standard deviation,
-skewness, and kurtosis.
-
-Packaged JSON metadata stores historical dataset descriptors and candidate
-configurations. At runtime, similar datasets are ranked by distance in the
-metafeature space, and the best historical configurations are converted into
-the current configuration space as warm-start candidates.
-
-\subsection{Parallel Execution and Timeout Control}
-The optimizer supports parallel candidate evaluation and per-trial timeout
-control. When timeout control is enabled, trials can be isolated in separate
-processes so that a slow or hanging estimator does not stop the parent search.
-The engine also passes internal job-count settings to estimators and ensembles
-to limit nested parallelism.
-
-\subsection{Final Model and Ensemble Selection}
-The strongest configuration is rebuilt and fitted on all available training
-data. If ensembles are disabled, this model is returned directly. If ensembles
-are enabled, successful candidates from the run history are considered for
-voting or stacking.
-
-For stacking, the module builds bagged base estimators and generates
-out-of-fold prediction blocks. Forward selection starts with the strongest
-single base model and adds candidates while they improve the meta-model score
-or until the minimum base-model requirement is satisfied. Classification uses a
-logistic-regression meta-model over probability blocks. Regression uses a
-ridge-regression meta-model over numeric prediction columns. The ensemble is
-added to the leaderboard and becomes the final model when its score is stronger
-than the best individual model.
-
-\subsection{Modular Decomposition}
 \begin{table}[H]
 \centering
-\caption{AutoML implementation units}
-\label{tab:automl_implementation_units}
-\small
-\renewcommand{\arraystretch}{1.15}
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.35\textwidth}X}
+\acceleraTableStyle
+\caption{Main blocks in the Accelera architecture.}
+\label{tab:block-diagram-modules}
+\begin{tabularx}{\textwidth}{p{0.24\textwidth}X X}
 \toprule
-\textbf{File or directory} & \textbf{Responsibility} \\
+\textbf{Block} & \textbf{Main responsibility} & \textbf{Output} \\
 \midrule
-\modulepath{base.py} & Shared estimator lifecycle, validation, fitted state,
-leaderboard, and warning handling. \\
-\modulepath{classification.py} & Classification defaults and engine
-construction. \\
-\modulepath{regression.py} & Regression defaults and engine construction. \\
-\modulepath{core/automl.py} & Search orchestration, final model fitting, model
-filtering, and ensemble selection. \\
-\modulepath{components/} & Model registries, hyperparameter definitions,
-conditions, and estimator factories. \\
-\modulepath{configspace\_search\_space.py} & Task-specific configuration-space
-assembly and configuration conversion. \\
-\modulepath{evaluation.py} & Fidelity-aware estimator construction,
-preprocessing comparison, cross-validation, and cost conversion. \\
-\modulepath{optimization/smac\_optimizer.py} & Trial scheduling, surrogate
-modelling, expected improvement, promotions, parallel workers, and timeouts. \\
-\modulepath{meta\_learning/} & Metafeature extraction, similarity ranking, and
-warm-start retrieval. \\
-\modulepath{stacked\_ensemble.py} & Classification adapters, bagging, forward
-selection, and stacked classification. \\
-\modulepath{stacked\_ensemble\_regression.py} & Regression stacking and forward
-selection. \\
-\modulepath{meta\_learning\_data/} & Packaged historical classification and
-regression metadata. \\
+
+Auto Preprocessing &
+Prepares datasets according to their type: tabular, text, or image. &
+Processed data, reports, and saved preprocessing artifacts. \\
+\midrule
+
+Accelera AutoML &
+Searches for good model and preprocessing configurations. &
+Best model, score, leaderboard, and run history. \\
+\midrule
+
+Accelera Pipe &
+Builds and executes graph-based machine-learning workflows. &
+Predictions, executed graph, selected path, and reports. \\
+\midrule
+
+Parallelizer &
+Optimizes supported loop-heavy Python/C++ code using analysis, safety rules,
+OpenMP, compilation, and caching. &
+Parallelized C++ code or optimized Python-callable native module. \\
+\midrule
+
+Benchmark Platform &
+Evaluates user prediction files against benchmark ground truth. &
+Score, ranking, and benchmark results. \\
+\midrule
+
+Deployment &
+Turns a saved model or pipeline into a deployed service. &
+Model URL, service endpoint, and optional inference UI. \\
+
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\subsection{Design Constraints}
+\subsubsection*{Auto Preprocessing flow}
+
+The Auto Preprocessing block starts from a dataset and tries to prepare it for
+machine learning usage. The module first profiles the data and detects its type.
+Then it applies preprocessing steps depending on the type of input.
+
 \begin{itemize}
-  \item The current module targets supervised tabular classification and
-  regression.
-  \item Inputs must be compatible with Scikit-learn validation utilities.
-  \item Optional libraries such as XGBoost, LightGBM, and CatBoost are used
-  only when available in the environment.
-  \item Trial failures and estimator exceptions must be recorded rather than
-  crashing the full search.
-  \item Search should remain reproducible when a random state is provided.
-  \item Warm-start metadata must be stored relative to the package so it works
-  after installation.
+  \item \textbf{Tabular data:} missing value imputation, categorical encoding,
+  robust scaling, and feature selection.
+  \item \textbf{Text data:} cleaning, tokenization, stemming, and TF-IDF feature
+  extraction.
+  \item \textbf{Image data:} image preparation for classification tasks.
 \end{itemize}
 
-\subsection{User-Facing Example}
-\begin{lstlisting}[style=code,caption={Using Accelera AutoML for classification},label={lst:automl_usage}]
-from accelera.src.accelera_automl import AutoMLClassifier
+The output can be used in two ways. In the standalone path, the user can directly
+use the processed data, reports, and saved preprocessors. In the end-to-end path,
+the processed data can be passed to the AutoML block for model search.
 
-model = AutoMLClassifier(
-    time_budget=300,
-    n_trials=20,
-    cv=3,
-    random_state=42,
-    use_meta_learning=True,
-    use_ensemble=True,
-    ensemble_strategy="stacked",
-)
+\subsubsection*{AutoML and selection flow}
 
-model.fit(X_train, y_train)
-predictions = model.predict(X_test)
-print(model.score(X_test, y_test))
-print(model.return_leaderboard(top_n=3))
-\end{lstlisting}
+The AutoML block receives a dataset, extracts statistics and metafeatures, builds
+candidate models and preprocessing choices, and runs a search process. Its goal
+is to return the best model according to the selected metric.
+
+The important point is that AutoML is not forced to be the only way to build a
+model. The user may choose an AutoML result, or may choose a graph-pipeline
+result from Accelera Pipe. This is why the diagram contains a selection switch.
+
+\begin{table}[!htbp]
+\centering
+\acceleraTableStyle
+\caption{Possible paths to the deployment selection switch.}
+\label{tab:selection-switch-paths}
+\begin{tabularx}{\textwidth}{p{0.26\textwidth}X}
+\toprule
+\textbf{Path} & \textbf{Meaning} \\
+\midrule
+
+AutoML path &
+The user lets \texttt{accelera\_automl} search for the best model, then chooses
+the selected model for deployment. \\
+\midrule
+
+Graph pipeline path &
+The user builds a workflow using \texttt{accelera\_pipe}, executes the graph,
+and selects the executed graph or best pipeline path for deployment. \\
+\midrule
+
+Standalone path &
+The user may stop after any module and use its output directly without
+continuing to deployment. \\
+
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection*{Accelera Pipe and Parallelizer interaction}
+
+Accelera Pipe is the graph-execution part of the system. It represents the
+workflow as a graph of nodes. These nodes may represent preprocessing, model
+training, prediction, metric evaluation, merging, branching, and input/output
+operations.
+
+A key feature is the interaction between Accelera Pipe and the Parallelizer. If
+a graph preprocessing node contains a supported custom method, the graph can send
+that method to the Parallelizer. The Parallelizer then tries to optimize it and
+return an optimized callable. After that, the optimized method can be attached
+back to the graph.
+
+\begin{enumerate}
+  \item The user defines a graph workflow in \texttt{accelera\_pipe}.
+  \item The graph detects a supported custom preprocessing method.
+  \item The method is sent to the Parallelizer.
+  \item The Parallelizer analyzes, rewrites, compiles, and caches the optimized
+  implementation when possible.
+  \item The optimized method is returned and reattached to the graph.
+  \item The graph continues execution using either the optimized method or the
+  original method if optimization fails.
+\end{enumerate}
+
+This interaction is important because it connects workflow-level optimization
+with code-level optimization. Accelera Pipe manages the execution graph, while
+the Parallelizer attempts to speed up supported loop-heavy custom code inside
+that graph.
+
+\subsubsection*{Parallelizer flow}
+
+The Parallelizer block accepts several kinds of input. This makes it usable both
+as a standalone module and as an internal acceleration module for Accelera Pipe.
+
+\begin{itemize}
+  \item C/C++ file or source code.
+  \item Python file or Python source code.
+  \item Python function.
+  \item Custom transformer method.
+\end{itemize}
+
+After receiving the input, the Parallelizer normalizes it. If the input is
+supported Python code, it is converted to C++ first. Then the module extracts
+loops using a Clang AST based analysis stage. After loop extraction, it computes
+features such as memory access, dependencies, reductions, branches, and function
+calls. These features are used with a classifier and rule-based safety checks to
+decide whether a loop can be parallelized.
+
+\begin{table}[!htbp]
+\centering
+\acceleraTableStyle
+\caption{Parallelizer stages.}
+\label{tab:parallelizer-stages}
+\begin{tabularx}{\textwidth}{p{0.23\textwidth}X}
+\toprule
+\textbf{Stage} & \textbf{Description} \\
+\midrule
+
+Input normalization &
+Accepts source code, files, functions, or transformer methods and prepares them
+for analysis. \\
+\midrule
+
+Python-to-C++ conversion &
+Converts supported Python code into C++ so it can enter the same loop-analysis
+path. \\
+\midrule
+
+Loop extraction &
+Uses compiler-style analysis to locate loops and record loop ranges. \\
+\midrule
+
+Feature extraction &
+Computes indicators such as reductions, dependencies, array access, branches,
+function calls, and vectorization potential. \\
+\midrule
+
+Safety decision &
+Combines classifier output with deterministic rule-based checks. \\
+\midrule
+
+Pragma insertion &
+Adds OpenMP pragmas only when the loop is considered safe. \\
+\midrule
+
+Compilation and caching &
+Builds optimized native code when needed and reuses cached results when
+possible. \\
+
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The final pragma generation is intentionally rule-based. This makes the behavior
+safer and easier to inspect, especially when the available data for fully
+AI-generated pragma generation is limited or synthetic.
+
+\subsubsection*{Benchmark Platform flow}
+
+The Benchmark Platform is used for evaluation and ranking. It does not take a
+full user pipeline as input. Instead, it works with benchmark data links and user
+prediction submissions.
+
+A benchmark owner creates a benchmark by providing the required CSV links:
+
+\begin{itemize}
+  \item training CSV file link,
+  \item testing CSV file link,
+  \item true prediction or ground-truth CSV file link.
+\end{itemize}
+
+A participant submits:
+
+\begin{itemize}
+  \item a predictions CSV file containing the prediction column,
+  \item and optionally a GitHub repository URL for the project.
+\end{itemize}
+
+The platform compares the submitted prediction column with the true labels,
+computes the score, and updates the ranking. This makes the benchmark module
+focused on fair evaluation and leaderboard comparison, not on directly executing
+the user's pipeline.
+
+\subsubsection*{Deployment flow}
+
+The Deployment block receives a saved model or pipeline. It prepares the
+deployment service, builds the required API layer, handles authentication or API
+configuration, publishes an endpoint, and optionally provides an inference UI.
+
+The final deployment block produces a deployed model URL or service. This output
+has two possible meanings:
+
+\begin{itemize}
+  \item \textbf{Standalone use:} the user deploys a saved model or pipeline
+  directly and uses the endpoint.
+  \item \textbf{End-to-end use:} the user selects a model or pipeline through the
+  selection switch, deploys it, and receives the final E2E service output.
+\end{itemize}
+
+\subsubsection*{Overall architecture meaning}
+
+The main idea of the block diagram is that Accelera is modular but connected.
+Each module gives value by itself, but the full system becomes stronger when the
+modules are combined.
+\begin{table}[!htbp]
+\centering
+\acceleraTableStyle
+\caption{Standalone use versus end-to-end use.}
+\label{tab:standalone-vs-e2e}
+\begin{tabularx}{\textwidth}{p{0.24\textwidth}X X}
+\toprule
+\textbf{Mode} & \textbf{Description} & \textbf{Example} \\
+\midrule
+
+Standalone use &
+The user uses one module and stops at its output. &
+Use Auto Preprocessing only to generate processed data and reports. \\
+\midrule
+
+End-to-end use &
+The user connects several modules together to move from data to deployed result. &
+Preprocess data, run AutoML or graph pipeline, select output, deploy service. \\
+\midrule
+
+Integrated acceleration &
+A module internally uses another module to improve execution. &
+Accelera Pipe sends supported custom preprocessing methods to the Parallelizer. \\
+
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Therefore, the block diagram communicates three important ideas. First, the
+system supports direct access to each module. Second, the modules can be
+connected into a complete machine-learning workflow. Third, the interaction
+between Accelera Pipe and the Parallelizer allows the project to combine
+graph-based execution with source-level acceleration.
+
+
+\input{sections/methdoloy-mohamed}
+
+\section{AutoPreprocessing Module}
+\input{sections/methodology-nesma}
+
+\section{AutoML Module}
+\mbox{}
 
 \section{Deployment Module}
 \mbox{}
 
 \section{Benchmark Platform Module}
-\noindent The Benchmark Platform module is designed to provide a shared
-environment where users can create machine learning benchmarks, submit
-predicted results, and compare submissions using selected evaluation metrics.
-The module includes a backend API, database schemas, Python validation and
-scoring scripts, and a frontend interface for users and admins.
-
-\subsection{Functional Description}
-\noindent The main function of this module is to support fair comparison
-between different machine learning solutions. A user can create a benchmark by
-providing the benchmark title, description, problem type, target column,
-dataset link, test dataset link, ground-truth target link, and evaluation
-metric. The system validates the provided links and checks that the test set
-does not contain the target column while the target file contains the expected
-target column.
-
-\noindent After a benchmark is created, other users can submit their prediction
-file and repository link. The system validates the submitted prediction file,
-calculates the score using the selected Scikit-learn metric, stores the
-submission, and displays submissions on a leaderboard. The leaderboard is
-ordered based on the metric configuration, where some metrics are better when
-their value is higher and others are better when their value is lower.
-
-\subsection{Modular Decomposition}
-\noindent The Benchmark Platform is decomposed into several smaller components:
-
-\subsubsection{Benchmark Management}
-\noindent This component handles benchmark creation, listing, filtering, viewing,
-and deletion. It stores benchmark information such as title, description,
-problem type, dataset links, target column, selected metric, metric parameters,
-creation date, and creator.
-
-\subsubsection{Metric Management}
-\noindent This component allows admin users to define evaluation metrics. Each
-metric contains a display name, the corresponding Scikit-learn metric function
-name, needed parameters, problem type, and whether a higher or lower score is
-better. Metrics are linked to benchmarks and used during submission scoring.
-
-\subsubsection{Submission Management}
-\noindent This component allows users to submit prediction files for a specific
-benchmark. Each submission stores the benchmark id, submitting user, repository
-link, prediction file link, score, and submission date. Users can also update
-their existing prediction file or delete their submission if they have
-permission.
-
-\subsubsection{Validation and Scoring Scripts}
-\noindent The backend calls Python scripts to validate benchmark files and score
-submissions. During benchmark creation, the validation script checks that the
-test file does not include the target column and that the target file contains
-the required target column. During submission, the scoring script loads the
-ground-truth file and the submitted prediction file, checks their length and
-target column, then computes the selected Scikit-learn metric.
-
-\subsubsection{Leaderboard Interface}
-\noindent The frontend displays benchmark submissions in a leaderboard. It shows
-the submitter information, repository link, score, and submission date. The
-sorting direction depends on the selected metric, so the platform can support
-both metrics where higher is better and metrics where lower is better.
-
-\subsection{Design Constraints}
-\noindent Several constraints affected the design of the Benchmark Platform:
-
-\begin{itemize}
-  \item The module currently supports classification and regression problem
-  types only.
-
-  \item Dataset, test, target, and prediction files are provided using links,
-  mainly Google Drive file links, to reduce server storage requirements.
-
-  \item The test dataset must not contain the target column. This prevents data
-  leakage and makes the evaluation fair.
-
-  \item The target file and submitted prediction file must contain the selected
-  target column and must have the same number of rows.
-
-  \item Evaluation metrics must be defined using valid Scikit-learn metric
-  names because the scoring script calls Scikit-learn metrics dynamically.
-
-  \item Only authenticated users can create benchmarks or submit predictions.
-  Admin permission is required for metric creation.
-
-  \item A user is allowed to create only one active submission for the same
-  benchmark. If the user wants to change the result, the existing submission is
-  updated instead of creating duplicate submissions.
-\end{itemize}
-
-\subsection{Other Description of the Module}
-\noindent The Benchmark Platform separates benchmark creation from submission
-evaluation. This makes the workflow clearer: first, the benchmark creator
-defines the task and evaluation rules; then, users submit predictions under the
-same conditions. This separation helps ensure that all users are evaluated
-using the same ground-truth file and the same metric configuration.
-
-\noindent Another important design point is the use of Python scripts for file
-validation and metric scoring. The backend is implemented using Node.js and
-Express, while the scoring process uses Python because it depends on
-Scikit-learn metrics and dataset loading utilities already used in the project.
-This design allows the web platform to manage users, benchmarks, and
-submissions while Python handles the machine learning evaluation part.
+\mbox{}
 
 \chapter{System Testing and Verification}
-This chapter explains how the project was tested to make sure that the system works correctly. The testing was done in different ways because not all parts of the project can be tested using the same method. Some parts were tested using unit tests, some parts were checked manually, and some results were compared with other tools or expected outputs.
-The main purpose of testing was to make sure that the system can take the input, apply the required steps, save the needed files, and return the correct output without errors. 
 \section{Testing Setup}
-The testing was done in a Python environment. The main tools used in testing were Python, Pytest, Pandas, NumPy, Scikit-learn, and the other libraries used in the project implementation.
-The system was tested using sample datasets and different test cases. The output of the system was checked to make sure that it is correct and in the expected format to make sure that they were created correctly.
-Some tests were written and run automatically using Pytest. Other tests were checked manually by comparing the actual output with the expected output. This testing setup helped make sure that the project works correctly.
+The available experiments use identical train, validation, and test splits
+when comparing candidate pipelines. Timing, memory, output equivalence, and
+predictive accuracy are reported according to the module under test.
+
 \section{Testing Plan and Strategy}
-The testing plan was based on testing the project step by step. First, the main parts of the system were tested separately to make sure that each part works correctly. After that, the complete system was tested as one workflow to make sure that all parts work together without errors.
-Different testing methods were used depending on the part being tested. Some parts were tested using unit tests with Pytest. Other parts were checked manually by comparing the actual output with the expected output. In some cases, the results were also compared with other tools to make sure that the system gives correct and reasonable results.
-\subsection{Module Testing}
+Module tests validate graph correctness, pipeline persistence, converter
+support, loop transformation, and output equivalence. Integration tests
+evaluate the end-to-end path from custom preprocessing code through native
+compilation and graph execution.
+
 \input{sections/results-modhamed}
-\subsubsection{Auto Preprocessing Module}
-Most of the functions were tested using unit tests. These tests were used to make sure that the functions give the expected output and do not produce errors.
-Real datasets were also used to test the system in a more practical way. These datasets were collected from Kaggle for different data types. For all datasets, the data was split using a test size of 0.2 and a random state of 42. The model performance was then measured on the test data.
-For tabular data, both classification and regression datasets were used. After applying preprocessing, the output was passed to a Random Forest model to check that the processed data was ready for training and testing.
-For text data, the processed output was passed to an \texttt{XGBClassifier}. This helped check that the text preprocessing steps converted the text into numerical features correctly.
-For image data, the output of the image preprocessing module was passed to a ResNet model. This helped check that the image data loaders were created correctly and could be used directly for model training.
-The results showed that the tested modules produced valid outputs and were suitable to be used in the training step.
+\input{sections/results-nesma}
 
-\begin{table}[H]
-\centering
-\caption{Datasets Used in Module Testing}
-\label{tab:module_testing_datasets}
-\begin{tabular}{|p{7cm}|p{3cm}|p{3cm}|p{3cm}|}
-\hline
-\textbf{Dataset Name} & \textbf{Shape} & \textbf{Dataset Type} & \textbf{Problem Type} \\
-\hline
-startup\_founder\_burnout\_2026 & (50000, 29) & Tabular & Classification \\
-\hline
-healthy\_diet\_calorie\_intake & (6000, 15) & Tabular & Classification \\
-\hline
-ai\_student & (50000, 16) & Tabular & Classification \\
-\hline
-gaming\_addiction & (250, 49) & Tabular & Classification \\
-\hline
-student\_exam\_performance\_dataset & (10000, 17) & Tabular & Classification \\
-\hline
-heart & (1025, 14) & Tabular & Classification \\
-\hline
-Dataset\_spine & (310, 7) & Tabular & Classification \\
-\hline
-diabetes\_dataset & (100000, 31) & Tabular & Classification \\
-\hline
-student\_placement\_synthetic & (100000, 18) & Tabular & Classification \\
-\hline
-Titanic-Dataset & (891, 12) & Tabular & Classification \\
-\hline
-customer\_purchase\_data & (1500, 9) & Tabular & Classification \\
-\hline
-global\_ai\_jobs & (90000, 35) & Tabular & Regression \\
-\hline
-CarPrice\_Assignment & (205, 26) & Tabular & Regression \\
-\hline
-Housing & (545, 13) & Tabular & Regression \\
-\hline
-PetImages & (24998,) & Image & Classification \\
-\hline
-DailyDialog & (11327, 2) & Text & Classification \\
-\hline
-TestReviews & (4321, 2) & Text & Classification \\
-\hline
-\end{tabular}
-\end{table}
+\section{AutoML Module}
+\mbox{}
 
-\begin{table}[H]
-\centering
-\small
-\caption{Models and Evaluation Metrics Used in Module Testing}
-\label{tab:module_testing_models}
-\begin{tabular}{|p{7cm}|p{2.8cm}|p{3cm}|p{2cm}|}
-\hline
-\textbf{Dataset Name} & \textbf{Model Used} & \textbf{Evaluation Metric} & \textbf{Accelera Result} \\
-\hline
-startup\_founder\_burnout\_2026 & RandomForest & Macro F1-score & 0.9999 \\
-\hline
-healthy\_diet\_calorie\_intake & RandomForest & Macro F1-score & 1.0000 \\
-\hline
-ai\_student & RandomForest & Macro F1-score & 0.4799 \\
-\hline
-gaming\_addiction & RandomForest & Macro F1-score & 1.0000 \\
-\hline
-student\_exam\_performance\_dataset & RandomForest & Macro F1-score & 0.8573 \\
-\hline
-heart & RandomForest & Macro F1-score & 0.7860 \\
-\hline
-Dataset\_spine & RandomForest & Macro F1-score & 0.7840 \\
-\hline
-diabetes\_dataset & RandomForest & Macro F1-score & 0.9985 \\
-\hline
-student\_placement\_synthetic & RandomForest & Macro F1-score & 0.9986 \\
-\hline
-Titanic-Dataset & RandomForest & Macro F1-score & 0.7906 \\
-\hline
-customer\_purchase\_data & RandomForest & Macro F1-score & 0.9385 \\
-\hline
-global\_ai\_jobs & RandomForest & R-squared Score & 0.9227 \\
-\hline
-CarPrice\_Assignment & RandomForest & R-squared Score & 0.9562 \\
-\hline
-Housing & RandomForest & R-squared Score & 0.6037 \\
-\hline
-PetImages & ResNet model & Accuracy & 0.97 \\
-\hline
-DailyDialog & XGBClassifier & Accuracy & Add result \\
-\hline
-TestReviews & XGBClassifier & Accuracy & Add result \\
-\hline
-\end{tabular}
-\end{table}
+\section{Deployment Module}
+\mbox{}
 
-
-\subsubsection{AutoML Module}
-\paragraph{Experimental Objectives}
-The AutoML experiments compare Accelera AutoML with Auto-sklearn, FLAML, and
-TPOT on supervised tabular classification and regression tasks. The evaluation
-focuses on two questions: whether the systems reach comparable predictive
-quality, and how much wall-clock time they require. Classification is evaluated
-mainly by accuracy. Regression is evaluated by $R^2$, root mean squared error
-(RMSE), and mean absolute error (MAE). Runtime is reported in seconds.
-
-\paragraph{Benchmark Protocol}
-The classification experiments were executed through the AutoMLBenchmark
-(AMLB) runner using the \modulepath{flaml\_paper\_39} classification suite and
-the \modulepath{flaml\_paper\_1h} constraint. The reported classification
-evaluation covers 12 datasets. The regression benchmark was built from the Penn
-Machine Learning Benchmarks (PMLB) repository and executed through AMLB using
-the \modulepath{pmlb\_regression} suite with the \modulepath{pmlb\_30m}
-constraint. The reported regression evaluation covers 10 datasets.
-
-All systems were run through the same benchmark interface. The recorded setup
-used one fold and one allocated core per task. The regression time budget was
-1,800 seconds per dataset, while the classification constraint allowed up to
-one hour.
-
-\paragraph{Classification Results}
-Table~\ref{tab:automl_classification_results} summarizes the stored
-classification results. Auto-sklearn obtained the highest mean accuracy at
-0.8842. Accelera reached a mean accuracy of 0.8791, a difference of about
-0.0051, while recording the lowest mean duration at 1,201.7 seconds. Its mean
-runtime was approximately one third of the runtimes recorded for the other
-systems.
-
-\begin{table}[H]
-\centering
-\caption{AutoML classification benchmark summary}
-\label{tab:automl_classification_results}
-\begin{tabular}{lrrrr}
-\toprule
-System & Mean accuracy & Mean time (s) & Accuracy wins & Speed wins \\
-\midrule
-Auto-sklearn & 0.884178 & 3615.71 & 3 & 3 \\
-FLAML        & 0.881427 & 3655.63 & 6 & 0 \\
-Accelera     & 0.879076 & 1201.72 & 6 & 15 \\
-TPOT         & 0.877654 & 3953.78 & 8 & 1 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.78\textwidth]{../../../accelera/src/accelera_automl/benchmark_results/figures/classification/average_accuracy_time.png}
-\caption{Mean classification accuracy and runtime for the evaluated AutoML systems}
-\label{fig:automl_classification_average}
-\end{figure}
-
-\paragraph{Regression Results}
-Table~\ref{tab:automl_regression_results} reports the regression summary over
-ten datasets. Auto-sklearn obtained the highest mean $R^2$ at 0.5609, followed
-closely by TPOT at 0.5592. Accelera reached 0.5294 and recorded the lowest mean
-runtime at 892.64 seconds, compared with 1,820--1,864 seconds for the
-competing systems. Accelera also achieved six speed wins, the most of any
-evaluated system.
-
-\begin{table}[H]
-\centering
-\caption{AutoML regression benchmark summary over ten datasets}
-\label{tab:automl_regression_results}
-\small
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{lrrrrrrr}
-\toprule
-System & Mean $R^2$ & Median $R^2$ & Mean time (s) & $R^2$ wins & RMSE wins & MAE wins & Speed wins \\
-\midrule
-Auto-sklearn & 0.560947 & 0.494362 & 1820.18 & 2 & 2 & 2 & 2 \\
-TPOT         & 0.559238 & 0.493144 & 1849.70 & 2 & 2 & 2 & 0 \\
-Accelera     & 0.529389 & 0.432577 &  892.64 & 2 & 2 & 2 & 6 \\
-FLAML        & 0.522743 & 0.497530 & 1863.85 & 4 & 4 & 4 & 2 \\
-\bottomrule
-\end{tabular}
-}
-\end{table}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.78\textwidth]{../../../accelera/src/accelera_automl/benchmark_results/figures/regression/reg_average_r2_time.png}
-\caption{Mean regression $R^2$ and runtime for the evaluated AutoML systems}
-\label{fig:automl_regression_average}
-\end{figure}
-
-\paragraph{Threats to Validity}
-The current results use a single benchmark fold, so they do not quantify
-variation across repeated splits or random seeds. Runtime is sensitive to
-hardware, operating-system load, framework startup overhead, and timeout
-handling. Aggregate means can also hide dataset-level failures or missing
-measurements. Therefore, the tables should be read as a summary of the stored
-runs rather than a universal ranking of AutoML systems.
-
-\subsubsection{Deployment Module}
+\section{Benchmark Platform Module}
 \mbox{}
 
 \subsubsection{Benchmark Platform Module}
@@ -1638,78 +1177,270 @@ branch-level parallel execution as the main remaining graph-backend challenge.
 \mbox{}
 
 \section{Conclusions}
-Accelera Pipe provides a graph-based execution model for branch-heavy
-machine-learning pipelines and supports fitted executed graphs. The Code
-Parallelizer provides a source-to-source path from supported Python or C++
-loops to OpenMP-annotated C++ using converter rules, loop feature extraction,
-classifier guidance, and safety checks. The available experiments show runtime
-improvements on large branch-selection workloads while preserving selected
-models, accuracy, and output equivalence.
+Accelera provides a connected framework for preparing data, selecting models,
+building graph-based machine learning workflows, improving supported custom
+code, deploying trained models, and comparing results through a benchmark
+platform. The work shows that the project is not only a collection of separate
+tools, but a workflow where each module can support a different stage of the
+machine learning process.
+
+\noindent The Auto Preprocessing module reduces repeated manual preparation work
+for tabular, text, and image datasets. It saves fitted artifacts so that testing
+data can be transformed in the same way as training data. The AutoML module
+adds automated model search under time and trial limits, which helps compare
+candidate models more systematically. Accelera Pipe represents workflows as
+graphs, so shared preprocessing, branches, predictions, and metrics can be
+organized more clearly. The Code Parallelizer adds a source-level optimization
+path for supported loop-heavy code while keeping conservative safety checks.
+
+\noindent The Deployment module and Benchmark Platform complete the workflow by
+supporting model serving, version tracking, submission validation, scoring, and
+leaderboard comparison. The testing and experimental results show that the
+implemented modules can produce usable outputs, generate reports, evaluate
+models, and compare results. Overall, Accelera gives a practical base for a
+more organized and reusable machine learning workflow.
 
 \section{Future Work}
 Future work should continue reducing graph memory consumption while preserving
-parallel branch execution, and should extend safe converter and loop-analysis
-coverage without weakening correctness checks.
+parallel branch execution, and should extend safe converter , loop-analysis
+coverage without weakening correctness checks, The preprocessing pipeline can be improved by adapting the preprocessing steps based on the selected model type and by adding techniques to handle imbalanced datasets.
+In the future, the benchmark platform can be improved by saving uploaded datasets on the server instead of using Google Drive links. It can also allow users to upload code files directly, instead of submitting only links.
 
 \chapter*{References}
 \addcontentsline{toc}{chapter}{References}
-\begin{thebibliography}{9}
-\bibitem{preprocessing_feature_engineering}
-``Data Preprocessing and Feature Engineering for Data Mining: Techniques,
-Tools, and Best Practices.'' Available at:
-\url{https://www.proquest.com/openview/17dfa731b6147c8939e3c5cc784897ce/1?pq-origsite=gscholar&cbl=5046920}
-
-\bibitem{autoweka}
-Chris Thornton, Frank Hutter, Holger H. Hoos, and Kevin Leyton-Brown.
-``Auto-WEKA: Combined selection and hyperparameter optimization of
-classification algorithms.'' In \emph{Proceedings of the 19th ACM SIGKDD
-International Conference on Knowledge Discovery and Data Mining}, 2013.
-
-\bibitem{autosklearn}
-Matthias Feurer, Aaron Klein, Katharina Eggensperger, Jost Springenberg,
-Manuel Blum, and Frank Hutter. ``Efficient and robust automated machine
-learning.'' In \emph{Advances in Neural Information Processing Systems}, 2015.
-
-\bibitem{tpot}
-Randal S. Olson, Nathan Bartley, Ryan J. Urbanowicz, and Jason H. Moore.
-``Evaluation of a tree-based pipeline optimization tool for automating data
-science.'' In \emph{Applications of Evolutionary Computation}, 2016.
-
-\bibitem{flaml}
-Chi Wang, Qingyun Wu, Markus Weimer, and Erkang Zhu. ``FLAML: A fast and
-lightweight AutoML library.'' In \emph{Proceedings of Machine Learning and
-Systems}, 2021.
-
-\bibitem{autogluon}
-Nick Erickson et al. ``AutoGluon-Tabular: Robust and accurate AutoML for
-structured data.'' \emph{arXiv preprint arXiv:2003.06505}, 2020.
-
-\bibitem{smac}
-Frank Hutter, Holger H. Hoos, and Kevin Leyton-Brown. ``Sequential model-based
-optimization for general algorithm configuration.'' In \emph{Learning and
-Intelligent Optimization}, 2011.
-
-\bibitem{randomsearch}
-James Bergstra and Yoshua Bengio. ``Random search for hyper-parameter
-optimization.'' \emph{Journal of Machine Learning Research}, 13:281--305,
-2012.
-
-\bibitem{stacking}
-David H. Wolpert. ``Stacked generalization.'' \emph{Neural Networks},
-5(2):241--259, 1992.
-\end{thebibliography}
 
 \appendix
 \chapter{Development Platforms and Tools}
+\section{Hardware Platform}
+
+
+\section{Software Platform}
 The implemented modules use Python, C++, PyBind11, CMake, Clang-based AST
-analysis, OpenMP, NumPy, and Scikit-learn. The available experiments include
-Linux and Windows execution paths.
+analysis, OpenMP, NumPy, Pandas, Matplotlib, PyTorch, Scikit-learn, Node.js,
+React, and MongoDB. The Auto Preprocessing module depends mainly on Python
+data-science libraries. The Pipeline Reporting module uses Python, HTML report
+generation, Matplotlib, Pandas tables, and Graphviz for graph visualization.
+The Benchmark Platform uses a Node.js and Express backend, MongoDB for storing
+benchmarks and submissions, React for the frontend, and Python scripts for
+dataset validation and metric scoring. The available experiments include Linux
+and Windows execution paths.
 
 \chapter{Use Cases}
-\mbox{}
+\section{Auto Preprocessing Use Cases}
+The user can use Auto Preprocessing when they have a dataset and want to
+prepare it before training a model. For tabular data, the module can clean
+missing values, encode categorical columns, scale numerical columns, select
+features, save artifacts, and generate a report. For text data, it can clean
+sentences, tokenize them, apply TF-IDF, encode labels, and generate a report.
+For image data, it can validate images, map class folders to labels, resize
+images, apply augmentation, and create DataLoaders.
 
+\section{Pipeline Reporting Use Cases}
+The user can use the pipeline report after running an Accelera pipeline. The
+report helps show the graph structure, branches, selected path, and metric
+results. This is useful when the pipeline contains more than one branch and the
+user wants to understand which path was selected.
+
+\section{Benchmark Platform Use Cases}
+The benchmark platform can be used when different users or models need to be
+compared on the same task. A benchmark creator defines the dataset, test file,
+target column, and metric. Users then submit prediction files, and the platform
+calculates the score and displays the leaderboard.
+
+\renewcommand{\lstlistingname}{Code Example}
 \chapter{User Guide}
-\mbox{}
+\section{Using Tabular Auto Preprocessing}
+To use tabular preprocessing, the user first loads the dataset as a Pandas
+DataFrame. Then the user gives the target column, problem type, and output
+folder. The output folder is important because the module saves the fitted
+preprocessing objects and the HTML report inside it.
+
+\begin{lstlisting}[style=code,caption={Calling tabular training preprocessing}]
+import pandas as pd
+from accelera.src.auto_preprocessing.core.classical_training_preprocessing import (
+    ClassicalTrainingPreprocessing,
+)
+
+df = pd.read_csv("dataset.csv")
+
+preprocessor = ClassicalTrainingPreprocessing(
+    df=df,
+    target_col="target",
+    problem_type="classification",
+    folder_path="outputs/tabular_run",
+    val_size=0.2,
+    random_state=42,
+    is_report=True,
+)
+
+X_train, y_train, X_val, y_val = preprocessor.common_preprocessing()
+\end{lstlisting}
+
+For regression, the user only changes the problem type:
+
+\begin{lstlisting}[style=code,caption={Changing tabular preprocessing to regression}]
+preprocessor = ClassicalTrainingPreprocessing(
+    df=df,
+    target_col="price",
+    problem_type="regression",
+    folder_path="outputs/regression_run",
+)
+\end{lstlisting}
+
+After training preprocessing, the same folder should be used for test data.
+This makes the test data use the saved training transformers instead of fitting
+new ones.
+
+\begin{lstlisting}[style=code,caption={Calling tabular testing preprocessing}]
+import pandas as pd
+from accelera.src.auto_preprocessing.core.classical_testing_preprocessing import (
+    ClassicalTestingPreprocessing,
+)
+
+test_df = pd.read_csv("test.csv")
+
+test_preprocessor = ClassicalTestingPreprocessing(
+    df=test_df,
+    folder_path="outputs/tabular_run",
+)
+
+X_test, y_test = test_preprocessor.common_preprocessing()
+\end{lstlisting}
+
+\section{Using Text Auto Preprocessing}
+For text preprocessing, the user provides the text column and the target
+column. The text column must contain text values, and the target is used for
+classification.
+
+\begin{lstlisting}[style=code,caption={Calling text training preprocessing}]
+import pandas as pd
+from accelera.src.auto_preprocessing.core.text_training_preprocessing import (
+    TextTrainingPreprocessing,
+)
+
+df = pd.read_csv("reviews.csv")
+
+text_preprocessor = TextTrainingPreprocessing(
+    df=df,
+    target_col="label",
+    text_col="review",
+    folder_path="outputs/text_run",
+    tfidf_max_features=500,
+    is_report=True,
+)
+
+X_train, y_train, X_val, y_val = text_preprocessor.common_preprocessing()
+\end{lstlisting}
+
+For testing text data, the user again passes the same folder path. If the test
+data does not contain the target column, the class returns the transformed text
+features and \texttt{None} for the labels.
+
+\begin{lstlisting}[style=code,caption={Calling text testing preprocessing}]
+from accelera.src.auto_preprocessing.core.text_testing_preprocesing import (
+    TextTestingPreprocessing,
+)
+
+test_text = pd.read_csv("reviews_test.csv")
+
+text_test_preprocessor = TextTestingPreprocessing(
+    df=test_text,
+    folder_path="outputs/text_run",
+)
+
+X_test, y_test = text_test_preprocessor.common_preprocessing()
+\end{lstlisting}
+
+\section{Using Image Auto Preprocessing}
+For image preprocessing, the dataset should be arranged in class folders. For
+example:
+
+\begin{verbatim}
+Training/
+  Cats/
+  Dogs/
+\end{verbatim}
+
+The user passes the training folder and the output folder. If a validation
+folder already exists, it can be passed also. If not, the module can split the
+training folder.
+
+\begin{lstlisting}[style=code,caption={Calling image training preprocessing}]
+from accelera.src.auto_preprocessing.core.classification_image_training_preprocessing import (
+    ClassificationImageTrainingPreprocessing,
+)
+
+image_preprocessor = ClassificationImageTrainingPreprocessing(
+    training_folder_images="data/PetImages/Training",
+    folder_path="outputs/image_run",
+    split_training=True,
+    val_size=0.2,
+    images_size=(224, 224),
+    batch_size=16,
+    augment=True,
+)
+
+train_loader, val_loader = image_preprocessor.common_preprocessing()
+\end{lstlisting}
+
+For image testing, the user provides a list of image paths. If class names are
+available, they can be passed too. If not, the loader can still be used for
+prediction.
+
+\begin{lstlisting}[style=code,caption={Calling image testing preprocessing}]
+from accelera.src.auto_preprocessing.core.classification_image_testing_preprocessing import (
+    ClassificationImageTestingPreprocessing,
+)
+
+image_paths = ["test/cat1.jpg", "test/dog1.jpg"]
+class_names = ["Cats", "Dogs"]
+
+image_test_preprocessor = ClassificationImageTestingPreprocessing(
+    image_paths=image_paths,
+    image_class_names=class_names,
+    folder_path="outputs/image_run",
+    batch_size=4,
+)
+
+test_loader, invalid_images = image_test_preprocessor.common_preprocessing()
+\end{lstlisting}
+
+\section{Reading Auto Preprocessing Reports}
+After running preprocessing with \texttt{is\_report=True}, the user opens the
+generated \texttt{report.html} file from the output folder. The report shows
+the dataset overview, missing values, duplicate rows, dropped columns, graphs,
+preprocessing decisions, selected features, and processed data samples.
+
+\section{Using Pipeline Reports}
+To generate a pipeline report, the pipeline graph should be serialized first.
+Then the user passes the XML graph path, output folder, and metric results to
+\texttt{GraphReport}.
+
+\begin{lstlisting}[style=code,caption={Calling the pipeline graph report}]
+from accelera.src.accelera_pipe.wrappers.graph_report import GraphReport
+
+report = GraphReport(
+    folderpath="outputs/pipeline_report",
+    xmlpath="outputs/pipeline_graph.xml",
+    results=metric_results,
+)
+
+report.execute()
+\end{lstlisting}
+
+The output is a \texttt{report.html} file. It contains the graph image, branch
+tables, selected branch, and metric summary.
+
+\section{Using the Benchmark Platform}
+The benchmark platform is used from the web interface. The benchmark creator
+enters the title, problem type, target column, dataset link, test-set link,
+target-label link, and evaluation metric. A user submits a prediction file link
+and repository link. The backend calls the Python scoring script, saves the
+score, and displays the result in the leaderboard.
+
+The prediction file must contain the target column name expected by the
+benchmark. Also, the number of rows in the prediction file must match the
+number of rows in the target-label file.
 
 \chapter{Code Documentation}
 \mbox{}

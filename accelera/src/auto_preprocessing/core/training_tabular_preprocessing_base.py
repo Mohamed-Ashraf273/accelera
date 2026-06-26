@@ -27,7 +27,10 @@ class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
         self.problem_type = problem_type
 
         if self.target_col not in self.df.columns:
-            raise ValueError("target_col must be one of the dataframe columns")
+            raise ValueError(
+                f"target_col {target_col} must be one of "
+                f"the dataframe columns {self.df.columns}"
+            )
 
         if (not (isinstance(self.val_size, float))) or (
             not (0 < self.val_size <= 0.5)
@@ -70,6 +73,14 @@ class TrainingTabularPreprocessingBase(TabularPreprocessingBase):
             "missing_values": missing_values,
             "duplicates_sum": duplicates_sum,
             "duplicates_percentage": duplicates_percentage,
+            "shape": self.df.shape,
+        }
+
+    def drop_target_nulls(self):
+        target_nulls = self.df[self.target_col].isnull().sum()
+        self.df = self.df.dropna(subset=[self.target_col])
+        self.report_data["target_nulls"] = {
+            "null": target_nulls,
             "shape": self.df.shape,
         }
 

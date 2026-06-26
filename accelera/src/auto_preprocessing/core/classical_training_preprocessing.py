@@ -474,27 +474,20 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
             "problem_type": self.problem_type,
         }
         if self.problem_type == "classification":
-            y_train = y_train.fillna(info[self.target_col]["mode"])
-            y_val = y_val.fillna(info[self.target_col]["mode"])
             label_encoder = LabelEncoder()
             y_train = label_encoder.fit_transform(y_train)
             y_val = label_encoder.transform(y_val)
             save_pickle(self.folder_path, label_encoder, "target_preprocessor.pkl")
-            target_dict["mode"] = info[self.target_col]["mode"]
             self.report_data["preprocessing"].append(
                 {
                     "col_name": self.target_col,
                     "col_type": self.problem_type,
                     "col_preprocessing": [
-                        "Fill missing with most frequent",
                         "Label encoding",
                     ],
                 }
             )
         elif self.problem_type == "regression":
-            y_train = y_train.fillna(info[self.target_col]["median"])
-            y_val = y_val.fillna(info[self.target_col]["median"])
-            target_dict["median"] = info[self.target_col]["median"]
             robust_scaler = RobustScaler()
             y_train = robust_scaler.fit_transform(
                 y_train.values.reshape(-1, 1)
@@ -506,7 +499,6 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
                     "col_name": self.target_col,
                     "col_type": self.problem_type,
                     "col_preprocessing": [
-                        "Fill missing with median",
                         "Robust scaling",
                     ],
                 }
@@ -521,7 +513,11 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
         return y_train, y_val
 
     def handel_bool_types(self):
-        bool_type_col = self.df.select_dtypes(include=["bool"]).columns
+        bool_type_col = (
+            self.df.drop(columns=[self.target_col])
+            .select_dtypes(include=["bool"])
+            .columns
+        )
         save_pickle(self.folder_path, bool_type_col, "bool_type_col.pkl")
         if len(bool_type_col) == 0:
             return
@@ -565,6 +561,7 @@ class ClassicalTrainingPreprocessing(TrainingTabularPreprocessingBase):
     def common_preprocessing(self):
         self.handel_bool_types()
         self.data_overview()
+        self.drop_target_nulls()
         self.drop_duplicates()
         X_train, X_val, y_train, y_val = self.split_data()
         info, col_drop = self.get_data_info(X_train, y_train)

@@ -6,8 +6,8 @@ accelera_automl:
     n_trials: 100
     cv: 3
     ensemble: false
-    verbose: 1
     use_meta_learning: True
     search_n_parallel: 3
     inner_n_jobs: 1
     disable_evaluation_timeout: false
+    verbose: 1

@@ -1,8 +1,6 @@
 import json
 import sys
 
-import numpy as np
-
 from accelera.src.utils.dataset_retriever import retriever
 from utils import get_file_url
 
@@ -47,10 +45,14 @@ try:
                     }
                 )
             )
-        elif not np.issubdtype(target_df[target_column_name].dtype, np.integer):
+        elif target_df.shape[0] != test_df.shape[0]:
             print(
                 json.dumps(
-                    {"message": "Column must be number not object", "isValid": False}
+                    {
+                        "message": "target data frame and test"
+                        " dataset must be the same number of rows",
+                        "isValid": False,
+                    }
                 )
             )
         else:
