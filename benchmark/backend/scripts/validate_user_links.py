@@ -53,6 +53,12 @@ try:
                     {"message": "Column must be number not object", "isValid": False}
                 )
             )
+        elif target_df.shape[0]!=test_df.shape[0]:
+             print(
+                json.dumps(
+                    {"message": "target data frame and test dataset must be the same number of rows", "isValid": False}
+                )
+            )
         else:
             print(
                 json.dumps(
