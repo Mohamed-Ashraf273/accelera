@@ -1,0 +1,30 @@
+name: Build AutoML LaTeX PDF
+
+on:
+  push:
+    branches:
+      - auto_ml_accelera
+    paths:
+      - "docs/latex/individual work/**"
+      - ".github/workflows/build-automl-latex.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v4
+        with:
+          working_directory: "docs/latex/individual work"
+          root_file: accelera_automl.tex
+          latexmk_use_xelatex: true
+
+      - name: Upload PDF
+        uses: actions/upload-artifact@v6
+        with:
+          name: accelera_automl_pdf
+          path: "docs/latex/individual work/accelera_automl.pdf"

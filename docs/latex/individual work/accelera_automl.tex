@@ -1,13 +1,52 @@
 \documentclass[12pt,a4paper,oneside]{report}
 
-% Page setup
-\usepackage[margin=1in]{geometry}
+% Page setup matching the Word graduation-project template.
+\usepackage[
+  top=1.14in,
+  left=1.14in,
+  right=0.91in,
+  bottom=0.91in,
+  headheight=18pt,
+  headsep=0.22in,
+  footskip=0.43in
+]{geometry}
 
 % Encoding and fonts
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
-\usepackage{lmodern}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\usepackage[table]{xcolor}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{subcaption}
+
+
+
+\usetikzlibrary{arrows.meta,positioning}
+
+\setmainlanguage{english}
+\setotherlanguage{arabic}
+
+% Use Arial when available; otherwise use Arimo, which is metric-compatible with Arial
+% and works on Overleaf/TeX Live installations that do not include Microsoft fonts.
+\IfFontExistsTF{Arial}{%
+  \setmainfont{Arial}%
+}{%
+  \setmainfont{Arimo}%
+}
+\IfFontExistsTF{Amiri}{%
+  \newfontfamily\arabicfont[Script=Arabic]{Amiri}%
+}{%
+  \newfontfamily\arabicfont[Script=Arabic]{Scheherazade New}%
+}
+
 \usepackage{microtype}
+\usepackage{setspace}
+\usepackage{ragged2e}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{caption}
 
 % Tables
 \usepackage{booktabs}
@@ -25,9 +64,56 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\graphicspath{
+  {../imgs/}
+  {../../}
+  {../../../docs/}
+  {../../../accelera/src/accelera_automl/benchmark_results/figures/classification/}
+  {../../../accelera/src/accelera_automl/benchmark_results/figures/regression/}
+}
 
 % Code listings
 \usepackage{listings}
+
+\definecolor{templategreen}{RGB}{0,128,0}
+
+\onehalfspacing
+\AtBeginDocument{\justifying}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\emergencystretch=3em
+\captionsetup[figure]{position=bottom,font=small,labelfont=bf}
+\captionsetup[table]{position=top,font=small,labelfont=bf}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\fontsize{24}{28}\bfseries}
+  {\chaptername\ \thechapter:}
+  {0.6em}
+  {}
+\titlespacing*{\chapter}{0pt}{0pt}{18pt}
+
+\titleformat{\section}
+  {\normalfont\fontsize{18}{22}\bfseries}
+  {\thesection}
+  {0.6em}
+  {}
+\titlespacing*{\section}{0pt}{14pt}{8pt}
+
+\titleformat{\subsection}
+  {\normalfont\fontsize{14}{18}\bfseries}
+  {\thesubsection}
+  {0.6em}
+  {}
+\titlespacing*{\subsection}{0pt}{10pt}{6pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Accelera AutoML 2026}
+\rfoot{\thepage\ \textbar\ Page}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
 
 \hypersetup{
   colorlinks=true,
@@ -54,70 +140,90 @@
 % Custom commands
 \newcommand{\systemname}{Accelera AutoML}
 \newcommand{\modulepath}[1]{\texttt{\footnotesize #1}}
-\newcommand{\todoitem}[1]{\textcolor{red!65!black}{[TODO: #1]}}
+\newcommand{\safeincludegraphics}[2][]{\includegraphics[#1]{#2}}
 
 % Abstract title style
-\renewcommand{\abstractname}{\LARGE\bfseries Abstract}
+\renewcommand{\abstractname}{\fontsize{18}{22}\bfseries Abstract}
+\renewcommand{\bibname}{References}
 
 \begin{document}
+\pagenumbering{roman}
 
 % -----------------------------------------------------------------------------
 % -----------------------------------------------------------------------------
 % Title Page
 % -----------------------------------------------------------------------------
+\newgeometry{top=0.45in,left=0.8in,right=0.8in,bottom=0.45in}
 \begin{titlepage}
 \thispagestyle{empty}
-\centering
+\enlargethispage{1.0cm}
+\setstretch{1.0}
+\color{black}
 
-\vspace*{1.0cm}
+\noindent
+\begin{minipage}{0.36\textwidth}
+\includegraphics[width=0.38\linewidth]{CU_logo.png}\\[-0.12cm]
+{\scriptsize Cairo University\\
+Faculty of Engineering\\
+Department of Computer Engineering}
+\end{minipage}
 
-\includegraphics[width=0.18\textwidth]{accelera.png}
+\vspace{0.75cm}
 
-\vspace{1.3cm}
+\begin{center}
+{\fontsize{22}{25}\bfseries Accelera AutoML\par}
 
-{\Huge\bfseries Accelera AutoML\par}
+\vspace{0.25cm}
+
+\includegraphics[width=0.13\textwidth]{accelera.png}
+
+\vspace{0.15cm}
+
+{\small Automated Machine-Learning Pipeline Selection\\
+and Optimization in Accelera\par}
+
+\vspace{0.32cm}
+
+{\small A Graduation Project Report Submitted\par}
+{\small to\par}
+{\small Faculty of Engineering, Cairo University\par}
+{\small in Partial Fulfillment of the requirements of the degree\par}
+{\small of\par}
+{\small Bachelor of Science in Computer Engineering.\par}
+
+\vspace{0.45cm}
+
+{\fontsize{16}{19}\bfseries Presented by\par}
+\vspace{0.08cm}
+{Mohamed Khater\par}
+{ID: 9220713\par}
+
+\vspace{0.45cm}
+
+{\fontsize{16}{19}\bfseries Supervised by\par}
+\vspace{0.05cm}
+{Dr. Salma Abdelmonem\par}
+
+\vspace{0.22cm}
+
+{June 2026\par}
 
 \vspace{0.35cm}
 
-{\Large\bfseries
-Automated Machine-Learning Pipeline Selection\\
-and Optimization in Accelera\par
-}
-
-\vspace{1.2cm}
-
-\rule{0.75\textwidth}{0.4pt}
-
-\vspace{1.2cm}
-
-{\large
-\textbf{Submitted by}\par
-\vspace{0.25cm}
-Mohamed Khater\\
-ID: 9220713\par
-}
-
-\vspace{0.9cm}
-
-{\large
-\textbf{Supervisor}\par
-\vspace{0.25cm}
-Dr. Salma Abdelmonem\par
-}
-
-\vfill
-
-{\large
-Faculty of Computer Engineering, Cairo University\\
-June 2026\par
-}
+{\scriptsize
+All rights reserved. This report may not be reproduced in whole or in part, by photocopying\\
+or other means, without the permission of the authors/department.}
+\end{center}
 
 \end{titlepage}
+\restoregeometry
+\clearpage
+\onehalfspacing
+
 % Abstract
 % -----------------------------------------------------------------------------
-\begin{abstract}
-\normalsize
-\noindent
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
 Selecting an appropriate machine-learning pipeline, including data preprocessing,
 algorithm selection, and hyperparameter optimization, is a complex and
 computationally expensive process. This thesis presents \systemname{}, an
@@ -143,21 +249,132 @@ This thesis describes the design, architecture, implementation, and evaluation
 of \systemname{}, demonstrating how these components can be integrated into a
 practical AutoML system that reduces manual effort while producing competitive
 machine-learning models.
-\end{abstract}
+
+\clearpage
+\chapter*{\textarabic{الملخص}}
+\addcontentsline{toc}{chapter}{\textarabic{الملخص}}
+
+\begin{otherlanguage}{arabic}
+يُعد اختيار خط أنابيب مناسب للتعلم الآلي، بما في ذلك معالجة البيانات
+المسبقة، واختيار الخوارزمية، وضبط المعاملات الفائقة، عملية معقدة
+ومكلفة حسابيًا. تقدم هذه الرسالة نظام \textenglish{Accelera AutoML}،
+وهو وحدة للتعلم الآلي المؤتمت مدمجة داخل إطار عمل \textenglish{Accelera}.
+توفر الوحدة المقترحة واجهة موحدة تشبه واجهة \textenglish{scikit-learn}
+لكل من مهام التصنيف والانحدار، مع أتمتة بناء خطوط أنابيب التعلم الآلي
+وتحسينها.
+
+\medskip
+
+لاستكشاف فضاء البحث بكفاءة، يجمع نظام \textenglish{Accelera AutoML}
+بين فضاءات التهيئة الشرطية، وتقييم النماذج باستخدام التحقق المتقاطع،
+والتحسين متعدد الدقة، والتحسين البايزي باستخدام نموذج بديل قائم على
+الغابة العشوائية مع دالة اكتساب للتحسن المتوقع. كما يدمج النظام بدايات
+تمهيدية قائمة على التعلم الفوقي، وعزل تقييمات النماذج المرشحة باستخدام
+حدود زمنية، وبناء التجميعات باستخدام تقنيات التصويت والتكديس.
+
+\medskip
+
+تصف هذه الرسالة تصميم نظام \textenglish{Accelera AutoML} وبنيته وتنفيذه
+وتقييمه، وتوضح كيف يمكن دمج هذه المكونات في نظام عملي للتعلم الآلي
+المؤتمت يقلل الجهد اليدوي مع إنتاج نماذج تعلم آلي تنافسية.
+\end{otherlanguage}
+
+\chapter*{Acknowledgment}
+\addcontentsline{toc}{chapter}{Acknowledgment}
+The author would like to express sincere gratitude to Dr. Salma Abdelmonem for
+her supervision, guidance, and support throughout this project. The author also
+thanks the Computer Engineering Department and everyone who supported the
+design, implementation, and evaluation of this work.
 
 \clearpage
 \tableofcontents
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{List of Figures}
+\listoffigures
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{List of Tables}
 \listoftables
 \clearpage
+
+\chapter*{List of Abbreviations}
+\addcontentsline{toc}{chapter}{List of Abbreviations}
+\begin{tabular}{ll}
+AI & Artificial Intelligence \\
+AMLB & AutoMLBenchmark \\
+API & Application Programming Interface \\
+AutoML & Automated Machine Learning \\
+CV & Cross-Validation \\
+EI & Expected Improvement \\
+ML & Machine Learning \\
+RMSE & Root Mean Squared Error \\
+SMBO & Sequential Model-Based Optimization \\
+\end{tabular}
+
+\clearpage
+\chapter*{List of Symbols}
+\addcontentsline{toc}{chapter}{List of Symbols}
+\begin{tabular}{ll}
+$\lambda$ & Hyperparameter configuration \\
+$\mathcal{A}$ & Set of candidate algorithms \\
+$D$ & Dataset \\
+$f$ & Fidelity tuple \\
+$s$ & Fidelity stage index \\
+$q$ & Sample fraction \\
+$k$ & Cross-validation fold count \\
+$b$ & Model budget multiplier \\
+$\mu$ & Surrogate predicted mean cost \\
+$\sigma$ & Surrogate predicted cost standard deviation \\
+\end{tabular}
+
+\clearpage
+\chapter*{Contacts}
+\addcontentsline{toc}{chapter}{Contacts}
+
+\section*{Team Members}
+
+\begin{tabularx}{\textwidth}{p{0.34\textwidth}X p{0.24\textwidth}}
+\rowcolor{gray!35}
+\textbf{Name} & \textbf{Email} & \textbf{Phone Number} \\
+Mohamed Abdelaziz Khater & \href{mailto:mk0015264@gmail.com}{mk0015264@gmail.com} & +201068071299 \\
+\end{tabularx}
+
+\vspace{1.2cm}
+
+\section*{Supervisor}
+
+\begin{tabularx}{\textwidth}{p{0.34\textwidth}X p{0.24\textwidth}}
+\rowcolor{gray!35}
+\textbf{Name} & \textbf{Email} & \textbf{Number} \\
+Dr. Salma Abdelmonem & \href{mailto:salma.cufece@gmail.com}{salma.cufece@gmail.com} & +201114302362 \\
+\end{tabularx}
+
+\clearpage
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+This page is left intentionally empty.
+\end{center}
+\vspace*{\fill}
+\clearpage
+\pagenumbering{arabic}
 
 % -----------------------------------------------------------------------------
 \chapter{Introduction}
 \label{chap:introduction}
 
-\section{Background}
+\systemname{} is an automated machine-learning module developed for the
+Accelera framework. The project addresses the practical difficulty of selecting
+and tuning machine-learning pipelines for tabular classification and regression
+tasks. It provides a unified estimator interface while automating model
+selection, hyperparameter optimization, fidelity scheduling, warm-start
+selection, and ensemble construction.
+
+\section{Motivation and Justification}
 
 Machine-learning development is rarely limited to fitting one estimator. A
-practical workflow requires the practitioner to select a model family, define
+practical workflow requires the user to select a model family, define
 its hyperparameters, decide whether features require scaling, choose an
 evaluation metric, allocate computational resources, and compare alternatives
 without leaking validation information. These decisions interact. For
@@ -177,7 +394,7 @@ exploitation of observations collected during the current search. It must also
 handle practical failures such as invalid parameter combinations, estimator
 exceptions, and trials that exceed their time limit.
 
-\section{Problem Statement}
+\section{Project Objectives and Problem Definition}
 
 The central problem addressed by this work is:
 
@@ -198,7 +415,7 @@ full-cost evaluations and exposing a familiar estimator interface?
   \item isolating estimator failures so that individual candidates cannot terminate the entire search process.
 \end{enumerate}
 
-\section{Motivation}
+\section{Project Need}
 
 Manual model selection is difficult to reproduce because it often depends on
 informal trial-and-error decisions. It is also inefficient when many model
@@ -216,7 +433,7 @@ future pipeline capabilities. The public API follows the fit/predict conventions
 of scikit-learn, reducing the learning cost for users familiar with common
 Python machine-learning libraries.
 
-\section{Aim and Objectives}
+\section{Project Objectives}
 
 The aim of this work is to design and implement a resource-aware AutoML engine
 for tabular classification and regression. Its objectives are:
@@ -233,7 +450,7 @@ for tabular classification and regression. Its objectives are:
   \item return the final model, best score, run history, and leaderboard.
 \end{itemize}
 
-\section{Contributions}
+\section{Project Outcomes}
 
 The current implementation makes the following engineering and methodological
 contributions:
@@ -262,18 +479,62 @@ deep neural architecture search, unsupervised learning, time-series-specific
 validation, streaming updates, or distributed cluster execution. These are
 possible extensions but are outside the present implementation scope.
 
-\section{Organization of This Thesis}
+\section{Document Organization}
 
-Chapter~\ref{chap:background} introduces the technical foundations and related
-AutoML systems. Chapter~\ref{chap:requirements} defines system requirements and
-design constraints. Chapter~\ref{chap:method} presents the proposed search,
-meta-learning, and ensemble methods. Chapter~\ref{chap:implementation} maps
-those methods to the source-code architecture. Chapter~\ref{chap:experiments-results}
-describes the benchmark protocol and evaluates predictive quality and runtime.
+Chapter~\ref{chap:market} presents the market visibility study.
+Chapter~\ref{chap:literature} introduces the technical foundations and related
+AutoML systems. Chapter~\ref{chap:design} describes requirements, design
+decisions, implementation architecture, and the implemented approach.
+Chapter~\ref{chap:testing} presents testing and benchmark verification.
+Chapter~\ref{chap:conclusion} concludes the report and outlines future work.
 
 % -----------------------------------------------------------------------------
-\chapter{Background and Related Work}
-\label{chap:background}
+\chapter{Market Visibility Study}
+\label{chap:market}
+
+This chapter discusses the market context for \systemname{} and explains why
+an Accelera-native AutoML component is useful. It identifies the expected users
+of the module, surveys related AutoML tools, and summarizes the practical value
+of reducing repeated manual model-selection effort.
+
+\section{Target Customers}
+
+The target customers for \systemname{} are data scientists, machine-learning
+engineers, researchers, and software developers who need a competitive tabular
+classification or regression baseline without manually testing many estimator
+families and hyperparameter settings.
+
+\section{Market Survey}
+
+Several AutoML tools address similar needs. Auto-sklearn combines Bayesian
+optimization, meta-learning, and ensembles. FLAML emphasizes low-cost search
+under limited resources. TPOT uses evolutionary pipeline search, while
+AutoGluon Tabular focuses on strong stacked ensembles through a high-level
+interface. \systemname{} is positioned as an Accelera-native alternative that
+keeps the public estimator interface familiar while exposing internal search,
+fidelity, and ensemble decisions for project-specific extension.
+
+\section{Business Case and Financial Analysis}
+
+The business value of \systemname{} comes from reducing the engineering time
+required to establish reliable machine-learning baselines. Instead of assigning
+a developer to manually compare preprocessing choices, models, and
+hyperparameters, a project can run a bounded AutoML search and inspect the
+resulting leaderboard. Operational costs are
+limited because the module runs locally inside the user environment and does
+not require a hosted service. Potential value increases when the same module is
+reused across many Accelera projects, where each saved modeling cycle reduces
+repeated manual effort.
+% -----------------------------------------------------------------------------
+\chapter{Literature Survey}
+\label{chap:literature}
+
+This chapter introduces the technical background needed to understand the
+project. It covers combined algorithm selection and hyperparameter
+optimization, search strategies, multi-fidelity evaluation, meta-learning,
+ensemble learning, and related AutoML systems. The chapter ends by positioning
+\systemname{} relative to existing tools and explaining the concepts used in
+the implemented approach.
 
 \section{Combined Algorithm Selection and Hyperparameter Optimization}
 
@@ -422,16 +683,34 @@ AutoML engine that integrates directly with the Accelera codebase and exposes
 its search state for later research and experimentation.
 
 % -----------------------------------------------------------------------------
-\chapter{Requirements and System Analysis}
-\label{chap:requirements}
+\chapter{System Design and Architecture}
+\label{chap:design}
 
-\section{Stakeholders and Use Cases}
+The \systemname{} module was designed as a resource-aware AutoML workflow for
+supervised tabular classification and regression. The design starts from a
+simple user-facing estimator interface, then builds an internal search process
+that validates the input data, constructs a conditional configuration space,
+evaluates candidate pipelines, and selects a final fitted model. The
+implementation was built around separate internal responsibilities for
+configuration-space construction, candidate evaluation, optimization,
+meta-learning warm starts, timeout handling, and ensemble selection so that each
+part can be tested and extended without changing the public interface.
 
-The primary user is a data scientist or developer who has a supervised dataset
-and wants a competitive baseline without manually enumerating estimators. A
-secondary user is a researcher who needs access to the run history,
-leaderboard, fidelity stages, and ensemble decisions. A maintainer must be able
-to add a model family without rewriting the optimization engine.
+\section{Overview and Assumptions}
+
+\systemname{} automates supervised tabular machine-learning pipeline selection
+for classification and regression tasks. The module receives a dataset and user
+configuration, searches over valid model and hyperparameter configurations,
+evaluates candidates under resource limits, and returns a fitted final model
+together with inspection outputs such as the leaderboard and run history.
+
+\medskip
+
+\noindent The primary user is a data scientist or developer who has a supervised
+dataset and wants a competitive baseline without manually enumerating
+estimators. A secondary user is a researcher who needs access to the run
+history, leaderboard, fidelity stages, and ensemble decisions. A maintainer must
+be able to add a model family without rewriting the optimization engine.
 
 \medskip
 
@@ -447,6 +726,33 @@ to add a model family without rewriting the optimization engine.
   \item inspect the best score, leaderboard, and complete run history;
 \end{itemize}
 
+\noindent The design assumes that the input data can be represented as tabular
+feature and target arrays.
+
+\section{System Architecture}
+
+At a high level, \systemname{} follows a pipeline architecture. The user
+interacts with a public estimator, the estimator validates the input data, the
+AutoML engine builds a task-specific search space, and the optimizer repeatedly
+selects candidate configurations for evaluation. The evaluator scores
+candidates using cross-validation and returns structured results to the
+optimizer. Meta-learning can provide warm-start configurations, and the ensemble
+stage can combine strong candidates before final model selection.
+
+\subsection{Block Diagram}
+
+Figure~\ref{fig:automl-block-diagram} shows the main blocks of the
+\systemname{} module and the flow between user input, search, evaluation, and
+final output.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{block_diagram.png}
+\caption{Block diagram of the Accelera AutoML module.}
+\label{fig:automl-block-diagram}
+\end{figure}
+
+\clearpage
 \section{Functional Requirements}
 
 \begin{longtable}{p{0.12\textwidth}p{0.78\textwidth}}
@@ -495,18 +801,12 @@ FR-12 & Independent trials shall support process-level parallel execution. \\
         without corrupting the parent search process.
   \item \textbf{Inspectability:} failed and successful trials should remain in
         the run history with status, duration, score, cost, and fidelity data.
-  \item \textbf{Packaging:} runtime metadata required by meta-learning should
-        be distributed with the Python package.
 \end{itemize}
 
 \section{Constraints and Assumptions}
 
 The current implementation is constrained by the interfaces of the underlying
-estimators. Some model parameters represent iterations, estimators, or depth,
-so the meaning of a model-budget multiplier is component-specific. Process
-timeouts depend on multiprocessing behavior and may have platform-specific
-overhead. In addition, model libraries such as CatBoost, LightGBM, and XGBoost
-must be installed for their registered components to be imported.
+estimators.
 
 \medskip
 
@@ -515,61 +815,11 @@ Classification uses stratified splitting where possible, while regression uses
 ordinary K-fold or shuffle splitting. Specialized grouped, temporal, or spatial
 validation is outside the current design.
 
-\section{Risk Analysis}
-
-\begin{table}[H]
-\centering
-\caption{Principal technical risks and current mitigations}
-\label{tab:technical-risks}
-
-\renewcommand{\arraystretch}{1.15}
-\begin{tabularx}{\textwidth}
-{
->{\raggedright\arraybackslash}p{0.24\textwidth}
->{\raggedright\arraybackslash}p{0.28\textwidth}
-X
-}
-\toprule
-\textbf{Risk} & \textbf{Effect} & \textbf{Mitigation} \\
-\midrule
-
-Invalid configuration &
-Trial exception or meaningless score &
-Conditional space definitions and failure results. \\
-
-Long-running estimator &
-Search exceeds its budget &
-Per-run process timeout and termination. \\
-
-Nested parallelism &
-CPU oversubscription &
-Separate search, stack, and inner job controls. \\
-
-Class imbalance &
-Misleading accuracy or failed folds &
-Stratification, class-weight support, and fold-count adjustment. \\
-
-Small datasets &
-Unstable high-fold validation &
-Effective fold count bounded by available class samples. \\
-
-Meta-data mismatch &
-Invalid historical configuration &
-Filtering by allowed models and guarded conversion to ConfigSpace. \\
-
-Overfitted ensemble &
-Inflated training performance &
-Out-of-fold predictions for meta-model fitting. \\
-
-\bottomrule
-\end{tabularx}
-\end{table}
 
 % -----------------------------------------------------------------------------
-\chapter{Proposed AutoML Method}
-\label{chap:method}
+\section{Accelera AutoML Module Design}
 
-\section{Method Overview}
+\subsection{Method Overview}
 
 The complete method is organized as the following sequence:
 
@@ -583,180 +833,692 @@ The complete method is organized as the following sequence:
   \item select new candidates by expected improvement;
   \item promote strong candidates through higher fidelity stages;
   \item fit the best full-fidelity individual configuration;
-  \item optionally construct and evaluate an ensemble; and
+  \item optionally construct and evaluate an ensemble.
   \item return whichever fitted candidate has the stronger validation score.
 \end{enumerate}
 
-\section{Configuration-Space Construction}
+\subsection{Configuration-Space Construction}
 
-Classification and regression use independent component registries. Each
-component specifies a model name, hyperparameter factory, conditional rules,
-and estimator builder. The global configuration contains a categorical
-\texttt{model\_name}. Model-specific hyperparameters are activated only when
-their model is selected. This prevents the optimizer from treating irrelevant
-parameters as active decisions.
+The configuration space defines the set of machine-learning pipelines that the
+AutoML engine is allowed to explore. In this work, classification and regression
+use independent component registries because the available estimators and their
+valid hyperparameters differ between task types. Each component in a registry
+specifies four main elements: a model name, a hyperparameter factory, conditional
+rules, and an estimator builder.
+\\
+The global configuration contains a categorical variable called
+\texttt{model\_name}. This variable represents the learning algorithm selected
+for a trial. After a model is selected, only the hyperparameters belonging to
+that model are activated. Hyperparameters belonging to other models remain
+inactive and are ignored during evaluation. This conditional structure prevents
+the optimizer from treating irrelevant parameters as active decisions. For
+example, the number of neighbors is meaningful for a k-nearest-neighbors model,
+but it is not meaningful for a random forest or a support-vector machine.
+\\
+Formally, let the set of candidate models be
 
-\medskip
+\[
+\mathcal{M} = \{m_1, m_2, \ldots, m_k\}.
+\]
+\\
+Each model \(m_i\) has its own hyperparameter space \(\Lambda_i\). The full
+conditional configuration space can be written as
 
-\noindent Before construction, the engine resolves an allowed model set. The user may
-provide this set explicitly. The engine can also remove incompatible models
-based on dataset properties, such as algorithms whose assumptions conflict
-with negative feature values. Restricting the search space reduces invalid
-trials and allows domain knowledge to be expressed without modifying the
-optimizer.
+\[
+\Lambda =
+\bigcup_{i=1}^{k}
+\left(
+\{\texttt{model\_name} = m_i\} \times \Lambda_i
+\right).
+\]
+\\
+This formulation means that each valid configuration consists of two parts: the
+selected model and the hyperparameters that are valid for that selected model.
+Therefore, the optimizer searches only within the subspace associated with the
+chosen estimator, instead of searching over all possible hyperparameters at the
+same time.
 
-\section{Evaluation and Cost Conversion}
+\begin{table}[H]
+\centering
+\caption{Example of conditional hyperparameter activation}
+\label{tab:conditional-hyperparameters}
+\begin{tabular}{p{0.26\textwidth}p{0.34\textwidth}p{0.30\textwidth}}
+\toprule
+Selected model & Active hyperparameters & Inactive hyperparameters \\
+\midrule
+Random forest
+& number of trees, maximum depth, split criterion
+& number of neighbors, kernel type \\
+\midrule
+K-nearest neighbors
+& number of neighbors, distance metric, weighting strategy
+& number of trees, maximum depth \\
+\midrule
+Support-vector machine
+& kernel type, regularization parameter, gamma
+& number of neighbors, tree depth \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-For configuration $\lambda$, the evaluator builds a model and a list of
-candidate preprocessing strategies. Each model--preprocessor pair is scored by
-cross-validation, and the best successful preprocessing result is retained.
-Let $m(\lambda)$ be the mean validation metric. The optimizer minimizes a cost
-$c(\lambda)$ obtained from the metric. For maximization metrics, the evaluator
-uses an inverse or negated form so that smaller cost remains better. Failed
-evaluations receive a defined failure cost and an error description.
+\noindent Before constructing the final search space, the engine resolves the allowed model
+set. The user may provide this set explicitly when only specific algorithms
+should be considered. If no explicit set is provided, the engine starts from the
+default registry for the task. The engine can then remove incompatible models
+based on dataset properties. For example, some algorithms assume non-negative
+feature values and can be excluded when the training data contains negative
+values.
 
-\medskip
+\noindent Restricting the search space has two main benefits. First, it reduces invalid
+trials because the optimizer is less likely to sample configurations that cannot
+be evaluated successfully. Second, it allows domain knowledge to be included
+without changing the optimizer itself. The optimizer only receives the final
+valid configuration space, while model compatibility and filtering rules are
+handled by the AutoML engine. This separation makes the system easier to extend,
+because new models can be added by registering their hyperparameters,
+conditions, and estimator builder without rewriting the search procedure.
 
-\noindent Classification uses stratified folds and stratified subsampling. Regression
-uses K-fold validation and ordinary random subsampling. The classifier adjusts
-the requested fold count when the smallest class cannot support that number of
-folds.
+\subsection{Evaluation and Cost Conversion}
 
-\section{Three-Stage Fidelity Schedule}
+After a configuration is sampled, the evaluator is responsible for estimating
+its predictive performance. For a configuration \(\lambda\), the engine first
+builds the corresponding estimator and determines the preprocessing strategies
+that are allowed for the selected model. The evaluator then tests each
+model-preprocessor pair using cross-validation. Among all successful
+preprocessing choices, the pair with the best validation performance is retained
+as the evaluation result for \(\lambda\).
 
-The default fidelity schedule is shown in Table~\ref{tab:fidelity-schedule}.
+\noindent Let \(m(\lambda)\) denote the mean validation metric obtained by
+cross-validation. Since different metrics have different optimization
+directions, the evaluator converts the metric value into a cost value
+\(c(\lambda)\). The optimizer always minimizes this cost, so smaller values
+indicate better configurations.
+
+\noindent For metrics that are naturally minimized, such as mean squared error or mean
+absolute error, the cost can be used directly:
+
+\[
+c(\lambda) = m(\lambda).
+\]
+
+\noindent For metrics that are naturally maximized, such as accuracy, \(F_1\)-score, or
+\(R^2\), the evaluator converts the score into a minimization objective. A common
+conversion is
+
+\[
+c(\lambda) = 1 - m(\lambda),
+\]
+
+\noindent when the metric is bounded between 0 and 1. For metrics that are not strictly
+bounded in this range, the evaluator may instead use a negated form:
+
+\[
+c(\lambda) = -m(\lambda).
+\]
+
+\noindent This conversion gives the optimizer a consistent objective regardless of the
+original metric. In all cases, minimizing \(c(\lambda)\) corresponds to improving
+the validation performance of the configuration.
+
+\begin{table}[H]
+\centering
+\caption{Examples of metric-to-cost conversion}
+\label{tab:metric-cost-conversion}
+\begin{tabular}{p{0.28\textwidth}p{0.26\textwidth}p{0.32\textwidth}}
+\toprule
+Metric & Original direction & Example cost conversion \\
+\midrule
+Accuracy & Maximize & \(c(\lambda) = 1 - m(\lambda)\) \\
+\(F_1\)-score & Maximize & \(c(\lambda) = 1 - m(\lambda)\) \\
+\(R^2\) score & Maximize & \(c(\lambda) = -m(\lambda)\) \\
+Mean squared error & Minimize & \(c(\lambda) = m(\lambda)\) \\
+Mean absolute error & Minimize & \(c(\lambda) = m(\lambda)\) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent If an evaluation fails, the evaluator does not allow the error to terminate the
+complete AutoML search. Instead, the failed configuration receives a predefined
+failure cost and the error message is stored in the run history. This allows the
+optimizer to continue exploring other configurations while still recording which
+trials were invalid or unsuccessful.
+
+\noindent The validation procedure depends on the learning task. For classification,
+stratified cross-validation is used so that each fold preserves the class
+distribution as much as possible. Stratified subsampling is also used when only a
+fraction of the training data is evaluated at a lower fidelity. This is important
+because random subsampling may accidentally remove minority classes from small
+subsets.
+
+\noindent For regression, ordinary K-fold cross-validation is used because there are no
+discrete class labels to preserve. Random subsampling is also sufficient for
+regression tasks. In classification, the requested number of folds may be
+adjusted when the smallest class does not contain enough samples to support the
+requested fold count. For example, if the smallest class contains only three
+samples, then using five stratified folds is not valid. In this case, the
+classifier reduces the fold count to a feasible value. This prevents invalid
+cross-validation splits and improves the robustness of the evaluation process.
+
+\subsection{Three-Stage Fidelity Schedule}
+
+To reduce the cost of the AutoML search, the engine evaluates configurations
+using a three-stage fidelity schedule. Instead of evaluating every configuration
+using the full dataset, the full number of cross-validation folds, and the full
+model capacity, the system begins with a cheaper approximation. Only
+configurations that perform well at cheaper stages are promoted to more
+expensive stages.
+
+\noindent The default fidelity schedule is shown in Table~\ref{tab:fidelity-schedule}.
 
 \begin{table}[H]
 \centering
 \caption{Default evaluation fidelity stages}
 \label{tab:fidelity-schedule}
-
-\renewcommand{\arraystretch}{1.15}
-\begin{tabularx}{\textwidth}
-{
->{\centering\arraybackslash}p{0.12\textwidth}
->{\centering\arraybackslash}p{0.20\textwidth}
->{\centering\arraybackslash}p{0.14\textwidth}
->{\centering\arraybackslash}p{0.18\textwidth}
-X
-}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{c c c c p{0.45\textwidth}}
 \toprule
-\textbf{Stage} & \textbf{Sample fraction} & \textbf{CV folds} & \textbf{Model budget} & \textbf{Purpose} \\
+\textbf{Stage} &
+\textbf{Data} &
+\textbf{Folds} &
+\textbf{Budget} &
+\textbf{Purpose} \\
 \midrule
-0 & 0.20 & 2 & 0.25 & Inexpensive screening. \\
-1 & 0.50 & 3 & 0.60 & Intermediate confirmation. \\
-2 & 1.00 & Configured value & 1.00 & Full-fidelity ranking. \\
+0 & 20\% & 2 & 25\% &
+Inexpensive screening of many configurations. \\
+
+1 & 50\% & 3 & 60\% &
+Intermediate confirmation of promising configurations. \\
+
+2 & 100\% & Configured value & 100\% &
+Full-fidelity ranking and final comparison. \\
 \bottomrule
-\end{tabularx}
+\end{tabular}
 \end{table}
 
-\medskip
+\noindent Let \(s \in \{0,1,2\}\) denote the fidelity stage. Each stage is described by
+three values: the sample fraction \(\rho_s\), the number of cross-validation
+folds \(k_s\), and the model budget \(b_s\). Therefore, the trial specification
+at stage \(s\) can be written as
 
-\noindent The evaluator scales supported capacity parameters using the model budget. A
-configuration is initially scheduled at stage zero. After a successful result,
-the optimizer records the cost in a per-configuration state. Once enough
-observations exist, only candidates inside the configured top promotion
-quantile advance. This design spends the most expensive evaluations on
-candidates that were competitive at a cheaper stage.
+\[
+\tau_s = (\rho_s, k_s, b_s).
+\]
 
-\section{Surrogate-Guided Candidate Selection}
+\noindent The sample fraction controls how much of the training data is used during
+evaluation. The number of folds controls the reliability of the validation
+estimate. The model budget controls supported model-capacity parameters, such as
+the number of estimators in ensemble models or the number of training iterations
+in iterative models. Early stages are therefore cheaper because they use less
+data, fewer folds, and smaller model budgets.
 
-Every ConfigSpace configuration is converted into a numerical vector. Missing
-or inactive dimensions are replaced by finite sentinel values. The vector is
-then concatenated with the fidelity representation
+\noindent The evaluator scales supported capacity parameters using the model budget. If
+\(\theta\) is a capacity parameter and \(\theta_{\max}\) is the value requested
+by the sampled configuration, the stage-specific value can be written as
 
-\begin{equation}
-  x' = [x_{\lambda}, s, q, k, b].
-\end{equation}
+\[
+\theta_s =
+\max
+\left(
+\theta_{\min},
+\left\lfloor b_s \theta_{\max} \right\rfloor
+\right),
+\]
 
-\medskip
-\noindent After the initial exploration phase, a random-forest regressor is fitted to
-finite observed costs. If tree $t$ predicts $\hat{c}_t(x)$, the surrogate mean
-and standard deviation are estimated as
+\noindent where \(\theta_{\min}\) is the minimum valid value for that parameter. This keeps
+the reduced model valid while still preserving the relative capacity requested
+by the configuration.
 
-\begin{align}
-  \mu(x) &= \frac{1}{T}\sum_{t=1}^{T}\hat{c}_t(x), \\
-  \sigma(x) &= \sqrt{\frac{1}{T}\sum_{t=1}^{T}
-  \left(\hat{c}_t(x)-\mu(x)\right)^2}.
-\end{align}
+\noindent A newly sampled configuration is first evaluated at stage zero. After a
+successful evaluation, the optimizer stores the observed cost in a
+per-configuration state. Once enough observations are available at a given
+stage, the optimizer ranks configurations according to their costs. Since the
+optimizer minimizes cost, smaller values are better. Only configurations inside
+the configured top promotion quantile are advanced to the next stage.
 
-For minimization, expected improvement over the best observed cost $c^+$ is
+\noindent The promotion rule can be written as
 
-\begin{align}
-  I(x) &= c^+ - \mu(x) - \xi, \\
-  z(x) &= \frac{I(x)}{\sigma(x)}, \\
-  \operatorname{EI}(x) &= I(x)\Phi(z) + \sigma(x)\phi(z),
-\end{align}
+\[
+\lambda \text{ is promoted from stage } s
+\quad \Longleftrightarrow \quad
+c_s(\lambda) \leq Q_q
+\left(
+\{c_s(\lambda') : \lambda' \in \mathcal{C}_s\}
+\right),
+\]
 
-\medskip
+\noindent where \(c_s(\lambda)\) is the cost of configuration \(\lambda\) at stage \(s\),
+\(\mathcal{C}_s\) is the set of configurations evaluated at stage \(s\), and
+\(Q_q\) is the cost threshold for the configured promotion quantile.
 
-\noindent where $\Phi$ and $\phi$ are the standard normal cumulative distribution and
-density functions. The optimizer samples a candidate pool, removes duplicate
-vectors, computes EI, and schedules the highest-ranked unseen configuration.
-This procedure avoids exhaustive enumeration of a mixed conditional space.
+\begin{figure}[H]
+\centering
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{c c c c c}
+\textbf{Stage 0} &
+\(\longrightarrow\) &
+\textbf{Stage 1} &
+\(\longrightarrow\) &
+\textbf{Stage 2} \\
+Cheap screening &
+Top quantile &
+Confirmation &
+Top quantile &
+Full ranking \\
+\end{tabular}
+\caption{Simplified promotion flow in the three-stage fidelity schedule}
+\label{fig:fidelity-promotion-flow}
+\end{figure}
 
-\section{Warm-Start Selection}
+\noindent The schedule spends the largest computational cost on configurations that were
+already competitive under cheaper approximations. This avoids applying
+full-fidelity evaluation to every sampled configuration and makes the search
+more efficient.
 
-For a new dataset, the engine computes the task-specific metafeature vector
-$m_D$. Historical datasets are represented by stored vectors $m_i$. A
-normalized distance ranks historical datasets by similarity. Configurations
-are gathered from the nearest datasets, filtered to the active model set,
-deduplicated by model and parameter signature, and converted to ConfigSpace
-configurations. The number of datasets, configurations per dataset, and total
-warm starts are bounded by user parameters.
+\subsection{Surrogate-Guided Candidate Selection}
 
-\medskip
+The search space used by the AutoML engine contains categorical,
+continuous, integer, and conditional hyperparameters. Since the surrogate model
+requires numerical input, every sampled ConfigSpace configuration is first
+converted into a fixed-length numerical vector. Active hyperparameters are
+encoded using their numerical or encoded categorical values. Missing or inactive
+dimensions are replaced by finite sentinel values so that all configurations
+have the same vector length.
 
-\noindent Warm starts enter the initial configuration queue before uninformed samples.
-They do not bypass evaluation and therefore cannot directly force the final
-choice. If a historical configuration is invalid under the current search
-space, conversion is skipped safely.
+\noindent Let \(x_{\lambda}\) denote the vector representation of configuration
+\(\lambda\). Since the same configuration can be evaluated at different fidelity
+levels, the vector is extended with the fidelity information. The augmented
+input vector is defined as
 
-\section{Parallel Execution and Timeout Control}
+\[
+x' = [x_{\lambda}, s, q, k, b],
+\]
 
-The optimizer can suggest a batch containing promotions, warm starts, and new
-surrogate-selected or random configurations. For parallel batches, each trial
-runs in its own process and communicates an \texttt{EvaluationResult} through a
-queue. The parent process periodically checks queues and elapsed time. A process
-that exceeds \texttt{per\_run\_time\_limit} is terminated and recorded with
-timeout status.
+\noindent where \(s\) is the fidelity stage, \(q\) is the sample fraction, \(k\) is the
+number of cross-validation folds, and \(b\) is the model budget. Including these
+values allows the surrogate model to distinguish between cheap low-fidelity
+evaluations and expensive full-fidelity evaluations of the same configuration.
 
-\medskip
+\noindent During the initial exploration phase, configurations are sampled without relying
+on the surrogate model. This provides the optimizer with a set of observed
+configuration--cost pairs. After enough successful evaluations have been
+collected, the optimizer fits a random-forest regressor using only finite
+observed costs. Failed evaluations or non-finite results are excluded from the
+surrogate training data because they do not provide a reliable numerical target.
 
-\noindent Process-level execution is used because a timed-out estimator cannot always be
-interrupted reliably from a thread. The design also separates
-\texttt{search\_n\_parallel} from internal estimator job counts, allowing the
-caller to limit nested parallelism.
+\noindent The random forest acts as an approximation of the unknown cost function. If
+tree \(t\) predicts the cost \(\hat{c}_t(x)\) for candidate vector \(x\), then
+the surrogate mean prediction is estimated as
 
-\section{Final Model and Ensemble Selection}
+\[
+\mu(x) =
+\frac{1}{T}
+\sum_{t=1}^{T}
+\hat{c}_t(x),
+\]
 
-The strongest full-fidelity configuration is rebuilt and fitted on all
-available training data. If ensembles are disabled, this model is returned
-directly. Otherwise, successful run-history candidates are considered for
-voting or stacking.
+\noindent where \(T\) is the number of trees in the forest. The uncertainty estimate is
+computed from the disagreement between the trees:
 
-\medskip
+\[
+\sigma(x) =
+\sqrt{
+\frac{1}{T}
+\sum_{t=1}^{T}
+\left(
+\hat{c}_t(x) - \mu(x)
+\right)^2
+}.
+\]
 
-\noindent For voting, the engine selects a bounded set of competitive estimators and
-constructs a task-specific voting estimator. For stacking, candidate diversity
-is considered before selecting base estimators. Every base estimator is wrapped
-in bagging and produces out-of-fold predictions. Forward selection begins with
-the strongest single base model and adds candidates while they improve the
-meta-model score or until the minimum base-model requirement is satisfied.
+\noindent A small value of \(\sigma(x)\) means that the trees give similar predictions,
+while a larger value means that the trees disagree more strongly. Therefore,
+\(\mu(x)\) estimates the expected cost of a candidate, and \(\sigma(x)\)
+estimates the uncertainty of that prediction.
 
-\medskip
+\noindent The optimizer then uses expected improvement to rank candidate configurations.
+Because the objective is to minimize cost, improvement is measured relative to
+the best observed cost \(c^+\). For a candidate \(x\), the predicted improvement
+is
 
-\noindent For classification, probability blocks are aligned across class labels before
-being passed to logistic regression. For regression, each base model contributes
-one numeric prediction column and ridge regression acts as the meta-model. The
-ensemble is evaluated using the same task metric. It replaces the individual
-model only when its validation score is at least as strong.
+\[
+I(x) = c^+ - \mu(x) - \xi,
+\]
+
+\noindent where \(\xi\) is a small exploration parameter. A larger value of \(\xi\)
+encourages the optimizer to prefer candidates that are more likely to produce a
+clear improvement rather than only a small predicted gain.
+
+\noindent The standardized improvement is
+
+\[
+z(x) =
+\frac{I(x)}{\sigma(x)}.
+\]
+
+\noindent The expected improvement is then computed as
+
+\[
+\operatorname{EI}(x) =
+I(x)\Phi(z)
++
+\sigma(x)\phi(z),
+\]
+
+\noindent where \(\Phi\) is the standard normal cumulative distribution function and
+\(\phi\) is the standard normal probability density function. The first term
+rewards candidates with a low predicted cost, while the second term rewards
+candidates with higher predictive uncertainty. Therefore, expected improvement
+balances exploitation and exploration.
+
+\begin{table}[H]
+\centering
+\caption{Main quantities used in surrogate-guided candidate selection}
+\label{tab:surrogate-quantities}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{p{0.22\textwidth}p{0.68\textwidth}}
+\toprule
+\textbf{Symbol} & \textbf{Meaning} \\
+\midrule
+\(x_{\lambda}\) &
+Numerical vector representation of configuration \(\lambda\). \\
+
+\(x'\) &
+Augmented vector containing configuration and fidelity information. \\
+
+\(\mu(x)\) &
+Mean cost predicted by the random-forest surrogate. \\
+
+\(\sigma(x)\) &
+Prediction uncertainty estimated from disagreement between trees. \\
+
+\(c^+\) &
+Best observed cost so far. \\
+
+\(\xi\) &
+Exploration parameter used in expected improvement. \\
+
+\(\operatorname{EI}(x)\) &
+Expected improvement score used to rank candidate configurations. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent In each surrogate-guided step, the optimizer samples a pool of candidate
+configurations from the conditional search space. The candidates are converted
+to numerical vectors, duplicate vectors are removed, and the remaining unseen
+candidates are scored using expected improvement. The candidate with the highest
+expected improvement is scheduled for evaluation.
+
+\begin{figure}[H]
+\centering
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{c}
+Sample candidate pool \\
+\(\Downarrow\) \\
+Convert configurations to numerical vectors \\
+\(\Downarrow\) \\
+Append fidelity information \\
+\(\Downarrow\) \\
+Remove duplicate and already-evaluated candidates \\
+\(\Downarrow\) \\
+Predict \(\mu(x)\) and \(\sigma(x)\) using the surrogate \\
+\(\Downarrow\) \\
+Compute expected improvement \\
+\(\Downarrow\) \\
+Select the highest-ranked unseen candidate
+\end{tabular}
+\caption{Surrogate-guided candidate-selection workflow}
+\label{fig:surrogate-candidate-selection}
+\end{figure}
+
+\noindent This procedure avoids exhaustive enumeration of the mixed conditional search
+space. Instead of evaluating every possible configuration, the optimizer uses the
+surrogate model to focus the search on configurations that are either predicted
+to perform well or have enough uncertainty to be worth exploring.
+
+\subsection{Warm-Start Selection}
+
+Warm-start selection gives the optimizer an informed starting point by reusing
+configurations that performed well on related historical datasets. For a new
+dataset \(D\), the engine first computes a task-specific metafeature vector
+\(m_D\). Historical datasets are represented by stored metafeature vectors
+\(m_i\), together with their previously successful configurations.
+
+\noindent The similarity between the new dataset and each historical dataset is measured
+using a normalized distance. Let \(r\) be a scaling vector for the metafeature
+dimensions. The distance between the current dataset \(D\) and a historical
+dataset \(i\) is
+
+\[
+d(D,i) =
+\left\|
+\frac{m_D - m_i}{r}
+\right\|_2 .
+\]
+
+\noindent The normalization prevents large-scale metafeatures, such as the number of
+samples or features, from dominating smaller-scale metafeatures. Historical
+datasets are then ranked by increasing distance, so datasets with smaller
+distances are considered more similar to the current task.
+
+\noindent After ranking the historical datasets, the engine gathers candidate
+configurations from the nearest datasets. These configurations are not inserted
+blindly into the search. First, configurations whose model names are not present
+in the active model set are removed. This ensures that warm starts respect the
+current user constraints and dataset compatibility checks. Next, configurations
+are deduplicated using their model name and parameter signature, so repeated
+historical suggestions do not occupy multiple positions in the initial queue.
+
+\noindent Each remaining historical configuration is then converted into a valid
+ConfigSpace configuration for the current search space. During this conversion,
+invalid or unsupported parameters are skipped safely. This can happen, for
+example, when the current version of a component does not contain a parameter
+that existed in a stored historical configuration, or when the current active
+space has stricter bounds. A failed conversion does not stop the search; it only
+removes that warm-start candidate.
+
+\begin{figure}[H]
+\centering
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{rcl}
+Current dataset \(D\)
+& \(\xrightarrow{\text{extract}}\) &
+Metafeatures \(m_D\) \\
+
+Historical metafeatures \(m_i\)
+& \(\xrightarrow{\text{compare with } m_D}\) &
+Distances \(d(D,i)\) \\
+
+Distances \(d(D,i)\)
+& \(\xrightarrow{\text{sort}}\) &
+Nearest historical datasets \\
+
+Nearest datasets
+& \(\xrightarrow{\text{collect}}\) &
+Historical configurations \\
+
+Historical configurations
+& \(\xrightarrow{\text{filter + deduplicate}}\) &
+Valid warm-start candidates \\
+
+Valid warm-start candidates
+& \(\xrightarrow{\text{convert}}\) &
+Initial configuration queue \\
+\end{tabular}
+\caption{Warm-start transfer from similar historical datasets}
+\label{fig:warm-start-transfer}
+\end{figure}
+
+\noindent The number of historical datasets used, the number of configurations taken from
+each dataset, and the total number of warm-start configurations are bounded by
+user parameters. These bounds keep the warm-start stage controlled and prevent
+historical suggestions from dominating the search.
+
+\noindent Warm starts are inserted into the initial configuration queue before uninformed
+random samples. However, they are still evaluated on the current dataset using
+the same validation and cost-conversion procedure as all other configurations.
+Therefore, warm starts only guide the early search; they do not bypass
+evaluation and cannot directly force the final selected model.
+
+\subsection{Parallel Execution and Timeout Control}
+
+The optimizer may suggest a batch of trials in one scheduling step. A batch can
+contain promoted configurations from earlier fidelity stages, warm-start
+configurations from historical datasets, and newly proposed configurations
+selected either by the surrogate model or by random sampling. This batching
+allows the search to use multiple CPU cores while keeping the optimizer logic
+centralized in the parent process.
+
+\noindent For parallel execution, each trial is executed in a separate worker process. The
+worker receives the configuration, builds the corresponding estimator, evaluates
+it, and returns an \texttt{EvaluationResult} through a process-safe queue. The
+parent process does not wait passively for all workers to finish. Instead, it
+periodically checks the worker queues, collects completed results, and monitors
+the elapsed time of each running process.
+
+\noindent If a worker process exceeds the configured
+\texttt{per\_run\_time\_limit}, the parent process terminates it and records the
+trial with a timeout status. The timeout result is stored in the run history in
+the same way as other failed evaluations, together with a failure cost. This
+ensures that one slow or non-terminating estimator does not block the complete
+AutoML search.
+
+\noindent The timeout mechanism can be summarized as follows:
+
+\begin{figure}[H]
+\centering
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{rcl}
+Optimizer batch
+& \(\longrightarrow\) &
+Worker processes \\
+
+Worker process
+& \(\longrightarrow\) &
+Evaluate one trial \\
+
+Successful worker
+& \(\longrightarrow\) &
+Return \texttt{EvaluationResult} through queue \\
+
+Slow worker
+& \(\longrightarrow\) &
+Terminate after \texttt{per\_run\_time\_limit} \\
+
+Parent process
+& \(\longrightarrow\) &
+Collect results and update run history \\
+\end{tabular}
+\caption{Process-level parallel execution and timeout handling}
+\label{fig:parallel-timeout-control}
+\end{figure}
+
+\noindent Process-level execution is used instead of thread-level execution because some
+estimators cannot always be interrupted reliably once they enter a long-running
+fit procedure. Terminating a separate process is more robust than attempting to
+stop a thread inside the same Python process. This is especially useful when an
+estimator hangs, becomes extremely slow, or calls compiled code that does not
+regularly return control to Python.
+
+\noindent Overall, this design improves robustness and resource control. The optimizer can
+continue receiving valid results even when some trials fail or time out, and the
+caller can control the amount of parallel work performed by the search.
+
+
+\subsection{Final Model and Ensemble Selection}
+
+After the search phase finishes, the engine selects the strongest configuration
+evaluated at full fidelity. This configuration is rebuilt from its stored model
+name, preprocessing choice, and hyperparameters, and then fitted on all
+available training data. This final refitting step is necessary because the
+search phase estimates performance using validation folds, while the final model
+should use the complete training set before being returned to the user.
+
+\noindent If ensemble construction is disabled, the refitted best individual model is
+returned directly. If ensembles are enabled, the engine considers successful
+candidates from the run history as possible ensemble members. Failed trials,
+timed-out trials, and configurations without valid fitted estimators are ignored.
+This ensures that the ensemble is built only from models that were evaluated
+successfully during the search.
+
+\noindent The ensemble construction stage supports two strategies: voting and stacking.
+For voting, the engine selects a bounded set of competitive estimators from the
+run history. These estimators are combined using a task-specific voting model.
+For classification, the voting ensemble combines class predictions or class
+probabilities. For regression, it combines numeric predictions. Voting is simple
+and robust because it does not train an additional meta-model.
+
+\noindent Stacking uses a more expressive structure. Instead of directly averaging the
+base-model outputs, it trains a meta-model that learns how to combine them. The
+engine first considers candidate diversity before selecting base estimators, so
+the stack is not formed only from many near-identical models. Each selected base
+estimator is wrapped in bagging to improve stability. The base estimators then
+produce out-of-fold predictions, which are used as training features for the
+meta-model.
+
+\noindent Forward selection is used to choose the final set of base estimators for the
+stacking ensemble. The procedure starts with the strongest single candidate.
+Additional candidates are tested one at a time. A candidate is kept if adding it
+improves the validation score of the meta-model. The process stops when no
+remaining candidate improves the score, or when the configured ensemble size is
+reached. However, the minimum base-model requirement is also respected, so the
+engine can include enough base estimators to form a valid stack even if early
+improvements are small.
+
+\noindent For classification, each base estimator may output a probability vector over the
+class labels. Before these outputs are passed to the meta-model, the probability
+columns are aligned according to the global class order. This avoids a common
+problem where different classifiers store class labels in different orders. If
+the columns were not aligned, the meta-model could interpret the probability of
+one class as if it belonged to another class. After alignment, the probability
+blocks from all base estimators are concatenated and passed to logistic
+regression as the classification meta-model.
+
+\noindent For regression, the stacking representation is simpler. Each base estimator
+contributes one numeric prediction column. These columns are concatenated to
+form the meta-feature matrix, and ridge regression is used as the regression
+meta-model. Ridge regression is suitable here because it can combine correlated
+base predictions while controlling the size of the learned coefficients.
+
+\noindent The best individual model is always available as a safe fallback. The ensemble
+is only returned when it performs at least as well as this individual model under
+the same validation metric. The final decision can be written as
+
+\[
+\text{Final model} =
+\begin{cases}
+\text{ensemble}, & \text{if } S_{\text{ens}} \geq S_{\text{best}}, \\
+\text{best individual model}, & \text{otherwise},
+\end{cases}
+\]
+
+\noindent where \(S_{\text{ens}}\) is the validation score of the ensemble and
+\(S_{\text{best}}\) is the validation score of the strongest individual model.
+This rule prevents the system from returning a more complex ensemble unless it
+provides at least the same predictive quality as the best single model. As a
+result, ensemble construction can improve performance when the base models
+complement each other, while still preserving the simpler individual model when
+the ensemble does not provide a measurable benefit.
+
+
+
 
 % -----------------------------------------------------------------------------
-\chapter{System Design and Implementation}
-\label{chap:implementation}
+\section{Chapter Summary}
 
-\section{Package Architecture}
+This chapter presented \systemname{}. It described
+the module overview and assumptions, showed the system architecture and block
+diagram, listed the functional and non-functional requirements, and explained
+the implemented AutoML approach. The module design combines conditional
+configuration-space construction, cross-validated evaluation, staged fidelity,
+surrogate-guided candidate selection, meta-learning warm starts, process-level
+timeout control, and final ensemble selection.
+
+\iffalse
+\section{System Architecture}
+\label{sec:implementation}
+
+\subsection{Package Architecture}
 
 The implementation is stored under
 \modulepath{accelera/src/accelera\_automl/}. Public exports are generated under
@@ -833,7 +1595,7 @@ Packaged historical classification and regression metadata. \\
 \end{tabularx}
 \end{table}
 
-\section{Public Estimator Lifecycle}
+\subsection{Public Estimator Lifecycle}
 
 \texttt{BaseAutoML} extends scikit-learn's \texttt{BaseEstimator}. Its
 \texttt{fit} method validates $X$ and $y$, resets previously fitted state,
@@ -854,7 +1616,7 @@ model. Calling prediction before fitting raises an explicit runtime error.
   \item \texttt{runhistory}: detailed trial records.
 \end{itemize}
 
-\section{Engine Collaboration}
+\subsection{Engine Collaboration}
 
 The engine uses composition rather than embedding all behavior in one class.
 It constructs a configuration space, evaluator, optimizer, and optional
@@ -882,7 +1644,7 @@ User estimator
   -> fitted public estimator
 \end{verbatim}
 
-\section{Model Component Abstraction}
+\subsection{Model Component Abstraction}
 
 Classification and regression components encapsulate four related concerns:
 their public name, hyperparameter definitions, conditional activation rules,
@@ -898,7 +1660,7 @@ gradient-boosting libraries. Because all models do not expose identical
 interfaces, the component builders normalize values such as textual
 representations of \texttt{None}, class weights, and task-specific objectives.
 
-\section{Evaluation Result Model}
+\subsection{Evaluation Result Model}
 
 Every evaluation returns a structured record rather than only a score. The
 record contains the model name, resolved parameters, preprocessing choice,
@@ -907,7 +1669,7 @@ fraction, fold count, and model budget. This representation serves three
 purposes: it supports the optimizer, preserves failure diagnostics, and enables
 leaderboard or experimental analysis without repeating the run.
 
-\section{Meta-Learning Data Packaging}
+\subsection{Meta-Learning Data Packaging}
 
 Classification and regression metadata are stored in separate JSON
 directories. File selection depends on task, metric, and classification target
@@ -916,7 +1678,7 @@ developer-specific absolute directory. The package configuration explicitly
 includes these JSON resources in built wheels so warm starts remain available
 after installation.
 
-\section{Ensemble Implementation Details}
+\subsection{Ensemble Implementation Details}
 
 The classification stacker includes an adapter that guarantees a probability
 interface. If a base model lacks \texttt{predict\_proba}, decision scores are
@@ -932,7 +1694,7 @@ state is stored as a fitted attribute together with its score. This explicit
 state is also used by verbose structural logging and avoids recomputing the
 selection result.
 
-\section{User-Facing Example}
+\subsection{User-Facing Example}
 
 Listing~\ref{lst:usage} shows the intended public API.
 
@@ -970,7 +1732,7 @@ print(model.score(X_test, y_test))
 print(model.return_leaderboard(top_n=3))
 \end{lstlisting}
 
-\section{Current Verification Assets}
+\subsection{Current Verification Assets}
 
 Focused tests cover packaged meta-learning path resolution, compatibility of
 the classification adapter with bagging, and regression stacked-ensemble
@@ -979,7 +1741,7 @@ and for regression using scikit-learn's diabetes dataset. These tests establish
 basic integration behavior; the larger experimental protocol and quantitative
 evaluation will be written in the reserved later chapters.
 
-\section{Chapter Summary}
+\subsection{Chapter Summary}
 
 The implementation maps the proposed method to independently maintainable
 packages. Public estimator classes manage user interaction, the engine
@@ -988,11 +1750,19 @@ controls resource allocation, meta-learning provides initial configurations,
 and ensemble modules construct the final combined candidates. This separation
 supports future replacement or extension of individual subsystems without
 changing the public estimator interface.
+\fi
 
-\chapter{Experiments and Results}
-\label{chap:experiments-results}
+\chapter{System Testing and Verification}
+\label{chap:testing}
 
-\section{Experimental Objectives}
+This chapter explains how the correct operation and performance of
+\systemname{} were tested and verified. It describes the benchmark setup,
+testing strategy, comparative classification and regression results,
+reproduction assets, and threats to validity. The goal is to show both that the
+implementation works as intended and that its measured behavior can be
+inspected and reproduced.
+
+\section{Testing Setup}
 
 The experiments compare \systemname{} with Auto-sklearn, FLAML, and TPOT on
 supervised tabular classification and regression tasks. The evaluation asks
@@ -1002,7 +1772,7 @@ evaluated primarily by accuracy, while regression is evaluated by the
 coefficient of determination ($R^2$), root mean squared error (RMSE), and mean
 absolute error (MAE). Runtime is reported in seconds for both task types.
 
-\section{Benchmark Sources and Protocol}
+\section{Testing Plan and Strategy}
 
 The classification experiments were executed through the open-source
 AutoMLBenchmark (AMLB) runner, available at
@@ -1016,12 +1786,13 @@ AMLB. The reported regression evaluation covers 10 datasets and uses the
 \modulepath{pmlb\_regression} suite with the \modulepath{pmlb\_30m}
 constraint.
 
-All systems were run through the same benchmark interface. The recorded setup
+\noindent All systems were run through the same benchmark interface. The recorded setup
 used one fold and one allocated core per task. The regression time budget was
 1,800 seconds per dataset; the classification constraint allowed up to one
 hour.
 
-\section{Classification Results}
+\clearpage
+\section{Comparative Results to Previous Work: Classification}
 
 Table~\ref{tab:classification-results} summarizes the classification results
 stored with the project. Auto-sklearn obtained the highest mean accuracy at
@@ -1034,6 +1805,8 @@ three systems. Accelera also had the largest number of recorded speed wins.
 \centering
 \caption{Classification benchmark summary.}
 \label{tab:classification-results}
+\small
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lrrrr}
 \toprule
 System & Mean accuracy & Mean time (s) & Accuracy wins & Speed wins \\
@@ -1044,32 +1817,39 @@ Accelera     & 0.879076 & 1201.72 & 6 & 15 \\
 TPOT         & 0.877654 & 3953.78 & 8 & 1 \\
 \bottomrule
 \end{tabular}
+}
 \end{table}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{average_accuracy_time.png}
-\caption{Mean classification accuracy and runtime for the evaluated systems.}
-\label{fig:classification-average}
+\safeincludegraphics[width=\textwidth]{average_accuracy_cls.png}
+\caption{Mean classification accuracy for the evaluated systems.}
+\label{fig:classification-average-accuracy}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\begin{minipage}{0.49\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{thesis_4_datasets_accuracy_bar.png}
-  \textbf{(a)} Accuracy
-\end{minipage}
-\begin{minipage}{0.49\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{thesis_4_datasets_duration_bar.png}
-  \textbf{(b)} Duration
-\end{minipage}
-\caption{Per-dataset classification accuracy and duration on common datasets.}
-\label{fig:classification-common}
+\safeincludegraphics[width=\textwidth]{average_runtime_cls.png}
+\caption{Mean classification runtime for the evaluated systems.}
+\label{fig:classification-average-runtime}
 \end{figure}
 
-\section{Regression Results}
+\begin{figure}[H]
+\centering
+\safeincludegraphics[width=\textwidth]{thesis_4_datasets_accuracy_bar.png}
+\caption{Per-dataset classification accuracy on common datasets.}
+\label{fig:classification-common-accuracy}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\safeincludegraphics[width=\textwidth]{thesis_4_datasets_duration_bar.png}
+\caption{Per-dataset classification duration on common datasets.}
+\label{fig:classification-common-duration}
+\end{figure}
+
+\clearpage
+\section{Comparative Results to Previous Work: Regression}
 
 Table~\ref{tab:regression-results} reports the updated regression summary over
 ten datasets. Auto-sklearn obtained the highest mean $R^2$ at 0.5609, followed
@@ -1084,7 +1864,7 @@ system.
 \label{tab:regression-results}
 \small
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{lrrrrrrrr}
+\begin{tabular}{lrrrrrrr}
 \toprule
 System & Mean $R^2$ & Median $R^2$ & Mean time (s) & $R^2$ wins & RMSE wins & MAE wins & Speed wins \\
 \midrule
@@ -1099,47 +1879,42 @@ FLAML        & 0.522743 & 0.497530 & 1863.85 & 4 & 4 & 4 & 2 \\
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{reg_average_r2_time.png}
-\caption{Mean regression $R^2$ and runtime for the evaluated systems.}
-\label{fig:regression-average}
+\safeincludegraphics[width=\textwidth]{average_r2_reg.png}
+\caption{Mean regression $R^2$ for the evaluated systems.}
+\label{fig:regression-average-r2}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\begin{minipage}{0.49\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{reg_thesis_4_datasets_r2_bar.png}
-  \textbf{(a)} $R^2$
-\end{minipage}
-\begin{minipage}{0.49\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{reg_thesis_4_datasets_duration_bar.png}
-  \textbf{(b)} Duration
-\end{minipage}
-\caption{Per-dataset regression $R^2$ and duration on common datasets.}
-\label{fig:regression-common}
+\safeincludegraphics[width=\textwidth]{average_runtime_reg.png}
+\caption{Mean regression runtime for the evaluated systems.}
+\label{fig:regression-average-runtime}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\safeincludegraphics[width=\textwidth]{reg_thesis_4_datasets_r2_bar.png}
+\caption{Per-dataset regression $R^2$ on common datasets.}
+\label{fig:regression-common-r2}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\safeincludegraphics[width=\textwidth]{reg_thesis_4_datasets_duration_bar.png}
+\caption{Per-dataset regression duration on common datasets.}
+\label{fig:regression-common-duration}
 \end{figure}
 
 \section{Result Reproduction}
 
-Detailed
-environment preparation and benchmark commands are documented in the
-\modulepath{setup/reproduce\_results.md} file in that directory. A public
-reproduction repository will be provided at
-\url{https://github.com/EDIT-ME/accelera-benchmark-reproduction}; this
-placeholder URL should be replaced with the final repository link before
-publication.
-
-\section{Threats to Validity}
-
-The current results use a single benchmark fold, so they do not quantify
-variation across repeated train/test splits or random seeds. Runtime is also
-sensitive to hardware, operating-system load, framework startup overhead, and
-timeout handling. Finally, aggregate means can conceal dataset-level failures
-or missing measurements. Consequently, the tables support a comparison of the
-recorded runs but should not be interpreted as a universal ranking of AutoML
-systems. Repeated runs on controlled hardware and explicit reporting of failed
-tasks would strengthen the evaluation.
+The benchmark experiments can be reproduced using the instructions provided in
+the project repository. These instructions describe the required environment
+setup and the commands used to rerun the classification and regression
+benchmarks. The generated figures, CSV summaries, and raw benchmark outputs are
+stored with the project results, allowing the reported values to be checked
+against future reruns. The reproduction guide is available at
+\href{https://github.com/Mohamed-Ashraf273/accelera/blob/main/accelera/src/accelera_automl/benchmark_results/setup/reproduce_results.md}
+{\texttt{setup/reproduce\_results.md}}.
 
 \section{Chapter Summary}
 
@@ -1148,496 +1923,231 @@ the strongest competing framework while requiring markedly less mean runtime.
 The classification results show a small accuracy difference relative to
 Auto-sklearn, and the regression results show a modest $R^2$ difference
 relative to Auto-sklearn, accompanied in both cases by substantial runtime
-reductions.
-The complete stored artifacts and reproduction instructions are retained with
-the implementation so that the reported measurements can be inspected and
-rerun.
+reductions. The complete stored artifacts and reproduction instructions are
+retained with the implementation so that the reported measurements can be
+inspected and rerun.
 
-% Discussion, conclusion, and future-work chapters are reserved for a later
-% revision.
+% -------------------------------------------------
+\chapter{Conclusions and Future Work}
+\label{chap:conclusion}
 
-\begin{thebibliography}{99}
+This chapter summarizes the project outcomes and reflects on the experience
+gained during development. It reviews the main challenges faced during the
+implementation and evaluation of \systemname{}, states the conclusions reached
+from the reported results, and identifies future extensions that can improve
+the module.
 
-\bibitem{autoweka}
-Chris Thornton, Frank Hutter, Holger H. Hoos, and Kevin Leyton-Brown.
-\newblock Auto-WEKA: Combined selection and hyperparameter optimization of
-classification algorithms.
-\newblock In \emph{Proceedings of the 19th ACM SIGKDD International Conference
-on Knowledge Discovery and Data Mining}, 2013.
+\section{Faced Challenges}
 
-\bibitem{autosklearn}
-Matthias Feurer, Aaron Klein, Katharina Eggensperger, Jost Springenberg,
-Manuel Blum, and Frank Hutter.
-\newblock Efficient and robust automated machine learning.
-\newblock In \emph{Advances in Neural Information Processing Systems}, 2015.
+The main challenges were balancing predictive quality with runtime, preserving
+fair evaluation across different estimator families, isolating trial failures,
+and keeping the search process inspectable. Multi-fidelity evaluation reduced
+some search cost, but it required careful promotion rules so that cheap early
+signals did not dominate final model selection unfairly.
 
-\bibitem{tpot}
-Randal S. Olson, Nathan Bartley, Ryan J. Urbanowicz, and Jason H. Moore.
-\newblock Evaluation of a tree-based pipeline optimization tool for automating
-data science.
-\newblock In \emph{Applications of Evolutionary Computation}, 2016.
+\section{Gained Experience}
 
-\bibitem{flaml}
-Chi Wang, Qingyun Wu, Markus Weimer, and Erkang Zhu.
-\newblock FLAML: A fast and lightweight AutoML library.
-\newblock In \emph{Proceedings of Machine Learning and Systems}, 2021.
+The project provided experience in AutoML system design, conditional search
+spaces, Bayesian optimization, cross-validation protocols, process-level
+timeouts, Python package resource handling, and ensemble construction. It also
+showed the importance of benchmark reproducibility and of exposing run history
+instead of returning only a final fitted model.
 
-\bibitem{autogluon}
-Nick Erickson et al.
-\newblock AutoGluon-Tabular: Robust and accurate AutoML for structured data.
-\newblock \emph{arXiv preprint arXiv:2003.06505}, 2020.
+\section{Conclusions}
 
-\bibitem{smac}
-Frank Hutter, Holger H. Hoos, and Kevin Leyton-Brown.
-\newblock Sequential model-based optimization for general algorithm
-configuration.
-\newblock In \emph{Learning and Intelligent Optimization}, 2011.
+\systemname{} provides an Accelera-integrated AutoML module for supervised
+tabular classification and regression. It combines conditional model spaces,
+staged fidelity, surrogate-guided search, meta-learning warm starts, timeout
+isolation, and voting or stacked ensembles behind a scikit-learn-style public
+API. The stored experiments show predictive performance close to established
+AutoML systems while reducing mean runtime in the recorded benchmark runs.
 
-\bibitem{randomsearch}
-James Bergstra and Yoshua Bengio.
-\newblock Random search for hyper-parameter optimization.
-\newblock \emph{Journal of Machine Learning Research}, 13:281--305, 2012.
+\section{Future Work}
 
-\bibitem{stacking}
-David H. Wolpert.
-\newblock Stacked generalization.
-\newblock \emph{Neural Networks}, 5(2):241--259, 1992.
+Future work should include repeated benchmark folds, broader datasets, stronger
+reporting of failed tasks, expanded support for categorical preprocessing,
+additional model families, time-series validation modes, distributed execution,
+and a completed public benchmark reproduction repository.
 
-\end{thebibliography}
+% -------------------------------------------------
+\appendix
+\renewcommand{\chaptername}{Appendix}
 
-\end{document}
- internal estimator job counts, allowing the
-caller to limit nested parallelism.
+\chapter{Development Platforms and Tools}
 
-\section{Final Model and Ensemble Selection}
+\section{Development Platform}
 
-The strongest full-fidelity configuration is rebuilt and fitted on all
-available training data. If ensembles are disabled, this model is returned
-directly. Otherwise, successful run-history candidates are considered for
-voting or stacking.
+The implementation uses Python, scikit-learn, ConfigSpace-style conditional
+configuration handling, gradient-boosting libraries, pytest-based
+verification, and the AutoMLBenchmark runner for stored benchmark results.
 
-\medskip
+\section{Software Tools}
 
-\noindent For voting, the engine selects a bounded set of competitive estimators and
-constructs a task-specific voting estimator. For stacking, candidate diversity
-is considered before selecting base estimators. Every base estimator is wrapped
-in bagging and produces out-of-fold predictions. Forward selection begins with
-the strongest single base model and adds candidates while they improve the
-meta-model score or until the minimum base-model requirement is satisfied.
+A description of each main software tool or package used by the implementation
+is provided in a separate subsection.
 
-\medskip
+\subsection{ConfigSpace}
 
-\noindent For classification, probability blocks are aligned across class labels before
-being passed to logistic regression. For regression, each base model contributes
-one numeric prediction column and ridge regression acts as the meta-model. The
-ensemble is evaluated using the same task metric. It replaces the individual
-model only when its validation score is at least as strong.
+The \texttt{ConfigSpace} package is used for ConfigSpace-style conditional
+configuration handling. In \systemname{}, it represents the AutoML search space
+as a set of typed hyperparameters with activation conditions. A global
+\texttt{model\_name} hyperparameter selects the active estimator family, while
+model-specific preprocessing and hyperparameter choices are enabled only when
+their parent model or option is active. This prevents invalid combinations from
+being sampled and allows the optimizer, warm-start loader, and evaluator to work
+with a single valid configuration object.
 
-% -----------------------------------------------------------------------------
-\chapter{System Design and Implementation}
-\label{chap:implementation}
+\chapter{Use Cases}
 
-\section{Package Architecture}
+The main use cases of \systemname{} are:
 
-The implementation is stored under
-\modulepath{accelera/src/accelera\_automl/}. Public exports are generated under
-\modulepath{accelera/api/accelera\_automl/}, allowing users to import
-\texttt{AutoMLClassifier} and \texttt{AutoMLRegressor} from
-\modulepath{accelera.accelera\_automl}.
+\begin{itemize}
+  \item fitting a classifier and obtaining predicted labels or class
+        probabilities;
+  \item fitting a regressor and obtaining numeric predictions;
+  \item restricting the search to an allowed subset of model families;
+  \item selecting the evaluation metric and the number of cross-validation
+        folds;
+  \item limiting the total search budget or the timeout for each individual
+        trial;
+  \item enabling or disabling meta-learning warm starts and ensemble
+        construction;
+  \item inspecting the best score, leaderboard, and complete run history.
+\end{itemize}
+
+\chapter{User Guide}
+
+\systemname{} follows a scikit-learn-style workflow. The user first imports
+either \texttt{AutoMLClassifier} or \texttt{AutoMLRegressor}, creates an
+estimator with the required search settings, fits it on the training data, and
+then uses the fitted model for prediction, scoring, or leaderboard inspection.
+
+\noindent The following example shows the basic classification workflow:
+
+\begin{lstlisting}[style=pythonstyle]
+from accelera_automl import AutoMLClassifier
+
+model = AutoMLClassifier(
+    time_budget=1800,
+    cv=5,
+    scoring="accuracy",
+    use_ensemble=True,
+    random_state=42,
+)
+
+model.fit(X_train, y_train)
+
+predictions = model.predict(X_test)
+score = model.score(X_test, y_test)
+leaderboard = model.return_leaderboard()
+\end{lstlisting}
+
+\noindent In this example, the search is limited to 1,800 seconds, five-fold
+cross-validation is used, and accuracy is selected as the optimization metric.
+After fitting, the model can generate predictions, evaluate performance on test
+data, and return the stored leaderboard for inspection.
+
+
+\chapter{Code Documentation}
+
+The main source package is located under
+\modulepath{accelera/src/accelera\_automl/}. The public API wrappers are under
+\modulepath{accelera/api/accelera\_automl/}. This appendix maps the design
+described in Chapter~\ref{chap:testing} to the source-code organization.
 
 \begin{table}[H]
 \centering
-\caption{Main implementation units}
-\label{tab:implementation-units}
-
+\caption{Main implementation units of Accelera AutoML}
+\label{tab:appendix-implementation-units}
 \small
 \renewcommand{\arraystretch}{1.18}
-\begin{tabularx}{\textwidth}
-{
->{\raggedright\arraybackslash}p{0.32\textwidth}
-X
-}
+\begin{tabularx}{\textwidth}{p{0.34\textwidth}X}
 \toprule
 \textbf{File or directory} & \textbf{Responsibility} \\
 \midrule
-
 \modulepath{base.py} &
 Shared estimator lifecycle, validation, fitted state, leaderboard, and
 run-history access. \\
-
 \modulepath{classification.py} &
-Classification defaults and engine construction. \\
-
+Classification defaults and task-specific engine construction. \\
 \modulepath{regression.py} &
-Regression defaults and engine construction. \\
-
+Regression defaults and task-specific engine construction. \\
 \modulepath{core/automl.py} &
-Orchestration, final model fitting, compatibility checks, and ensemble
+AutoML orchestration, final model fitting, compatibility checks, and ensemble
 selection. \\
-
 \modulepath{components/} &
-Model registries, hyperparameters, conditions, and estimator factories. \\
-
+Model registries, hyperparameter definitions, activation conditions, and
+estimator factories. \\
 \modulepath{configspace\_search\_space.py} &
-Task-specific ConfigSpace assembly and configuration conversion. \\
-
+Task-specific conditional search-space assembly and configuration conversion. \\
 \modulepath{evaluation.py} &
 Fidelity-aware model construction, preprocessing comparison, cross-validation,
-and cost conversion. \\
-
-\begin{tabular}[t]{@{}l@{}}
-\modulepath{optimization/} \\
-\modulepath{smac\_optimizer.py}
-\end{tabular}
-&
+and metric-to-cost conversion. \\
+\modulepath{optimization/smac\_optimizer.py} &
 Trial scheduling, surrogate modelling, expected improvement, promotions,
-parallel workers, and timeouts. \\
-
+parallel workers, and timeout control. \\
 \modulepath{meta\_learning/} &
 Metafeature extraction, similarity ranking, and warm-start retrieval. \\
-
+\modulepath{meta\_learning\_data/} &
+Packaged historical classification and regression metadata used for warm
+starts. \\
 \modulepath{stacked\_ensemble.py} &
 Classification adapters, bagging, forward selection, and stacked
 classification. \\
-
-\begin{tabular}[t]{@{}l@{}}
-\modulepath{stacked\_ensemble\_} \\
-\modulepath{regression.py}
-\end{tabular}
-&
+\modulepath{stacked\_ensemble\_regression.py} &
 Regression stacking and forward selection. \\
-
-\modulepath{meta\_learning\_data/} &
-Packaged historical classification and regression metadata. \\
-
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\section{Public Estimator Lifecycle}
+\noindent The public estimator lifecycle starts when the user calls \texttt{fit}. The
+estimator validates \(X\) and \(y\), resets previous fitted state, builds the
+task-specific engine, runs the search, and stores the returned result. Prediction
+methods validate the input and delegate to the selected final model. Calling
+prediction before fitting raises an explicit runtime error.
 
-\texttt{BaseAutoML} extends scikit-learn's \texttt{BaseEstimator}. Its
-\texttt{fit} method validates $X$ and $y$, resets previously fitted state,
-builds a task-specific engine, runs the search, and copies the result into
-public fitted attributes. Prediction validates $X$ and delegates to the final
-model. Calling prediction before fitting raises an explicit runtime error.
+\noindent The stored result includes the best individual model, the optional ensemble, the
+selected final model, the best score, the leaderboard, and the detailed
+run-history records. These records make the module inspectable because they
+preserve both successful and failed trials.
+
+\chapter{Feasibility Study}
+
+The proposed module is technically feasible because it is built on established
+Python machine-learning libraries such as scikit-learn and can be integrated
+within the existing Accelera package structure. The implementation does not
+require specialized hardware and can run on standard CPU-based environments,
+although larger search budgets and larger datasets require more computation
+time.
+
+\medskip
+\noindent From an operational perspective, the module is feasible because it provides a
+simple scikit-learn-style interface. Users can create an AutoML classifier or
+regressor, call \texttt{fit}, and then use standard methods such as
+\texttt{predict}, \texttt{score}, and \texttt{return\_leaderboard}. This makes
+the system suitable for users who want automated model selection without
+manually testing many algorithms and hyperparameter settings.
 
 \medskip
 
-\noindent The result state includes:
-
-\begin{itemize}[leftmargin=*]
-  \item \texttt{best\_model}: strongest fitted individual candidate;
-  \item \texttt{ensemble}: fitted ensemble when constructed;
-  \item \texttt{final\_model}: model selected for prediction;
-  \item \texttt{best\_score}: validation score of the final choice;
-  \item \texttt{leaderboard}: ranked model and ensemble summary; and
-  \item \texttt{runhistory}: detailed trial records.
-\end{itemize}
-
-\section{Engine Collaboration}
-
-The engine uses composition rather than embedding all behavior in one class.
-It constructs a configuration space, evaluator, optimizer, and optional
-ensemble. This separation allows the evaluator to remain task-aware while the
-optimizer operates mainly on configurations, numeric vectors, and scalar costs.
+\noindent The project is also economically feasible because it mainly depends on
+open-source software tools and does not require paid cloud services or
+commercial AutoML platforms. Reusing the same module across multiple
+classification and regression tasks can reduce the manual effort needed for
+model selection, tuning, and comparison.
 
 \medskip
+\noindent The main limitation is computational cost. AutoML search can be time-consuming,
+especially when many models, folds, and trials are evaluated. However, this cost
+is controlled through time budgets, per-trial timeouts, multi-fidelity
+evaluation, and configurable search settings. Therefore, the project is feasible
+as a practical AutoML extension for the Accelera framework.
 
-\noindent The runtime interaction is:
-
-\begin{verbatim}
-User estimator
-  -> BaseAutoML.fit
-  -> AutoMLEngine.search
-     -> ConfigSpace construction
-     -> metafeature extraction and warm starts
-     -> task evaluator
-     -> Optimizer.optimize
-        -> staged trials / process workers
-        -> surrogate and expected improvement
-        -> promotion queue
-     -> final individual model
-     -> optional voting or stacked ensemble
-  -> AutoMLResult
-  -> fitted public estimator
-\end{verbatim}
-
-\section{Model Component Abstraction}
-
-Classification and regression components encapsulate four related concerns:
-their public name, hyperparameter definitions, conditional activation rules,
-and estimator construction. This abstraction prevents the optimizer from
-containing model-specific \texttt{if} statements. Adding an estimator requires
-registering a component and ensuring its parameters can be scaled at the
-defined fidelity levels when applicable.
-
-\medskip
-
-\noindent The current registries include estimators from scikit-learn and optional
-gradient-boosting libraries. Because all models do not expose identical
-interfaces, the component builders normalize values such as textual
-representations of \texttt{None}, class weights, and task-specific objectives.
-
-\section{Evaluation Result Model}
-
-Every evaluation returns a structured record rather than only a score. The
-record contains the model name, resolved parameters, preprocessing choice,
-metric score, optimizer cost, duration, status, error text, stage, sample
-fraction, fold count, and model budget. This representation serves three
-purposes: it supports the optimizer, preserves failure diagnostics, and enables
-leaderboard or experimental analysis without repeating the run.
-
-\section{Meta-Learning Data Packaging}
-
-Classification and regression metadata are stored in separate JSON
-directories. File selection depends on task, metric, and classification target
-shape. Paths are resolved relative to the installed module rather than a
-developer-specific absolute directory. The package configuration explicitly
-includes these JSON resources in built wheels so warm starts remain available
-after installation.
-
-\section{Ensemble Implementation Details}
-
-The classification stacker includes an adapter that guarantees a probability
-interface. If a base model lacks \texttt{predict\_proba}, decision scores are
-converted to probabilities where possible; otherwise predicted classes are
-encoded into probability-like output. Class columns are aligned so each base
-block has consistent semantics.
-
-\medskip
-
-\noindent Both stackers generate out-of-fold predictions using cross-validation and fit
-fresh bagged models on all training data for later inference. Forward-selection
-state is stored as a fitted attribute together with its score. This explicit
-state is also used by verbose structural logging and avoids recomputing the
-selection result.
-
-\section{User-Facing Example}
-
-Listing~\ref{lst:usage} shows the intended public API.
-
-\begin{lstlisting}[style=pythonstyle,caption={Classification with Accelera AutoML},label={lst:usage}]
-from sklearn.datasets import make_classification
-from sklearn.model_selection import train_test_split
-
-from accelera.accelera_automl import AutoMLClassifier
-
-X, y = make_classification(
-    n_samples=1000,
-    n_features=20,
-    n_informative=12,
-    random_state=42,
-)
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, stratify=y, random_state=42
-)
-
-model = AutoMLClassifier(
-    time_budget=300,
-    n_trials=20,
-    cv=3,
-    random_state=42,
-    search_n_parallel=2,
-    stack_n_jobs=-1,
-    use_meta_learning=True,
-    use_ensemble=True,
-    ensemble_strategy="stacked",
-)
-model.fit(X_train, y_train)
-
-predictions = model.predict(X_test)
-print(model.score(X_test, y_test))
-print(model.return_leaderboard(top_n=3))
-\end{lstlisting}
-
-\section{Current Verification Assets}
-
-Focused tests cover packaged meta-learning path resolution, compatibility of
-the classification adapter with bagging, and regression stacked-ensemble
-forward-selection state. Executable examples are provided for classification
-and for regression using scikit-learn's diabetes dataset. These tests establish
-basic integration behavior; the larger experimental protocol and quantitative
-evaluation will be written in the reserved later chapters.
-
-\section{Chapter Summary}
-
-The implementation maps the proposed method to independently maintainable
-packages. Public estimator classes manage user interaction, the engine
-coordinates the workflow, evaluators own task-specific scoring, the optimizer
-controls resource allocation, meta-learning provides initial configurations,
-and ensemble modules construct the final combined candidates. This separation
-supports future replacement or extension of individual subsystems without
-changing the public estimator interface.
-
-\chapter{Experiments and Results}
-\label{chap:experiments-results}
-
-\section{Experimental Objectives}
-
-The experiments compare \systemname{} with Auto-sklearn, FLAML, and TPOT on
-supervised tabular classification and regression tasks. The evaluation asks
-two practical questions: whether the systems attain comparable predictive
-quality, and how much wall-clock time they require to do so. Classification is
-evaluated primarily by accuracy, while regression is evaluated by the
-coefficient of determination ($R^2$), root mean squared error (RMSE), and mean
-absolute error (MAE). Runtime is reported in seconds for both task types.
-
-\section{Benchmark Sources and Protocol}
-
-The classification experiments were executed through the open-source
-AutoMLBenchmark (AMLB) runner, available at
-\url{https://github.com/openml/automlbenchmark.git}. They use the
-\modulepath{flaml\_paper\_39} classification suite and the
-\modulepath{flaml\_paper\_1h} constraint. The reported classification
-evaluation covers 12 datasets. The regression benchmark was built from the
-Penn Machine Learning Benchmarks (PMLB) repository, available at
-\url{https://github.com/EpistasisLab/pmlb.git}, and was also executed through
-AMLB. The reported regression evaluation covers 10 datasets and uses the
-\modulepath{pmlb\_regression} suite with the \modulepath{pmlb\_30m}
-constraint.
-
-All systems were run through the same benchmark interface. The recorded setup
-used one fold and one allocated core per task. The regression time budget was
-1,800 seconds per dataset; the classification constraint allowed up to one
-hour.
-
-\section{Classification Results}
-
-Table~\ref{tab:classification-results} summarizes the classification results
-stored with the project. Auto-sklearn obtained the highest mean accuracy at
-0.8842. Accelera reached a mean accuracy of 0.8791, a difference of about
-0.0051, while recording the lowest mean duration at 1,201.7 seconds. Its mean
-runtime was approximately one third of the runtimes recorded for the other
-three systems. Accelera also had the largest number of recorded speed wins.
-
-\begin{table}[H]
-\centering
-\caption{Classification benchmark summary.}
-\label{tab:classification-results}
-\begin{tabular}{lrrrr}
-\toprule
-System & Mean accuracy & Mean time (s) & Accuracy wins & Speed wins \\
-\midrule
-Auto-sklearn & 0.884178 & 3615.71 & 3 & 3 \\
-FLAML        & 0.881427 & 3655.63 & 6 & 0 \\
-Accelera     & 0.879076 & 1201.72 & 6 & 15 \\
-TPOT         & 0.877654 & 3953.78 & 8 & 1 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.78\textwidth]{../../../accelera/src/accelera_automl/benchmark_results/figures/classification/average_accuracy_time.png}
-\caption{Mean classification accuracy and runtime for the evaluated systems.}
-\label{fig:classification-average}
-\end{figure}
-
-\begin{figure}[H]
-\centering
-\begin{minipage}{0.49\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{../../../accelera/src/accelera_automl/benchmark_results/figures/classification/thesis_4_datasets_accuracy_bar.png}
-  \textbf{(a)} Accuracy
-\end{minipage}
-\begin{minipage}{0.49\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{../../../accelera/src/accelera_automl/benchmark_results/figures/classification/thesis_4_datasets_duration_bar.png}
-  \textbf{(b)} Duration
-\end{minipage}
-\caption{Per-dataset classification accuracy and duration on common datasets.}
-\label{fig:classification-common}
-\end{figure}
-
-\section{Regression Results}
-
-Table~\ref{tab:regression-results} reports the updated regression summary over
-ten datasets. Auto-sklearn obtained the highest mean $R^2$ at 0.5609, followed
-closely by TPOT at 0.5592. Accelera reached 0.5294 and recorded the lowest mean
-runtime at 892.64 seconds, compared with 1,820--1,864 seconds for the competing
-systems. Accelera also achieved six speed wins, the most of any evaluated
-system.
-
-\begin{table}[H]
-\centering
-\caption{Updated regression benchmark summary over ten datasets.}
-\label{tab:regression-results}
-\small
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{lrrrrrrrr}
-\toprule
-System & Mean $R^2$ & Median $R^2$ & Mean time (s) & $R^2$ wins & RMSE wins & MAE wins & Speed wins \\
-\midrule
-Auto-sklearn & 0.560947 & 0.494362 & 1820.18 & 2 & 2 & 2 & 2 \\
-TPOT         & 0.559238 & 0.493144 & 1849.70 & 2 & 2 & 2 & 0 \\
-Accelera     & 0.529389 & 0.432577 &  892.64 & 2 & 2 & 2 & 6 \\
-FLAML        & 0.522743 & 0.497530 & 1863.85 & 4 & 4 & 4 & 2 \\
-\bottomrule
-\end{tabular}
-}
-\end{table}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.78\textwidth]{../../../accelera/src/accelera_automl/benchmark_results/figures/regression/reg_average_r2_time.png}
-\caption{Mean regression $R^2$ and runtime for the evaluated systems.}
-\label{fig:regression-average}
-\end{figure}
-
-\begin{figure}[H]
-\centering
-\begin{minipage}{0.49\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{../../../accelera/src/accelera_automl/benchmark_results/figures/regression/reg_thesis_4_datasets_r2_bar.png}
-  \textbf{(a)} $R^2$
-\end{minipage}
-\begin{minipage}{0.49\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{../../../accelera/src/accelera_automl/benchmark_results/figures/regression/reg_thesis_4_datasets_duration_bar.png}
-  \textbf{(b)} Duration
-\end{minipage}
-\caption{Per-dataset regression $R^2$ and duration on common datasets.}
-\label{fig:regression-common}
-\end{figure}
-
-\section{Result Reproduction}
-
-The figures, aggregate CSV summaries, and available raw outputs are stored
-under \modulepath{accelera/src/accelera\_automl/benchmark\_results}. Detailed
-environment preparation and benchmark commands are documented in the
-\modulepath{setup/reproduce\_results.md} file in that directory. A public
-reproduction repository will be provided at
-\url{https://github.com/EDIT-ME/accelera-benchmark-reproduction}; this
-placeholder URL should be replaced with the final repository link before
-publication.
-
-\section{Threats to Validity}
-
-The current results use a single benchmark fold, so they do not quantify
-variation across repeated train/test splits or random seeds. Runtime is also
-sensitive to hardware, operating-system load, framework startup overhead, and
-timeout handling. Finally, aggregate means can conceal dataset-level failures
-or missing measurements. Consequently, the tables support a comparison of the
-recorded runs but should not be interpreted as a universal ranking of AutoML
-systems. Repeated runs on controlled hardware and explicit reporting of failed
-tasks would strengthen the evaluation.
-
-\section{Chapter Summary}
-
-Across the stored experiments, Accelera achieved predictive results close to
-the strongest competing framework while requiring markedly less mean runtime.
-The classification results show a small accuracy difference relative to
-Auto-sklearn, and the regression results show a modest $R^2$ difference
-relative to Auto-sklearn, accompanied in both cases by substantial runtime
-reductions.
-The complete stored artifacts and reproduction instructions are retained with
-the implementation so that the reported measurements can be inspected and
-rerun.
-
-% Discussion, conclusion, and future-work chapters are reserved for a later
-% revision.
-
+% -------------------------------------------------
+% References
+% -------------------------------------------------
+\begingroup
+\footnotesize
 \begin{thebibliography}{99}
 
 \bibitem{autoweka}
@@ -1686,5 +2196,6 @@ David H. Wolpert.
 \newblock \emph{Neural Networks}, 5(2):241--259, 1992.
 
 \end{thebibliography}
+\endgroup
 
 \end{document}
