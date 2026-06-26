@@ -8,7 +8,6 @@ from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 
-from accelera.src.accelera_pipe.core.executed_graph import ExecutedGraph
 from accelera.src.accelera_pipe.core.pipeline import Pipeline
 
 # Demo 4
@@ -109,7 +108,10 @@ def test_save_load_executed_pipe():
     )
     accelerated_results, executed_graph = accpipe(X, y, select_strategy="max")
     executed_graph.save()
-    loaded_executed_graph = ExecutedGraph.load("pipeline.pkl")
+
+    with open("pipeline.pkl", "rb") as f:
+        loaded_executed_graph = pickle.load(f)
+
     print("==============Accelera Results Of Loaded Executed Pipeline==============")
     print(loaded_executed_graph(X_test, y_true=y_test)[0]["result"])
     elapsed = time.time() - start_acc_time
@@ -130,7 +132,10 @@ def test_save_load_pipeline():
         y_true=y_val,
     )
     accpipe.save("pipeline.pkl")
-    loaded_pipeline = Pipeline.load("pipeline.pkl")
+
+    with open("pipeline.pkl", "rb") as f:
+        loaded_pipeline = pickle.load(f)
+
     start_time = time.time()
     _, loaded_executed_graph = loaded_pipeline(X, y, select_strategy="max")
     print("==============Accelera Results Of Loaded Pipeline==============")
