@@ -64,6 +64,7 @@ examples/brain_tumer-1
 examples/CarPrice_Assignment
 examples/catboost_info
 examples/global_ai_jobs
+models/open_mp_classifier/*.pkl
+open_mp_generator/
 .env
-/models
 accelera/src/accelera_automl/automlbenchmark/

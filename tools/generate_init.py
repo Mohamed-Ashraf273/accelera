@@ -39,6 +39,7 @@ skip_names = config.INIT_GENERATOR_SKIP_NAMES | frozenset(
         "logs",
         "models",
         "node_modules",
+        "open_mp_generator",
         "report",
         "venv",
     }

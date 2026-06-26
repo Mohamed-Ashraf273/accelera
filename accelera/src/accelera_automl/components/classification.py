@@ -458,7 +458,7 @@ def build_catboost(params, random_state, n_jobs, balance_classes):
         "random_strength": float(params["random_strength"]),
         "bagging_temperature": float(params["bagging_temperature"]),
         "random_seed": random_state,
-            "verbose": False,
+        "verbose": False,
         "allow_writing_files": False,
     }
     if n_jobs is not None:
