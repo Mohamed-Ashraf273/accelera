@@ -47,12 +47,6 @@ try:
                     }
                 )
             )
-        elif not np.issubdtype(target_df[target_column_name].dtype, np.integer):
-            print(
-                json.dumps(
-                    {"message": "Column must be number not object", "isValid": False}
-                )
-            )
         elif target_df.shape[0] != test_df.shape[0]:
             print(
                 json.dumps(
