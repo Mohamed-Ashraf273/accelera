@@ -1,8 +1,6 @@
 import json
 import sys
 
-import numpy as np
-
 from accelera.src.utils.dataset_retriever import retriever
 from utils import get_file_url
 
