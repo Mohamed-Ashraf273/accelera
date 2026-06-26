@@ -1,5 +1,7 @@
 from accelera.src.accelera_automl.components.regression import build_ard_regression
-from accelera.src.accelera_automl.components.regression import build_gradient_boosting
+from accelera.src.accelera_automl.components.regression import (
+    build_gradient_boosting,
+)
 
 
 def test_build_ard_regression_accepts_regression_evaluator_signature():

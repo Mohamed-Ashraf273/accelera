@@ -355,8 +355,7 @@ class Optimizer:
                             processes[idx].kill()  # force kill
                         if self.verbose:
                             print(
-                                "Killed timed out trial "
-                                f"{idx} after {timeout:.2f}s."
+                                f"Killed timed out trial {idx} after {timeout:.2f}s."
                             )
 
                         results[idx] = EvaluationResult(

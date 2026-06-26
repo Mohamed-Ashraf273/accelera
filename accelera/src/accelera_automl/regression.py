@@ -60,7 +60,9 @@ class AutoMLRegressor(BaseAutoML):
         self.allowed_models = allowed_models
         self.use_meta_learning = use_meta_learning
         self.meta_learning_top_datasets = meta_learning_top_datasets
-        self.meta_learning_top_configs_per_dataset = meta_learning_top_configs_per_dataset
+        self.meta_learning_top_configs_per_dataset = (
+            meta_learning_top_configs_per_dataset
+        )
         self.max_meta_learning_warmstarts = max_meta_learning_warmstarts
 
     def get_default_scoring(self):

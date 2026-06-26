@@ -219,7 +219,10 @@ class AutoMLEngine:
         n_rows = len(X)
         if self.ensemble_strategy == "stacked" and n_rows > 50_000:
             if self.verbose:
-                print("Large dataset detected; using voting ensemble instead of stacking.")
+                print(
+                    "Large dataset detected; using "
+                    "voting ensemble instead of stacking."
+                )
             return "voting"
         return self.ensemble_strategy
 

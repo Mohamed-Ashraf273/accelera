@@ -65,8 +65,7 @@ def score_predictions(classes, scoring, y_true, predictions):
 
 def log_forward_selection_step(selected_names, score):
     print(
-        "Forward selection selected "
-        f"{selected_names} with validation score {score}."
+        f"Forward selection selected {selected_names} with validation score {score}."
     )
 
 
@@ -75,4 +74,3 @@ def log_ensemble_structure(base_model_names, meta_model_name):
         "Stacked ensemble base models: "
         f"{base_model_names}; meta model: {meta_model_name}."
     )
-
