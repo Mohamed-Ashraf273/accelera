@@ -193,7 +193,7 @@ by photocopying or other means, without the permission of the authors or departm
 \addcontentsline{toc}{chapter}{Abstract}
 \project{} is a hybrid Python/C++ machine learning framework that combines a
 high-level Python interface with native execution components. The system is
-organized around five modules: Accelera Pipe, the Code Parallelizer,
+organized around sex modules: Accelera Pipe, the Code Parallelizer,
 Auto Preprocessing, AutoML, Deployment, and the Benchmark Platform. Accelera
 Pipe represents machine-learning workflows as directed graph nodes for
 preprocessing, modelling, prediction, metric evaluation, branching, and
@@ -1586,32 +1586,26 @@ code should be translated to parallel C++.
 The Auto Preprocessing module was designed based on the following assumptions:
 
 \begin{itemize}
-  \item \textbf{Input data assumption:} The input data is assumed to be one of
-  the supported types: tabular, text, or image data. For tabular and text data,
-  the dataset should have a known target column. For text data, there should be
-  one main text column. For image data, the images should be organized in class
-  folders.
+  \item \textbf{Data assumption:} The input data should be valid, meaningful,
+  and one of the supported types, so the module can select the correct
+  preprocessing workflow.
 
-  \item \textbf{Configuration assumption:} The user is assumed to provide the
-  needed configuration values, such as the target column, text column,
-  validation size, output folder, and image size when needed. These values help
-  the module choose and apply the correct preprocessing workflow.
+  \item \textbf{Configuration assumption:} The user should provide the needed
+  configuration values, so the module can apply the correct preprocessing steps.
 \end{itemize}
-
 \subsection{Benchmark Assumptions}
 
 The Benchmark Platform was designed based on the following assumptions:
 
 \begin{itemize}
-  \item \textbf{Benchmark data assumption:} Each benchmark is assumed to have the
-  required files, including training data, test data, and a separate target file.
-  The target file should be kept separate from the test data to prevent data
-  leakage and make the evaluation fair.
-
-  \item \textbf{Submission and scoring assumption:} The submitted prediction file
-  is assumed to have the correct format and the same number of rows as the target
-  file. Also, the selected evaluation metric should match the problem type and
-  be supported by the scoring script.
+ \item \textbf{Benchmark data assumption:} The user is assumed to provide the
+benchmark files correctly, including the training data, test data, and separate
+target file. The user is also responsible for ensuring that the file separation
+does not cause data leakage, so the platform can evaluate submissions fairly.
+  \item \textbf{Metric and submission assumption:} The admin is assumed to define
+  the correct metric information for the benchmark, and the user is assumed to
+  submit predictions in the required format, so the scoring script can calculate
+  the result correctly.
 \end{itemize}
 
 \newpage
@@ -1640,7 +1634,7 @@ Benchmark Platform, and Deployment. The blue arrows in the diagram represent
 standalone or module-level flows, while the red arrows represent the end-to-end
 workflow path.
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \caption{Main blocks in the Accelera architecture.}
 \label{tab:block-diagram-modules}
@@ -1913,25 +1907,20 @@ graph-based execution with source-level acceleration.
 
 \clearpage
 \section{Auto Preprocessing Module}
-\noindent The Auto Preprocessing module is responsible for automating the data
-understanding, exploratory data analysis, and preprocessing stages of the data
-science workflow. The module was designed to reduce repeated manual work and to
-prepare different types of datasets before model training.
+\noindent The Auto Preprocessing module automates the data understanding, exploratory data analysis, and preprocessing stages in the data science workflow. It helps reduce the repeated manual work needed to prepare datasets before modeling.
 
-\noindent The module is also designed to help the user understand the dataset
-before and after preprocessing. When report generation is enabled, it can show
-missing-value statistics, duplicate information, feature distributions, target
-distribution, correlation matrix, removed columns, preprocessing decisions, and
-previews of the final processed training and validation data. Another important
-design point is the separation between training preprocessing and testing
-preprocessing. During training, preprocessing objects are fitted and saved.
-During testing, the saved objects are loaded and applied directly, so new data
-is transformed in the same way as the training data.
+\noindent The module also helps the user understand the dataset before and after preprocessing by generating a report. This report shows important information about the input data and the preprocessing steps that were applied. For tabular data, the report shows information such as the number of rows and columns, data types, missing values, duplicate records, numerical and categorical features, basic statistics and EDA . For text data, it shows information such as the number of rows, target classes, class distribution, and number of missing. For image data, it shows information such as the number of images, image classes, class distribution, image sizes, and corrupted images. After preprocessing, the report shows the steps applied to the data, such as imputation, encoding, scaling, feature selection, text cleaning, TF-IDF feature extraction, image resizing, normalization, and image preparation for classification.
 
+\noindent Another important design point is separating the training phase from the inference phase. In the training phase, the preprocessing objects are fitted on the training data and saved as artifacts. In the inference phase, these saved artifacts are loaded and applied to new data. This ensures that new data is processed in the same way as the training data before it is passed to the trained model for prediction.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth,clip]{imgs/auto_preprocessed.pdf}
+    \caption{Auto Preprocessing Workflow}
+    \label{fig:Auto_preprocessing_workflow}
+\end{figure}
 \subsection{Functional Description}
-\noindent The main function of this module is to receive a dataset and user configuration,
-then return processed data that is ready for machine learning or deep learning
-models. The module supports tabular, text, and image datasets.
+\noindent This module receives a dataset with its configuration, applies the suitable preprocessing workflow based on the data type and task, and returns processed data ready for training or inference. The module supports tabular, text, and image datasets.
 \noindent The module also generates a report when this option is enabled. The report
 summarizes information about the dataset and the preprocessing steps applied.
 
@@ -2743,14 +2732,7 @@ the metric calculation logic is handled by Python scoring scripts.
 \chapter{System Testing and Verification}
 This chapter explains how the project was tested to make sure that the main
 parts work correctly. The testing was not done in one way only, because each
-part of the project has a different output. Auto Preprocessing was tested using
-unit tests, real datasets, generated artifacts, and model performance. The
-pipeline reporting part was checked by generating reports from serialized
-graphs and metric results. The benchmark platform was checked by creating
-benchmarks, submitting prediction files, calculating scores, and viewing the
-leaderboard.
-
-The main purpose of testing was to make sure that each part can receive the
+part of the project has a different output. The main purpose of testing was to make sure that each part can receive the
 input, apply the required steps, save the needed files, and return the expected
 output without errors.
 \section{Testing Setup}
@@ -2758,18 +2740,8 @@ The testing was done mainly in a Python environment. The main tools used in
 testing were Python, Pytest, Pandas, NumPy, Scikit-learn, PyTorch, Matplotlib,
 and the libraries used in the implementation. For the benchmark platform,
 Node.js, Express, React, MongoDB, and Python scoring scripts were also checked.
-
-The system was tested using sample datasets and different test cases. The
-outputs were checked to make sure that they were in the expected format. For
-example, preprocessing was expected to return transformed data and save fitted
-artifacts, reports were expected to generate HTML files and graphs, and
-benchmark submissions were expected to save scores and appear in the correct
-leaderboard order.
-
-Some tests were written and run automatically using Pytest. Other parts were
-checked manually by comparing the actual output with the expected output. This
-was useful because some outputs, such as HTML reports and frontend leaderboard
-screens, need visual checking.
+\noindent Some tests were written and run automatically using Pytest. Other parts were
+checked manually by comparing the actual output with the expected output.
 \section{Testing Plan and Strategy}
 The testing plan was based on testing the project step by step. First, each
 module was tested separately. After that, the outputs were checked in a more
@@ -2777,10 +2749,10 @@ complete workflow. For example, preprocessing output was passed to machine
 learning models, generated reports were opened and inspected, and benchmark
 submissions were checked after scoring.
 
-Different testing methods were used depending on the part being tested. Some
+\noindent Different testing methods were used depending on the part being tested. Some
 parts were tested using unit tests with Pytest. Other parts were checked
 manually by comparing the actual output with the expected output. In some
-cases, the results were compared with another tool, AutoCleanML, to check if
+cases, the results were compared with another tool, to check if
 the preprocessing results were reasonable.
 \subsection{Module Testing}
 \input{sections/results-modhamed}
@@ -2788,16 +2760,48 @@ the preprocessing results were reasonable.
 Most of the preprocessing functions were tested using unit tests. These tests
 were used to check validation rules, artifact saving,and feature transformation. Real datasets were also used to test the system in a
 more practical way. These datasets were collected from Kaggle for tabular,
-text, and image data. For the tabular and text experiments, the data was split
-using a validation size of 0.2 and random state 42.
+text, and image data.
+\paragraph{How the Auto Preprocessing testing works}
 
-For tabular data, both classification and regression datasets were used. After
-preprocessing, the output was passed to a Random Forest model to check that the
-processed data was ready for training and validation. For text data, the
-processed TF-IDF output was passed to an \texttt{XGBClassifier}. This checked
-that the text preprocessing steps converted raw text into numerical features
-correctly. For image data, the output DataLoaders were passed to a ResNet
-model. This checked that the image preprocessing module created usable loaders.
+The Auto Preprocessing testing was done as a practical full-flow test. The idea
+was to run preprocessing on real datasets, then pass the processed output to a
+model. This means the test does not only check that preprocessing runs without
+errors, but also checks that the returned data can actually be used for
+training, validation, and prediction.
+
+\noindent For tabular datasets, the test starts by loading each dataset with its
+target column and problem type. The preprocessing flow splits the data, fits the
+needed encoders and scalers, transforms the features and target, applies feature
+selection, and saves the preprocessing artifacts. After that, a machine learning
+model is trained on the processed training data and evaluated on the processed
+validation data. Classification datasets are evaluated using Macro F1-score,
+and regression datasets are evaluated using the R-squared score. The same
+datasets are also processed by a baseline automated cleaning tool, so the final
+scores can be compared and the Accelera output can be checked against an
+existing preprocessing approach.
+
+\noindent For text datasets, the test checks that raw text can be converted into
+features that a classifier can understand. The preprocessing flow receives the
+text column and target column, cleans the text, tokenizes it, applies TF-IDF,
+encodes the labels, and returns processed training and validation data. A
+classifier is then trained on the transformed text features and evaluated using
+Macro F1-score. This confirms that the text preprocessing output is numeric,
+consistent, and usable for a normal machine learning model.
+
+\noindent For image classification, the test checks the full image preparation
+flow. The preprocessing reads images from class folders, validates image files,
+skips corrupted images, creates class-to-label mappings, resizes the images,
+applies augmentation when enabled, and returns PyTorch DataLoaders. A neural
+network model is then trained using these loaders. The inference path is also
+checked by loading the saved model and applying the testing preprocessing to new
+images. This verifies that the saved image size and class mapping can be reused
+during testing, not only during training.
+
+\noindent The main concept in all three tests is to check preprocessing through
+the next step in the machine learning pipeline. If the tabular arrays, TF-IDF
+matrices, labels, image tensors, or saved artifacts were wrong, the model
+training or evaluation step would fail or give invalid results. 
+
 \begin{table}[H]
 \centering
 \caption{Datasets Used in Module Testing}
@@ -3026,17 +3030,11 @@ shown using different colors.
 
 \subsubsection{Benchmark Platform Module}
 
-The Benchmark Platform module was tested by checking its main functionality.
-The testing focused on creating benchmark tasks, validating dataset links,
-submitting prediction files, calculating scores, and displaying the results in
-the leaderboard. The leaderboard was checked to make sure that results were
-ordered correctly depending on whether the selected metric is better when it is
-higher or lower.
+The Benchmark Platform module was evaluated using manual functional testing to check its main features from the user side. The testing focused on creating benchmark tasks, validating dataset links, submitting prediction files, calculating scores, and displaying the results in the leaderboard.
 
-The Python scoring script was also checked by comparing the target file and
-prediction file. The script should reject files with different row counts or
-missing target columns. This testing showed that the benchmark platform was
-able to submit results and display them correctly in the leaderboard.
+\noindent The leaderboard was tested by submitting different results and checking whether they were ordered correctly based on the selected evaluation metric. This included metrics where higher values are better and metrics where lower values are better.
+
+\noindent The scoring process was also tested manually by using different target and prediction files. The platform was checked to make sure it rejects invalid submissions, such as files with different row counts or missing target columns. These tests showed that the benchmark platform can handle result submission, calculate scores, validate files, and display leaderboard results correctly.
 
 \subsection{Integration Testing}
 
@@ -3065,7 +3063,7 @@ The comparison was applied only on tabular datasets because AutoCleanML mainly w
 After preprocessing the datasets, the output data was tested using four machine learning models. For classification problems, Logistic Regression, Random Forest, Decision Tree, and KNN were used. For regression problems, Linear Regression, Random Forest, Decision Tree, and KNN were used. This helped test the preprocessing output with different model types, not only one model.
 The results were saved and plotted as comparison graphs between Accelera and AutoCleanML. These graphs show the score of each tool on the selected datasets. The purpose of this comparison was to check whether Accelera can produce preprocessing results that are close to, or better than, an existing preprocessing tool.
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \small
 \caption{Classification comparison using Logistic Regression and Random Forest}
@@ -3090,7 +3088,7 @@ Customer purchase data & 0.8484 & 0.8375 & 0.9386 & 0.9385 \\
 \end{tabular}
 \end{table}
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \small
 \caption{Classification comparison using Decision Tree and KNN}
@@ -3115,7 +3113,7 @@ Customer purchase data & 0.8486 & 0.8449 & 0.8544 & 0.8806 \\
 \end{tabular}
 \end{table}
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \small
 \caption{Regression comparison using Linear Regression and Random Forest}
@@ -3133,7 +3131,7 @@ Housing & 0.6506 & 0.6482 & 0.6087 & 0.6037 \\
 \end{tabular}
 \end{table}
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \small
 \caption{Regression comparison using Decision Tree and KNN}
@@ -3151,20 +3149,20 @@ Housing & 0.3819 & 0.3634 & 0.5312 & 0.5336 \\
 \end{tabular}
 \end{table}
 
-From the classification and regression results, Accelera preprocessing achieved
+\noindent From the classification and regression results, Accelera preprocessing achieved
 competitive performance compared to AutoCleanML. The comparison was tested using
-different types of models, including linear models, tree-based models, Random
+different types of models, including linear models, tree based models, Random
 Forest, and KNN. In many cases, the results of Accelera were very close to
 AutoCleanML, and in some cases Accelera achieved better scores.
 
-These results show that the implemented preprocessing steps in Accelera are able
+\noindent These results show that the implemented preprocessing steps in Accelera are able
 to prepare data in a valid way for different machine learning techniques. The
 performance was not limited to one specific model type, but appeared across
 several models and datasets. This means that Accelera successfully reached
 results close to an existing automated preprocessing tool, while still using its
 own preprocessing approach.
 
-However, the results also show that no preprocessing tool gives the best score
+\noindent However, the results also show that no preprocessing tool gives the best score
 in all cases. The final performance can still depend on the dataset, the problem
 type, and the model used after preprocessing.
 
@@ -3180,13 +3178,28 @@ branch-level parallel execution as the main remaining graph-backend challenge.
 \mbox{}
 
 \section{Conclusions}
-Accelera Pipe provides a graph-based execution model for branch-heavy
-machine-learning pipelines and supports fitted executed graphs. The Code
-Parallelizer provides a source-to-source path from supported Python or C++
-loops to OpenMP-annotated C++ using converter rules, loop feature extraction,
-classifier guidance, and safety checks. The available experiments show runtime
-improvements on large branch-selection workloads while preserving selected
-models, accuracy, and output equivalence.
+Accelera provides a connected framework for preparing data, selecting models,
+building graph-based machine learning workflows, improving supported custom
+code, deploying trained models, and comparing results through a benchmark
+platform. The work shows that the project is not only a collection of separate
+tools, but a workflow where each module can support a different stage of the
+machine learning process.
+
+\noindent The Auto Preprocessing module reduces repeated manual preparation work
+for tabular, text, and image datasets. It saves fitted artifacts so that testing
+data can be transformed in the same way as training data. The AutoML module
+adds automated model search under time and trial limits, which helps compare
+candidate models more systematically. Accelera Pipe represents workflows as
+graphs, so shared preprocessing, branches, predictions, and metrics can be
+organized more clearly. The Code Parallelizer adds a source-level optimization
+path for supported loop-heavy code while keeping conservative safety checks.
+
+\noindent The Deployment module and Benchmark Platform complete the workflow by
+supporting model serving, version tracking, submission validation, scoring, and
+leaderboard comparison. The testing and experimental results show that the
+implemented modules can produce usable outputs, generate reports, evaluate
+models, and compare results. Overall, Accelera gives a practical base for a
+more organized and reusable machine learning workflow.
 
 \section{Future Work}
 Future work should continue reducing graph memory consumption while preserving
@@ -3194,8 +3207,8 @@ parallel branch execution, and should extend safe converter , loop-analysis
 coverage without weakening correctness checks, The preprocessing pipeline can be improved by adapting the preprocessing steps based on the selected model type and by adding techniques to handle imbalanced datasets.
 In the future, the benchmark platform can be improved by saving uploaded datasets on the server instead of using Google Drive links. It can also allow users to upload code files directly, instead of submitting only links.
 
-\chapter*{References}
-\addcontentsline{toc}{chapter}{References}
+\renewcommand{\bibname}{Reference}
+\addcontentsline{toc}{chapter}{Reference}
 \begin{thebibliography}{9}
 
 \bibitem{komorowski2016exploratory}
@@ -3297,6 +3310,7 @@ compared on the same task. A benchmark creator defines the dataset, test file,
 target column, and metric. Users then submit prediction files, and the platform
 calculates the score and displays the leaderboard.
 
+\renewcommand{\lstlistingname}{Code Example}
 \chapter{User Guide}
 \section{Using Tabular Auto Preprocessing}
 To use tabular preprocessing, the user first loads the dataset as a Pandas

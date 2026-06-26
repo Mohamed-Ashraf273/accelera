@@ -14,6 +14,7 @@
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{longtable}
+\usepackage{tabularx}
 \usepackage{enumitem}
 \usepackage[table]{xcolor}
 \usepackage{hyperref}
@@ -75,6 +76,7 @@
 \counterwithin{table}{chapter}
 \renewcommand{\lstlistingname}{Algorithm}
 \renewcommand{\lstlistlistingname}{List of Algorithms}
+\AtBeginDocument{\numberwithin{lstlisting}{chapter}}
 \setlength{\emergencystretch}{2em}
 \raggedbottom
 \renewcommand{\topfraction}{0.9}
@@ -113,7 +115,7 @@
 }
 
 \lstdefinestyle{algostyle}{
-  basicstyle=\ttfamily\footnotesize,
+  basicstyle=\ttfamily\normalsize,
   backgroundcolor=\color{white},
   frame=tb,
   rulecolor=\color{black},
@@ -634,122 +636,69 @@ The design of these modules depends on some assumptions.
 \subsection{Auto Preprocessing Assumptions}
 
 For the Auto Preprocessing module, the assumptions depend on the type of dataset being processed. The module supports three types of data: tabular, text, and image datasets.
-
-\subsubsection{Tabular Dataset Assumptions}
-
-For tabular datasets, the Auto Preprocessing module assumes that:
-
 \begin{itemize}
-\item The dataset consists of numerical and categorical features, and the task is either classification or regression.  
-Because we try to implement the standard structured machine learning problems where supervised learning is applied..
-\item The user provides configuration parameters to control preprocessing operations.  
-This allows the pipeline to adapt to different datasets and user requirements.
+  \item \textbf{Data assumption:} The input data should be valid, meaningful,
+  and one of the supported types, so the module can select the correct
+  preprocessing workflow.
+
+  \item \textbf{Configuration assumption:} The user should provide the needed
+  configuration values, so the module can apply the correct preprocessing steps.
 \end{itemize}
-\subsubsection{Text Dataset Assumptions}
-
-For text datasets, the Auto Preprocessing module assumes that:
-
-\begin{itemize}
-\item we assume that the dataset has one text column and one categorical target label.This makes the pipeline easier to apply and keeps the number of features smaller after converting the text into numerical values.
-\item The user provides configuration parameters for text cleaning and feature extraction.  
-To give the user a level of control over the preprocessing pipeline.
-\end{itemize}
-
-\subsubsection{Image Dataset Assumptions}
-\begin{itemize}
-
-\item The dataset is for image classification and follows this folder structure.  
-\begin{verbatim}
-Training/
-  Cats/
-  Dogs/
-
-Validation/
-  Cats/
-  Dogs/
-\end{verbatim}
-\item All images are stored in supported formats and are accessible.  
-This ensures compatibility with image loading and preprocessing libraries.
-
-\item The user provides configuration parameters for preprocessing and augmentation.  
-Because different datasets require different preprocessing strategies such as resizing, normalization, and augmentation.
-
-\end{itemize}
-
 \subsection{Benchmark Assumptions}
 
 For the Benchmark module, the following assumptions are made. These assumptions are introduced due to system design constraints, particularly the limited server storage capacity for handling large dataset uploads.
 
 \begin{itemize}
-
-\item When the user creates a benchmark, they provide a tabular dataset. This ensures that the module operates on structured data suitable for standard machine learning evaluation.
-
-\item All datasets are stored in publicly accessible Google Drive links. This design choice is adopted to reduce server storage requirements.
-
-\item The user must provide three CSV files:
-\begin{itemize}
-\item A training dataset containing both features and target labels.
-\item A testing dataset containing the same feature structure as the training set but without the target column.
-\item A ground truth target file containing only the target labels for the test set.
-\end{itemize}
-This separation ensures a standard evaluation protocol and prevents data leakage during benchmarking.
-
-\item When submitting predictions, the user provides a Google Drive link to a CSV file containing the predicted results. This ensures consistency in submission format across all users.
-
-\item The submitted prediction file must have the same length and format as the expected output to ensure correct evaluation and fair comparison between different users' models.
-
-\item When creating a benchmark, it is assumed that the user selects an evaluation metric that is appropriate for the problem type and provides a correct metric configuration. This is necessary to guarantee meaningful and valid performance measurement.
-
-\item For admin users, when defining an evaluation metric, it is assumed that a valid metric from the Scikit-learn library is selected. Because we use Scikit-learn metrics for evaluation.
-\item The selected metric must be properly configured and is expected to return a single scalar value for performance comparison and ranking purposes.
-
-\item The user is allowed to have only one active submission per benchmark. The user cannot create multiple submissions, but they are allowed to update their existing submission. This constraint is enforced to reduce storage usage.
-
+ \item \textbf{Benchmark data assumption:} The user is assumed to provide the
+benchmark files correctly, including the training data, test data, and separate
+target file. The user is also responsible for ensuring that the file separation
+does not cause data leakage, so the platform can evaluate submissions fairly.
+  \item \textbf{Metric and submission assumption:} The admin is assumed to define
+  the correct metric information for the benchmark, and the user is assumed to
+  submit predictions in the required format, so the scoring script can calculate
+  the result correctly.
 \end{itemize}
 \subsection{Reporting Module Assumptions}
  
 The Reporting in Pipeline module depends on the following assumptions:
 
 \begin{itemize}
-  \item The metric results are already generated from the pipeline modules.
+  \item \textbf{Metric result assumption:} The metric results are assumed to be
+  already generated from the pipeline modules and stored in a supported format,
+  such as a number, array, dictionary, string, or tuple, so the report generator
+  can read and display them correctly.
 
-  \item The metric result should be one of the supported types, such as a number,
-  array, dictionary, string, or tuple.
-
-  \item If the metric result needs to be displayed as a figure, the user should
-  provide a plotting function.
-  \item Figures are supported only in specific cases. If the metric result is a
-multi dimensional array or tuple and the user wants to display it as a graph, the user should provide a plotting function.
-  \item The plotting function should take the metric result as input and return
-  the correct Matplotlib \texttt{plt} object.
-
-  \item The output folder path should be valid so the generated report and images
-  can be saved.
+  \item \textbf{Visualization and output assumption:} If the result needs to be
+  displayed as a figure, the user is assumed to provide a suitable plotting
+  function that returns a Matplotlib \texttt{plt} object, and the output folder
+  path should be valid so the generated report and images can be saved correctly.
 \end{itemize}
 
 
-\section{System Architecture}
+\chapter{System Architecture}
 
 This section explains the implemented modules in this report. It discusses the three main parts: Auto Preprocessing, Pipeline Reporting, and Benchmarking. For each module, the section explains module overview and how it works.
-\section{Auto Preprocessing Module}
 
+\section{Auto Preprocessing Module}
 \subsection{Module Overview}
-The module supports three dataset families:
+\noindent The Auto Preprocessing module automates the data understanding, exploratory data analysis, and preprocessing stages in the data science workflow. It helps reduce the repeated manual work needed to prepare datasets before modeling.
+
+\noindent The module also helps the user understand the dataset before and after preprocessing by generating a report. This report shows important information about the input data and the preprocessing steps that were applied. For tabular data, the report shows information such as the number of rows and columns, data types, missing values, duplicate records, numerical and categorical features, basic statistics and EDA . For text data, it shows information such as the number of rows, target classes, class distribution, and number of missing. For image data, it shows information such as the number of images, image classes, class distribution, image sizes, and corrupted images. After preprocessing, the report shows the steps applied to the data, such as imputation, encoding, scaling, feature selection, text cleaning, TF-IDF feature extraction, image resizing, normalization, and image preparation for classification.
+
+\noindent Another important design point is separating the training phase from the inference phase. In the training phase, the preprocessing objects are fitted on the training data and saved as artifacts. In the inference phase, these saved artifacts are loaded and applied to new data. This ensures that new data is processed in the same way as the training data before it is passed to the trained model for prediction.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth,clip]{imgs/auto_preprocessed.pdf}
+    \caption{Auto Preprocessing Workflow}
+    \label{fig:Auto_preprocessing_workflow}
+\end{figure}
 
 \begin{itemize}[leftmargin=*]
-  \item tabular datasets for classification and regression;
-  \item text datasets for classification; and
-  \item image datasets for classification.
+  \item tabular datasets for classification and regression
+  \item text datasets for classification
+  \item image datasets for classification
 \end{itemize}
-
-\noindent The workflow starts from the raw data and user configuration. The module then
-applies suitable preprocessing steps and saves both the processed output and
-the fitted objects required for later use. It also has its own preprocessing
-reports. These reports are different from the pipeline report because they
-focus on the dataset itself: data overview, missing values, duplicate rows,
-column types, graphs, preprocessing decisions, selected features, and examples
-of the transformed data.
-
 
 
 \subsection{Tabular Training Flow}
@@ -1499,21 +1448,60 @@ The testing strategy focuses on verifying that each module works independently a
 
 \section{Module Testing}
 
+\subsection{Benchmark Platform Module}
 
-\subsubsection{Auto Preprocessing Module}
+The Benchmark Platform module was evaluated using manual functional testing to check its main features from the user side. The testing focused on creating benchmark tasks, validating dataset links, submitting prediction files, calculating scores, and displaying the results in the leaderboard.
+
+\noindent The leaderboard was tested by submitting different results and checking whether they were ordered correctly based on the selected evaluation metric. This included metrics where higher values are better and metrics where lower values are better.
+
+\noindent The scoring process was also tested manually by using different target and prediction files. The platform was checked to make sure it rejects invalid submissions, such as files with different row counts or missing target columns. These tests showed that the benchmark platform can handle result submission, calculate scores, validate files, and display leaderboard results correctly.
+
+\subsection{Auto Preprocessing Module}
 Most of the preprocessing functions were tested using unit tests. These tests
 were used to check validation rules, artifact saving,and feature transformation. Real datasets were also used to test the system in a
 more practical way. These datasets were collected from Kaggle for tabular,
-text, and image data. For the tabular and text experiments, the data was split
-using a validation size of 0.2 and random state 42.
+text, and image data.
+\subsubsection{How the Auto Preprocessing testing works}
 
-For tabular data, both classification and regression datasets were used. After
-preprocessing, the output was passed to a Random Forest model to check that the
-processed data was ready for training and validation. For text data, the
-processed TF-IDF output was passed to an \texttt{XGBClassifier}. This checked
-that the text preprocessing steps converted raw text into numerical features
-correctly. For image data, the output DataLoaders were passed to a ResNet
-model. This checked that the image preprocessing module created usable loaders.
+The Auto Preprocessing testing was done as a practical full-flow test. The idea
+was to run preprocessing on real datasets, then pass the processed output to a
+model. This means the test does not only check that preprocessing runs without
+errors, but also checks that the returned data can actually be used for
+training, validation, and prediction.
+
+\noindent For tabular datasets, the test starts by loading each dataset with its
+target column and problem type. The preprocessing flow splits the data, fits the
+needed encoders and scalers, transforms the features and target, applies feature
+selection, and saves the preprocessing artifacts. After that, a machine learning
+model is trained on the processed training data and evaluated on the processed
+validation data. Classification datasets are evaluated using Macro F1-score,
+and regression datasets are evaluated using the R-squared score. The same
+datasets are also processed by a baseline automated cleaning tool, so the final
+scores can be compared and the Accelera output can be checked against an
+existing preprocessing approach.
+
+\noindent For text datasets, the test checks that raw text can be converted into
+features that a classifier can understand. The preprocessing flow receives the
+text column and target column, cleans the text, tokenizes it, applies TF-IDF,
+encodes the labels, and returns processed training and validation data. A
+classifier is then trained on the transformed text features and evaluated using
+Macro F1-score. This confirms that the text preprocessing output is numeric,
+consistent, and usable for a normal machine learning model.
+
+\noindent For image classification, the test checks the full image preparation
+flow. The preprocessing reads images from class folders, validates image files,
+skips corrupted images, creates class-to-label mappings, resizes the images,
+applies augmentation when enabled, and returns PyTorch DataLoaders. A neural
+network model is then trained using these loaders. The inference path is also
+checked by loading the saved model and applying the testing preprocessing to new
+images. This verifies that the saved image size and class mapping can be reused
+during testing, not only during training.
+
+\noindent The main concept in all three tests is to check preprocessing through
+the next step in the machine learning pipeline. If the tabular arrays, TF-IDF
+matrices, labels, image tensors, or saved artifacts were wrong, the model
+training or evaluation step would fail or give invalid results. 
+
 \begin{table}[H]
 \centering
 \caption{Datasets Used in Module Testing}
@@ -1626,20 +1614,14 @@ dataset. The lower scores on datasets such as  TestReviews show
 that preprocessing alone does not solve every modeling problem. Some datasets
 still need better features, model tuning, or more suitable models.
 
-\subsection{Comparison with AutoCleanML}
+\section{Comparative Results to Previous Work}
+\subsection{Auto Preprocessing}
+Auto Preprocessing was compared with AutoCleanML to check the performance of the proposed preprocessing approach. The comparison was done using several tabular datasets collected from Kaggle. The same datasets and the same machine learning models were used for both tools.
+The comparison was applied only on tabular datasets because AutoCleanML mainly works with tabular data. For classification datasets, the Macro F1-score was used as the evaluation metric. For regression datasets, the R-squared score was used to measure how well the model predicts the target values.
+After preprocessing the datasets, the output data was tested using four machine learning models. For classification problems, Logistic Regression, Random Forest, Decision Tree, and KNN were used. For regression problems, Linear Regression, Random Forest, Decision Tree, and KNN were used. This helped test the preprocessing output with different model types, not only one model.
+The results were saved and plotted as comparison graphs between Accelera and AutoCleanML. These graphs show the score of each tool on the selected datasets. The purpose of this comparison was to check whether Accelera can produce preprocessing results that are close to, or better than, an existing preprocessing tool.
 
-The project also compares Accelera preprocessing with AutoCleanML on tabular
-datasets. The comparison uses several classification and regression datasets
-from Kaggle. For classification, the Macro F1 score is used. For regression,
-the R squared score is used. The same split settings are used, with validation
-size 20\% and random state 42.
-
-After preprocessing, the output data was tested using four models: Logistic
-Regression, Random Forest, Decision Tree, and KNN. The tables place the
-AutoCleanML and Accelera scores beside each other for the same model, so the
-comparison can be read directly.
-
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \small
 \caption{Classification comparison using Logistic Regression and Random Forest}
@@ -1664,7 +1646,7 @@ Customer purchase data & 0.8484 & 0.8375 & 0.9386 & 0.9385 \\
 \end{tabular}
 \end{table}
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \small
 \caption{Classification comparison using Decision Tree and KNN}
@@ -1689,7 +1671,7 @@ Customer purchase data & 0.8486 & 0.8449 & 0.8544 & 0.8806 \\
 \end{tabular}
 \end{table}
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \small
 \caption{Regression comparison using Linear Regression and Random Forest}
@@ -1707,7 +1689,7 @@ Housing & 0.6506 & 0.6482 & 0.6087 & 0.6037 \\
 \end{tabular}
 \end{table}
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \small
 \caption{Regression comparison using Decision Tree and KNN}
@@ -1725,20 +1707,20 @@ Housing & 0.3819 & 0.3634 & 0.5312 & 0.5336 \\
 \end{tabular}
 \end{table}
 
-From the classification and regression results, Accelera preprocessing achieved
+\noindent From the classification and regression results, Accelera preprocessing achieved
 competitive performance compared to AutoCleanML. The comparison was tested using
-different types of models, including linear models, tree-based models, Random
+different types of models, including linear models, tree based models, Random
 Forest, and KNN. In many cases, the results of Accelera were very close to
 AutoCleanML, and in some cases Accelera achieved better scores.
 
-These results show that the implemented preprocessing steps in Accelera are able
+\noindent These results show that the implemented preprocessing steps in Accelera are able
 to prepare data in a valid way for different machine learning techniques. The
 performance was not limited to one specific model type, but appeared across
 several models and datasets. This means that Accelera successfully reached
 results close to an existing automated preprocessing tool, while still using its
 own preprocessing approach.
 
-However, the results also show that no preprocessing tool gives the best score
+\noindent However, the results also show that no preprocessing tool gives the best score
 in all cases. The final performance can still depend on the dataset, the problem
 type, and the model used after preprocessing.
 
@@ -1750,40 +1732,8 @@ workflows, serialize the graph to XML, and run \modulepath{GraphReport}. The
 expected result is a \modulepath{report.html} file and a graph image showing
 the serialized graph structure. The report also checks that metrics are displayed
 according to their result type.
-
-\subsection{Benchmarking Module Testing}
-
-The Benchmarking module was tested manually by submitting different model
-results and checking whether the submitted results were saved and displayed in
-the leaderboard. The main checked behavior was that the module receives a
-submission, stores the dataset name, metric name, and score, and orders the
-leaderboard correctly.
-
-\subsection{Testing Datasets}
-
-\begin{table}[!htbp]
-\centering
-\caption{Examples of datasets used in Auto Preprocessing testing}
-\label{tab:testing-datasets}
-\begin{tabular}{p{0.45\textwidth}p{0.20\textwidth}p{0.25\textwidth}}
-\toprule
-Dataset & Data type & Problem type \\
-\midrule
-\modulepath{startup_founder_burnout_2026} & Tabular & Classification \\
-\modulepath{healthy_diet_calorie_intake} & Tabular & Classification \\
-\modulepath{ai_student} & Tabular & Classification \\
-\modulepath{Titanic-Dataset} & Tabular & Classification \\
-\modulepath{global_ai_jobs} & Tabular & Regression \\
-\modulepath{CarPrice_Assignment} & Tabular & Regression \\
-\modulepath{Housing} & Tabular & Regression \\
-\modulepath{PetImages} & Image & Classification \\
-\modulepath{DailyDialog} & Text & Classification \\
-\modulepath{TestReviews} & Text & Classification \\
-\bottomrule
-\end{tabular}
-\end{table}
-\chapter*{References}
-\addcontentsline{toc}{chapter}{References}
+\renewcommand{\bibname}{Reference}
+\addcontentsline{toc}{chapter}{Reference}
 \begin{thebibliography}{9}
 
 \bibitem{komorowski2016exploratory}
@@ -1815,21 +1765,27 @@ This work provided practical experience in automated data preprocessing, report 
 
 \section{Conclusions}
 
+This report documented my individual work in the Auto Preprocessing module,
+the Pipeline Reporting module, and the Benchmarking module in Accelera. The
+Auto Preprocessing module prepares tabular, text, and image datasets before
+model training. It handles repeated steps such as cleaning, splitting,
+encoding, scaling, text vectorization, image loading, and artifact saving. The
+most important point in this module is consistency, because the fitted
+preprocessing objects saved during training are reused later during testing.
 
+\noindent The Pipeline Reporting module helps make pipeline outputs easier to
+understand. Instead of leaving the user with only terminal output, it generates
+HTML reports, graph images, tables, and metric displays. This is useful when
+the workflow contains branches or different metric result types. The
+Benchmarking module adds a fair comparison workflow by using the same dataset,
+target labels, and metric configuration for submitted predictions.
 
-This report documented the Auto Preprocessing module, the Reporting module,
-and the Benchmarking module in Accelera. The Auto Preprocessing
-module automates repeated preparation steps for tabular, text, and image data
-and saves artifacts for consistent testing. The Reporting module uses HTML
-pages, tables, saved figures, and metric display wrappers to explain outputs.
-The Benchmarking module provides a shared
-evaluation workflow for comparing prediction submissions using the same metric
-and ground truth.
-
-Together, these parts support a more complete data-science workflow. The user
-can prepare data, inspect generated reports, and compare final predictions in a
-benchmark. The implementation still has limitations, but it gives a clear base
-for future development and evaluation.
+\noindent From the testing results, the preprocessing outputs were usable by
+machine learning and deep learning models for tabular, text, and image tasks.
+The generated reports also helped explain what happened during preprocessing
+and pipeline execution. Together, these modules make the data science workflow
+more organized, more reusable, and easier to inspect. The implementation still
+has limitations, but it provides a clear base for future improvements.
 
 
 \section{Future Work}
@@ -1881,6 +1837,7 @@ extended to include execution time and memory information for each branch.
 
 
 \appendix
+\renewcommand{\lstlistingname}{Code Example}
 \chapter{User Guide}
 \label{chap:user-guide}
 
