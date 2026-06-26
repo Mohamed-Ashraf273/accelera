@@ -97,9 +97,6 @@ def validate_model_paths(configurations):
         dest_models[name] = f"models/{filename}"
 
     configurations["models"] = dest_models
-    with open(config_file, "w", encoding="utf-8") as f:
-        json.dump(configurations, f, indent=2)
-
     return dest_models
 
 
@@ -449,30 +446,6 @@ def configure_deployment(model_path: str, df=None, target_col=None) -> None:
                 config_data = json.load(f)
         except Exception:
             pass
-
-    config_data["models"] = {"model_path": f"models/{filename}"}
-
-    if df is not None:
-        features = []
-        for col in df.columns:
-            if col != target_col:
-                dtype = str(df[col].dtype)
-                feat_type = (
-                    "integer"
-                    if "int" in dtype
-                    else ("number" if "float" in dtype else "string")
-                )
-                features.append({"name": col, "type": feat_type})
-        config_data["schema"] = {"features": features}
-    else:
-        config_data.setdefault("schema", {"features": []})
-
-    config_data.setdefault(
-        "tracking", {"enabled": True, "path": "prediction_logs/predictions.jsonl"}
-    )
-
-    with open(config_file, "w", encoding="utf-8") as f:
-        json.dump(config_data, f, indent=2)
 
     orig_cwd = os.getcwd()
     try:
