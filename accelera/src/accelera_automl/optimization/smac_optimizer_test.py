@@ -26,8 +26,8 @@ def test_none_n_trials_runs_until_time_budget(monkeypatch):
         n_trials=None,
         time_budget=1.0,
         n_parallel=1,
-        verbose=0,
         evaluation_level=[level],
+        verbose=0,
     )
     monkeypatch.setattr(
         optimizer,

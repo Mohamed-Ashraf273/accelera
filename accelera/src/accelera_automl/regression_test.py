@@ -41,7 +41,6 @@ def test_regressor_runs_with_all_options(monkeypatch):
         search_n_parallel=1,
         stack_n_jobs=1,
         inner_n_jobs=1,
-        verbose=0,
         disable_evaluation_timeout=True,
         allowed_models=["decision_tree"],
         use_meta_learning=False,
@@ -50,6 +49,7 @@ def test_regressor_runs_with_all_options(monkeypatch):
         max_meta_learning_warmstarts=2,
         candidate_pool_size=16,
         n_initial_points=1,
+        verbose=0,
     )
     X = np.array([[0.0], [1.0], [2.0], [3.0]])
     y = np.array([0.0, 1.0, 2.0, 3.0])
@@ -76,7 +76,6 @@ def test_regressor_runs_with_all_options(monkeypatch):
     assert engine.search_n_parallel == 1
     assert engine.stack_n_jobs == 1
     assert engine.inner_n_jobs == 1
-    assert engine.verbose == 0
     assert engine.disable_evaluation_timeout
     assert engine.allowed_models == ["decision_tree"]
     assert not engine.use_meta_learning
@@ -85,3 +84,4 @@ def test_regressor_runs_with_all_options(monkeypatch):
     assert engine.max_meta_learning_warmstarts == 2
     assert engine.candidate_pool_size == 16
     assert engine.n_initial_points == 1
+    assert engine.verbose == 0

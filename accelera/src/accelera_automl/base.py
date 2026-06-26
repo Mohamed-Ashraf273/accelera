@@ -24,11 +24,11 @@ class BaseAutoML(BaseEstimator, ABC):
         stack_n_jobs=-1,
         stacked_bagging_n_estimators=5,
         inner_n_jobs=1,
-        verbose=1,
         disable_evaluation_timeout=False,
         sample_size_from_config_space=256,
         num_of_trial_to_try_in_parallel=3,
         n_initial_points=5,
+        verbose=1,
     ):
         self.time_budget = time_budget
         self.n_trials = n_trials
@@ -46,11 +46,11 @@ class BaseAutoML(BaseEstimator, ABC):
         self.stack_n_jobs = stack_n_jobs
         self.stacked_bagging_n_estimators = stacked_bagging_n_estimators
         self.inner_n_jobs = inner_n_jobs
-        self.verbose = verbose
         self.disable_evaluation_timeout = disable_evaluation_timeout
         self.sample_size_from_config_space = sample_size_from_config_space
         self.num_of_trial_to_try_in_parallel = num_of_trial_to_try_in_parallel
         self.n_initial_points = n_initial_points
+        self.verbose = verbose
 
         self.reset()
 

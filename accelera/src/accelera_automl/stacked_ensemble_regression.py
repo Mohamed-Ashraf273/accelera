@@ -32,10 +32,10 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
         bagging_n_estimators=5,
         include_original_features_in_meta=True,
         scoring="r2",
-        verbose=0,
         min_base_models=3,
         selection_tolerance=1e-4,
         meta_estimators=None,
+        verbose=0,
     ):
         self.base_estimators = base_estimators
         self.meta_estimators = meta_estimators
@@ -46,9 +46,9 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
         self.bagging_n_estimators = bagging_n_estimators
         self.include_original_features_in_meta = include_original_features_in_meta
         self.scoring = scoring
-        self.verbose = verbose
         self.min_base_models = min_base_models
         self.selection_tolerance = selection_tolerance
+        self.verbose = verbose
 
     def combine_meta_features(self, X, selected):
         prediction_matrix = np.hstack(selected)
@@ -129,14 +129,6 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
         selected = [best_single]
         remaining.remove(best_single)
         current_score = self.evaluate_meta_subset(X, y, selected)
-        if self.verbose > 0:
-            log_forward_selection_step(
-                step=1,
-                selected_names=[best_single[0]],
-                score=current_score,
-                improvement=None,
-            )
-
         while remaining:
             best_candidate = None
             best_candidate_score = float("-inf")
@@ -162,12 +154,9 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
             current_score = best_candidate_score
             if self.verbose > 0:
                 log_forward_selection_step(
-                    step=len(selected),
-                    selected_names=[name for name, _, _ in selected],
-                    score=current_score,
-                    improvement=improvement,
+                    [name for name, _, _ in selected],
+                    current_score,
                 )
-
         return [name for name, _, _ in selected], current_score
 
     def fit(self, X, y):
@@ -200,15 +189,10 @@ class StackedEnsembleRegressor(BaseEstimator, RegressorMixin):
         self.meta_model_name = meta_name
         self.meta_model = clone(meta_estimator)
         self.meta_model.fit(stack_train_X, y)
+        if self.verbose > 0:
+            log_ensemble_structure(self.base_model_names, self.meta_model_name)
         self.forward_selection_ = SimpleNamespace(score=float(self.score_result))
 
-        if self.verbose > 0:
-            log_ensemble_structure(
-                self.base_model_names,
-                self.meta_model_name,
-                float(self.score_result),
-                self.include_original_features_in_meta,
-            )
         return self
 
     def predict(self, X):

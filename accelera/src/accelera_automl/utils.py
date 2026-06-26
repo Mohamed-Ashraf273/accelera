@@ -63,32 +63,16 @@ def score_predictions(classes, scoring, y_true, predictions):
     return float(accuracy_score(y_true, y_pred))
 
 
-def log_forward_selection_step(
-    step,
-    selected_names,
-    score,
-    improvement,
-):
-    if improvement is None:
-        print(
-            f"[AutoML] Forward selection step {step}: "
-            f"selected {selected_names[-1]} score={score:.6f}"
-        )
-        return
+def log_forward_selection_step(selected_names, score):
     print(
-        f"[AutoML] Forward selection step {step}: "
-        f"added {selected_names[-1]} score={score:.6f} "
-        f"improvement={improvement:.6f}"
+        "Forward selection selected "
+        f"{selected_names} with validation score {score}."
     )
 
 
-def log_ensemble_structure(
-    base_model_names, meta_modelname, score, include_original_features_in_meta
-):
-    print("[AutoML] Stacked ensemble summary")
-    print(f"[AutoML] Selected base models: {', '.join(base_model_names)}")
-    print(f"[AutoML] Meta model: {meta_modelname}")
+def log_ensemble_structure(base_model_names, meta_model_name):
     print(
-        f"[AutoML] Forward selection score: {score:.6f} "
-        f"(uses original features={include_original_features_in_meta})"
+        "Stacked ensemble base models: "
+        f"{base_model_names}; meta model: {meta_model_name}."
     )
+

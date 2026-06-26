@@ -480,9 +480,8 @@ def main() -> None:
     output_benchmark.write_text(
         render_benchmark_yaml(benchmark_entries), encoding="utf-8"
     )
-
-    print(f"Wrote benchmark: {output_benchmark}")
-    print(f"Wrote dataset folds under: {output_data_dir}")
+    print(f"Wrote benchmark definition to {output_benchmark}")
+    print(f"Wrote dataset splits under {output_data_dir}")
     print(f"Prepared {len(benchmark_entries)} {args.task_type} datasets.")
 
 

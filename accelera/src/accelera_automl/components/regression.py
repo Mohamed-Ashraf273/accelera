@@ -4,6 +4,7 @@ from ConfigSpace.conditions import InCondition
 from ConfigSpace.hyperparameters import CategoricalHyperparameter
 from ConfigSpace.hyperparameters import UniformFloatHyperparameter
 from ConfigSpace.hyperparameters import UniformIntegerHyperparameter
+import inspect
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.ensemble import HistGradientBoostingRegressor
@@ -53,7 +54,7 @@ def create_adaboost_conditions(ctx):
     return create_conditions(ctx["model_name"], "adaboost", ctx["params"])
 
 
-def build_adaboost(params, random_state, n_jobs, balance_classes):
+def build_adaboost(params, random_state, n_jobs):
     base_estimator = DecisionTreeRegressor(
         max_depth=int(params["max_depth"]),
         random_state=random_state,
@@ -100,7 +101,7 @@ def create_ard_regression_conditions(ctx):
     return create_conditions(ctx["model_name"], "ard_regression", ctx["params"])
 
 
-def build_ard_regression(params, random_state, n_jobs, balance_classes):
+def build_ard_regression(params, random_state, n_jobs):
     estimator_params = {
         "alpha_1": float(params["alpha_1"]),
         "alpha_2": float(params["alpha_2"]),
@@ -110,7 +111,12 @@ def build_ard_regression(params, random_state, n_jobs, balance_classes):
         "threshold_lambda": float(params["threshold_lambda"]),
         "tol": float(params["tol"]),
     }
-    estimator_params["max_iter"] = int(params["max_iter"])
+    iterations_parameter = (
+        "max_iter"
+        if "max_iter" in inspect.signature(ARDRegression).parameters
+        else "n_iter"
+    )
+    estimator_params[iterations_parameter] = int(params["max_iter"])
     return ARDRegression(**estimator_params)
 
 
@@ -324,28 +330,27 @@ def create_gradient_boosting_conditions(ctx):
 
 def build_gradient_boosting(params, random_state, n_jobs):
     early_stop = params["early_stop"]
-    n_iter_no_change = None
-    validation_fraction = None
+    estimator_params = {
+        "loss": params["loss"],
+        "learning_rate": float(params["learning_rate"]),
+        "max_iter": int(params["max_iter"]),
+        "min_samples_leaf": int(params["min_samples_leaf"]),
+        "max_depth": int(params["max_depth"]),
+        "max_leaf_nodes": int(params["max_leaf_nodes"]),
+        "max_bins": int(params["max_bins"]),
+        "l2_regularization": float(params["l2_regularization"]),
+        "early_stopping": early_stop != "off",
+        "tol": float(params["tol"]),
+        "scoring": params["scoring"],
+        "random_state": random_state,
+    }
     if early_stop in {"valid", "train"}:
-        n_iter_no_change = int(params["n_iter_no_change"])
+        estimator_params["n_iter_no_change"] = int(params["n_iter_no_change"])
     if early_stop == "valid":
-        validation_fraction = float(params["validation_fraction"])
-    return HistGradientBoostingRegressor(
-        loss=params["loss"],
-        learning_rate=float(params["learning_rate"]),
-        max_iter=int(params["max_iter"]),
-        min_samples_leaf=int(params["min_samples_leaf"]),
-        max_depth=int(params["max_depth"]),
-        max_leaf_nodes=int(params["max_leaf_nodes"]),
-        max_bins=int(params["max_bins"]),
-        l2_regularization=float(params["l2_regularization"]),
-        early_stopping=(early_stop != "off"),
-        tol=float(params["tol"]),
-        scoring=params["scoring"],
-        n_iter_no_change=n_iter_no_change,
-        validation_fraction=validation_fraction,
-        random_state=random_state,
-    )
+        estimator_params["validation_fraction"] = float(
+            params["validation_fraction"]
+        )
+    return HistGradientBoostingRegressor(**estimator_params)
 
 
 def create_knn_hyperparameters():

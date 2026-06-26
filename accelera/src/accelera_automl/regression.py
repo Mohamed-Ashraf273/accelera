@@ -25,7 +25,6 @@ class AutoMLRegressor(BaseAutoML):
         stack_n_jobs=-1,
         n_jobs=None,
         inner_n_jobs=1,
-        verbose=1,
         disable_evaluation_timeout=False,
         allowed_models=None,
         use_meta_learning=True,
@@ -34,6 +33,7 @@ class AutoMLRegressor(BaseAutoML):
         max_meta_learning_warmstarts=10,
         candidate_pool_size=256,
         n_initial_points=5,
+        verbose=1,
     ):
         super().__init__(
             time_budget=time_budget,
@@ -53,16 +53,14 @@ class AutoMLRegressor(BaseAutoML):
             inner_n_jobs=inner_n_jobs,
             disable_evaluation_timeout=disable_evaluation_timeout,
             sample_size_from_config_space=candidate_pool_size,
-            verbose=verbose,
             n_initial_points=n_initial_points,
+            verbose=verbose,
         )
 
         self.allowed_models = allowed_models
         self.use_meta_learning = use_meta_learning
         self.meta_learning_top_datasets = meta_learning_top_datasets
-        self.meta_learning_top_configs_per_dataset = (
-            meta_learning_top_configs_per_dataset
-        )
+        self.meta_learning_top_configs_per_dataset = meta_learning_top_configs_per_dataset
         self.max_meta_learning_warmstarts = max_meta_learning_warmstarts
 
     def get_default_scoring(self):
@@ -86,7 +84,6 @@ class AutoMLRegressor(BaseAutoML):
             search_n_parallel=self.num_of_trial_to_try_in_parallel,
             stack_n_jobs=self.stack_n_jobs,
             inner_n_jobs=self.inner_n_jobs,
-            verbose=self.verbose,
             disable_evaluation_timeout=self.disable_evaluation_timeout,
             allowed_models=self.allowed_models,
             use_meta_learning=self.use_meta_learning,
@@ -95,6 +92,7 @@ class AutoMLRegressor(BaseAutoML):
             max_meta_learning_warmstarts=self.max_meta_learning_warmstarts,
             candidate_pool_size=self.sample_size_from_config_space,
             n_initial_points=self.n_initial_points,
+            verbose=self.verbose,
         )
 
     def fit(self, X, y):

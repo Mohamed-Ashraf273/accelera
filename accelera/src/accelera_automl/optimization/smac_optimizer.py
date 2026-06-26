@@ -62,9 +62,9 @@ class Optimizer:
         warm_start_configs=[],
         num_of_initail_points_to_try=5,
         sample_size_from_configspace=256,
-        verbose=1,
         num_of_trials_to_run_parralel=3,
         n_parallel=None,
+        verbose=1,
     ):
         self.config_space = config_space if config_space is not None else configspace
         self.evaluator = evaluator
@@ -117,11 +117,10 @@ class Optimizer:
             if self.n_trials is not None:
                 batch_size = min(batch_size, self.n_trials - trial_num)
             trials = self.suggest_batch(batch_size)
-
             if self.verbose:
                 print(
-                    f"starting batch of {self.num_of_trials_to_run_parralel} trials "
-                    f"({trial_num + 1}/{self.n_trials or 'time budget'})"
+                    f"Starting optimization batch with {len(trials)} trial(s) "
+                    f"at trial {trial_num}."
                 )
 
             if self.num_of_trials_to_run_parralel > 1:
@@ -131,21 +130,6 @@ class Optimizer:
 
             for idx, (trial, result) in enumerate(zip(trials, batch_results)):
                 current_trial_num = trial_num + idx
-                config_dict = dict(trial.config)
-                if self.verbose:
-                    model_name = config_dict.get("model_name")
-                    print(
-                        f"Trial {current_trial_num + 1}/{self.n_trials} - "
-                        f"{model_name}: score={result.score:.6f} "
-                        f"cost={result.cost:.4f} status={result.status} "
-                        f"stage={result.evaluation_level_stage}"
-                    )
-                    if result.error and self.verbose > 1:
-                        print(
-                            f"Trial {current_trial_num + 1}/{self.n_trials} - "
-                            f"error: {result.error}"
-                        )
-
                 trial_dict = {
                     "trial_id": current_trial_num,
                     "config": trial.config,
@@ -165,6 +149,14 @@ class Optimizer:
 
                 self.trials.append(trial_dict)
                 self.record_trial(trial.config, result)
+                if self.verbose:
+                    print(
+                        f"Trial {current_trial_num}: "
+                        f"{result.model_name} status={result.status} "
+                        f"score={result.score}"
+                    )
+                    if result.error:
+                        print(f"Trial {current_trial_num} error: {result.error}")
 
                 if self.is_full_fidelity(result) and result.cost < self.best_cost:
                     self.best_config = trial.config
@@ -172,11 +164,9 @@ class Optimizer:
                     self.best_config_trial = result
                     if self.verbose:
                         print(
-                            f"new best_config - model={result.model_name} "
-                            f"preprocessing={result.preprocessing} "
-                            f"score={result.score:.6f}"
+                            f"New best configuration at trial {current_trial_num}: "
+                            f"cost={self.best_cost}"
                         )
-
             trial_num += self.num_of_trials_to_run_parralel
 
         if self.best_config is None:
@@ -359,14 +349,15 @@ class Optimizer:
                     timeout = current_time - start_times[idx]
                     if timeout >= self.per_trial_timelimit:
                         config_dict = dict(trials[idx].config)
-                        if self.verbose > 1:
-                            model_name = config_dict.get("model_name")
-                            print(f"Killing process for {model_name} (timeout)")
-
                         processes[idx].terminate()
                         processes[idx].join(timeout=1.0)
                         if processes[idx].is_alive():
                             processes[idx].kill()  # force kill
+                        if self.verbose:
+                            print(
+                                "Killed timed out trial "
+                                f"{idx} after {timeout:.2f}s."
+                            )
 
                         results[idx] = EvaluationResult(
                             model_name=config_dict.get("model_name"),

@@ -24,7 +24,6 @@ class AutoMLClassifier(BaseAutoML):
         n_jobs=None,
         ensemble_strategy="stacked",
         inner_n_jobs=1,
-        verbose=1,
         stacked_include_original_features_in_meta=False,
         allowed_models=None,
         disable_evaluation_timeout=False,
@@ -34,6 +33,7 @@ class AutoMLClassifier(BaseAutoML):
         max_meta_learning_warmstarts=10,
         candidate_pool_size=256,
         n_initial_points=5,
+        verbose=1,
         meta_learning_top_configs_per_dataset=3,
     ):
         super().__init__(
@@ -54,16 +54,14 @@ class AutoMLClassifier(BaseAutoML):
             inner_n_jobs=inner_n_jobs,
             disable_evaluation_timeout=disable_evaluation_timeout,
             sample_size_from_config_space=candidate_pool_size,
-            verbose=verbose,
             n_initial_points=n_initial_points,
+            verbose=verbose,
         )
         self.balance_classes = balance_classes
         self.allowed_models = allowed_models
         self.use_meta_learning = use_meta_learning
         self.meta_learning_top_datasets = meta_learning_top_datasets
-        self.meta_learning_top_configs_per_dataset = (
-            meta_learning_top_configs_per_dataset
-        )
+        self.meta_learning_top_configs_per_dataset = meta_learning_top_configs_per_dataset
         self.max_meta_learning_warmstarts = max_meta_learning_warmstarts
 
     def get_default_scoring(self):
@@ -87,7 +85,6 @@ class AutoMLClassifier(BaseAutoML):
             search_n_parallel=self.num_of_trial_to_try_in_parallel,
             stack_n_jobs=self.stack_n_jobs,
             inner_n_jobs=self.inner_n_jobs,
-            verbose=self.verbose,
             disable_evaluation_timeout=self.disable_evaluation_timeout,
             balance_classes=self.balance_classes,
             allowed_models=self.allowed_models,
@@ -97,6 +94,7 @@ class AutoMLClassifier(BaseAutoML):
             max_meta_learning_warmstarts=self.max_meta_learning_warmstarts,
             candidate_pool_size=self.sample_size_from_config_space,
             n_initial_points=self.n_initial_points,
+            verbose=self.verbose,
         )
 
     def fit(self, X, y):

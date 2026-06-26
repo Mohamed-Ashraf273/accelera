@@ -75,7 +75,6 @@ class AutoMLEngine:
         search_n_parallel=3,
         stacked_bagging_n_estimators=5,
         inner_n_jobs=1,
-        verbose=1,
         stack_n_jobs=None,
         balance_classes=False,
         use_meta_learning=True,
@@ -86,6 +85,7 @@ class AutoMLEngine:
         candidate_pool_size=256,
         max_meta_learning_warmstarts=10,
         n_initial_points=5,
+        verbose=1,
     ):
         self.task = task
         self.time_budget = time_budget
@@ -114,11 +114,11 @@ class AutoMLEngine:
         self.meta_learning_top_configs_per_dataset = (
             meta_learning_top_configs_per_dataset
         )
-        self.verbose = verbose
         self.n_initial_points = n_initial_points
         self.meta_learning_top_datasets = meta_learning_top_datasets
         self.candidate_pool_size = candidate_pool_size
         self.max_meta_learning_warmstarts = max_meta_learning_warmstarts
+        self.verbose = verbose
 
     def build_evaluator(self):
         if self.task == "classification":
@@ -169,10 +169,10 @@ class AutoMLEngine:
             per_trial_timelimit=self.resolve_per_run_time_limit(),
             warm_start_configs=warm_start,
             num_of_trials_to_run_parralel=self.search_n_parallel,
-            verbose=self.verbose,
             evaluation_level=list(fidality_stages),
             sample_size_from_configspace=self.candidate_pool_size,
             num_of_initail_points_to_try=self.n_initial_points,
+            verbose=self.verbose,
         )
 
     def build_leaderboard(self, result):
@@ -219,10 +219,7 @@ class AutoMLEngine:
         n_rows = len(X)
         if self.ensemble_strategy == "stacked" and n_rows > 50_000:
             if self.verbose:
-                print(
-                    "large dataset detected; switching ensemble strategy "
-                    "from stacked to voting."
-                )
+                print("Large dataset detected; using voting ensemble instead of stacking.")
             return "voting"
         return self.ensemble_strategy
 
@@ -327,6 +324,12 @@ class AutoMLEngine:
         if not disabled_models:
             return candidate_models
 
+        if self.verbose:
+            print(
+                "AutoML disabled models for dataset size/features: "
+                f"{sorted(set(disabled_models))}"
+            )
+
         disabled_set = set(disabled_models)
         if candidate_models is None:
             configspace = (
@@ -346,8 +349,6 @@ class AutoMLEngine:
                 if model_name not in disabled_set
             ]
 
-        if self.verbose:
-            print("dataset-aware filtering disabled models:", disabled_set)
         return filtered_models
 
     def features_have_negative_values(self, X):
@@ -363,9 +364,13 @@ class AutoMLEngine:
 
     def get_warmstart(self, configspace, X, y):
         if not self.use_meta_learning:
+            if self.verbose:
+                print("Meta-learning warmstart disabled.")
             return []
 
         try:
+            if self.verbose:
+                print("Starting meta-learning warmstart selection.")
             metafeatures = (
                 compute_basic_classification_metafeatures(X, y)
                 if self.task == "classification"
@@ -382,11 +387,16 @@ class AutoMLEngine:
                 top_configs_per_dataset=self.meta_learning_top_configs_per_dataset,
                 max_warmstarts=self.max_meta_learning_warmstarts,
             )
-        except Exception:
+        except Exception as exc:
+            if self.verbose:
+                print(f"Meta-learning warmstart skipped: {exc}")
             return []
 
-        if self.verbose and warmstarts:
-            print(f"meta-learning warmstarts loaded: {len(warmstarts)}")
+        if self.verbose:
+            print(
+                "Meta-learning warmstart selected "
+                f"{len(warmstarts)} configuration(s)."
+            )
         return warmstarts
 
     def search(self, X, y):

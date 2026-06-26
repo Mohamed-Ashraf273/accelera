@@ -85,11 +85,11 @@ def main() -> None:
         random_state=42,
         use_ensemble=True,
         ensemble_strategy="stacked",
-        verbose=1,
         stacked_include_original_features_in_meta=False,
         n_jobs=args.n_jobs,
         disable_evaluation_timeout=args.disable_evaluation_timeout,
         use_meta_learning=True,
+        verbose=1,
     )
 
     started_at = perf_counter()

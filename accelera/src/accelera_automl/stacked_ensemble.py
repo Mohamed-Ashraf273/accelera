@@ -76,9 +76,9 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
         bagging_n_estimators=5,
         include_original_features_in_meta=True,
         scoring="accuracy",
-        verbose=0,
         min_base_models=3,
         selection_tolerance=1e-4,
+        verbose=0,
     ):
         self.base_estimators = base_estimators
         self.cv = cv
@@ -88,9 +88,9 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
         self.bagging_n_estimators = bagging_n_estimators
         self.include_original_features_in_meta = include_original_features_in_meta
         self.scoring = scoring
-        self.verbose = verbose
         self.min_base_models = min_base_models
         self.selection_tolerance = selection_tolerance
+        self.verbose = verbose
 
     def make_bagged_model(self, model, n_jobs):
         adapted_estimator = ClassifierAdapter(model)
@@ -190,13 +190,6 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
         selected.append(best_single)
         remaining.remove(best_single)
         current_score = self.evaluate_meta_subset(X, y, selected)
-        if self.verbose > 0:
-            log_forward_selection_step(
-                step=1,
-                selected_names=[best_single[0]],
-                score=current_score,
-                improvement=None,
-            )
         while remaining:
             best_candidate = None
             best_candidate_score = float("-inf")
@@ -223,10 +216,8 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
             current_score = best_candidate_score
             if self.verbose > 0:
                 log_forward_selection_step(
-                    step=len(selected),
-                    selected_names=[name for name, _, _ in selected],
-                    score=current_score,
-                    improvement=improvement,
+                    [name for name, _, _ in selected],
+                    current_score,
                 )
         return [name for name, _, _ in selected], current_score
 
@@ -276,15 +267,10 @@ class StackedEnsembleClassifier(BaseEstimator, ClassifierMixin):
         self.meta_modelname = meta_name
         self.meta_model = ClassifierAdapter(meta_estimator)
         self.meta_model.fit(stack_train_X, y)
+        if self.verbose > 0:
+            log_ensemble_structure(self.base_model_names, self.meta_modelname)
         self.forward_selection_ = SimpleNamespace(score=float(self.score_result))
 
-        if self.verbose > 0:
-            log_ensemble_structure(
-                self.base_model_names,
-                self.meta_modelname,
-                float(self.score_result),
-                self.include_original_features_in_meta,
-            )
         return self
 
     def predict_proba(self, X):
