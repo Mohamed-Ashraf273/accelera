@@ -116,6 +116,36 @@ may otherwise fail even when the package files exist locally.
 CMake also checks for Graphviz `dot` and installs it automatically on supported
 Windows and Debian/Ubuntu Linux systems so graph-rendering examples can run.
 
+### Node installation
+
+This project requires **Node.js v22.23.0**.
+
+**Linux / macOS**
+
+Using `nvm` is recommended:
+
+```bash
+nvm install 22.23.0
+nvm use 22.23.0
+node -v
+npm -v
+````
+
+**Windows**
+
+Install **Node.js v22.23.0** from the official Node.js website, then verify the installation:
+
+```powershell
+node -v
+npm -v
+```
+
+The `node -v` command should print:
+
+```bash
+v22.23.0
+```
+
 ### Needed Datasets
 
 To run the AutoPreprocessing demo correctly, you need to download two Kaggle datasets used in this project:
