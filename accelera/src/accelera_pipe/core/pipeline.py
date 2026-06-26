@@ -10,6 +10,7 @@ from accelera.src.utils.accelera_utils import get_metric_object
 class Pipeline(PipelineBase):
     def __init__(self):
         super().__init__(_graph=None)
+        self.included_types = set()
 
     def __call__(
         self, X, y=None, select_strategy: str = "all", custom_strategy=None
@@ -45,11 +46,13 @@ class Pipeline(PipelineBase):
             "cache": cache,
         }
         if branch:
+            self.included_types.add("preprocess")
             return Node("preprocess", name, func_params)
 
         self._PipelineBase__graph.add_node(
             self.types["preprocess"], name, func_params
         )
+        self.included_types.add("preprocess")
         return self
 
     def model(self, name, model, branch=False, cache=False):
@@ -59,15 +62,17 @@ class Pipeline(PipelineBase):
             "cache": cache,
         }
         if branch:
+            self.included_types.add("model")
             return Node("model", name, model_params)
 
         self._PipelineBase__graph.add_node(self.types["model"], name, model_params)
+        self.included_types.add("model")
         return self
 
     def predict(
         self,
         name,
-        test_data,
+        test_data=None,
         output_func="predict",
         positive_class=-1,
         branch=False,
@@ -78,11 +83,13 @@ class Pipeline(PipelineBase):
             "positive_class": positive_class,
         }
         if branch:
+            self.included_types.add("predict")
             return Node("predict", name, predict_params)
 
         self._PipelineBase__graph.add_node(
             self.types["predict"], name, predict_params
         )
+        self.included_types.add("predict")
         return self
 
     def metric(
@@ -115,20 +122,24 @@ class Pipeline(PipelineBase):
                 )
 
             if branch:
+                self.included_types.add("metric")
                 return Node("metric", name, metric_obj)
 
             self._PipelineBase__graph.add_node(
                 self.types["metric"], name, metric_obj
             )
+            self.included_types.add("metric")
             return self
         else:
             raise ValueError(f"Metric '{metric_name}' is not recognized.")
 
     def merge(self, name, strategy="hard_voting", branch=False):
         if branch:
+            self.included_types.add("merge")
             return Node("merge", name, strategy)
 
         self._PipelineBase__graph.add_node(self.types["merge"], name, strategy)
+        self.included_types.add("merge")
         return self
 
     def branch(self, name, *branches):
