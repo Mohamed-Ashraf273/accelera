@@ -63,14 +63,29 @@ class ModelService:
 
     def predict(self, input_data, validate=True):
         rows = self.validate_input(input_data) if validate else input_data
-        X = np.array(rows)
-        if X.ndim == 1:
-            X = X.reshape(1, -1)
+        X = self._prepare_prediction_input(rows)
 
         for p in self._preprocessors:
             X = p.transform(X)
 
         return self._model.predict(X)
+
+    def _prepare_prediction_input(self, rows):
+        if getattr(self.schema, "enabled", False):
+            import pandas as pd
+
+            columns = [feature["name"] for feature in self.schema.features]
+            if isinstance(rows, pd.DataFrame):
+                return rows[columns].copy()
+            if isinstance(rows, list) and rows:
+                if all(not isinstance(item, (list, tuple, dict)) for item in rows):
+                    return pd.DataFrame([rows], columns=columns)
+            return pd.DataFrame(rows, columns=columns)
+
+        X = np.array(rows)
+        if X.ndim == 1:
+            X = X.reshape(1, -1)
+        return X
 
 
 service = ModelService()

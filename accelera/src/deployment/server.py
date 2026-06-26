@@ -85,7 +85,7 @@ def _predict(data, endpoint, filename=None):
     try:
         rows = service.validate_input(data)
         preds = service.predict(rows, validate=False)
-        predictions = preds.tolist()
+        predictions = _prediction_values(preds)
         row_count = _row_count(rows)
         _record_prediction(
             endpoint=endpoint,
@@ -158,6 +158,30 @@ def _row_count(rows):
         return len(rows)
     except TypeError:
         return 1
+
+
+def _prediction_values(preds):
+    if hasattr(preds, "tolist"):
+        return _json_value(preds.tolist())
+    if isinstance(preds, list):
+        return _json_value(preds)
+    if isinstance(preds, tuple):
+        return _json_value(list(preds))
+    return [_json_value(preds)]
+
+
+def _json_value(value):
+    if isinstance(value, list):
+        return [_json_value(item) for item in value]
+    if isinstance(value, tuple):
+        return [_json_value(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _json_value(item) for key, item in value.items()}
+    if hasattr(value, "tolist"):
+        return _json_value(value.tolist())
+    if hasattr(value, "item"):
+        return value.item()
+    return value
 
 
 def _latency_ms(started):
