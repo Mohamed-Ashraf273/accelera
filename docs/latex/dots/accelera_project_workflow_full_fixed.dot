@@ -1,0 +1,230 @@
+digraph AcceleraProjectWorkflowFullFixed {
+    graph [
+        rankdir=LR,
+        bgcolor="white",
+        pad="0.15",
+        margin=0,
+        nodesep="0.28",
+        ranksep="0.55",
+        splines=polyline,
+        concentrate=false,
+        overlap=false,
+        fontname="DejaVu Sans",
+        labelloc=t,
+        labeljust=c,
+        size="16,9!",
+        ratio=fill,
+        label=<
+            <FONT POINT-SIZE="42"><B>Accelera Project Workflow</B></FONT>
+        >
+    ];
+
+    node [
+        shape=rect,
+        style="rounded,filled",
+        color="#174EA6",
+        fillcolor="#F7FAFF",
+        fontname="DejaVu Sans",
+        fontsize=20,
+        margin="0.14,0.09",
+        penwidth=2.0,
+        width=1.9,
+        height=0.58
+    ];
+
+    edge [
+        color="#174EA6",
+        arrowsize=0.85,
+        penwidth=1.8,
+        fontname="DejaVu Sans",
+        fontsize=15
+    ];
+
+    user [
+        label="User",
+        fillcolor="#0B3D91",
+        fontcolor="white",
+        color="#0B3D91",
+        fontsize=26,
+        width=2.0
+    ];
+
+    subgraph cluster_preprocessing {
+        label="1. Auto Preprocessing";
+        color="#2F7BFF";
+        style="rounded,dashed";
+        penwidth=2.0;
+        fontname="DejaVu Sans";
+        fontsize=24;
+        margin=12;
+
+        ap_dataset [label="Dataset"];
+        ap_profile [label="Data profiling\nand type detection"];
+        ap_task [label="Task-specific\npreprocessing"];
+        ap_types [label="Tabular / Text / Image\npreparation"];
+        ap_output [
+            label="Processed data\n+ reports\n+ preprocessors",
+            fillcolor="#0B3D91",
+            fontcolor="white",
+            color="#0B3D91"
+        ];
+
+        ap_dataset -> ap_profile -> ap_task -> ap_types -> ap_output;
+    }
+
+    subgraph cluster_automl {
+        label="2. Accelera AutoML";
+        color="#2F7BFF";
+        style="rounded,dashed";
+        penwidth=2.0;
+        fontname="DejaVu Sans";
+        fontsize=24;
+        margin=12;
+
+        ml_input [label="Dataset /\nprocessed data"];
+        ml_stats [label="Statistics\nand metrics"];
+        ml_candidates [label="Candidate models\n+ preprocessing choices"];
+        ml_search [label="Search /\noptimization"];
+        ml_output [
+            label="Best model\n+ score\n+ run history",
+            fillcolor="#0B3D91",
+            fontcolor="white",
+            color="#0B3D91"
+        ];
+
+        ml_input -> ml_stats -> ml_candidates -> ml_search -> ml_output;
+    }
+
+    subgraph cluster_pipe {
+        label="3. Accelera Pipe";
+        color="#2F7BFF";
+        style="rounded,dashed";
+        penwidth=2.0;
+        fontname="DejaVu Sans";
+        fontsize=24;
+        margin=12;
+
+        pipe_workflow [label="User workflow"];
+        pipe_graph [label="Graph of nodes\npreprocessors, branches,\nmerge, I/O"];
+        pipe_branch [label="Branch / merge\nexecution"];
+        pipe_parallel [label="Parallel independent\npaths"];
+        pipe_output [
+            label="Predictions\n+ executed graph\n+ reports",
+            fillcolor="#0B3D91",
+            fontcolor="white",
+            color="#0B3D91"
+        ];
+
+        pipe_workflow -> pipe_graph -> pipe_branch -> pipe_parallel -> pipe_output;
+    }
+
+    subgraph cluster_parallelizer {
+        label="4. Parallelizer";
+        color="#2F7BFF";
+        style="rounded,dashed";
+        penwidth=2.0;
+        fontname="DejaVu Sans";
+        fontsize=24;
+        margin=12;
+
+        par_input [label="C/C++ or Python\nsource / function"];
+        par_normalize [label="Normalize input\nPython to C++ if needed"];
+        par_loop [label="Loop extraction\nClang AST"];
+        par_safe [label="Classifier\n+ safety checks"];
+        par_output [
+            label="Parallelized C++\nor optimized callable",
+            fillcolor="#0B3D91",
+            fontcolor="white",
+            color="#0B3D91"
+        ];
+
+        par_input -> par_normalize -> par_loop -> par_safe -> par_output;
+    }
+
+    subgraph cluster_benchmark {
+        label="5. Benchmark Platform";
+        color="#2F7BFF";
+        style="rounded,dashed";
+        penwidth=2.0;
+        fontname="DejaVu Sans";
+        fontsize=24;
+        margin=12;
+
+        bm_data [label="Benchmark data\ntrain / test / truth"];
+        bm_submit [label="Prediction CSV\n+ optional repo URL"];
+        bm_score [label="Compare with\ntrue labels"];
+        bm_output [
+            label="Score\n+ ranking",
+            fillcolor="#0B3D91",
+            fontcolor="white",
+            color="#0B3D91"
+        ];
+
+        bm_data -> bm_score;
+        bm_submit -> bm_score -> bm_output;
+    }
+
+    subgraph cluster_deployment {
+        label="6. Deployment";
+        color="#2F7BFF";
+        style="rounded,dashed";
+        penwidth=2.0;
+        fontname="DejaVu Sans";
+        fontsize=24;
+        margin=12;
+
+        dep_saved [label="Saved pipeline\nor model"];
+        dep_service [label="Build service\nand API"];
+        dep_publish [label="Publish endpoint\n+ optional UI"];
+        dep_output [
+            label="Deployed model URL\n/ service",
+            fillcolor="#0B3D91",
+            fontcolor="white",
+            color="#0B3D91"
+        ];
+
+        dep_saved -> dep_service -> dep_publish -> dep_output;
+    }
+
+    selection [
+        label="Selection switch\nselected model or pipeline",
+        fillcolor="#FFFFFF",
+        color="#0B3D91",
+        fontsize=24,
+        penwidth=2.4,
+        width=3.0,
+        height=0.8
+    ];
+
+    e2e [
+        label="E2E output",
+        shape=rect,
+        style="rounded,filled",
+        fillcolor="#FF2A1A",
+        color="#FF2A1A",
+        fontcolor="white",
+        fontsize=24
+    ];
+
+    // Direct user access to each module
+    user -> ap_dataset;
+    user -> ml_input;
+    user -> pipe_workflow;
+    user -> par_input;
+    user -> bm_data;
+    user -> dep_saved;
+
+    // End-to-end flow in red
+    ap_output -> ml_input [color="#FF2A1A", penwidth=2.5];
+    ml_output -> selection [color="#FF2A1A", penwidth=2.5];
+    pipe_output -> selection [color="#FF2A1A", penwidth=2.5];
+    selection -> dep_saved [color="#FF2A1A", penwidth=2.5];
+    dep_output -> e2e [color="#FF2A1A", penwidth=2.5];
+
+    // Pipe and Parallelizer integration, intentionally one-way pair without tight cyclic layout pressure
+    pipe_graph -> par_input [color="#174EA6", penwidth=2.0, xlabel="optimize custom method"];
+    par_output -> pipe_branch [color="#174EA6", penwidth=2.0, xlabel="return optimized callable"];
+
+    { rank=same; ap_dataset; ml_input; pipe_workflow; par_input; bm_data; dep_saved; }
+    { rank=same; ap_output; ml_output; pipe_output; par_output; bm_output; dep_output; }
+}

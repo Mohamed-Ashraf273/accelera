@@ -179,24 +179,13 @@ operations.
 
 \subsection{Design Constraints}
 
-The first design constraint is that the graph must remain a valid DAG. Pipeline
-execution depends on topological sorting, so cyclic dependencies cannot be
-allowed. Node connections are therefore restricted by node type. For example, a
-preprocessing node may follow the input node or another preprocessing node, a
-model node may follow input or preprocessing output, a prediction node must
-follow a model, a metric node must follow a prediction or merge node, and a merge
-node combines prediction outputs. These connection rules protect the execution
-engine from invalid graphs and preserve the semantic meaning of every stage.
-
-The second constraint is safe memory management. Machine-learning pipelines can
-produce large intermediate arrays, especially when several preprocessing
-branches are evaluated. Accelera Pipe therefore tracks remaining consumers for
-each node output. Once the last downstream consumer finishes, the corresponding
-intermediate data can be released. Model and metric nodes are treated more
-carefully because they may hold fitted estimators or evaluation state, while
-input and preprocessing data can often be cleared after their consumers are
-done. This policy reduces memory pressure without changing the logical result of
-the graph.
+The main design constraints of Accelera Pipe are graph correctness and safe memory management. 
+The pipeline must remain a valid DAG because execution depends on topological sorting, 
+so node connections are restricted according to their semantic roles. For example, 
+prediction nodes must follow model nodes, metric nodes must follow prediction or merge nodes, 
+and merge nodes combine prediction outputs. In addition, the system manages memory by tracking how many downstream nodes 
+still need each intermediate output. Once an output is no longer needed, it can be released, reducing memory usage without 
+changing the final pipeline result.
 
 \begin{lstlisting}[style=algostyle,caption={Consumer-count based intermediate release}]
 Input: executed node N, remaining consumer table C
@@ -257,6 +246,7 @@ execution scheduling, branch selection, and memory-lifetime control. This split
 is the main reason the module can remain easy to use while still supporting
 parallel execution and advanced graph-level optimizations.
 
+\newpage
 \section{Code Parallelizer Module}
 
 \subsection{Functional Description}
