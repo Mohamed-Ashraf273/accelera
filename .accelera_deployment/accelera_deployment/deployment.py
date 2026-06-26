@@ -139,7 +139,9 @@ def write_dockerfile(configurations, graph_runtime=False):
     models = validate_model_paths(configurations)
 
     with open("Dockerfile", "w", encoding="utf-8") as f:
-        f.write(f"FROM python:{sys.version_info.major}.{sys.version_info.minor}-slim\n")
+        f.write(
+            f"FROM python:{sys.version_info.major}.{sys.version_info.minor}-slim\n"
+        )
         apt_packages = ["libgomp1"]
         if graph_runtime:
             apt_packages.append("libllvm18")

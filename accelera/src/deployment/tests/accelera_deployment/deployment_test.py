@@ -13,7 +13,7 @@ def deployment_module(monkeypatch):
     return module
 
 
-def test_validate_port_accepts_numeric_ports(deployment_module):
+def test_valdate_port_accepts_numeric_ports(deployment_module):
     assert deployment_module.validate_port(8000) == 8000
     assert deployment_module.validate_port("65535") == 65535
 
@@ -24,7 +24,7 @@ def test_validate_port_rejects_invalid_ports(deployment_module):
             deployment_module.validate_port(port)
 
 
-def test_validate_model_paths_accepts_existing_relative_paths(
+def test_validate_mode_paths_accepts_existing_relative_paths(
     deployment_module,
     tmp_path,
     monkeypatch,
@@ -41,16 +41,17 @@ def test_validate_model_paths_accepts_existing_relative_paths(
     )
 
     assert models == {"main": "models/model.pkl"}
+    # assert models == {"main": "models/model.pkl"}
 
 
-def test_validate_model_paths_rejects_bad_model_mapping(
+def test_validate_model_pats_rejects_bad_model_mapping(
     deployment_module,
 ):
     with pytest.raises(ValueError, match="models"):
         deployment_module.validate_model_paths({})
 
 
-def test_validate_model_paths_rejects_missing_relative_paths(
+def test_validate_model_paths_rejects_mising_relative_paths(
     deployment_module,
     tmp_path,
     monkeypatch,
@@ -64,7 +65,7 @@ def test_validate_model_paths_rejects_missing_relative_paths(
         )
 
 
-def test_write_files_syncs_service_sources_and_writes_build_files(
+def test_write_files_syncs_service_soures_and_writes_build_files(
     deployment_module,
     tmp_path,
     monkeypatch,
@@ -111,7 +112,7 @@ def test_build_runs_docker_build_command(deployment_module, monkeypatch):
     ]
 
 
-def test_run_local_stops_existing_container_and_runs_new_one(
+def test_run_local_stops_existing_container_and_runs_ne_one(
     deployment_module,
     monkeypatch,
     capsys,
@@ -119,16 +120,14 @@ def test_run_local_stops_existing_container_and_runs_new_one(
     calls = []
     monkeypatch.setenv("PORT", "9000")
 
-    def fake_run(command, check, **kwargs):
+    def run(command, check, **kwargs):
         calls.append((command, check, kwargs))
         if command[:2] == ["docker", "ps"]:
             return SimpleNamespace(stdout="abc123\n")
         return SimpleNamespace(stdout="")
 
-    monkeypatch.setattr(deployment_module.subprocess, "run", fake_run)
-
+    monkeypatch.setattr(deployment_module.subprocess, "run", run)
     deployment_module.run_local(SimpleNamespace())
-
     assert calls[0][0] == ["docker", "ps", "-q", "--filter", "publish=9000"]
     assert calls[1][0] == ["docker", "stop", "abc123"]
     assert calls[2][0] == [
@@ -161,7 +160,6 @@ def test_heroku_deploy_runs_steps_in_order(deployment_module, monkeypatch):
         )
 
     deployment_module.heroku_deploy(SimpleNamespace(create=True))
-
     assert calls == [
         "heroku_login",
         "heroku_create",
@@ -186,7 +184,6 @@ def test_remote_helpers_quote_and_build_expected_commands(deployment_module):
     )
 
     assert "-i" in deployment_module.configure_ssh(args)
-
     script = deployment_module.remote_script(args)
     assert "cd ~/apps/deployment_module" in script
     assert "sudo docker build --no-cache -t image-name ." in script
@@ -194,7 +191,7 @@ def test_remote_helpers_quote_and_build_expected_commands(deployment_module):
     assert "container-name" in script
 
 
-def test_run_remote_uses_ssh_transport(deployment_module, monkeypatch):
+def test_run_remote_use_ssh_transport(deployment_module, monkeypatch):
     calls = []
 
     def fake_run(command, check):
@@ -215,7 +212,7 @@ def test_run_remote_uses_ssh_transport(deployment_module, monkeypatch):
     assert calls[0][1] is True
 
 
-def test_ec2_deploy_prepares_syncs_and_checks_url(deployment_module, monkeypatch):
+def test_ec2_deploy_prepares_sync(deployment_module, monkeypatch):
     calls = []
     args = SimpleNamespace(
         user="ubuntu",
@@ -228,7 +225,6 @@ def test_ec2_deploy_prepares_syncs_and_checks_url(deployment_module, monkeypatch
         install_docker=False,
         no_cache=False,
     )
-
     monkeypatch.setattr(
         deployment_module, "write_files", lambda _args: calls.append("write_files")
     )
@@ -247,9 +243,7 @@ def test_ec2_deploy_prepares_syncs_and_checks_url(deployment_module, monkeypatch
         "run",
         lambda command, check: calls.append(("rsync", command, check)),
     )
-
     deployment_module.ec2_deploy(args)
-
     assert calls[0] == "write_files"
     assert calls[1][0] == "remote"
     assert calls[2][0] == "rsync"
@@ -257,7 +251,7 @@ def test_ec2_deploy_prepares_syncs_and_checks_url(deployment_module, monkeypatch
     assert calls[4] == "check"
 
 
-def test_ec2_stop_and_logs_run_remote_commands(deployment_module, monkeypatch):
+def test_ec2_stop_and_logs_remote_commands(deployment_module, monkeypatch):
     calls = []
     monkeypatch.setattr(
         deployment_module,
@@ -265,10 +259,8 @@ def test_ec2_stop_and_logs_run_remote_commands(deployment_module, monkeypatch):
         lambda _args, command: calls.append(command),
     )
     args = SimpleNamespace(container="ml-model", host="example.com")
-
     deployment_module.ec2_stop(args)
     deployment_module.ec2_get_logs(args)
-
     assert calls == [
         "sudo docker stop ml-model || true",
         "sudo docker logs -f ml-model",

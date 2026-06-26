@@ -5,6 +5,7 @@ since your modifications would be overwritten.
 """
 
 from accelera.src.deployment import deployment as deployment
+from accelera.src.deployment import gui as gui
 from accelera.src.deployment import modelservice as modelservice
 from accelera.src.deployment import schema_validation as schema_validation
 from accelera.src.deployment import server as server

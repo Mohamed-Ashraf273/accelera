@@ -4,8 +4,9 @@ from urllib.parse import urlparse
 import pandas as pd
 
 from accelera.src.config import config as acc_config
-from accelera.src.utils.dataset_retriever import retriever
 from accelera.src.deployment.deployment import configure_deployment
+from accelera.src.utils.dataset_retriever import retriever
+
 
 class E2EBase:
     def __init__(self):

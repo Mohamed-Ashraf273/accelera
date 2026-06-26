@@ -1,5 +1,5 @@
-import pickle
 import os
+import pickle
 import subprocess
 import sys
 import urllib.request
@@ -10,9 +10,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import OneHotEncoder
 
 from accelera.src.accelera_pipe.core.pipeline import Pipeline
-from accelera.src.deployment import vcs
 from accelera.src.e2e.tabular.e2e import E2E
-
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 os.chdir(PROJECT_ROOT)
@@ -21,8 +19,6 @@ os.chdir(PROJECT_ROOT)
 def get_random_row(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         raise ValueError("DataFrame is empty")
-
-    # Drop target column to match training features shape
     df_features = df.drop(columns=["price"], errors="ignore")
     return df_features.sample(n=1)
 
@@ -55,11 +51,7 @@ predictions, executed_graph = e2e(
 with open("pipeline.pkl", "rb") as f:
     pipeline = pickle.load(f)
 
-print(
-    pipeline.predict(
-        get_random_row(e2e.df)
-    )
-)
+print(pipeline.predict(get_random_row(e2e.df)))
 
 
 print("\nDeploying e2e pipeline to EC2")

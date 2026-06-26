@@ -32,6 +32,7 @@ def sync_files():
     for name in (
         "deployment.py",
         "modelservice.py",
+        "gui.py",
         "schema_validation.py",
         "server.py",
         "tracking.py",
@@ -139,7 +140,9 @@ def write_dockerfile(configurations, graph_runtime=False):
     models = validate_model_paths(configurations)
 
     with open("Dockerfile", "w", encoding="utf-8") as f:
-        f.write(f"FROM python:{sys.version_info.major}.{sys.version_info.minor}-slim\n")
+        f.write(
+            f"FROM python:{sys.version_info.major}.{sys.version_info.minor}-slim\n"
+        )
         apt_packages = ["libgomp1"]
         if graph_runtime:
             apt_packages.append("libllvm18")
@@ -156,6 +159,7 @@ def write_dockerfile(configurations, graph_runtime=False):
             "--root-user-action=ignore --timeout 120 --retries 10 -r requirements.txt\n"
         )
         f.write("COPY accelera_deployment/server.py server.py\n")
+        f.write("COPY accelera_deployment/gui.py gui.py\n")
         f.write("COPY accelera_deployment/modelservice.py modelservice.py\n")
         f.write(
             "COPY accelera_deployment/schema_validation.py schema_validation.py\n"
