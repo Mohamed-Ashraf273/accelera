@@ -155,8 +155,14 @@ def write_dockerfile(configurations, graph_runtime=False):
         f.write("WORKDIR /app\n")
         f.write("COPY accelera_deployment/requirements.txt requirements.txt \n")
         f.write(
-            "RUN python -m pip install --no-cache-dir --prefer-binary --ignore-requires-python "
-            "--root-user-action=ignore --timeout 120 --retries 10 -r requirements.txt\n"
+            "RUN python -m pip install \\\n"
+            "    --no-cache-dir \\\n"
+            "    --prefer-binary \\\n"
+            "    --ignore-requires-python \\\n"
+            "    --root-user-action=ignore \\\n"
+            "    --timeout 120 \\\n"
+            "    --retries 10 \\\n"
+            "    -r requirements.txt\n"
         )
         f.write("COPY accelera_deployment/server.py server.py\n")
         f.write("COPY accelera_deployment/gui.py gui.py\n")
