@@ -286,63 +286,63 @@ Chapter 2 summarizes the related concepts and previous work. Chapter 3 explains 
 
 \chapter{Literature Survey}
 In this chapter, I give an overview of the topics, algorithms, and techniques needed to understand my work in the project. I discuss the technical subjects and background knowledge.
+
 \section{Background and Previous Work}
-This section explains the concepts and techniques used.
-\subsection{Data Science}
-Data science is a field that extracts knowledge and insights from data using
-scientific methods, processes, and algorithms.
-\subsection{ML}
-Machine learning is a field of artificial intelligence that lets computers learn patterns from data without needing to be explicitly programmed. 
-A machine learning model is trained using training data , and then it uses what it learned to make predictions on new data.
+\noindent This section introduces the main background needed to understand the Accelera project as a whole. It explains the important concepts, techniques, and tools that were used in different parts of the system. These background topics help clarify how the project supports data preparation, pipeline execution, report generation, model evaluation, and benchmarking. The goal of this section is to give the reader enough context before moving to the methodology and implementation chapters.
 
-\subsection{Supervised ML}
-The training dataset includes a label column that represents the target output. 
-This column is used during training to learn the mapping between the input features and the expected result.
-\subsection{Classification}
-Classification is a supervised machine learning task whose output is a label or category.
+\subsection{Data Science and Machine Learning}
+Data science is the field that uses data, statistics, programming, and domain
+knowledge to understand a problem and extract useful insights from it. It is
+usually used when we have raw data and we want to turn it into useful
+information or predictions.
 
-\subsection{Regression}
-Regression is a supervised machine learning task whose output is a continuous numerical value.
-\subsection{NLP}
-Natural language processing is a field that focuses on enabling computers to understand and work with human language. Text data can't be used directly by most machine learning models, so it needs to be cleaned and turned into numerical features first.
+\noindent Machine learning is one of the main parts of data science. Instead of writing
+fixed rules for every case, we train a model on examples, and the model learns
+patterns from these examples. After training, the model can use what it learned
+to make predictions on new data.
 
-\subsection{EDA}
-Exploratory Data Analysis is an important step in data analysis where we explore,
-summarize, and visualize data to understand its structure, detect patterns, 
-and check relationships between variables.
+\noindent In supervised machine learning, the training data contains input features and a
+target label. The model learns the relationship between the features and the
+target. If the target is a class, such as spam or not spam, the problem is called
+classification. If the target is a continuous number, such as price or
+temperature, the problem is called regression.
 
-\subsection{Data Preprocessing}
-Data preprocessing is the stage of transforming raw data into a clean and usable
-format for machine learning models.
+\subsubsection{Data Exploration and Preprocessing ~\cite{komorowski2016exploratory}}
+Exploratory Data Analysis, or EDA, is the step where we inspect the dataset
+before building the model. We summarize columns, draw visualizations, check
+missing values, and try to understand relationships between variables. This step
+helps us notice problems early instead of discovering them after training the
+model.
 
+\noindent Data preprocessing is the stage of transforming raw data into a clean and usable
+format for machine learning models. In real datasets, the data may contain
+missing values, duplicated rows, different feature scales, and categorical
+columns that cannot be used directly by many models. Because of this,
+preprocessing is usually considered an essential part of a machine learning
+workflow.
 
-\subsection{Missing Value Imputation}
-Missing value imputation is a preprocessing technique used when some values in a
-dataset are empty. Instead of removing all rows that contain missing
-values, the missing values can be replaced using a suitable value.
+\noindent Missing value imputation is used when some values in a dataset are empty.
+Instead of removing all rows that contain missing values, the missing values can
+be replaced using a suitable value, such as the mean, median, mode, or another
+estimated value.
 
-\subsection{Robust Scaling}
-Robust scaling is a scaling technique that uses the median and the
-interquartile range instead of the mean and standard deviation. 
+\noindent Robust scaling is a scaling technique that uses the median and the interquartile
+range instead of the mean and standard deviation. It is useful when the data
+contains outliers, because the median and interquartile range are less affected
+by extreme values:
 \[
 x' = \frac{x - \mathop{\mathrm{median}}(X)}{\mathop{\mathrm{IQR}}(X)}
 \]
 where $x'$ is the scaled value, $x$ is the original value,
 $\mathop{\mathrm{median}}(X)$ is the median of the feature values, and
 $\mathop{\mathrm{IQR}}(X)$ is the interquartile range.
-\subsection{Categorical Encoding}
-Categorical encoding is the process of converting text categories into numeric
+
+\noindent Categorical encoding is the process of converting text categories into numeric
 values. Many traditional machine learning models and preprocessing pipelines
-expect numerical input.
-
-\subsection{Binary Encoding}
-Binary encoding is a categorical encoding technique that first gives each
-category a number, then converts this number into binary form. The binary digits
-are then stored as separate columns. 
-
-\subsection{Frequency Encoding}
-Frequency encoding replaces each category with how often it appears in the
-dataset. If a category appears many times, it receives a higher frequency value.
+expect numerical input. Two examples are binary encoding and frequency encoding.
+Binary encoding first gives each category a number, then converts this number
+into binary form and stores the binary digits in separate columns. Frequency
+encoding replaces each category with how often it appears in the dataset:
 \[
 f(c) = \frac{\mathop{\mathrm{count}}(c)}{N}
 \]
@@ -350,71 +350,128 @@ where $f(c)$ is the frequency of category $c$,
 $\mathop{\mathrm{count}}(c)$ is the number of rows containing this category,
 and $N$ is the total number of rows.
 
-\subsection{TF-IDF}
-It is a technique used to convert text into numerical features by giving each word a weight based
-on how important it is in a document and across the whole dataset.
-Term Frequency measures how often a word appears in a document. Inverse Document
-Frequency gives lower weight to words that appear in many documents, because
-these words are usually less useful for classification.
+\subsubsection{Model Evaluation Metrics ~\cite{hossin2015review}}
+After training a model, we need metrics to check whether the model is performing
+well or not. The selected metric depends on the type of problem. Classification
+models are evaluated using metrics that compare predicted classes with actual
+classes, while regression models are evaluated using metrics that measure the
+difference between predicted numerical values and real values.\\
+
+\noindent\textbf{Classification metrics:}
+Classification metrics are used when the output is a class or category, such as
+spam or not spam, positive or negative, or one image class from many classes. The
+confusion matrix is the base idea behind many classification metrics. It compares
+the actual classes with the predicted classes. For binary classification, it
+contains four values: true positives, true negatives, false positives, and false
+negatives.
+
+\begin{itemize}
+  \item \textbf{True Positive (TP):} The model predicts positive, and the actual
+  class is positive.
+  \item \textbf{True Negative (TN):} The model predicts negative, and the actual
+  class is negative.
+  \item \textbf{False Positive (FP):} The model predicts positive, but the actual
+  class is negative.
+  \item \textbf{False Negative (FN):} The model predicts negative, but the actual
+  class is positive.
+\end{itemize}
+
+\noindent Accuracy measures how many predictions are correct out of all predictions:
+\[
+Accuracy = \frac{TP + TN}{TP + TN + FP + FN}
+\]
+\noindent where $TP$ is true positives, $TN$ is true negatives, $FP$ is false positives,
+and $FN$ is false negatives. Accuracy is simple and useful when the classes are
+balanced, but it may be misleading when one class is much larger than the other.\\
+\noindent Precision measures how many predicted positive samples are actually positive:
+\[
+Precision = \frac{TP}{TP + FP}
+\]
+\noindent Precision is useful when false positives should be reduced.\\
+
+\noindent Recall measures how many actual positive samples were correctly detected:
+\[
+Recall = \frac{TP}{TP + FN}
+\]
+\noindent Recall is useful when false negatives should be reduced.\\
+
+\noindent The F1-score combines precision and recall:
+\[
+F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}
+\]
+\noindent It is useful when both precision and recall are important, especially with
+imbalanced datasets.
+
+\noindent\textbf{Regression metrics:}
+Regression metrics are used when the output is a numerical value, such as price,
+score, or temperature.
+
+\noindent Mean Absolute Error measures the average absolute difference between the real
+values and predicted values:
+\[
+MAE = \frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|
+\]
+\noindent where $y_i$ is the actual value, $\hat{y}_i$ is the predicted value, and $n$ is
+the number of samples. MAE is easy to understand because it gives the average
+error in the same unit as the target value.\\
+
+\noindent Mean Squared Error gives more penalty to large errors:
+\[
+MSE = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
+\]
+\noindent This means large mistakes affect the score more than small mistakes.\\
+
+\noindent Root Mean Squared Error is the square root of MSE:
+\[
+RMSE = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}
+\]
+\noindent RMSE is easier to read than MSE because it returns the error to the same unit as
+the target value.\\
+
+\noindent R-squared score measures how well the regression model explains the variation in
+the actual values:
+\[
+R^2 = 1 - \frac{\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}{\sum_{i=1}^{n}(y_i - \bar{y})^2}
+\]
+\noindent where $y_i$ is the actual value, $\hat{y}_i$ is the predicted value, and
+$\bar{y}$ is the mean of the actual values. A value close to 1 means the model
+explains the data well, while a value close to 0 means the model does not explain
+the data well.
+
+\subsection{Natural Language Processing (NLP) ~\cite{sabharwal2021introduction}}
+\noindent Natural Language Processing is the field that helps computers
+understand and work with human language. It is used in many applications such as
+text classification, sentiment analysis, spam detection, and chatbots. Text data
+cannot be used directly by most machine learning models, so it needs to be
+cleaned and converted into numbers first.
+
+\noindent In text preprocessing, the text may be converted to lowercase, cleaned from
+unnecessary symbols, split into words, and simplified using stemming. After that,
+methods such as TF-IDF are used to transform the text into numerical features.
+In Accelera, these steps are used to prepare text datasets so they can be used
+for machine learning models.
+
+\subsubsection{Term Frequency-Inverse Document Frequency (TF-IDF)}
+Term Frequency-Inverse Document Frequency is one common technique used
+to convert text into numerical features. It gives each word a weight based on
+how important it is in one document and across the full dataset. Term Frequency
+measures how often a word appears in a document. Inverse Document Frequency gives
+lower weight to words that appear in many documents, because these words are
+usually less useful for classification:
 \[
 TFIDF(t,d) = TF(t,d) \times IDF(t)
 \]
 where $TFIDF(t,d)$ is the weight of term $t$ in document $d$, $TF(t,d)$ is the
 frequency of the term in the document, and $IDF(t)$ measures how rare the term
 is across all documents.
-\subsection{Data augmentation}
-Is a technique used to increase diversity of a dataset without actually collecting new data. 
-It works by applying various transformations to the existing data to create new, modified versions of data that helps the model generalize better.
-\subsection{Classification Evaluation Metrics}
-Classification metrics are used to evaluate the performance of a classification
-model.
-\subsubsection{Accuracy}
-Accuracy measures how many predictions are correct out of all predictions:
-\[
-Accuracy = \frac{TP + TN}{TP + TN + FP + FN}
-\]
-where $TP$ is true positives, $TN$ is true negatives, $FP$ is false positives,
-and $FN$ is false negatives.
-\subsubsection{Precision}
-Precision measures how many predicted positive samples are actually positive:
-\[
-Precision = \frac{TP}{TP + FP}
-\]
-\subsubsection{Recall}
-Recall measures how many actual positive samples were correctly detected:
-\[
-Recall = \frac{TP}{TP + FN}
-\]
-\subsubsection{F1-score}
-The F1-score combines precision and recall:
-\[
-F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}
-\]
 
-
-\subsection{Regression Evaluation Metrics}
-Regression metrics are used when the model predicts continuous numerical values.
-\subsubsection{Mean Absolute Error}
-Mean Absolute Error measures the average absolute difference between the real
-values and predicted values:
-\[
-MAE = \frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|
-\]
-where $y_i$ is the actual value and $\hat{y}_i$ is the predicted value.
-\subsubsection{Mean Squared Error}
-Mean Squared Error gives more penalty to large errors:
-\[
-MSE = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
-\]
-\subsubsection{R-squared Score}
-
-R-squared score measures how well the regression model explains the variation in the actual values. 
-\[
-R^2 = 1 - \frac{\sum_{i=1}^{n}(y_i - \hat{y}i)^2}{\sum_{i=1}^{n}(y_i - \bar{y})^2}
-\]
-Where $y_i$ is the actual value, $\hat{y}_i$ is the predicted value, and $\bar{y}$ is the mean of the actual values.
-
-
+\subsection{Data Augmentation}
+Data augmentation is a technique used to increase the diversity of a dataset
+without actually collecting new data. It works by applying transformations to
+existing samples to create new modified versions. For example, in image
+classification, augmentation may include flipping, rotating, cropping, or
+changing brightness. This can help the model generalize better because it sees
+more variations during training.
 
 \section{Comparative Study of Previous Work}
 The most direct external comparison in this report is AutoCleanML because it also automates common tabular preprocessing tasks. The comparison focuses on the effect of preprocessing on model results, using the same validation split and the same machine learning models where possible.
@@ -987,13 +1044,13 @@ Output: cleaned token list
 10: Return cleaned tokens
 \end{lstlisting}
 
-After cleaning, the module fits TF-IDF on the training text only and transforms
+\noindent After cleaning, the module fits TF-IDF on the training text only and transforms
 the validation text with the same vectorizer. This avoids fitting on validation
-data. The report stores a small before-and-after preview, where the original
+data. The report stores a small before and after preview, where the original
 text is shown beside the cleaned and stemmed tokens. For the target, the module
 uses \modulepath{LabelEncoder} and saves it as
 \modulepath{target_preprocessor.pkl}. It also saves \modulepath{data_info.pkl}
-with the text column, target column, and target mode so the testing class can
+with the text column, and target column so the testing class can
 reuse the same configuration.
 
 \subsection{Text Testing Flow}
@@ -1001,62 +1058,61 @@ reuse the same configuration.
 The text testing class loads \modulepath{data_info.pkl},
 \modulepath{training_preprocessor.pkl}, and \modulepath{target_preprocessor.pkl}.
 It checks that the test dataframe contains the saved text column. If the target
-column is missing, it works in feature-only mode and returns transformed
-features with no labels.
+column is missing, it works in feature only mode and returns transformed
+features with None labels.
 
-The testing flow lowercases the test data, fills missing text values with an
-empty string, and applies the saved TF-IDF vectorizer. If labels exist, missing
-target values are filled using the saved target mode, then transformed with the
+\noindent The testing flow lowercases the test data, fills missing text values with an
+empty string, and applies the saved TF-IDF vectorizer. If labels exist it transformed with the
 saved label encoder. This keeps the testing behavior close to training and
 prevents the test set from fitting its own vocabulary or label mapping.
 
 \subsection{Image Training Flow}
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth,trim=0mm 22mm 0mm 0mm,clip]{../imgs/image_workflow.pdf}
 \caption{Image preprocessing workflow}
 \label{fig:nesma-image-preprocessing-workflow}
 \end{figure}
 The image classification preprocessing class expects a folder structure where
-each class has its own folder. It scans the folders, builds class-to-label and
-label-to-class mappings, validates images, optionally splits the training
+each class has its own folder. It scans the folders, builds class to label and
+label to class mappings, validates images, optionally splits the training
 folder into training and validation sets, applies resizing and augmentation,
 and returns PyTorch data loaders.
 
-The validation folder is optional. If it is provided, its class folders must
+\noindent The validation folder is optional. If it is provided, its class folders must
 match the training classes. If no validation folder is provided, the module can
 split the training folder using the configured validation size. Invalid or
 unreadable image files are not used for training, but they are recorded in the
 report.
 
-The image path saves:
+\noindent The image path saves:
 
 \begin{itemize}[leftmargin=*]
-  \item class-to-label mapping;
-  \item label-to-class mapping;
-  \item image size information; and
+  \item class to label mapping
+  \item label to class mapping
+  \item image size information 
   \item report data about valid and invalid images.
 \end{itemize}
 
-The image report includes label summary graphs, random sample images from the
+\noindent The image report includes label summary graphs, random sample images from the
 folders, and sample images after passing through the data loader. These graphs
-are important because they show whether the class mapping, resizing, and
+are important because they show whether resizing, and
 augmentation settings are working as expected.
 
-The class mappings are created from the sorted training class names. This means
+\noindent The class mappings are created from the sorted training class names. This means
 the same class name always receives the same numeric label as long as the class
 folder names are the same. The mappings are saved in
 \modulepath{class2label_mapping.pkl} and \modulepath{label2class_mapping.pkl}.
 The selected image size is also saved in \modulepath{data_info.pkl}.
 
-For each class folder, the module checks every image path using the image
+\noindent For each class folder, the module checks every image path using the image
 validation utility. Valid images are stored with their numeric labels. Invalid
 images are skipped, but their paths and labels are saved in the report data so
 the user can know which files were removed. If no valid image exists, the
 module raises an error instead of returning an empty loader.
 
-The DataLoader construction is also different between training and validation.
+\noindent The DataLoader construction is also different between training and validation.
 The training loader uses shuffling and can apply augmentation. The validation
 loader does not use augmentation and does not shuffle, because validation
 should measure model behavior on stable data. The available augmentation
@@ -1069,7 +1125,7 @@ Input: training image folder, optional validation folder
 Output: training and validation DataLoaders
 
 1:  Read class folders from the training directory
-2:  Create class-to-label and label-to-class mappings
+2:  Create class to label and label to class mappings
 3:  Save mappings and image size information
 4:  Validate image files and skip invalid images
 5:  Build the data overview for the report
@@ -1088,9 +1144,9 @@ artifacts already exist. It loads the saved image size and class mapping,
 validates the provided image paths, and creates a test dataset and DataLoader.
 If class names are provided, each class name is converted to its saved numeric
 label. If class names are not provided, the loader can still be used for
-prediction-only mode.
+prediction only mode.
 
-Testing does not apply augmentation. It only applies the same resizing and
+\noindent Testing does not apply augmentation. It only applies the same resizing and
 tensor conversion rules needed to make images compatible with the trained
 model. Invalid images are returned separately, which is useful because the user
 can see which inputs were ignored instead of silently losing files.
@@ -1147,10 +1203,10 @@ Preprocessing report. The Auto Preprocessing report explains data cleaning and
 dataset transformation, while the pipeline report explains the executed
 pipeline graph, branches, selected path, and metric results.
 
-The pipeline reporting part has three main layers. \modulepath{ReportBase}
+\noindent The pipeline reporting part has three main layers. \modulepath{ReportBase}
 provides the shared HTML page structure. \modulepath{GraphPipelineReport}
 groups and displays pipeline metric results. \modulepath{GraphReport} adds the
-graph image, branch tables, and best-branch summary.
+graph image, branch tables, and best branch summary.
 
 \subsection{Accelera Report Base}
 
@@ -1444,47 +1500,123 @@ The testing strategy focuses on verifying that each module works independently a
 \section{Module Testing}
 
 
+\subsubsection{Auto Preprocessing Module}
+Most of the preprocessing functions were tested using unit tests. These tests
+were used to check validation rules, artifact saving,and feature transformation. Real datasets were also used to test the system in a
+more practical way. These datasets were collected from Kaggle for tabular,
+text, and image data. For the tabular and text experiments, the data was split
+using a validation size of 0.2 and random state 42.
 
-\subsection{Auto Preprocessing Testing}
-
-The Auto Preprocessing module was tested using unit tests and real datasets.
-The tests check that outputs are generated correctly, report data is filled,
-saved files exist, and test time preprocessing can reload training artifacts.
-
-For tabular data, classification and regression datasets were processed and
-then evaluated using machine learning models such as Random Forest. For text
-data, the transformed TF IDF output was tested with a classifier. For image
-data, the generated data loaders were tested with an image model. This was done
-to check that the preprocessing output is usable for real training, not only
-that the functions run.
-
-\begin{table}[!htbp]
+For tabular data, both classification and regression datasets were used. After
+preprocessing, the output was passed to a Random Forest model to check that the
+processed data was ready for training and validation. For text data, the
+processed TF-IDF output was passed to an \texttt{XGBClassifier}. This checked
+that the text preprocessing steps converted raw text into numerical features
+correctly. For image data, the output DataLoaders were passed to a ResNet
+model. This checked that the image preprocessing module created usable loaders.
+\begin{table}[H]
 \centering
+\caption{Datasets Used in Module Testing}
+\label{tab:module_testing_datasets}
 \small
-\caption{Auto Preprocessing module testing results}
-\label{tab:auto-preprocessing-module-results}
-\begin{tabular}{p{0.40\textwidth}p{0.20\textwidth}p{0.24\textwidth}p{0.12\textwidth}}
-\toprule
-Dataset & Model & Metric & Result \\
-\midrule
-Startup founder burnout & Random Forest & Macro F1 score & 0.9999 \\
-Healthy diet calorie intake & Random Forest & Macro F1 score & 1.0000 \\
-Gaming addiction & Random Forest & Macro F1 score & 1.0000 \\
-Student exam performance & Random Forest & Macro F1 score & 0.8573 \\
-Heart & Random Forest & Macro F1 score & 0.7860 \\
-Spine dataset & Random Forest & Macro F1 score & 0.7840 \\
-Diabetes dataset & Random Forest & Macro F1 score & 0.9985 \\
-Student placement synthetic & Random Forest & Macro F1 score & 0.9986 \\
-Titanic dataset & Random Forest & Macro F1 score & 0.7906 \\
-Customer purchase data & Random Forest & Macro F1 score & 0.9385 \\
-Global AI jobs & Random Forest & R squared score & 0.9227 \\
-Car price assignment & Random Forest & R squared score & 0.9562 \\
-Housing & Random Forest & R squared score & 0.6037 \\
-PetImages & ResNet & Accuracy & 0.9700 \\
-DailyDialog & XGBClassifier & Macro F1 score & 0.9000 \\
-TestReviews & XGBClassifier & Macro F1 score & 0.6080 \\
-\bottomrule
-\end{tabular}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{@{}
+>{\raggedright\arraybackslash}X
+>{\centering\arraybackslash}p{0.17\textwidth}
+>{\centering\arraybackslash}p{0.15\textwidth}
+>{\centering\arraybackslash}p{0.18\textwidth}
+@{}}
+\hline
+\textbf{Dataset Name} & \textbf{Shape} & \textbf{Dataset Type} & \textbf{Problem Type} \\
+\hline
+startup\_founder\_burnout\_2026 & (50000, 29) & Tabular & Classification \\
+\hline
+healthy\_diet\_calorie\_intake & (6000, 15) & Tabular & Classification \\
+\hline
+gaming\_addiction & (250, 49) & Tabular & Classification \\
+\hline
+student\_exam\_performance\_dataset & (10000, 17) & Tabular & Classification \\
+\hline
+heart & (1025, 14) & Tabular & Classification \\
+\hline
+Dataset\_spine & (310, 7) & Tabular & Classification \\
+\hline
+diabetes\_dataset & (100000, 31) & Tabular & Classification \\
+\hline
+student\_placement\_synthetic & (100000, 18) & Tabular & Classification \\
+\hline
+Titanic-Dataset & (891, 12) & Tabular & Classification \\
+\hline
+customer\_purchase\_data & (1500, 9) & Tabular & Classification \\
+\hline
+global\_ai\_jobs & (90000, 35) & Tabular & Regression \\
+\hline
+CarPrice\_Assignment & (205, 26) & Tabular & Regression \\
+\hline
+Housing & (545, 13) & Tabular & Regression \\
+\hline
+PetImages & (24998,) & Image & Classification \\
+\hline
+DailyDialog & (11327, 2) & Text & Classification \\
+\hline
+TestReviews & (4321, 2) & Text & Classification \\
+\hline
+\end{tabularx}
+\normalsize
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Models and Evaluation Metrics Used in Module Testing}
+\label{tab:module_testing_models}
+\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{@{}
+>{\raggedright\arraybackslash}X
+>{\centering\arraybackslash}p{0.20\textwidth}
+>{\centering\arraybackslash}p{0.22\textwidth}
+>{\centering\arraybackslash}p{0.15\textwidth}
+@{}}
+\hline
+\textbf{Dataset Name} & \textbf{Model Used} & \textbf{Evaluation Metric} & \textbf{Accelera Result} \\
+\hline
+startup\_founder\_burnout\_2026 & RandomForest & Macro F1-score & 0.9999 \\
+\hline
+healthy\_diet\_calorie\_intake & RandomForest & Macro F1-score & 1.0000 \\
+\hline
+gaming\_addiction & RandomForest & Macro F1-score & 1.0000 \\
+\hline
+student\_exam\_performance\_dataset & RandomForest & Macro F1-score & 0.8573 \\
+\hline
+heart & RandomForest & Macro F1-score & 0.7860 \\
+\hline
+Dataset\_spine & RandomForest & Macro F1-score & 0.7840 \\
+\hline
+diabetes\_dataset & RandomForest & Macro F1-score & 0.9985 \\
+\hline
+student\_placement\_synthetic & RandomForest & Macro F1-score & 0.9986 \\
+\hline
+Titanic-Dataset & RandomForest & Macro F1-score & 0.7906 \\
+\hline
+customer\_purchase\_data & RandomForest & Macro F1-score & 0.9385 \\
+\hline
+global\_ai\_jobs & RandomForest & R-squared Score & 0.9227 \\
+\hline
+CarPrice\_Assignment & RandomForest & R-squared Score & 0.9562 \\
+\hline
+Housing & RandomForest & R-squared Score & 0.6037 \\
+\hline
+PetImages & ResNet model & Accuracy & 0.9700 \\
+\hline
+DailyDialog & XGBClassifier & Macro F1-score & 0.9000 \\
+\hline
+TestReviews & XGBClassifier & Macro F1-score & 0.6080 \\
+\hline
+\end{tabularx}
+\normalsize
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.0}
 \end{table}
 
 These results show that the preprocessing output can be used by different
@@ -1593,16 +1725,23 @@ Housing & 0.3819 & 0.3634 & 0.5312 & 0.5336 \\
 \end{tabular}
 \end{table}
 
-From these results, Accelera preprocessing is generally close to AutoCleanML,
-but it is not better in every case. In several classification datasets the two
-tools give almost the same score, such as startup founder burnout, healthy diet,
-diabetes, Titanic, and customer purchase data. Accelera is clearly better in
-some cases, especially student placement synthetic with Random Forest, Decision
-Tree, and KNN, and gaming addiction with Random Forest and KNN. AutoCleanML is
-better in other cases, such as spine dataset and the linear regression result
-for global AI jobs. So, the comparison shows that Accelera preprocessing gives
-valid and competitive results, but the best result still depends on the dataset
-and the model used after preprocessing.
+From the classification and regression results, Accelera preprocessing achieved
+competitive performance compared to AutoCleanML. The comparison was tested using
+different types of models, including linear models, tree-based models, Random
+Forest, and KNN. In many cases, the results of Accelera were very close to
+AutoCleanML, and in some cases Accelera achieved better scores.
+
+These results show that the implemented preprocessing steps in Accelera are able
+to prepare data in a valid way for different machine learning techniques. The
+performance was not limited to one specific model type, but appeared across
+several models and datasets. This means that Accelera successfully reached
+results close to an existing automated preprocessing tool, while still using its
+own preprocessing approach.
+
+However, the results also show that no preprocessing tool gives the best score
+in all cases. The final performance can still depend on the dataset, the problem
+type, and the model used after preprocessing.
+
 
 \subsection{Pipeline Reporting Module Testing}
 
@@ -1643,7 +1782,27 @@ Dataset & Data type & Problem type \\
 \bottomrule
 \end{tabular}
 \end{table}
+\chapter*{References}
+\addcontentsline{toc}{chapter}{References}
+\begin{thebibliography}{9}
 
+\bibitem{komorowski2016exploratory}
+Matthieu Komorowski, Dominic C. Marshall, Justin D. Salciccioli, and Yves
+Crutain. ``Exploratory data analysis.'' In \emph{Secondary Analysis of
+Electronic Health Records}, pages 185--203. Springer, 2016.
+
+\bibitem{hossin2015review}
+Mohammad Hossin and Md Nasir Sulaiman. ``A review on evaluation metrics for
+data classification evaluations.'' \emph{International Journal of Data Mining
+and Knowledge Management Process}, 5(2):1, 2015.
+
+\bibitem{sabharwal2021introduction}
+Navin Sabharwal and Amit Agrawal. ``Introduction to Natural Language
+Processing.'' In \emph{Hands-on Question Answering Systems with BERT:
+Applications in Neural Networks and Natural Language Processing}, pages 1--14.
+Springer, 2021.
+
+\end{thebibliography}
 
 \chapter{Conclusions and Future Work}
 \label{chap:conclusions-future-work}
