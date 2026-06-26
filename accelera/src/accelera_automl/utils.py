@@ -69,22 +69,22 @@ def log_forward_selection_step(
     ):
         if improvement is None:
             print(
-                f"[AutoML] Forward selection step {step}: "
+                f"forward selection step {step}: "
                 f"selected {selected_names[-1]} score={score:.6f}"
             )
             return
         print(
-            f"[AutoML] Forward selection step {step}: "
+            f"forward selection step {step}: "
             f"added {selected_names[-1]} score={score:.6f} "
             f"improvement={improvement:.6f}"
         )
 
 
 def log_ensemble_structure(base_model_names,meta_modelname,score,include_original_features_in_meta):
-        print("[AutoML] Stacked ensemble summary")
-        print(f"[AutoML] Selected base models: {', '.join(base_model_names)}")
-        print(f"[AutoML] Meta model: {meta_modelname}")
+        print("stacked ensemble summary")
+        print(f"selected base models: {', '.join(base_model_names)}")
+        print(f"meta model: {meta_modelname}")
         print(
-            f"[AutoML] Forward selection score: {score:.6f} "
+            f"forward selection score: {score:.6f} "
             f"(uses original features={include_original_features_in_meta})"
         )
