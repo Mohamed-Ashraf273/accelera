@@ -5,6 +5,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import OneHotEncoder
 
 from accelera.src.accelera_pipe.core.pipeline import Pipeline
+from accelera.src.deployment import deployment
+from accelera.src.deployment import vcs
 from accelera.src.e2e.tabular.e2e import E2E
 
 
