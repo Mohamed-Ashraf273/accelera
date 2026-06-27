@@ -4185,6 +4185,7 @@ manually by comparing the actual output with the expected output. In some
 cases, the results were compared with another tool, to check if
 the preprocessing results were reasonable.
 \subsection{Module Testing}
+\input{sections/results-modhamed}
 \subsubsection{Auto Preprocessing Module}
 Most of the preprocessing functions were tested using unit tests. These tests
 were used to check validation rules, artifact saving,and feature transformation. Real datasets were also used to test the system in a
@@ -9605,109 +9606,247 @@ score, and displays the result in the leaderboard.
 \noindent The prediction file must contain the target column expected by the benchmark.
 Also, the number of rows in the prediction file must match the number of rows
 in the target label file.
+\mbox{}
+\chapter{Feasibility Study}
 
-\chapter{Code Documentation}
+\section{Purpose and Evaluation Criteria}
+This chapter checks whether Accelera is practical to build, run, and improve.
+The study covers the full project: Auto Preprocessing, AutoML, Accelera Pipe,
+the Code Parallelizer, the Benchmark Platform, and Deployment. Since this is a
+student project and some parts are still prototypes, the chapter separates what
+already works from what still needs more production-level work.
 
-\section{AutoML Code Documentation}
-The main AutoML source package is located under
-\modulepath{accelera/src/accelera\_automl/}. The public API wrappers are under
-\modulepath{accelera/api/accelera\_automl/}. This section maps the AutoML design
-to the source-code organization.
+The evaluation is based on seven simple points: technical feasibility,
+operational feasibility, economic feasibility, schedule feasibility, legal and
+ethical feasibility, security feasibility, and scalability. In simple words, the
+study asks whether the tools exist, whether users can run the system, whether
+the cost is reasonable, whether the work can be delivered in stages, whether the
+project respects data and license rules, whether it is safe to use, and whether
+it can grow later.
 
+In this chapter, a module is called \textbf{feasible} when its main workflow can
+be implemented and tested with available tools. It is called \textbf{feasible
+with constraints} when it can work, but still depends on extra requirements such
+as compilers, cloud accounts, hardware limits, or stronger production controls.
+A \textbf{prototype-feasible} result means that the idea and core workflow are
+shown, but the module still needs more security, testing, or scaling before
+public production use.
+
+\section{Technical Feasibility}
+\subsection{Architecture and Technology Availability}
+Accelera is technically feasible because it is built from common and available
+technologies. Python is used for the public APIs and machine-learning libraries
+such as NumPy, Pandas, and Scikit-learn. C++20 and PyBind11 are used for the
+native graph backend and Python bindings. CMake handles native builds, while
+LLVM/Clang and OpenMP support loop analysis and parallel code generation. The
+web platform uses React, Express, and MongoDB. The Deployment module uses
+FastAPI and Docker, with optional commands for Heroku and EC2. These tools are
+well known and do not require special hardware.
+
+{\acceleraTableStyle
+\begin{longtable}{p{0.17\textwidth} p{0.39\textwidth} p{0.36\textwidth}}
+\caption{Module-level technical feasibility assessment.}
+\label{tab:module-technical-feasibility} \\
+\hline
+\textbf{Module} & \textbf{Implementation evidence and resources} &
+\textbf{Constraints and assessment} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Module} & \textbf{Implementation evidence and resources} &
+\textbf{Constraints and assessment} \\
+\hline
+\endhead
+
+\hline
+\multicolumn{3}{r}{\small Continued on the next page} \\
+\hline
+\endfoot
+
+\hline
+\endlastfoot
+
+Auto Preprocessing & Uses Pandas, NumPy, Scikit-learn, text tools, image tools,
+saved transformers, and HTML reports. Training and testing can reuse saved
+preprocessing artifacts. & \textbf{Feasible.} It needs valid input columns and
+enough storage for reports and artifacts. Very unusual data types may need more
+rules. \\
+\hline
+
+AutoML & Supports classification and regression search, trial and time budgets,
+meta-learning support, and ensembles using existing estimator libraries. &
+\textbf{Feasible with constraints.} Search time grows with dataset size,
+number of trials, and number of model families. Fixed seeds and versions are
+needed for repeatable results. \\
+\hline
+
+Accelera Pipe & Uses a Python graph API, a C++ execution backend, PyBind11
+bindings, branch scheduling, shared nodes, memory release, metrics, path
+selection, and pickle saving/loading. & \textbf{Feasible with constraints.}
+Native compilation is required. Parallel branches can improve speed, but branch
+width and dataset size must be controlled to avoid high memory use. \\
+\hline
+
+Code Parallelizer & Uses Python-to-C++ conversion, Clang AST loop extraction,
+safety rules, classifier support, OpenMP insertion, PyBind11 compilation, and a
+compiled-module cache. & \textbf{Feasible with constraints.} It supports only a
+documented subset of Python and analyzable loops. LLVM, Clang, a C++ compiler,
+and OpenMP must be available. Unsupported functions fall back to Python. \\
+\hline
+
+Benchmark Platform & Uses a React frontend, an Express backend, MongoDB,
+authentication helpers, submission records, metrics, and scoring scripts. &
+\textbf{Prototype-feasible.} The main web technologies are mature, but public use
+needs stronger upload isolation, authorization tests, rate limiting, monitoring,
+backups, and more backend tests. \\
+\hline
+
+Deployment & Uses FastAPI serving, input validation, telemetry, model artifact
+loading, Docker packaging, and commands for local Docker, Heroku, and EC2. &
+\textbf{Feasible with constraints.} Local Docker deployment is practical. Remote
+deployment needs accounts, credentials, network access, supported CLIs, health
+checks, and proper secret management. \\
+\hline
+
+\end{longtable}
+}
+
+
+\subsection{Integration and Portability}
+Integration is feasible because the modules exchange normal artifacts such as
+arrays, data frames, fitted models, preprocessing objects, graph objects, metric
+results, configuration files, and saved models. Auto Preprocessing can prepare
+data for AutoML or Accelera Pipe. Accelera Pipe can call the Parallelizer for
+supported custom preprocessing functions. Selected models or executed graphs can
+then be used by the Deployment module. The Benchmark Platform is a separate path
+for comparing prediction files and showing results.
+
+The package supports Python 3.9 or newer and uses CMake with C++20. Linux and
+Windows are realistic targets because the build logic includes platform-specific
+LLVM discovery and installation paths. However, this does not mean everything is
+zero-configuration. Compiler versions, OpenMP runtimes, Node.js, MongoDB,
+Docker, and cloud CLIs still need clear documentation and testing. Users can
+still run pure-Python parts even if the native graph or AST tools are not
+installed.
+
+\section{Operational Feasibility}
+Accelera is operationally feasible for students, researchers, and data-science
+developers who already know basic Python and machine-learning workflows. The
+APIs use familiar words such as \texttt{fit}, \texttt{transform}, and
+\texttt{predict}. Reports, graph visualizations, metrics, examples, and saved
+artifacts make the output easier to understand. The project is modular, so users
+can run one module without running the full web platform.
+
+{\acceleraTableStyle
+\begin{longtable}{p{0.22\textwidth} p{0.32\textwidth} p{0.38\textwidth}}
+\caption{Operational workflows and requirements.}
+\label{tab:operational-feasibility} \\
+\toprule
+\textbf{Workflow} & \textbf{Main user and output} &
+\textbf{What is needed} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Workflow} & \textbf{Main user and output} &
+\textbf{What is needed} \\
+\midrule
+\end
+\bottomrule
+\endlastfoot
+Prepare a dataset & Data scientist; processed data, saved artifacts, and a
+report. & Correct target and feature settings, writable output folders, and
+consistent use of training transformations during testing. \\
+\hline
+Search for a model & Data scientist; ranked trials, selected model, and
+optional ensemble. & Clear time/trial budget, suitable metric, fixed seed, and
+enough memory for candidate evaluation. \\
+\hline
+Build a graph pipeline & Python developer; validation results and an executed
+graph. & Native graph binding, compatible nodes, validation data for selecting a
+path, and memory-aware branch design. \\
+\hline
+Parallelize code & Developer who needs speed; annotated C++ or compiled Python
+callable. & Supported source syntax, compiler toolchain, correctness comparison,
+and timing comparison with the original code. \\
+\hline
+Run a benchmark & Platform admin and participants; scored submissions and a
+leaderboard. & Running frontend/backend, database connection, available dataset,
+metric definition, user controls, and submission validation. \\
+\hline
+Deploy a model & ML or DevOps user; local or remote prediction service. & Valid
+model/config files, Docker or provider tools, credentials, network access,
+monitoring, and rollback plan. \\
+\end{longtable}
+}
+
+The main operational challenge is installation. A full setup may include Python,
+C++ tools, Node.js, MongoDB, Docker, and optional cloud tools. This is acceptable
+for a modular research project, but the user experience can be improved with
+version checks, clearer error messages, prebuilt wheels, containerized services,
+and smoke tests. The Parallelizer fallback also helps because unsupported code
+continues to run in Python instead of breaking the full workflow.
+
+
+\section{Performance, Scalability, and Maintenance Feasibility}
+Accelera can scale on one machine and can also grow at service boundaries, but
+each module has a different limit. Auto Preprocessing is limited mainly by data
+size and transformation cost. AutoML is limited by the number and cost of trials.
+Accelera Pipe is limited by branch width, model training time, and memory. The
+Parallelizer is limited by the supported source patterns and whether the target
+loop actually benefits from parallelism. The Benchmark Platform is limited by
+database traffic, storage, and submissions. Deployment is limited by request
+rate, model latency, container resources, and telemetry growth.
+
+Some controls already support moderate workloads. AutoML has time and trial
+budgets. Accelera Pipe releases intermediate arrays after their last consumer and
+keeps node caching optional. The Parallelizer caches generated and compiled code.
+Docker helps make deployment repeatable, and MongoDB stores benchmark records.
+Further scaling needs load tests, queues, artifact cleanup rules, indexes,
+isolation, and monitoring. Parallel execution should be enabled based on timing
+measurements, not just assumed to help every workload.
+
+Maintenance is feasible because the modules are separated, but the dependency
+surface is large. The project should clearly define supported Python, Node.js,
+compiler, LLVM, database, and cloud-tool versions. CI should build native modules
+on Linux and Windows, run Python tests, lint frontend/backend code, build Docker
+images, and run a small end-to-end test. Generated caches and models should store
+version metadata so old artifacts can be rejected or rebuilt safely.
+
+\section{Overall Feasibility Decision}
 \begin{table}[H]
 \centering
+\caption{Overall project feasibility decision.}
+\label{tab:overall-feasibility-decision}
 \acceleraTableStyle
-\caption{Main implementation units of Accelera AutoML}
-\label{tab:appendix_automl_implementation_units}
-\small
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.43\textwidth}X}
+\begin{tabularx}{\textwidth}{p{0.22\textwidth} p{0.22\textwidth} X}
 \toprule
-\textbf{File or directory} & \textbf{Responsibility} \\
+\textbf{Dimension} & \textbf{Decision} & \textbf{Condition} \\
 \midrule
-\modulepath{base.py} &
-Shared estimator lifecycle, validation, fitted state, leaderboard, and
-run-history access. \\
-\midrule
-\modulepath{classification.py} &
-Classification defaults and task-specific engine construction. \\
-\midrule
-\modulepath{regression.py} &
-Regression defaults and task-specific engine construction. \\
-\midrule
-\modulepath{core/automl.py} &
-AutoML orchestration, final model fitting, compatibility checks, and ensemble
-selection. \\
-\midrule
-\modulepath{components/} &
-Model registries, hyperparameter definitions, activation conditions, and
-estimator factories. \\
-\midrule
-\modulepath{configspace\_search\_space.py} &
-Task-specific conditional search-space assembly and configuration conversion. \\
-\midrule
-\modulepath{evaluation.py} &
-Fidelity-aware model construction, preprocessing comparison, cross-validation,
-and metric-to-cost conversion. \\
-\midrule
-\modulepath{optimization/smac\_optimizer.py} &
-Trial scheduling, surrogate modelling, expected improvement, promotions,
-parallel workers, and timeout control. \\
-\midrule
-\modulepath{meta\_learning/} &
-Metafeature extraction, similarity ranking, and warm-start retrieval. \\
-\midrule
-\modulepath{meta\_learning\_data/} &
-Packaged historical classification and regression metadata used for warm
-starts. \\
-\midrule
-\modulepath{stacked\_ensemble.py} &
-Classification adapters, bagging, forward selection, and stacked
-classification. \\
-\midrule
-\begin{tabular}[t]{@{}l@{}}\modulepath{stacked\_ensemble\_}\\\modulepath{regression.py}\end{tabular} &
-Regression stacking and forward selection. \\
+Technical & Feasible with constraints & Keep native toolchain support and
+document module limits. \\
+\hline
+Operational & Feasible & Keep modular workflows, examples, diagnostics, and
+clear artifacts. \\
+\hline
+Security & Prototype-feasible & Add isolation, authentication, secret management,
+artifact trust, and public-service hardening. \\
+\hline
+Scalability & Feasible for moderate workloads & Measure memory and latency,
+limit concurrency, and scale services based on demand. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\noindent The public estimator lifecycle starts when the user calls
-\texttt{fit}. The estimator validates \(X\) and \(y\), resets any previous
-fitted state, builds the task-specific engine, runs the search, and stores the
-returned result. Prediction methods validate the input and delegate to the
-selected final model. Calling prediction before fitting raises an explicit
-runtime error.
+The final decision is that Accelera is feasible as an academic, research, and
+controlled prototype platform. The main module workflows use available
+technologies and can be tested in the repository. The project is also practical
+for local and small-team use when dependencies and resource limits are respected.
+Public production use is not fully complete yet. The Benchmark Platform and
+remote Deployment paths still need stronger security, load testing, monitoring,
+backups, and clear ownership. These missing parts do not make the design wrong;
+they show the next engineering step needed to move from a working prototype to a
+reliable production service.
 
-\noindent The stored result includes the best individual model, optional
-ensemble, selected final model, best score, leaderboard, and detailed
-run-history records. These records make the module inspectable because they
-preserve both successful and failed trials.
-
-\chapter{Feasibility Study}
-
-\section{AutoML Feasibility}
-The AutoML module is technically feasible because it is built on established
-Python machine-learning libraries such as Scikit-learn and is integrated within
-the existing Accelera package structure. The implementation does not require
-specialized hardware and can run on standard CPU-based environments, although
-larger search budgets and larger datasets require more computation time.
-
-\noindent From an operational perspective, the module is feasible because it
-provides a simple Scikit-learn-style interface. Users can create an AutoML
-classifier or regressor, call \texttt{fit}, and then use standard methods such
-as \texttt{predict}, \texttt{score}, and \texttt{return\_leaderboard}. This
-makes the system suitable for users who want automated model selection without
-manually testing many algorithms and hyperparameter settings.
-
-\noindent The project is also economically feasible because it mainly depends on
-open-source software tools and does not require paid cloud services or
-commercial AutoML platforms. Reusing the same module across multiple
-classification and regression tasks can reduce the manual effort needed for
-model selection, tuning, and comparison.
-
-\noindent The main limitation is computational cost. AutoML search can be
-time-consuming, especially when many models, folds, and trials are evaluated.
-However, this cost is controlled through time budgets, per-trial timeouts,
-multi-fidelity evaluation, and configurable search settings. Therefore, the
-module is feasible as a practical AutoML extension for the Accelera framework.
 
 \end{document}
