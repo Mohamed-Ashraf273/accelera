@@ -1249,8 +1249,6 @@ cleaned and converted into numbers first.
 \noindent In text preprocessing, the text may be converted to lowercase, cleaned from
 unnecessary symbols, split into words, and simplified using stemming. After that,
 methods such as TF-IDF are used to transform the text into numerical features.
-In Accelera, these steps are used to prepare text datasets so they can be used
-for machine learning models.
 
 \subsubsection{Term Frequency-Inverse Document Frequency (TF-IDF)}
 Term Frequency-Inverse Document Frequency is one common technique used
@@ -1475,12 +1473,16 @@ warm starts, and voting or stacking inside Accelera. \\
 \section{Implemented Approach}
 
 \subsection{Auto Preprocessing}
-In this module we decided to implement an automated preprocessing approach for tabular datasets. The
-approach was designed to prepare data for machine learning models by applying
-suitable preprocessing steps automatically according to the type and
-characteristics of each column and some user configurations.
-\noindent The chosen approach follows a classical automated preprocessing pipeline. The
-main preprocessing decisions are:
+In this module, we decided to implement an automated preprocessing approach that
+helps users prepare datasets before model training without repeating the same
+manual cleaning steps each time. The approach was first designed for tabular
+datasets, then extended to support text and image data. Its goal is to inspect
+the input, choose suitable preprocessing steps, apply them, save reusable
+artifacts, and generate reports that help the user understand what happened to
+the data.
+
+\noindent For tabular datasets, the chosen approach follows a classical automated
+preprocessing pipeline. The main preprocessing decisions are:
 
 \begin{itemize}
   \item \textbf{Missing values:} Median imputation is used for numerical
@@ -1507,15 +1509,36 @@ main preprocessing decisions are:
 \end{itemize}
 
 \noindent This approach was chosen because it gives a good balance between automation,
-simplicity, and speed. More advanced techniques, such as
-K-nearest neighbour imputation, autoencoders, and wrapper feature selection, can
-be useful in specific cases, but they need more computation.
+simplicity, and speed. More advanced techniques, such as K-nearest neighbour
+imputation, autoencoders, and wrapper feature selection, can be useful in
+specific cases, but they need more computation and may make the system harder to
+use for beginners.
 
-\noindent One of the important additions in this project is that the module is not
-only used for data preparation. It also supports exploratory data analysis report.
+\noindent One important addition in this project is that the module is not only used for
+data preparation. It also generates exploratory data analysis reports so the
+user can learn about missing values, feature distributions, correlations, and
+the preprocessing actions applied to the dataset. The same idea was extended to
+text and image inputs, where the module applies suitable preparation steps for
+each data type instead of forcing all datasets into one tabular workflow.
 
-\noindent Also the module was extended to support text and image data
-preparation, not only tabular data.
+\subsection{Benchmark Platform}
+In this module, we decided to implement a benchmark platform that supports
+learning through repeated experimentation. The goal is not only to rank models,
+but also to let users try a task, submit predictions, see their score, inspect
+repository links from other submissions, learn from stronger techniques, improve
+their own solution, and submit again.
+
+\noindent The implemented approach separates benchmark creation from submission
+evaluation. A benchmark creator defines the problem, dataset links, test set,
+hidden target file, target column, problem type, and evaluation metric. After
+that, participants submit prediction files and repository links. The system
+validates the files, calculates the score automatically using the selected
+metric, stores the submission, and displays the result on a leaderboard.
+
+\noindent This approach was chosen because it keeps the learning process fair and
+repeatable. All participants are evaluated using the same hidden ground truth
+file and the same metric configuration, while the leaderboard and repository
+links give users a practical way to compare approaches and improve their work.
 
 \subsection{\texttt{accelera\_pipe}}
 In this module, we decided to implement a graph-based machine learning pipeline
@@ -1602,14 +1625,21 @@ The Auto Preprocessing module was designed based on the following assumptions:
 The Benchmark Platform was designed based on the following assumptions:
 
 \begin{itemize}
- \item \textbf{Benchmark data assumption:} The user is assumed to provide the
-benchmark files correctly, including the training data, test data, and separate
-target file. The user is also responsible for ensuring that the file separation
-does not cause data leakage, so the platform can evaluate submissions fairly.
-  \item \textbf{Metric and submission assumption:} The admin is assumed to define
-  the correct metric information for the benchmark, and the user is assumed to
-  submit predictions in the required format, so the scoring script can calculate
-  the result correctly.
+  \item \textbf{Benchmark data assumption:} The benchmark creator is assumed to
+  provide the benchmark files correctly, including the training data, test data,
+  and separate hidden target file. The creator is also responsible for ensuring
+  that the file separation does not cause data leakage, so the platform can
+  evaluate submissions fairly.
+
+  \item \textbf{Learning and submission assumption:} Users are assumed to submit
+  prediction files in the required format and, when possible, provide a
+  repository link for their solution. This allows other users to compare
+  techniques, learn from stronger submissions, improve their own models, and
+  submit again.
+
+  \item \textbf{Metric assumption:} The admin or benchmark creator is assumed to
+  define the correct metric information for the benchmark, so the scoring script
+  can calculate results consistently for all submissions.
 \end{itemize}
 
 \newpage
@@ -1670,8 +1700,9 @@ Parallelized C++ code or optimized Python-callable native module. \\
 \midrule
 
 Benchmark Platform &
-Evaluates user prediction files against benchmark ground truth. &
-Score, ranking, and benchmark results. \\
+Supports learning through shared benchmark tasks, prediction submissions,
+repository links, automatic scoring, and leaderboard comparison. &
+Score, ranking, repository reference, and benchmark results. \\
 \midrule
 
 Deployment &
@@ -1837,16 +1868,17 @@ AI-generated pragma generation is limited or synthetic.
 
 \subsubsection*{Benchmark Platform flow}
 
-The Benchmark Platform is used for evaluation and ranking. It does not take a
-full user pipeline as input. Instead, it works with benchmark data links and user
-prediction submissions.
+The Benchmark Platform is used for learning, evaluation, and ranking. It does
+not take a full user pipeline as input. Instead, it works with benchmark data
+links, user prediction submissions, and optional repository links that show the
+technique used by the participant.
 
 A benchmark owner creates a benchmark by providing the required CSV links:
 
 \begin{itemize}
   \item training CSV file link,
   \item testing CSV file link,
-  \item true prediction or ground-truth CSV file link.
+  \item ground-truth target CSV file link.
 \end{itemize}
 
 A participant submits:
@@ -1857,9 +1889,11 @@ A participant submits:
 \end{itemize}
 
 The platform compares the submitted prediction column with the true labels,
-computes the score, and updates the ranking. This makes the benchmark module
-focused on fair evaluation and leaderboard comparison, not on directly executing
-the user's pipeline.
+computes the score, and updates the ranking. Users can then inspect the
+leaderboard, open repository links from other submissions, learn which
+techniques performed better, improve their own model, and submit another
+prediction file. This makes the benchmark module focused on fair evaluation and
+continuous learning, not on directly executing the user's pipeline.
 
 \subsubsection*{Deployment flow}
 
@@ -2621,74 +2655,129 @@ print(model.return_leaderboard(top_n=3))
 
 
 \section{Benchmark Platform Module}
-\noindent The Benchmark Platform module is designed to provide a shared
+\noindent The Benchmark Platform module is designed to provide a shared learning
 environment where users can create machine learning benchmarks, submit
-predicted results, and compare submissions using selected evaluation metrics.
-The module includes a backend API, database schemas, Python validation and
-scoring scripts, and a frontend interface for users and admins.
+predicted results, compare submissions, and improve their techniques by studying
+other solutions. The module includes a backend API, database schemas, Python
+validation and scoring scripts, and a frontend interface for users and admins.
 
 \noindent The module separates benchmark creation from submission evaluation.
 This makes the workflow clearer: first, the benchmark creator defines the task
 and evaluation rules; then, users submit predictions under the same conditions.
 This separation helps ensure that all users are evaluated using the same
-ground-truth file and the same metric configuration. Another important design
-point is the use of Python scripts for file validation and metric scoring. The
-backend is implemented using Node.js and Express, while Python handles the
-machine learning evaluation part through Scikit-learn metrics and dataset
-loading utilities.
+ground-truth file and the same metric configuration. The leaderboard and
+repository links also allow users to see which approaches performed better,
+learn from them, improve their own model, and submit again. Another important
+design point is the use of Python scripts for file validation and metric
+scoring. The backend is implemented using Node.js and Express, while Python
+handles the machine learning evaluation part through Scikit-learn metrics and
+dataset loading utilities.
 
 \subsection{Functional Description}
-\noindent The main function of this module is to support fair comparison
-between different machine learning solutions. A user can create a benchmark by
-providing the benchmark title, description, problem type, target column,
-dataset link, test dataset link, ground-truth target link, and evaluation
-metric. The system validates the provided links and checks that the test set
-does not contain the target column while the target file contains the expected
-target column.
+\noindent The main function of this module is to support fair comparison and
+learning between different machine learning solutions. A user can create a
+benchmark by providing the benchmark title, description, problem type, target
+column, dataset link, test dataset link, ground-truth target link, and
+evaluation metric. The system validates the provided links and checks that the
+test set does not contain the target column while the target file contains the
+expected target column.
 
 \noindent After a benchmark is created, other users can submit their prediction
 file and repository link. The system validates the submitted prediction file,
 calculates the score using the selected Scikit-learn metric, stores the
 submission, and displays submissions on a leaderboard. The leaderboard is
 ordered based on the metric configuration, where some metrics are better when
-their value is higher and others are better when their value is lower.
+their value is higher and others are better when their value is lower. By
+checking the ranking and the repository links, users can learn from other
+solutions, modify their own approach, and submit improved predictions.
 
 \subsection{Modular Decomposition}
-\noindent The Benchmark Platform is decomposed into several smaller components:
+\noindent The Benchmark Platform is decomposed into several smaller components. Each
+component has a clear responsibility, so the benchmark workflow can be easier to
+build, test, and maintain.
 
 \begin{itemize}
+  \item \textbf{Backend Server and API Layer:}
+  The backend creates the Express application, enables CORS and JSON parsing,
+  connects to MongoDB, and mounts the main API routes. The backend exposes
+  separate routes for users, metrics, benchmarks, and submissions. This makes
+  the server organized because each group of operations is placed in its own
+  route.
+
+  \item \textbf{Database Models:}
+  The module uses Mongoose schemas to store the main data. The user schema
+  stores the user name, email, hashed password, and role. The benchmark schema
+  stores the title, description, target column, dataset links, problem type,
+  selected metric, metric parameters, creation date, and creator. The metric
+  schema stores the display name, Scikit-learn metric function name, problem
+  type, needed parameters, and whether higher or lower values are better. The
+  submission schema stores the benchmark id, submitting user, repository link,
+  prediction file link, submission date, and calculated score.
+
   \item \textbf{Benchmark Management:}
-  This component handles benchmark creation, listing, filtering, viewing,
-and deletion. It stores benchmark information such as title, description,
-problem type, dataset links, target column, selected metric, metric parameters,
-creation date, and creator.
+  This component handles creating, listing, filtering, viewing, and deleting
+  benchmarks. Users can list all benchmarks, filter benchmarks by problem type,
+  or show only benchmarks created by a specific user. When a benchmark is
+  created, the backend checks the problem type, checks that the title is unique,
+  validates the dataset links, and calls the Python validation script before
+  saving the benchmark in MongoDB. Deletion is protected, so only the benchmark
+  creator or an admin can delete a benchmark, and a benchmark cannot be deleted
+  if it already has submissions.
 
   \item \textbf{Metric Management:}
-  This component allows admin users to define evaluation metrics. Each
-metric contains a display name, the corresponding Scikit-learn metric function
-name, needed parameters, problem type, and whether a higher or lower score is
-better. Metrics are linked to benchmarks and used during submission scoring.
+  This component allows metrics to be listed, filtered by problem type,
+  displayed, created, and deleted. Creating and deleting metrics is limited to
+  admin users because a wrong metric can affect many benchmarks. Each metric
+  contains a display name, the matching Scikit-learn metric function name, the
+  problem type, needed parameters, and the value direction using
+  \texttt{higher} or \texttt{lower}. The delete route also checks if the metric
+  is already used by a benchmark, so the system does not remove a metric that is
+  still needed.
 
   \item \textbf{Submission Management:}
   This component allows users to submit prediction files for a specific
-benchmark. Each submission stores the benchmark id, submitting user, repository
-link, prediction file link, score, and submission date. Users can also update
-their existing prediction file or delete their submission if they have
-permission.
+  benchmark and attach a repository link that shows their solution. Before
+  saving a submission, the backend checks that the user did not already submit
+  to the same benchmark, validates the links, loads the benchmark metric, and
+  calls the Python scoring script. Users can also update their prediction file,
+  which recalculates the score, or delete their submission if they are the owner
+  or an admin.
 
   \item \textbf{Validation and Scoring Scripts:}
-  The backend calls Python scripts to validate benchmark files and score
-submissions. During benchmark creation, the validation script checks that the
-test file does not include the target column and that the target file contains
-the required target column. During submission, the scoring script loads the
-ground-truth file and the submitted prediction file, checks their length and
-target column, then computes the selected Scikit-learn metric.
+  The backend calls Python scripts for dataset validation and scoring. During
+  benchmark creation, the validation script checks that the test file does not
+  include the target column, that the target file includes the required target
+  column, and that the test and target files have the same number of rows.
+  During submission, the scoring script loads the hidden target file and the
+  submitted prediction file, checks their length and target column, then
+  computes the selected metric from \texttt{sklearn.metrics}. A helper function
+  is also used to convert Google Drive file links into direct download links.
+
+  \item \textbf{Authentication and Authorization:}
+  The platform uses user accounts so benchmark and submission actions can be
+  connected to their owners. The user routes handle signup and login, hash
+  passwords, and return a JWT token. The authentication middleware reads the
+  token and attaches the logged-in user to the request. The admin middleware is
+  used for admin-only actions such as creating metrics and deleting metrics.
+  These checks are also used to protect benchmark and submission deletion.
 
   \item \textbf{Leaderboard Interface:}
-  The frontend displays benchmark submissions in a leaderboard. It shows
-the submitter information, repository link, score, and submission date. The
-sorting direction depends on the selected metric, so the platform can support
-both metrics where higher is better and metrics where lower is better.
+  The frontend leaderboard displays the submissions of one benchmark with the
+  submitter name, repository link, score, and submission date. The backend sorts
+  the submissions based on the selected metric direction, so the best score
+  appears correctly whether the metric should be maximized or minimized. The
+  same screen also lets a logged-in user add a new submission, update an
+  existing prediction file, or delete a submission if the user has permission.
+
+  \item \textbf{Frontend Benchmark and Metric Screens:}
+  The React frontend provides screens for the main user actions. The benchmarks
+  screen lists benchmarks and supports filtering by problem type or by the
+  logged-in user. The create benchmark screen lets a user enter the title,
+  description, target column, dataset links, problem type, metric, and metric
+  parameters. The display benchmark screen shows benchmark details and links to
+  the leaderboard. The metrics screens allow users to view available metrics,
+  while admins can create new metrics with their Scikit-learn function name,
+  needed parameters, problem type, and score direction.
 \end{itemize}
 
 \Needspace{12\baselineskip}
@@ -2700,7 +2789,7 @@ Output: saved benchmark or validation error
 2:  Validate problem type
 3:  Check title uniqueness
 4:  Validate dataset, test set, and target label links
-5:  Run validate_user_links.py
+5:  Run benchmark file validation
 6:  If the test file contains the target column, reject benchmark
 7:  If the target file does not contain the target column, reject benchmark
 8:  Save benchmark document in MongoDB
@@ -2741,8 +2830,11 @@ must match the benchmark problem type.
 \subsection{Module Summary}
 \noindent The Benchmark Platform module provides a controlled environment for
 benchmark creation, prediction submission, validation, scoring, and leaderboard
-ranking. It keeps the web management logic in the backend and frontend, while
-the metric calculation logic is handled by Python scoring scripts.
+ranking. It also supports a learning cycle where users compare their results
+with others, review submitted repository links, improve their techniques, and
+submit updated predictions. It keeps the web management logic in the backend and
+frontend, while the metric calculation logic is handled by Python scoring
+scripts.
 
 \chapter{System Testing and Verification}
 This chapter explains how the project was tested to make sure that the main
@@ -3083,7 +3175,7 @@ tabular preprocessing flow became stable.
 Auto Preprocessing was compared with AutoCleanML to check the performance of the proposed preprocessing approach. The comparison was done using several tabular datasets collected from Kaggle. The same datasets and the same machine learning models were used for both tools.
 The comparison was applied only on tabular datasets because AutoCleanML mainly works with tabular data. For classification datasets, the Macro F1-score was used as the evaluation metric. For regression datasets, the R-squared score was used to measure how well the model predicts the target values.
 After preprocessing the datasets, the output data was tested using four machine learning models. For classification problems, Logistic Regression, Random Forest, Decision Tree, and KNN were used. For regression problems, Linear Regression, Random Forest, Decision Tree, and KNN were used. This helped test the preprocessing output with different model types, not only one model.
-The results were saved and plotted as comparison graphs between Accelera and AutoCleanML. These graphs show the score of each tool on the selected datasets. The purpose of this comparison was to check whether Accelera can produce preprocessing results that are close to, or better than, an existing preprocessing tool.
+The results were recorded and compared between Accelera and AutoCleanML for each selected dataset and model. The purpose of this comparison was to check whether Accelera can produce preprocessing results that are close to, or better than, an existing preprocessing tool.
 
 \begin{table}[H]
 \centering
@@ -3334,11 +3426,12 @@ calculates the score and displays the leaderboard.
 
 \renewcommand{\lstlistingname}{Code Example}
 \chapter{User Guide}
+
 \section{Using Tabular Auto Preprocessing}
-To use tabular preprocessing, the user first loads the dataset as a Pandas
-DataFrame. Then the user gives the target column, problem type, and output
-folder. The output folder is important because the module saves the fitted
-preprocessing objects and the HTML report inside it.
+
+For tabular data, the user loads the dataset as a Pandas DataFrame, chooses the
+target column, chooses the problem type, and gives an output folder. The output
+folder stores the fitted preprocessing objects and the report.
 
 \begin{lstlisting}[style=code,caption={Calling tabular training preprocessing}]
 import pandas as pd
@@ -3361,9 +3454,9 @@ preprocessor = ClassicalTrainingPreprocessing(
 X_train, y_train, X_val, y_val = preprocessor.common_preprocessing()
 \end{lstlisting}
 
-For regression, the user only changes the problem type:
+\noindent For regression, the main change is the problem type and target column.
 
-\begin{lstlisting}[style=code,caption={Changing tabular preprocessing to regression}]
+\begin{lstlisting}[style=code,caption={Calling tabular regression preprocessing}]
 preprocessor = ClassicalTrainingPreprocessing(
     df=df,
     target_col="price",
@@ -3372,9 +3465,8 @@ preprocessor = ClassicalTrainingPreprocessing(
 )
 \end{lstlisting}
 
-After training preprocessing, the same folder should be used for test data.
-This makes the test data use the saved training transformers instead of fitting
-new ones.
+\noindent For test data, the user should pass the same folder path. This makes the test
+data use the saved training transformers instead of fitting new transformers.
 
 \begin{lstlisting}[style=code,caption={Calling tabular testing preprocessing}]
 import pandas as pd
@@ -3393,9 +3485,10 @@ X_test, y_test = test_preprocessor.common_preprocessing()
 \end{lstlisting}
 
 \section{Using Text Auto Preprocessing}
-For text preprocessing, the user provides the text column and the target
-column. The text column must contain text values, and the target is used for
-classification.
+
+For text data, the user provides the text column and target column. The module
+cleans the text, applies TF-IDF, encodes the labels, and saves the needed
+objects.
 
 \begin{lstlisting}[style=code,caption={Calling text training preprocessing}]
 import pandas as pd
@@ -3417,9 +3510,9 @@ text_preprocessor = TextTrainingPreprocessing(
 X_train, y_train, X_val, y_val = text_preprocessor.common_preprocessing()
 \end{lstlisting}
 
-For testing text data, the user again passes the same folder path. If the test
+\noindent For testing text data, the user again passes the same folder path. If the test
 data does not contain the target column, the class returns the transformed text
-features and \texttt{None} for the labels.
+features and \modulepath{None} for labels.
 
 \begin{lstlisting}[style=code,caption={Calling text testing preprocessing}]
 from accelera.src.auto_preprocessing.core.text_testing_preprocesing import (
@@ -3437,7 +3530,8 @@ X_test, y_test = text_test_preprocessor.common_preprocessing()
 \end{lstlisting}
 
 \section{Using Image Auto Preprocessing}
-For image preprocessing, the dataset should be arranged in class folders. For
+
+For image preprocessing, the dataset should be arranged as class folders. For
 example:
 
 \begin{verbatim}
@@ -3446,9 +3540,8 @@ Training/
   Dogs/
 \end{verbatim}
 
-The user passes the training folder and the output folder. If a validation
-folder already exists, it can be passed also. If not, the module can split the
-training folder.
+\noindent The user passes the training folder and output folder. If there is no separate
+validation folder, the module can split the training folder.
 
 \begin{lstlisting}[style=code,caption={Calling image training preprocessing}]
 from accelera.src.auto_preprocessing.core.classification_image_training_preprocessing import (
@@ -3468,9 +3561,8 @@ image_preprocessor = ClassificationImageTrainingPreprocessing(
 train_loader, val_loader = image_preprocessor.common_preprocessing()
 \end{lstlisting}
 
-For image testing, the user provides a list of image paths. If class names are
-available, they can be passed too. If not, the loader can still be used for
-prediction.
+\noindent For image testing, the user provides a list of image paths. Class names are
+optional, but if they are provided, they must match the saved training classes.
 
 \begin{lstlisting}[style=code,caption={Calling image testing preprocessing}]
 from accelera.src.auto_preprocessing.core.classification_image_testing_preprocessing import (
@@ -3491,15 +3583,17 @@ test_loader, invalid_images = image_test_preprocessor.common_preprocessing()
 \end{lstlisting}
 
 \section{Reading Auto Preprocessing Reports}
-After running preprocessing with \texttt{is\_report=True}, the user opens the
-generated \texttt{report.html} file from the output folder. The report shows
-the dataset overview, missing values, duplicate rows, dropped columns, graphs,
-preprocessing decisions, selected features, and processed data samples.
+
+After running preprocessing with \modulepath{is_report=True}, the user opens
+the generated \modulepath{report.html} file from the output folder. The report
+shows the dataset overview, missing values, duplicate rows, dropped columns,
+graphs, preprocessing decisions, selected features, and processed data samples.
 
 \section{Using Pipeline Reports}
+
 To generate a pipeline report, the pipeline graph should be serialized first.
 Then the user passes the XML graph path, output folder, and metric results to
-\texttt{GraphReport}.
+\modulepath{GraphReport}.
 
 \begin{lstlisting}[style=code,caption={Calling the pipeline graph report}]
 from accelera.src.accelera_pipe.wrappers.graph_report import GraphReport
@@ -3513,19 +3607,20 @@ report = GraphReport(
 report.execute()
 \end{lstlisting}
 
-The output is a \texttt{report.html} file. It contains the graph image, branch
-tables, selected branch, and metric summary.
+\noindent The output is a \modulepath{report.html} file. It contains the graph image,
+branch tables, selected branch, and metric summary.
 
 \section{Using the Benchmark Platform}
+
 The benchmark platform is used from the web interface. The benchmark creator
 enters the title, problem type, target column, dataset link, test-set link,
 target-label link, and evaluation metric. A user submits a prediction file link
 and repository link. The backend calls the Python scoring script, saves the
 score, and displays the result in the leaderboard.
 
-The prediction file must contain the target column name expected by the
-benchmark. Also, the number of rows in the prediction file must match the
-number of rows in the target-label file.
+\noindent The prediction file must contain the target column expected by the benchmark.
+Also, the number of rows in the prediction file must match the number of rows
+in the target label file.
 
 \chapter{Code Documentation}
 \mbox{}
