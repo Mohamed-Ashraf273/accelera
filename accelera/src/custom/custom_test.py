@@ -14,17 +14,24 @@ try:
 
     class TorchDenseModel(CustomClassifier):
         def __init__(self, input_dim=25, output_dim=4, random_state=42):
+            self.input_dim = input_dim
+            self.output_dim = output_dim
+            self.random_state = random_state
+
             torch.manual_seed(random_state)
+
             self.device = (
                 torch.device("cuda")
                 if torch.cuda.is_available()
                 else pytest.skip("No GPU available, skipping CUDA test.")
             )
+
             self.model = nn.Sequential(
                 nn.Linear(input_dim, 64),
                 nn.ReLU(),
                 nn.Linear(64, output_dim),
             ).to(self.device)
+
             self.criterion = nn.CrossEntropyLoss()
             self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
             self.batch_size = 32
