@@ -1075,9 +1075,6 @@ report, the same dictionary can also be passed to the report display layer.
 
 
 \subsection{Pipeline Reporting}
-
-\subsubsection{Module Overview}
-
 This part focuses only on the report classes related to
 \modulepath{accelera_pipe}. These reports are different from the Auto
 Preprocessing report. The Auto Preprocessing report explains data cleaning and
@@ -1120,12 +1117,12 @@ the result type:
   shows the metric ids and their values in a table, and also draws a small line
   graph so the user can compare the values visually.
 
-  \item one-dimensional arrays are displayed with
+  \item one dimensional arrays are displayed with
   \modulepath{DisplayArraySingle}. This wrapper is used when the metric returns
   a list of values, such as per-class scores. It creates a table where each
   value has a label, and each row is connected to the metric id.
 
-  \item multi-dimensional arrays are displayed with
+  \item multi dimensional arrays are displayed with
   \modulepath{DisplayMultiArray} when there is no plotting function. This is
   useful for results such as matrices, where rows and columns need labels. If a
   plotting function is provided, \modulepath{DisplayFigure} is used instead to
