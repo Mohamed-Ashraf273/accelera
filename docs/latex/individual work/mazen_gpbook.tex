@@ -115,7 +115,6 @@
 
 \newcommand{\systemname}{Accelera}
 \newcommand{\modulepath}[1]{\texttt{#1}}
-\newcommand{\todoitem}[1]{\textcolor{red!65!black}{[TODO: #1]}}
 
 \begin{document}
 
@@ -194,11 +193,11 @@ by photocopying or other means, without the permission of the author or departme
 \begin{abstract}
 This report presents the individual design, implementation, verification, and learning journey behind my contributions to three important parts of the \systemname{} framework: the Pipeline Module, the Benchmark Module, and the Deployment Module. My work focused on making \systemname{} more complete as an engineering system, not only as a collection of machine-learning algorithms. The contributions described in this report cover internal execution behavior, user-facing platform features, authentication-related workflows, dashboard visibility, and the final deployment stage that transforms trained models into usable services.
 
-Within the Pipeline Module, Mazen contributed to the C++ back-end execution engine supporting branching workflows, topological sorting, DAG constraints, and duplicate-node optimization. In particular, the \modulepath{runParallel} functionality was a shared contribution between Mazen Adel and Mohamed Ashraf, focusing on thread-safe graph execution, dependency-aware branch scheduling, counting semaphores, and controlled memory release. Alongside this shared parallel-execution work, Mazen also implemented a native Merge Node supporting class and probability-based majority voting strategies.
+Within the Pipeline Module, I contributed to the C++ back-end execution engine supporting branching workflows, topological sorting, DAG constraints, and duplicate-node optimization. In particular, the \modulepath{runParallel} functionality was a shared contribution between Mohamed Ashraf and me, focusing on thread-safe graph execution, dependency-aware branch scheduling, counting semaphores, and controlled memory release. Alongside this shared parallel-execution work, I also implemented a native Merge Node supporting class and probability-based majority voting strategies.
 
-Within the Benchmark Module, Mazen developed a Node.js REST API using Express and MongoDB to handle secure user authentication (JWT and bcrypt), dataset uploads, leaderboard management, and validation of submitted predictions against hidden ground truths. He also built a React frontend consisting of dedicated User and Admin Dashboards for task filtering, leaderboard viewing, and administrator-level user management.
+Within the Benchmark Module, I developed a Node.js REST API using Express and MongoDB to handle secure user authentication (JWT and bcrypt), dataset uploads, leaderboard management, and validation of submitted predictions against hidden ground truths. I also built a React frontend consisting of dedicated User and Admin Dashboards for task filtering, leaderboard viewing, and administrator-level user management.
 
-Finally, the Deployment Module forms the main contribution of this individual work. It integrates a production-ready FastAPI web server featuring runtime data validation via Great Expectations, a request tracking and telemetry logging layer, a lightweight model Version Control System (VCS) with SHA-1 hash commits and rollback support, and an automated deployment engine targeting Local Docker, Heroku, and remote AWS EC2 instances over SSH. This module was the most technically demanding part of my work because it required connecting machine-learning artifacts, configuration files, server-side APIs, Docker containers, command-line workflows, and remote deployment environments into one coherent system.
+Finally, the Deployment Module forms the main contribution of this individual work. It integrates a production-ready FastAPI web server featuring runtime data validation via Great Expectations, a request tracking and telemetry logging layer, a lightweight model Version Control System (VCS) with SHA-1 hash commits and rollback support, and an automated deployment engine targeting local Docker, Heroku, and remote AWS EC2 instances over SSH. This module was the most technically demanding part of my work because it required connecting machine-learning artifacts, configuration files, server-side APIs, Docker containers, command-line workflows, and remote deployment environments into one coherent system.
 \end{abstract}
 
 % -----------------------------------------------------------------------------
@@ -229,18 +228,47 @@ The work therefore covered both backend-oriented and user-facing responsibilitie
     \item \textbf{The Serving Layer (Deployment Module):} Acts as the main focus of this work, responsible for packaging trained models, validating input data, saving prediction histories, and pushing services to container platforms.
 \end{enumerate}
 
-\section{Mazen Adel's Contributions}
-As part of the \systemname{} development team, the author designed, implemented, and verified the following components:
+\section{My Contributions}
+As part of the \systemname{} development team, I designed, implemented, and verified the following components:
 \begin{itemize}[leftmargin=*]
     \item \textbf{Pipeline Module:} Developed the native C++ \modulepath{MergeNode} class and voting algorithms. Contributed with Mohamed Ashraf to the concurrent graph runner (\modulepath{runParallel}), including dependency-aware scheduling, semaphores, GIL management, and memory optimizations.
     \item \textbf{Benchmark Module:} Programmed the Node.js Express backend and MongoDB schemas for users, benchmarks, and submissions. Designed the React dashboards for users and administrators.
     \item \textbf{Deployment Module:} Designed and built the complete model serving system, which includes the FastAPI server, Uvicorn server, Great Expectations validation layer, telemetry logger, and CLI deployment tools for Docker, Heroku, and AWS EC2. Created the custom Model Version Control (VCS) subsystem.
 \end{itemize}
 
-These contributions were connected by one common goal: improving the practical value of \systemname{}. The Merge Node and run-parallel work improved the execution layer by making graph workflows more flexible and more capable. The dashboards and authentication pages improved the platform layer by making benchmark interaction clearer for users and administrators. The Deployment module improved the delivery layer by making it possible to move from trained models and saved artifacts toward a real API service. This report discusses these areas as technical work, but also as an individual engineering journey in which each module required a different way of thinking.
+These contributions were connected by one common goal: improving the practical value of \systemname{}. The Merge Node and run-parallel work improved the execution layer by making graph workflows more flexible and more capable. The dashboards and authentication pages improved the platform layer by making benchmark interaction clearer for users and administrators. The Deployment Module improved the delivery layer by making it possible to move from trained models and saved artifacts toward a real API service. This report discusses these areas as technical work, but also as an individual engineering journey in which each module required a different way of thinking.
 
 \section{Report Organization}
-The rest of this report is organized as follows: Chapter~\ref{chap:literature-survey} reviews the relevant background and related technologies. Chapter~\ref{chap:system-design} describes the architecture, schemas, and design constraints of the three modules. Chapter~\ref{chap:methodology} explains the details of the implementation and algorithms. Chapter~\ref{chap:verification} presents the testing results and verification, and Chapter~\ref{chap:conclusion} concludes with future improvements.
+The rest of this report is organized as follows: Chapter~\ref{chap:literature-survey} reviews the relevant background and related technologies. Chapter~\ref{chap:system-design} describes the architecture, schemas, design assumptions, and module boundaries of the three contribution areas. Chapter~\ref{chap:methodology} explains the implementation details, algorithms, and technical decisions behind the Pipeline, Benchmark, and Deployment contributions. Chapter~\ref{chap:verification} presents testing and verification. The later chapters align the individual report with the main GP book by documenting the development platforms, use cases, practical user workflows, personal engineering reflection, and future extensions.
+
+\section{Individual Project Outcomes}
+My work contributed to three outcomes within the complete \systemname{} project. These outcomes are aligned with the main GP book, but they are described here from my individual implementation perspective.
+
+\begin{table}[H]
+\centering
+\small
+\caption{My individual outcomes within \systemname{}}
+\label{tab:individual-outcomes}
+\begin{tabularx}{\textwidth}{p{0.24\textwidth}p{0.33\textwidth}X}
+\toprule
+\textbf{Outcome} & \textbf{Implemented contribution} & \textbf{Value to the project} \\
+\midrule
+Graph execution completeness &
+\modulepath{MergeNode} and shared \modulepath{runParallel} graph execution work &
+Improves graph workflows by allowing branch outputs to be combined and independent branches to run concurrently while preserving dependency correctness. \\
+\midrule
+Benchmark platform completeness &
+Authentication routes, MongoDB schemas, user dashboard, admin dashboard, and role-aware frontend flow &
+Turns the benchmark prototype into a usable platform where users can register, log in, inspect their work, submit predictions, and where administrators can manage platform-level actions. \\
+\midrule
+Deployment lifecycle completeness &
+FastAPI serving, Great Expectations validation, telemetry tracking, deployment VCS, Docker packaging, Heroku support, and EC2 orchestration &
+Extends \systemname{} beyond training and evaluation by making trained artifacts reachable through a validated API service. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+These outcomes are connected by a common theme: they make \systemname{} less dependent on manual scripts. The Pipeline contribution makes execution more structured, the Benchmark contribution makes evaluation more organized, and the Deployment contribution makes model delivery more repeatable.
 
 % -----------------------------------------------------------------------------
 % CHAPTER 2: LITERATURE SURVEY
@@ -265,18 +293,116 @@ Deploying serving containers involves different target architectures:
     \item \textbf{AWS EC2:} Offers raw virtual machines in the cloud, requiring custom SSH management, codebase synchronization, remote container building, and manual firewall configuration.
 \end{itemize}
 
+\section{Related Deployment and Benchmarking Platforms}
+Several public or paid platforms overlap with parts of my work. Heroku, Render, Railway, Google Cloud Run, and AWS EC2 can host web services or containers. Hugging Face Spaces can host model demos. Kaggle and similar competition platforms provide leaderboards and dataset-based comparison. These tools are useful, but they usually solve only one layer of the workflow.
+
+The Deployment module in \systemname{} has a different role. It is not a general cloud provider. Instead, it prepares the machine-learning service itself: it loads model artifacts, reads \modulepath{config.json}, validates request payloads, exposes FastAPI endpoints, logs telemetry, creates deployment snapshots, and then connects the prepared service to local Docker, Heroku, or EC2. In other words, my module complements hosting platforms by building the ML-serving package that those platforms can run.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Related platforms and the role of my contribution}
+\label{tab:individual-related-platforms}
+\begin{tabularx}{\textwidth}{p{0.23\textwidth}p{0.34\textwidth}X}
+\toprule
+\textbf{Platform type} & \textbf{Typical responsibility} & \textbf{What my work adds in \systemname{}} \\
+\midrule
+Application hosting platforms &
+Run a web service or container after the application is prepared. &
+Generates and prepares the FastAPI model service, Dockerfile, model files, validation rules, and target-specific commands. \\
+\midrule
+Virtual machines such as EC2 &
+Provide raw server access and full infrastructure control. &
+Automates SSH file synchronization, remote Docker build/run steps, health checks, logs, and stop commands. \\
+\midrule
+Hosted ML demo platforms &
+Provide a public interface for demos or notebooks. &
+Focuses on reproducible deployment from project artifacts rather than one-off demos. \\
+\midrule
+Competition and benchmark systems &
+Host datasets, metrics, submissions, and leaderboards. &
+Contributes a project-specific benchmark platform with authentication, submission validation, and role-aware dashboards. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
 % -----------------------------------------------------------------------------
 % CHAPTER 3: SYSTEM DESIGN AND ARCHITECTURE
 % -----------------------------------------------------------------------------
 \chapter{System Design and Architecture}
 \label{chap:system-design}
 
+\section{Overview and Design Assumptions}
+This chapter follows the same architectural direction as the main GP book, but focuses on the modules where I contributed directly. My work sits across three connected stages of the overall \systemname{} lifecycle: graph execution, benchmark interaction, and deployment.
+
+\begin{figure}[H]
+\centering
+\makebox[\textwidth][c]{%
+\includegraphics[width=1.08\textwidth,height=0.50\textheight,keepaspectratio]{../imgs/block_diagram.png}
+}
+\caption{Overall Accelera architecture and the lifecycle stages related to my work}
+\label{fig:individual_block_diagram}
+\end{figure}
+
+The block diagram shows why my contributions are connected even though they belong to different modules. The Pipeline Module controls how graph workflows execute. The Benchmark Module supports fair comparison and user-facing evaluation. The Deployment Module consumes saved model artifacts and turns them into services. Together, these modules help move from local experimentation toward reusable, comparable, and reachable machine-learning results.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Design assumptions affecting my contribution areas}
+\label{tab:individual-design-assumptions}
+\begin{tabularx}{\textwidth}{p{0.24\textwidth}X}
+\toprule
+\textbf{Area} & \textbf{Assumption} \\
+\midrule
+Pipeline execution &
+Machine-learning workflows can be represented as directed acyclic graphs where a node can execute only after all parent dependencies have completed. Independent ready nodes may run concurrently if shared data remains valid. \\
+\midrule
+Merge and voting &
+Prediction branches may produce either direct labels or probability arrays, so the merge logic must handle output shape differences and return deterministic results. \\
+\midrule
+Benchmark platform &
+Benchmark creators provide valid dataset, test-set, target-label, and metric information, while users submit prediction files that can be validated against the hidden target file. \\
+\midrule
+Deployment module &
+The selected model or executed graph has already produced serializable artifacts and a valid \modulepath{config.json}. Docker is available locally or on the target server, and remote EC2 deployment receives a reachable host, SSH user, and correct network settings. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{End-to-End Role of My Modules}
+From an end-to-end perspective, the user's output may follow more than one path. A selected AutoML model, a fitted graph path, or a manually trained model can all become deployment inputs if the correct artifacts and configuration are produced. The Benchmark Platform can be used separately for evaluation and comparison, while the Deployment Module can be used to expose a selected model through an HTTP service.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Standalone and connected use of my contribution areas}
+\label{tab:individual-standalone-e2e}
+\begin{tabularx}{\textwidth}{p{0.24\textwidth}X X}
+\toprule
+\textbf{Mode} & \textbf{Description} & \textbf{Example from my work} \\
+\midrule
+Standalone execution &
+A user uses one module and stops at its output. &
+Use the Benchmark Platform to submit predictions and view leaderboard results. \\
+\midrule
+Connected workflow &
+Outputs from one module become inputs to another module. &
+Run a graph pipeline, save the selected model artifacts, then deploy them through the Deployment module. \\
+\midrule
+Operational workflow &
+The model is no longer only a file; it becomes a monitored service. &
+Prepare artifacts, build a Docker image, run FastAPI endpoints, and inspect tracking summaries. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
 \section{Pipeline Module Architecture}
 The Pipeline Module represents machine learning workflows as a DAG. Nodes are split into six functional categories: input, preprocessing, model, prediction, metric, and merge. The DAG is compiled by sorting the nodes topologically, which ensures that parent nodes execute before their child nodes.
 
 This module was important to my work because it required understanding a machine-learning workflow as a connected structure rather than a sequential script. In a simple script, the programmer writes the order directly. In a graph system, the engine must infer a valid order from node connections, preserve dependencies, and make sure that data produced by one node is delivered correctly to the next node. Working on this part helped me understand that pipeline design is not only about adding model or preprocessing functions; it is also about controlling how information moves through the system.
 
-Two major optimizations were introduced to improve execution performance. The duplicate-node sharing work is presented as part of Mazen's pipeline contribution, while the \modulepath{runParallel} execution functionality was developed as a shared contribution by Mazen Adel and Mohamed Ashraf:
+Two major optimizations were introduced to improve execution performance. The duplicate-node sharing work is presented as part of my pipeline contribution, while the \modulepath{runParallel} execution functionality was developed as a shared contribution by Mohamed Ashraf and me:
 \begin{enumerate}
     \item \textbf{Duplicate first-node sharing:} When multiple branches start with the same preprocessing step, the engine automatically shares the output of the first node rather than duplicating the calculation (Figures~\ref{fig:before_sharing} and \ref{fig:after_sharing}).
     \item \textbf{Active consumer counting:} The engine counts the active downstream consumers for each intermediate array. Once all child nodes finish execution, the parent node's temporary data is freed from RAM.
@@ -323,6 +449,38 @@ The database schemas are defined using Mongoose. The three main schemas are:
     \item \textbf{Submission Schema:} Tracks the submitted repository link, predictions file link, submission date, and calculated score.
 \end{itemize}
 
+The benchmark design separates benchmark creation from submission evaluation. This separation was important because the creator defines the task once, while many users may submit predictions under the same metric and hidden target file. Table~\ref{tab:benchmark-components-individual} summarizes the main components that I worked with or connected through the dashboard and authentication flow.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Benchmark Platform components related to my work}
+\label{tab:benchmark-components-individual}
+\begin{tabularx}{\textwidth}{p{0.28\textwidth}X}
+\toprule
+\textbf{Component} & \textbf{Responsibility} \\
+\midrule
+Authentication and authorization &
+Handles sign-up, login, password hashing, JWT creation, user identity, and admin-only checks. \\
+\midrule
+Benchmark management &
+Stores benchmark title, description, problem type, target column, dataset links, metric settings, and creator. \\
+\midrule
+Submission management &
+Receives prediction-file links and repository links, validates ownership, prevents duplicate submissions, and stores calculated scores. \\
+\midrule
+Python validation and scoring scripts &
+Validate benchmark files, compare submitted predictions with hidden targets, and calculate selected Scikit-learn metrics. \\
+\midrule
+User dashboard &
+Displays a user's benchmarks, submissions, scores, and account-related information in one place. \\
+\midrule
+Admin dashboard &
+Displays platform-level management views for user inspection and controlled deletion actions. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
 \subsection{Dashboard Views}
 The User Dashboard lists active benchmarks and submissions. The Admin Dashboard is restricted to administrative users (Figure~\ref{fig:admin_dashboard_logic}), allowing them to browse and delete users, manage roles, and register new evaluation metrics.
 
@@ -365,9 +523,38 @@ The system design relies on four core elements:
 \begin{itemize}[leftmargin=*]
     \item \textbf{FastAPI Server:} Exposes standard inference endpoints for JSON payloads and batch inference endpoints for uploaded CSV files.
     \item \textbf{Great Expectations Schema Validation:} Validates incoming request values against expected bounds, preventing invalid inputs from reaching the model.
-    \item \textbf{Telemetry Tracking:} Logs request inputs, outputs, timestamps, and execution times asynchronously to a JSON lines file on disk.
+    \item \textbf{Telemetry Tracking:} Records prediction events, statuses, row counts, latencies, timestamps, and errors to a JSON lines file on disk.
     \item \textbf{Model Version Control (VCS):} Creates unique commits of configuration and model binaries, allowing rollbacks to older deployments.
 \end{itemize}
+
+The central design contract is the deployment workspace. The workspace contains \modulepath{config.json}, a \modulepath{models/} directory, generated serving files, and target-specific runtime files. The configuration file is the boundary between training and serving: it tells the service which artifacts to load, how the request schema should be validated, and where telemetry should be written.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Deployment workspace responsibilities}
+\label{tab:deployment-workspace-contract-individual}
+\begin{tabularx}{\textwidth}{p{0.25\textwidth}X}
+\toprule
+\textbf{Workspace item} & \textbf{Role in the deployed service} \\
+\midrule
+\modulepath{config.json} &
+Defines model artifact paths, schema-validation rules, and telemetry settings. \\
+\midrule
+\modulepath{models/} &
+Stores serialized preprocessing pipelines, feature selectors, and final models used by \modulepath{ModelService}. \\
+\midrule
+\modulepath{accelera\_deployment/} &
+Contains the serving code copied into the runtime package, including FastAPI, validation, model loading, and tracking modules. \\
+\midrule
+\modulepath{Dockerfile} and \modulepath{requirements.txt} &
+Define the container image and runtime Python dependencies used for local or remote serving. \\
+\midrule
+\modulepath{experiments/} &
+Stores committed model/config snapshots for deployment rollback through the VCS subsystem. \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 % -----------------------------------------------------------------------------
 % CHAPTER 4: IMPLEMENTATION DETAILS
@@ -376,11 +563,11 @@ The system design relies on four core elements:
 \label{chap:methodology}
 
 \section{Pipeline Module Parallel Scheduler}
-The parallel scheduler in \systemname{} is implemented in C++ in \modulepath{src/core/graph.cpp}. This \modulepath{runParallel} functionality was a joint contribution by Mazen Adel and Mohamed Ashraf. When parallel execution is enabled, the graph uses \modulepath{std::async} to execute independent nodes concurrently. The scheduling logic uses counting semaphores to limit the number of active CPU threads, and a binary semaphore to serialize GPU access.
+The parallel scheduler in \systemname{} is implemented in C++ in \modulepath{src/core/graph.cpp}. This \modulepath{runParallel} functionality was a joint contribution by Mohamed Ashraf and me. When parallel execution is enabled, the graph uses \modulepath{std::async} to execute independent nodes concurrently. The scheduling logic uses counting semaphores to limit the number of active CPU threads, and a binary semaphore to serialize GPU access.
 
-This shared work was important because graph execution cannot be parallelized by simply launching every node at the same time. The scheduler must preserve dependency order, wait until parent nodes finish, protect Python object access through GIL handling, and release intermediate data only after all downstream consumers have finished using it. Mazen's role in this work focused on understanding how graph branches should be scheduled safely and how memory should be released without breaking later nodes, while Mohamed Ashraf also contributed to the design and implementation of the run-parallel execution flow.
+This shared work was important because graph execution cannot be parallelized by simply launching every node at the same time. The scheduler must preserve dependency order, wait until parent nodes finish, protect Python object access through GIL handling, and release intermediate data only after all downstream consumers have finished using it. My role in this work focused on understanding how graph branches should be scheduled safely and how memory should be released without breaking later nodes, while Mohamed Ashraf also contributed to the design and implementation of the run-parallel execution flow.
 
-Algorithm~\ref{algo:run_parallel} shows the parallel execution logic. It tracks finished and started nodes, release the GIL during execution, and catches exceptions thrown by separate threads.
+Algorithm~\ref{algo:run_parallel} shows the parallel execution logic. It tracks finished and started nodes, releases the GIL during execution, and catches exceptions thrown by separate threads.
 
 \begin{lstlisting}[style=algostyle,caption={Parallel Execution Engine in C++},label={algo:run_parallel}]
 Input: execution_order nodes, cpu_threads limit
@@ -427,7 +614,7 @@ Output: executed graph with updated node states
 \end{lstlisting}
 
 \subsection{Execution Flow and GIL Release Implementation}
-The primary implementation challenge in the parallel execution flow was GIL (Global Interpreter Lock) contention. Because Python objects (such as scikit-learn estimators) are executed inside separate worker threads, concurrent calls will block each other if they attempt to manipulate Python references simultaneously. As part of the shared \modulepath{runParallel} contribution, Mazen Adel and Mohamed Ashraf structured a two-tier block wrapper in \modulepath{src/core/graph.cpp}:
+The primary implementation challenge in the parallel execution flow was GIL (Global Interpreter Lock) contention. Because Python objects (such as scikit-learn estimators) are executed inside separate worker threads, concurrent calls will block each other if they attempt to manipulate Python references simultaneously. As part of the shared \modulepath{runParallel} contribution, Mohamed Ashraf and I structured a two-tier block wrapper in \modulepath{src/core/graph.cpp}:
 \begin{enumerate}
     \item Before entering the loop-scheduling phase, the main thread releases the GIL using \texttt{py::gil\_scoped\_release}. This allows other native OS threads to run without waiting.
     \item Within each spawned worker thread, before invoking the node's \texttt{execute()} function, the GIL is explicitly acquired using \texttt{py::gil\_scoped\_acquire}. As soon as the call exits, the scope ends, immediately freeing the GIL for other concurrent threads.
@@ -503,8 +690,8 @@ This part taught me that user roles affect both interface design and backend log
 
 From a personal perspective, this part was important because it connected technical correctness with user experience. The authentication flow had to be simple enough for users, but it also had to support access control for dashboards. I learned that login and sign-up pages are part of the product identity of a platform. If these screens are unclear or disconnected, the rest of the system feels incomplete even if the benchmark calculations work correctly.
 
-\section{Deployment Module serving and Validation}
-Mazen was fully responsible for implementing the Deployment module, which converts trained pipelines into containerized web services.
+\section{Deployment Module Serving and Validation}
+I was fully responsible for implementing the Deployment module, which converts trained pipelines into containerized web services.
 
 \subsection{Personal Motivation and Deployment Scope}
 \noindent The Deployment module was my main contribution because it represents the point where \systemname{} moves from experimentation toward practical use. In many machine-learning projects, the workflow stops after a model is trained, evaluated, and saved to disk. However, a saved model file is not enough for real usage. It must be loaded by a service, protected by validation, exposed through an API, packaged with dependencies, and started on a machine that users or other applications can reach.
@@ -515,7 +702,9 @@ Figure~\ref{fig:deployment_module_overview_individual} summarizes the complete s
 
 \begin{figure}[H]
 \centering
-\makebox[\textwidth][c]{\includegraphics[width=0.98\textwidth,height=0.62\textheight,keepaspectratio]{../dots/deployment_module.pdf}}
+\makebox[\textwidth][c]{%
+\includegraphics[width=1.35\textwidth,height=0.72\textheight,keepaspectratio]{../dots/deployment_module.pdf}%
+}
 \caption{Overall Deployment Module workflow from model artifacts to serving targets}
 \label{fig:deployment_module_overview_individual}
 \end{figure}
@@ -598,14 +787,15 @@ Output: validated tabular rows or validation error
 \end{itemize}
 
 \subsection{Telemetry and Request Tracking}
-\noindent Production deployments capture inference requests and runtime metrics using a lightweight tracking layer. When enabled, the tracker logs prediction inputs, model outputs, processing latencies (measured in milliseconds), and timestamps. To avoid performance degradation on the prediction path, logging is written incrementally to a JSON lines (\texttt{.jsonl}) file.
+\noindent Production deployments capture inference requests and runtime metrics using a lightweight tracking layer. When enabled, the tracker records endpoint names, statuses, row counts, prediction outputs, processing latencies measured in milliseconds, optional error messages, and timestamps. Logging is written incrementally to a JSON lines (\texttt{.jsonl}) file.
 
 Telemetry was included because a deployed system should be observable. During training, the developer can inspect variables directly, but after deployment the service runs through API requests. A tracker gives basic visibility into how many requests were received, how many rows were processed, what statuses occurred, and what the latest event looked like. This made the service more practical and helped connect deployment with monitoring.
 
 \noindent Telemetry tracking is implemented in \modulepath{tracking.py}:
 \begin{itemize}[leftmargin=*]
-  \item \texttt{PredictionTracker.\_\_init\_\_(config)}: Sets up the file system paths and creates/opens the telemetry log file.
-  \item \texttt{PredictionTracker.log\_prediction(inputs, outputs, latency, status)}: Formats request parameters, response targets, server latency, and datetime strings into a single-line JSON string and appends it to the logging stream.
+  \item \texttt{PredictionTracker.\_\_init\_\_(config)}: Reads the tracking settings and selects the JSONL output path.
+  \item \texttt{PredictionTracker.record(event)}: Formats endpoint, status, row count, latency, optional predictions, optional errors, and timestamps into a single JSON line and appends it to the logging file when tracking is enabled.
+  \item \texttt{PredictionTracker.summary()}: Reads the JSONL log and aggregates total requests, total rows, status counts, and the most recent event.
 \end{itemize}
 
 \section{Multi-Target Deployment Orchestration}
@@ -733,13 +923,13 @@ The CLI was a deliberate design choice because deployment workflows are naturall
 \end{itemize}
 
 \section{Personal Deployment Challenges and Decisions}
-\noindent The Deployment module was the most personally demanding part of this work because it required connecting machine-learning artifacts with backend serving, validation, containers, and remote infrastructure. During implementation, Mazen had to move beyond local model training and understand how a model becomes a long-running service that can receive HTTP requests, validate payloads, return predictions, and remain reproducible across different machines.
+\noindent The Deployment module was the most personally demanding part of this work because it required connecting machine-learning artifacts with backend serving, validation, containers, and remote infrastructure. During implementation, I had to move beyond local model training and understand how a model becomes a long-running service that can receive HTTP requests, validate payloads, return predictions, and remain reproducible across different machines.
 
 One major challenge was organizing the boundary between training artifacts and serving code. The solution was to make \texttt{config.json} the central contract between the training side and the deployed service. The service reads the configured model paths, loads all available preprocessors and the final estimator, and applies the same inference path for JSON and CSV requests.
 
-Another challenge was learning how to make deployment repeatable. Instead of relying on manual copying and terminal commands, Mazen implemented the orchestration script to prepare files, write runtime requirements, generate the Dockerfile, build the container, and support local, Heroku, and EC2 workflows. The EC2 path was especially useful as a learning exercise because it required SSH, \texttt{rsync}, remote Docker builds, container restart behavior, public ports, and health checks.
+Another challenge was learning how to make deployment repeatable. Instead of relying on manual copying and terminal commands, I implemented the orchestration script to prepare files, write runtime requirements, generate the Dockerfile, build the container, and support local, Heroku, and EC2 workflows. The EC2 path was especially useful as a learning exercise because it required SSH, \texttt{rsync}, remote Docker builds, container restart behavior, public ports, and health checks.
 
-The VCS subsystem was an important design decision. Git already tracks source code, but the deployed model state also includes generated model files and runtime configuration. Mazen therefore implemented a lightweight deployment-specific registry that snapshots \texttt{config.json} and the active model files, assigns a short hash, records metadata, and supports rollback by restoring a previous snapshot.
+The VCS subsystem was an important design decision. Git already tracks source code, but the deployed model state also includes generated model files and runtime configuration. I therefore implemented a lightweight deployment-specific registry that snapshots \texttt{config.json} and the active model files, assigns a short hash, records metadata, and supports rollback by restoring a previous snapshot.
 
 Testing the Deployment module also required special care. Many behaviors depend on Docker, Heroku, EC2, SSH, and file-system state, so the verification strategy used temporary workspaces and mocking to test the logic without depending on live cloud services. This made the module more reliable and helped separate the implementation logic from external infrastructure availability.
 
@@ -793,7 +983,7 @@ The benchmark module tests check that the Node.js API endpoints and database ope
 \end{enumerate}
 
 \subsection{Deployment Test Results}
-\noindent When executed in an environment with all core dependencies installed, all 51 test cases compile and pass successfully. Table~\ref{tab:deployment-test-summary} summarizes the verification results for the deployment module.
+\noindent When executed in an environment with all core dependencies installed, all 48 test cases run and pass successfully. Table~\ref{tab:deployment-test-summary} summarizes the verification results for the deployment module.
 
 \begin{table}[H]
 \centering
@@ -804,22 +994,368 @@ The benchmark module tests check that the Node.js API endpoints and database ope
 \toprule
 \textbf{Test File} & \textbf{Cases} & \textbf{Passed} & \textbf{Failed} & \textbf{Verified Feature} \\
 \midrule
-\texttt{vcs\_test.py} & 14 & 14 & 0 & Registry snapshots, workspace rollbacks \\
-\texttt{modelservice\_test.py} & 6 & 6 & 0 & Sequencing of preprocessor transforms \\
-\texttt{schema\_validation\_test.py} & 8 & 8 & 0 & Data coercion and column checking \\
-\texttt{server\_test.py} & 9 & 9 & 0 & FastAPI routing, telemetry integration \\
+\texttt{vcs\_test.py} & 16 & 16 & 0 & Registry snapshots, workspace rollbacks \\
+\texttt{modelservice\_test.py} & 5 & 5 & 0 & Sequencing of preprocessor transforms \\
+\texttt{schema\_validation\_test.py} & 3 & 3 & 0 & Schema description and column checking \\
+\texttt{server\_test.py} & 8 & 8 & 0 & FastAPI routing, telemetry integration \\
 \texttt{tracking\_test.py} & 3 & 3 & 0 & Telemetry logging and count aggregation \\
-\texttt{deployment\_test.py} & 11 & 11 & 0 & Staging setup, Dockerfile compiling \\
+\texttt{deployment\_test.py} & 13 & 13 & 0 & Staging setup, Dockerfile generation \\
 \midrule
-\textbf{Total} & \textbf{51} & \textbf{51} & \textbf{0} & \textbf{All deployment checks passed} \\
+\textbf{Total} & \textbf{48} & \textbf{48} & \textbf{0} & \textbf{All deployment checks passed} \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\noindent This successful validation confirms that the deployment engine operates as intended, offering robust models, automated runtime validation, telemetry logging, and repeatable container deployments without regression errors.
+\noindent This successful validation confirms that the deployment engine operates as intended, offering reliable model serving, automated runtime validation, telemetry logging, and repeatable container deployments without regression errors.
 
 % -----------------------------------------------------------------------------
-% CHAPTER 6: PERSONAL ENGINEERING REFLECTION
+% CHAPTER 6: DEVELOPMENT PLATFORMS AND TOOLS
+% -----------------------------------------------------------------------------
+\chapter{Development Platforms and Tools}
+\label{chap:platforms-tools}
+
+\section{Hardware Platform}
+My implementation work was developed and verified on a standard developer machine capable of running Python, Node.js, MongoDB, Docker, and local test suites. The Pipeline contribution also required understanding how the native C++ backend uses available CPU cores for branch-level execution and how GPU-marked nodes should be serialized to avoid unsafe concurrent access to one GPU context.
+
+\section{Software Platform}
+The individual contribution used several software stacks because the work crossed native execution, web development, and deployment infrastructure. Table~\ref{tab:individual-platforms} summarizes the main tools used in my parts.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Software platforms and tools used in my contribution}
+\label{tab:individual-platforms}
+\begin{tabularx}{\textwidth}{p{0.27\textwidth}X}
+\toprule
+\textbf{Tool or platform} & \textbf{Role in my work} \\
+\midrule
+C++ and \modulepath{pybind11} &
+Used in the graph backend for native node execution, \modulepath{MergeNode}, and shared \modulepath{runParallel} work. \\
+\midrule
+Python, NumPy, SciPy, Pandas &
+Used for model-serving logic, validation conversion, array handling, majority voting behavior, CSV prediction, and tests. \\
+\midrule
+FastAPI and Uvicorn &
+Used to expose model prediction, CSV prediction, health checks, tracking summaries, and GUI endpoints. \\
+\midrule
+Great Expectations &
+Used to validate incoming feature names, value ranges, required fields, allowed values, and type coercion before inference. \\
+\midrule
+Docker &
+Used to package the deployment service in a repeatable runtime environment. \\
+\midrule
+Heroku CLI, SSH, and \modulepath{rsync} &
+Used for target-specific orchestration through Heroku container workflows and AWS EC2 remote synchronization. \\
+\midrule
+Node.js, Express, MongoDB, Mongoose &
+Used in the Benchmark Platform backend for users, benchmarks, metrics, submissions, and authentication routes. \\
+\midrule
+React &
+Used for user dashboards, admin dashboards, login pages, sign-up pages, and benchmark interaction screens. \\
+\midrule
+Pytest and JavaScript testing utilities &
+Used to verify deployment behavior, schema validation, model loading, telemetry, API routes, and benchmark logic. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+This mix of tools was one of the reasons the work was valuable. It forced me to connect low-level execution details with user-facing web behavior and operational deployment behavior. The result is a contribution that is not limited to one programming language or one layer of the project.
+
+% -----------------------------------------------------------------------------
+% CHAPTER 7: USE CASES
+% -----------------------------------------------------------------------------
+\chapter{Use Cases}
+\label{chap:individual-use-cases}
+
+\section{Pipeline Execution Use Cases}
+The Pipeline contribution is useful when a user builds a graph with several alternative model or preprocessing branches. Instead of manually running each branch, the graph backend can preserve dependency order, reuse shared work, execute independent branches in parallel, and merge outputs when needed.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Pipeline use cases related to my work}
+\label{tab:pipeline-use-cases-individual}
+\begin{tabularx}{\textwidth}{p{0.27\textwidth}p{0.31\textwidth}X}
+\toprule
+\textbf{Use case} & \textbf{Input} & \textbf{Expected benefit} \\
+\midrule
+Branch-level execution &
+Graph with independent branches after shared preprocessing &
+The scheduler can run ready branches concurrently while preserving parent-child dependencies. \\
+\midrule
+Shared preprocessing reuse &
+Multiple branches beginning with the same preprocessing node &
+Avoids recomputing the same first transformation and reduces unnecessary work. \\
+\midrule
+Merge-based ensemble output &
+Multiple prediction or probability outputs &
+\modulepath{MergeNode} combines branch outputs through deterministic majority voting. \\
+\midrule
+Memory-aware execution &
+Graph with intermediate arrays consumed by several children &
+Active consumer counting keeps data alive until the final consumer finishes, then releases it. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Benchmark Platform Use Cases}
+The Benchmark Platform supports a learning and comparison cycle. A benchmark creator defines a task, users submit prediction files, the backend validates and scores submissions, and the frontend displays results through dashboards and leaderboards.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Benchmark use cases related to my work}
+\label{tab:benchmark-use-cases-individual}
+\begin{tabularx}{\textwidth}{p{0.27\textwidth}p{0.31\textwidth}X}
+\toprule
+\textbf{Use case} & \textbf{Input} & \textbf{Expected benefit} \\
+\midrule
+User registration and login &
+Name, email, and password &
+Creates a secure account, stores a hashed password, and returns a JWT token after login. \\
+\midrule
+Personal dashboard inspection &
+Authenticated user account &
+Shows benchmarks and submissions connected to the current user. \\
+\midrule
+Admin management &
+Authenticated admin account &
+Allows protected user management actions while preventing unauthorized access. \\
+\midrule
+Prediction submission &
+Benchmark ID, prediction file link, and repository link &
+Validates the submission, calculates score, stores result, and updates leaderboard views. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Deployment Module Use Cases}
+The Deployment module is used after a trained model, AutoML output, or selected graph path produces serializable artifacts. Its purpose is to transform those artifacts into a validated and observable API service.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Deployment use cases related to my work}
+\label{tab:deployment-use-cases-individual}
+\begin{tabularx}{\textwidth}{p{0.25\textwidth}p{0.32\textwidth}X}
+\toprule
+\textbf{Use case} & \textbf{Deployment input} & \textbf{Expected benefit} \\
+\midrule
+Local serving test &
+\modulepath{config.json} and saved model files under \modulepath{models/} &
+Runs a FastAPI model service in Docker before remote deployment is attempted. \\
+\midrule
+Schema-protected prediction &
+Validation rules in the deployment configuration &
+Rejects invalid payloads before they reach the model, reducing runtime prediction errors. \\
+\midrule
+Batch CSV inference &
+Uploaded CSV file matching the configured schema &
+Allows multiple rows to be predicted through the same deployed API. \\
+\midrule
+Model snapshot and rollback &
+Active configuration and model artifacts &
+Commits a deployable model state and restores older states when needed. \\
+\midrule
+Remote EC2 deployment &
+Prepared Docker service, SSH credentials, and EC2 host information &
+Runs the same serving package on a reachable virtual machine with remote health checks. \\
+\midrule
+Operational inspection &
+Tracking log, health endpoint, and remote logs &
+Shows request counts, row counts, status counts, readiness, and runtime output. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\noindent The concrete \modulepath{config.json} structure is shown in the User Guide chapter, where it appears beside the deployment commands that consume it.
+
+% -----------------------------------------------------------------------------
+% CHAPTER 8: USER GUIDE
+% -----------------------------------------------------------------------------
+\chapter{User Guide}
+\label{chap:individual-user-guide}
+
+\section{Using the Pipeline Contributions}
+The Merge Node is used when branch outputs must be combined inside the graph instead of outside it. A typical use case is an ensemble-style graph where several model branches predict the same target. The merge operation receives compatible prediction outputs and applies a deterministic voting strategy.
+
+\begin{lstlisting}[style=paperpython,caption={Conceptual use of a merge node in a graph workflow}]
+# Build independent model branches, then merge their predictions.
+# The exact pipeline builder syntax depends on the surrounding graph setup.
+
+pipe.branch(
+    "models",
+    model_branch_a,
+    model_branch_b,
+    model_branch_c,
+).merge(
+    "majority_vote",
+    strategy="hard_vote"
+)
+\end{lstlisting}
+
+The shared \modulepath{runParallel} functionality is enabled by the graph execution layer when independent branches are ready. Users do not need to manually create threads. The graph scheduler determines readiness from parent dependencies and controls concurrency through semaphores.
+
+\section{Using the Benchmark Platform}
+The benchmark workflow starts with authentication. A user creates an account, logs in, and receives a token that the frontend stores for authenticated requests. From the dashboard, the user can view personal benchmarks, inspect submissions, and open leaderboards. Admin users receive additional management views.
+
+\begin{lstlisting}[style=algostyle,caption={Benchmark submission workflow from the user perspective}]
+Input: benchmark id, prediction file link, repository link
+Output: saved submission and leaderboard score
+
+1: Log in to the benchmark platform
+2: Open the selected benchmark
+3: Submit the prediction file link and repository link
+4: Backend downloads prediction and target files
+5: Backend validates row count and target column
+6: Python scoring script computes the configured metric
+7: Submission and score are saved in MongoDB
+8: Leaderboard displays the updated result
+\end{lstlisting}
+
+\section{Using the Deployment Module}
+The deployment workflow begins in a workspace containing \modulepath{config.json} and the model artifacts referenced by it. The preparation step validates paths, copies runtime files, writes requirements, and creates the Dockerfile.
+
+\noindent A complete example of the Deployment module configuration is shown below. This example matches the structure used by the project deployment code: model artifact paths, schema feature definitions, and tracking settings.
+
+\begin{lstlisting}[style=paperpython,caption={Complete example of deployment config.json}]
+{
+  "models": {
+    "preprocessing_pipeline": "models/preprocessing_pipeline.pkl",
+    "feature_selector": "models/feature_selector.pkl",
+    "final_model": "models/final_model.pkl"
+  },
+  "schema": {
+    "features": [
+      {
+        "name": "alcohol",
+        "type": "number",
+        "required": false,
+        "min": 1,
+        "max": 15
+      },
+      {
+        "name": "malic_acid",
+        "type": "number",
+        "required": false,
+        "min": 2,
+        "max": 5
+      },
+      {
+        "name": "ash",
+        "type": "number",
+        "required": false,
+        "min": 1,
+        "max": 3
+      },
+      {
+        "name": "alcalinity_of_ash",
+        "type": "number",
+        "required": false,
+        "min": 10,
+        "max": 30
+      },
+      {
+        "name": "magnesium",
+        "type": "number",
+        "required": false,
+        "min": 20,
+        "max": 160
+      },
+      {
+        "name": "total_phenols",
+        "type": "number",
+        "required": false,
+        "min": 1,
+        "max": 4
+      },
+      {
+        "name": "flavanoids",
+        "type": "number",
+        "required": false,
+        "min": 0,
+        "max": 6
+      },
+      {
+        "name": "color_intensity",
+        "type": "number",
+        "required": false,
+        "min": 1,
+        "max": 13
+      },
+      {
+        "name": "hue",
+        "type": "number",
+        "required": false,
+        "min": 1,
+        "max": 2
+      },
+      {
+        "name": "proline",
+        "type": "number",
+        "required": false,
+        "min": 278,
+        "max": 1680
+      },
+      {
+        "name": "color_group",
+        "type": "string",
+        "required": false,
+        "allowed_values": ["dark", "light"]
+      },
+      {
+        "name": "proline_class",
+        "type": "string",
+        "required": false,
+        "allowed_values": ["high", "low", "medium"]
+      }
+    ]
+  },
+  "tracking": {
+    "enabled": true,
+    "path": "prediction_logs/predictions.jsonl"
+  }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=paperpython,caption={Preparing and running a local deployment service}]
+cd path/to/deployment/workspace
+python accelera_deployment/deployment.py prepare
+python accelera_deployment/deployment.py local --port 8000
+\end{lstlisting}
+
+After the service starts, the main endpoints are \modulepath{/health}, \modulepath{/predict}, \modulepath{/predict/csv}, \modulepath{/tracking/summary}, and \modulepath{/gui}. The GUI endpoint is useful for manual testing because it renders a form from the configured schema.
+
+\begin{lstlisting}[style=paperpython,caption={Calling the deployed prediction endpoint}]
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"input": [{"alcohol": 13.2, "malic_acid": 2.1}]}'
+\end{lstlisting}
+
+The deployment VCS snapshots the active \modulepath{config.json} and model artifacts. This is different from Git because it focuses on deployable model state rather than source-code history.
+
+\begin{lstlisting}[style=paperpython,caption={Creating and restoring deployment snapshots}]
+python accelera_deployment/vcs.py init
+python accelera_deployment/vcs.py commit -m "baseline model"
+python accelera_deployment/vcs.py log
+python accelera_deployment/vcs.py deploy <commit-hash>
+\end{lstlisting}
+
+For EC2 deployment, the module synchronizes the prepared service to a remote host, builds the Docker image there, starts the container, and checks the health endpoint.
+
+\begin{lstlisting}[style=paperpython,caption={Deploying the service to EC2}]
+python accelera_deployment/deployment.py ec2-deploy \
+  --host ec2-xx-xx-xx-xx.compute.amazonaws.com \
+  --user ubuntu \
+  --key-path ~/.ssh/accelera.pem \
+  --remote-dir ~/accelera-deployment \
+  --port 8000
+\end{lstlisting}
+
+If the local health check on the remote machine passes but the public URL is unreachable, the likely cause is a missing inbound security-group rule or a closed public port. This is why the module reports health-check results instead of silently assuming deployment succeeded.
+
+% -----------------------------------------------------------------------------
+% CHAPTER 9: PERSONAL ENGINEERING REFLECTION
 % -----------------------------------------------------------------------------
 \chapter{Personal Engineering Reflection}
 \label{chap:personal-reflection}
@@ -854,22 +1390,22 @@ On the non-technical side, I learned how to read and understand an existing code
 
 In the Benchmark Module, the user dashboard improved visibility for normal users by showing their benchmarks and submissions. The admin dashboard added a management view for administrator users. The login and sign-up pages helped turn the benchmark module into a more complete platform by supporting account creation, authentication, and role-based access.
 
-The Deployment module was the most important outcome of my individual work. It helped \systemname{} continue beyond preprocessing, model training, and evaluation. The module packages model artifacts, validates input data, exposes prediction endpoints, records telemetry, stores model snapshots, and supports local and remote deployment workflows. This contribution gives the project a practical final stage: trained models can move toward real usage instead of remaining only local files.
+The Deployment Module was the most important outcome of my individual work. It helped \systemname{} continue beyond preprocessing, model training, and evaluation. The module packages model artifacts, validates input data, exposes prediction endpoints, records telemetry, stores model snapshots, and supports local and remote deployment workflows. This contribution gives the project a practical final stage: trained models can move toward real usage instead of remaining only local files.
 
 Overall, my work contributed to three levels of completeness: execution completeness through graph and merge behavior, platform completeness through dashboards and authentication, and lifecycle completeness through deployment. These outcomes made \systemname{} more useful as an end-to-end machine-learning framework.
 
 % -----------------------------------------------------------------------------
-% CHAPTER 7: CONCLUSIONS AND FUTURE WORK
+% CHAPTER 10: CONCLUSIONS AND FUTURE WORK
 % -----------------------------------------------------------------------------
 \chapter{Conclusions and Future Work}
 \label{chap:conclusion}
 
 \section{Summary of Contributions}
-In this graduation project, Mazen Adel designed, implemented, and verified key subsystems for \systemname{}:
+In this graduation project, I designed, implemented, and verified key subsystems for \systemname{}:
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Pipeline Execution Layer:} A shared contribution with Mohamed Ashraf to the \modulepath{runParallel} C++ scheduler utilizing semaphores for hardware thread limitation, safety gates for GPU tasks, and active consumer counting for memory release, paired with Mazen's numpy/scipy-based majority voting nodes.
+    \item \textbf{Pipeline Execution Layer:} A shared contribution with Mohamed Ashraf to the \modulepath{runParallel} C++ scheduler utilizing semaphores for hardware thread limitation, safety gates for GPU tasks, and active consumer counting for memory release, paired with my NumPy/SciPy-based majority voting nodes.
     \item \textbf{Benchmark Subsystem:} A Node.js Express backend and MongoDB schema model supporting JWT/bcrypt authentication and a React frontend for task management, dashboards, and leaderboard display.
-    \item \textbf{Serving and Deployment Infrastructure:} A production-ready FastAPI model server featuring Great Expectations schema validation, async request tracking, model versioning (VCS) hash snapshotting, and automated scripts for Local Docker, Heroku, and remote AWS EC2 deployment targets.
+    \item \textbf{Serving and Deployment Infrastructure:} A production-ready FastAPI model server featuring Great Expectations schema validation, request tracking, model versioning (VCS) hash-based snapshotting, and automated scripts for local Docker, Heroku, and remote AWS EC2 deployment targets.
 \end{itemize}
 
 \section{Future Extensions}

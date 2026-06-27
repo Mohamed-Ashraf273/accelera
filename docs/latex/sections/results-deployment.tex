@@ -183,7 +183,7 @@ Operational commands passed. \\
 
 \subsection{Deployment Test Results}
 \noindent When the deployment test suite is executed in an environment with the
-required Python dependencies available, all 51 test cases pass. The result is a
+required Python dependencies available, all 48 test cases pass. The result is a
 strong indication that the module's core responsibilities are implemented
 consistently: artifacts are versioned, models are loaded, inputs are validated,
 API behavior is predictable, telemetry is recorded, and deployment commands are
@@ -203,14 +203,14 @@ to its verification source in the repository.
 \toprule
 \textbf{Test File} & \textbf{Cases} & \textbf{Passed} & \textbf{Failed} & \textbf{Verified Feature} \\
 \midrule
-\texttt{vcs\_test.py} & 14 & 14 & 0 & Registry snapshots, \texttt{HEAD}, status, and rollback restoration \\
-\texttt{modelservice\_test.py} & 6 & 6 & 0 & Artifact loading, idempotent loading, and preprocessor sequencing \\
-\texttt{schema\_validation\_test.py} & 8 & 8 & 0 & Column checks, type coercion, booleans, ranges, and allowed values \\
-\texttt{server\_test.py} & 9 & 9 & 0 & FastAPI routes, prediction responses, GUI rendering, and telemetry events \\
+\texttt{vcs\_test.py} & 16 & 16 & 0 & Registry snapshots, \texttt{HEAD}, status, and rollback restoration \\
+\texttt{modelservice\_test.py} & 5 & 5 & 0 & Artifact loading, idempotent loading, and preprocessor sequencing \\
+\texttt{schema\_validation\_test.py} & 3 & 3 & 0 & Schema description, missing-column checks, and unexpected-column reporting \\
+\texttt{server\_test.py} & 8 & 8 & 0 & FastAPI routes, prediction responses, GUI rendering, and telemetry events \\
 \texttt{tracking\_test.py} & 3 & 3 & 0 & JSONL telemetry writing and summary aggregation \\
-\texttt{deployment\_test.py} & 11 & 11 & 0 & Docker, Heroku, SSH, EC2, model-path, and generated-file workflows \\
+\texttt{deployment\_test.py} & 13 & 13 & 0 & Docker, Heroku, SSH, EC2, model-path, and generated-file workflows \\
 \midrule
-\textbf{Total} & \textbf{51} & \textbf{51} & \textbf{0} & \textbf{All deployment checks passed} \\
+\textbf{Total} & \textbf{48} & \textbf{48} & \textbf{0} & \textbf{All deployment checks passed} \\
 \bottomrule
 \end{tabularx}
 \end{table}

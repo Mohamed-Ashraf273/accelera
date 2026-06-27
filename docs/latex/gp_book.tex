@@ -8592,7 +8592,21 @@ memory usage during branch-level parallel execution as the main remaining
 graph-backend challenge.
 
 \section{Gained Experience}
-\mbox{}
+Through the project, the team gained practical experience in combining machine
+learning, systems programming, web development, testing, and deployment
+engineering inside one framework. The Pipeline and Parallelizer work improved
+our understanding of graph execution, branch dependencies, memory release, and
+safe parallel execution. The Auto Preprocessing and AutoML work strengthened
+our experience with reusable preprocessing artifacts, model comparison, and
+search-space design. The Benchmark Platform added experience with backend APIs,
+database schemas, authentication, dashboards, and fair submission evaluation.
+
+\noindent The Deployment module added a different kind of experience because it
+required moving beyond model training into service delivery. It involved
+FastAPI serving, schema validation, telemetry, Docker packaging, command-line
+automation, model artifact versioning, and remote execution on cloud/server
+targets. This helped connect the academic model-building workflow with the
+engineering work needed to make trained models usable by external clients.
 
 \section{Conclusions}
 Accelera provides a connected framework for preparing data, selecting models,
@@ -8617,7 +8631,8 @@ leaderboard comparison. The testing and experimental results show that the
 implemented modules can produce usable outputs, generate reports, evaluate
 models, and compare results. Overall, Accelera gives a practical base for a
 more organized and reusable machine learning workflow.
-Accelera Pipe provides a graph-based execution model for branch-heavy
+
+\noindent Accelera Pipe provides a graph-based execution model for branch-heavy
 machine-learning pipelines and supports fitted executed graphs. The Code
 Parallelizer provides a source-to-source path from supported Python or C++
 loops to OpenMP-annotated C++ using converter rules, loop feature extraction,
@@ -8631,9 +8646,17 @@ orchestration behavior.
 
 \section{Future Work}
 Future work should continue reducing graph memory consumption while preserving
-parallel branch execution, and should extend safe converter , loop-analysis
-coverage without weakening correctness checks, The preprocessing pipeline can be improved by adapting the preprocessing steps based on the selected model type and by adding techniques to handle imbalanced datasets.
-In the future, the benchmark platform can be improved by saving uploaded datasets on the server instead of using Google Drive links. It can also allow users to upload code files directly, instead of submitting only links.
+parallel branch execution, and should extend safe converter and loop-analysis
+coverage without weakening correctness checks. The preprocessing pipeline can
+be improved by adapting preprocessing decisions based on the selected model
+type and by adding stronger techniques for imbalanced datasets.
+
+\noindent In the future, the benchmark platform can be improved by saving
+uploaded datasets on the server instead of using Google Drive links. It can
+also allow users to upload code files directly, instead of submitting only
+links.
+
+\noindent
 The Deployment module can also be extended with additional targets such as
 managed container services, richer monitoring, authentication for prediction
 endpoints, and more advanced model registry metadata.
@@ -8873,6 +8896,55 @@ The benchmark platform can be used when different users or models need to be
 compared on the same task. A benchmark creator defines the dataset, test file,
 target column, and metric. Users then submit prediction files, and the platform
 calculates the score and displays the leaderboard.
+
+\section{Deployment Module Use Cases}
+The Deployment module is used after a model, fitted pipeline, or selected graph
+path has produced serializable artifacts. It is most useful when the project
+needs to move from experimentation to an API service that can be tested locally,
+tracked, and optionally moved to a remote environment.
+
+{\acceleraTableStyle
+\renewcommand{\arraystretch}{1.02}
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\bfseries}p{0.22\textwidth} p{0.34\textwidth} p{0.36\textwidth}}
+\caption{Representative Deployment module use cases.}
+\label{tab:deployment-use-cases} \\
+\toprule
+Use case & Deployment input & Expected benefit \\
+\midrule
+\endfirsthead
+\toprule
+Use case & Deployment input & Expected benefit \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\small Continued on the next page} \\
+\endfoot
+\bottomrule
+\endlastfoot
+Local serving test & \modulepath{config.json} and saved model files under
+\modulepath{models/}. & A FastAPI service running in Docker before any remote
+release is attempted. \\
+\addlinespace
+Schema-protected prediction & Validation rules in the deployment
+configuration. & Invalid payloads are rejected before they reach the model,
+reducing runtime prediction errors. \\
+\addlinespace
+Batch CSV inference & Uploaded CSV file matching the configured schema. &
+Multiple rows can be predicted through the same deployed API. \\
+\addlinespace
+Model snapshot and rollback & Active configuration and model artifacts. &
+The user can commit a deployable model state and restore an older state when
+needed. \\
+\addlinespace
+Remote server deployment & Prepared Docker service, SSH credentials, and EC2
+host information. & The same serving package can run on a reachable virtual
+machine. \\
+\addlinespace
+Operational inspection & Tracking log and service health endpoint. & The user
+can inspect request counts, row counts, status counts, and service readiness. \\
+\end{longtable}
+}
 
 \renewcommand{\lstlistingname}{Code Example}
 \chapter{User Guide}
@@ -9273,6 +9345,189 @@ report.execute()
 
 \noindent The output is a \modulepath{report.html} file. It contains the graph image,
 branch tables, selected branch, and metric summary.
+
+\section{Using the Deployment Module}
+\subsection{Preparing deployment artifacts}
+Before deploying a model, the workspace must contain a deployment
+\modulepath{config.json} file and the model artifacts referenced by that file.
+The configuration identifies the model files, optional preprocessing artifacts,
+schema-validation rules, and request-tracking options. The preparation command
+checks these paths, copies the runtime service files, writes dependency
+requirements, and generates the Dockerfile used by local or remote targets.
+
+\noindent A complete example of the Deployment module configuration is shown
+below. The \modulepath{models} object points to the serialized preprocessing,
+feature-selection, and final-estimator artifacts. The \modulepath{schema}
+object defines the expected prediction fields and validation constraints, while
+the \modulepath{tracking} object enables JSONL request logging.
+
+\begin{lstlisting}[style=code,caption={Complete example of deployment config.json}]
+{
+  "models": {
+    "preprocessing_pipeline": "models/preprocessing_pipeline.pkl",
+    "feature_selector": "models/feature_selector.pkl",
+    "final_model": "models/final_model.pkl"
+  },
+  "schema": {
+    "features": [
+      {
+        "name": "alcohol",
+        "type": "number",
+        "required": false,
+        "min": 1,
+        "max": 15
+      },
+      {
+        "name": "malic_acid",
+        "type": "number",
+        "required": false,
+        "min": 2,
+        "max": 5
+      },
+      {
+        "name": "ash",
+        "type": "number",
+        "required": false,
+        "min": 1,
+        "max": 3
+      },
+      {
+        "name": "alcalinity_of_ash",
+        "type": "number",
+        "required": false,
+        "min": 10,
+        "max": 30
+      },
+      {
+        "name": "magnesium",
+        "type": "number",
+        "required": false,
+        "min": 20,
+        "max": 160
+      },
+      {
+        "name": "total_phenols",
+        "type": "number",
+        "required": false,
+        "min": 1,
+        "max": 4
+      },
+      {
+        "name": "flavanoids",
+        "type": "number",
+        "required": false,
+        "min": 0,
+        "max": 6
+      },
+      {
+        "name": "color_intensity",
+        "type": "number",
+        "required": false,
+        "min": 1,
+        "max": 13
+      },
+      {
+        "name": "hue",
+        "type": "number",
+        "required": false,
+        "min": 1,
+        "max": 2
+      },
+      {
+        "name": "proline",
+        "type": "number",
+        "required": false,
+        "min": 278,
+        "max": 1680
+      },
+      {
+        "name": "color_group",
+        "type": "string",
+        "required": false,
+        "allowed_values": ["dark", "light"]
+      },
+      {
+        "name": "proline_class",
+        "type": "string",
+        "required": false,
+        "allowed_values": ["high", "low", "medium"]
+      }
+    ]
+  },
+  "tracking": {
+    "enabled": true,
+    "path": "prediction_logs/predictions.jsonl"
+  }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=code,caption={Preparing a deployment workspace}]
+cd path/to/deployment/workspace
+python accelera_deployment/deployment.py prepare
+\end{lstlisting}
+
+\noindent The preparation stage should be run before local Docker testing,
+Heroku deployment, or EC2 deployment. If a configured model file is missing,
+the command stops before creating an invalid deployment package.
+
+\subsection{Running the service locally}
+The local workflow builds the Docker image and starts a container that exposes
+the FastAPI prediction service. This path is recommended before remote
+deployment because it verifies the same service package in a controlled
+environment.
+
+\begin{lstlisting}[style=code,caption={Building and running the local deployment service}]
+python accelera_deployment/deployment.py local --port 8000
+\end{lstlisting}
+
+\noindent After the container starts, the main endpoints are
+\modulepath{/health}, \modulepath{/predict}, \modulepath{/predict/csv},
+\modulepath{/tracking/summary}, and \modulepath{/gui}. The GUI route is useful
+for manually testing the schema and prediction payload without writing a
+separate client.
+
+\begin{lstlisting}[style=code,caption={Calling the deployed prediction endpoint}]
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"input": [{"feature_1": 5.1, "feature_2": "A"}]}'
+\end{lstlisting}
+
+\subsection{Using deployment VCS}
+The deployment VCS snapshots the active \modulepath{config.json} file and the
+model artifacts referenced by it. This is useful when several model versions
+are tested and the user needs to return to a previous deployable state.
+
+\begin{lstlisting}[style=code,caption={Creating and restoring deployment snapshots}]
+python accelera_deployment/vcs.py init
+python accelera_deployment/vcs.py commit -m "baseline model"
+python accelera_deployment/vcs.py log
+python accelera_deployment/vcs.py deploy <commit-hash>
+\end{lstlisting}
+
+\noindent A deployment commit is different from a Git commit. It is focused on
+runtime artifacts: the configuration and model files needed by the serving
+container. Restoring a commit copies those artifacts back into the active
+deployment workspace.
+
+\subsection{Deploying to EC2}
+For EC2 deployment, the user provides the host, SSH user, optional key file,
+remote directory, service port, image name, and container name. The module
+synchronizes the prepared service to the server, builds the Docker image
+remotely, starts the container, and checks the health endpoint.
+
+\begin{lstlisting}[style=code,caption={Deploying the service to an EC2 instance}]
+python accelera_deployment/deployment.py ec2-deploy \
+  --host ec2-xx-xx-xx-xx.compute.amazonaws.com \
+  --user ubuntu \
+  --key-path ~/.ssh/accelera.pem \
+  --remote-dir ~/accelera-deployment \
+  --port 8000
+\end{lstlisting}
+
+\noindent If the internal health check passes but the public URL is unreachable,
+the most likely cause is a closed inbound port or a missing security-group
+rule. The module reports this condition so that the user can inspect the EC2
+network settings.
 
 \section{Using the Benchmark Platform}
 
