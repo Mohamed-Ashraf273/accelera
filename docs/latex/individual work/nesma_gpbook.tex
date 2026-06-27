@@ -188,7 +188,7 @@ Bachelor of Science in Computer Engineering.
 
 \vspace{0.3cm}
 
-{\fontsize{12}{14}\selectfont June 28, 2026}
+{\fontsize{12}{14}\selectfont June 30, 2026}
 
 \vfill
 
@@ -294,7 +294,7 @@ In many machine learning projects, building the model is not the only important 
 
 \noindent Accelera tries to make these steps easier by providing them in one framework. The Auto Preprocessing module is responsible for preparing the data automatically. It applies the needed preprocessing steps and saves the fitted objects, such as encoders and scalers, so the same steps can be used later on new data. This is important because using different preprocessing steps between training and testing can give wrong results.\\
 
-\noindent The Accelera Pipeline module helps the user evaluate and understand pipeline results in a clearer way. Metric nodes calculate the evaluation results during the pipeline flow, while the reporting part shows the generated graphs, explains the different branches, and allows the user to compare the results of these branches. Instead of only displaying numbers in the terminal, the module creates HTML reports that include graphs, tables, and metric summaries.\\
+\noindent The Accelera Pipe module helps the user evaluate and understand pipeline results in a clearer way. Metric nodes calculate the evaluation results during the pipeline flow, while the reporting part shows the generated graphs, explains the different branches, and allows the user to compare the results of these branches. Instead of only displaying numbers in the terminal, the module creates HTML reports that include graphs, tables, and metric summaries.\\
 
 \noindent The Benchmarking module is used when different users want to compare their results on the same task. The benchmark creator prepares the test data and keeps the correct target values hidden. Then, users submit their predictions, and the system evaluates them using the same metric. This makes the comparison fair because all submissions are tested using the same rules.\\
 
@@ -304,16 +304,16 @@ In many machine learning projects, building the model is not the only important 
 
 In machine learning projects, preparing the data and understanding the results are important steps before and after model training. However, these steps may become difficult when they are done manually, especially when the dataset contains different types of data or when the user needs to repeat the same process many times.\\
 
-\noindent This project focuses on improving these steps inside Accelera. It aims to support the user during data preprocessing, pipeline execution, pipeline reporting, and benchmarking. The Auto Preprocessing module prepares different types of datasets for machine learning tasks. The Accelera Pipeline module includes metric nodes for calculating evaluation results and reporting classes for presenting pipeline outputs in a clear form using reports, graphs, tables, and metric summaries. The Benchmarking module gives users a fair way to submit their predictions and compare their results using the same evaluation rules.\\
+\noindent This project focuses on improving these steps inside Accelera. It aims to support the user during data preprocessing, pipeline execution, pipeline reporting, and benchmarking. The Auto Preprocessing module prepares different types of datasets for machine learning tasks. The Accelera Pipe module includes metric nodes for calculating evaluation results and reporting classes for presenting pipeline outputs in a clear form using reports, graphs, tables, and metric summaries. The Benchmarking module gives users a fair way to submit their predictions and compare their results using the same evaluation rules.\\
 
 \noindent the main objective of this work is to make the machine learning workflow more organized, easier to understand, and less dependent on manual steps.\\
 
 
 \section{Project Outcomes}
-The implemented work produces three main outcomes. First, the Auto Preprocessing module prepares tabular, text, and image datasets and saves the fitted artifacts needed for later testing. Second, the Accelera Pipeline module calculates metric results through metric nodes and generates readable pipeline outputs using HTML pages, tables, graphs, and metric summaries. Third, the Benchmarking module supports benchmark creation, submission validation, scoring, and leaderboard display.
+The implemented work produces three main outcomes. First, the Auto Preprocessing module prepares tabular, text, and image datasets and saves the fitted artifacts needed for later testing. Second, the Accelera Pipe module calculates metric results through metric nodes and generates readable pipeline outputs using HTML pages, tables, graphs, and metric summaries. Third, the Benchmarking module supports benchmark creation, submission validation, scoring, and leaderboard display.
 
 \section{Document Organization}
-Chapter 2 summarizes the related concepts and previous work. Chapter 3 explains the system design and architecture of Auto Preprocessing, the Accelera Pipeline module, and Benchmarking. Chapter 4 presents testing and comparative evaluation. Chapter 5 concludes the report and lists future improvements. The user guide is in the appendix.
+Chapter 2 summarizes the related concepts and previous work. Chapter 3 explains the system design and architecture of Auto Preprocessing, the Accelera Pipe module, and Benchmarking. Chapter 4 presents testing and comparative evaluation. Chapter 5 concludes the report and lists future improvements. The user guide is in the appendix.
 
 
 \chapter{Literature Survey}
@@ -541,7 +541,7 @@ metrics where higher is better and metrics where lower is better.
 
 \chapter{System Design and Architecture}
 \label{chap:system design}
-This chapter explains the design of the modules included in this individual report. The main modules are Auto Preprocessing, the Accelera Pipeline module, and the Benchmarking Platform.
+This chapter explains the design of the modules included in this individual report. The main modules are Auto Preprocessing, the Accelera Pipe module, and the Benchmarking Platform.
 \section{Overview and Assumptions}
 The design of these modules depends on some assumptions.
 \subsection{Auto Preprocessing Assumptions}
@@ -569,9 +569,9 @@ does not cause data leakage, so the platform can evaluate submissions fairly.
   submit predictions in the required format, so the scoring script can calculate
   the result correctly.
 \end{itemize}
-\subsection{Accelera Pipeline Module Assumptions}
+\subsection{Accelera Pipe Module Assumptions}
  
-The Accelera Pipeline module depends on the following assumptions:
+The Accelera Pipe module depends on the following assumptions:
 
 \begin{itemize}
   \item \textbf{Metric node assumption:} The pipeline is assumed to pass the
@@ -593,7 +593,7 @@ The Accelera Pipeline module depends on the following assumptions:
 
 \chapter{System Architecture}
 
-This section explains the implemented modules in this report. It discusses the three main parts: Auto Preprocessing, the Accelera Pipeline module, and Benchmarking. For each module, the section explains module overview and how it works.
+This section explains the implemented modules in this report. It discusses the three main parts: Auto Preprocessing, the Accelera Pipe module, and Benchmarking. For each module, the section explains module overview and how it works.
 
 \section{Auto Preprocessing Module}
 \subsection{Module Overview}
@@ -1002,7 +1002,7 @@ can see which inputs were ignored instead of silently losing files.
 
 The Auto Preprocessing report belongs to the Auto Preprocessing module because
 it explains what happened to the dataset during preprocessing. It is separate
-from the Accelera pipeline report, which explains pipeline branches and metric
+from the Accelera Pipe report, which explains pipeline branches and metric
 results.
 
 \noindent For tabular data, \modulepath{TabularPreprocessingReport} receives the
@@ -1037,11 +1037,11 @@ machine learning project. With the report, the user can see the important
 changes instead of only receiving transformed arrays.
 
 
-\section{Accelera Pipeline Module}
+\section{Accelera Pipe Module}
 
 \subsection{Metric Node Wrappers}
 
-Metric nodes are part of the Accelera pipeline execution. They are responsible
+Metric nodes are part of the Accelera Pipe execution. They are responsible
 for calculating evaluation results after a model or clustering step produces
 predictions. The reporting module may display these results later, but the
 metric node itself belongs to the pipeline because it performs the metric
@@ -1150,7 +1150,7 @@ reads the serialized XML graph file, extracts nodes and edges, renders a
 Graphviz image, finds branches through the graph, displays all branches, and
 also shows the best branch based on nodes marked as selected in the final path.
 
-The generated graph image labels each node using node id, node type, and node
+\noindent The generated graph image labels each node using node id, node type, and node
 name. Selected nodes are drawn in red, while the other nodes are drawn in blue.
 Metric nodes are also collected so that the metric summary can be matched with
 the graph branch where the metric was produced.
@@ -1178,16 +1178,25 @@ Output: HTML pipeline report and graph image
 
 \subsection{Module Purpose}
 
-The Benchmarking module provides a shared place for evaluating
-machine-learning submissions. A benchmark creator defines the task, dataset
-links, target column, and metric. Other users submit prediction files, and the
-system calculates the score. This keeps comparison more fair because all users
-are scored using the same target file and the same metric configuration.
+The purpose of the Benchmarking module is to support learning and improvement
+inside Accelera. It gives users a place where they can try a machine learning
+task, submit their predictions, see their score, and compare their result with
+other submissions. By viewing the leaderboard and the submitted repository
+links, users can learn from the techniques used by others, understand which
+approaches perform better, and improve their own solution before submitting
+again.
 
-The module is implemented in the \modulepath{benchmark} folder. It has a Node.js
+\noindent The module also keeps this learning process fair because all users work on the
+same benchmark task and are evaluated using the same hidden ground truth file
+and metric configuration. A benchmark creator defines the problem, dataset
+links, test data, target column, and evaluation metric. Other users submit their
+prediction files, and the system validates the files, calculates the score
+automatically, and displays the results on the leaderboard.
+
+\noindent The module is implemented in the \modulepath{benchmark} folder. It has a Node.js
 and Express backend, MongoDB schemas using Mongoose, Python scripts for file
-validation and scoring, and a React frontend for benchmark and leaderboard
-screens.
+validation and scoring, and a React frontend for benchmark creation, submission,
+and leaderboard screens.
 
 \subsection{Functional Description}
 
@@ -1195,11 +1204,9 @@ When creating a benchmark, the user provides a title, description, problem
 type, target column, dataset link, test dataset link, ground truth target link,
 and evaluation metric. The module checks that the test dataset does not
 include the target column and that the target file includes the required target
-column. In the code, the target file is stored as
-\modulepath{predictedColumnLink}, although it actually represents the true
-target labels used for scoring submissions.
+column. 
 
-When submitting to a benchmark, the user provides a prediction file and a
+\noindent When submitting to a benchmark, the user provides a prediction file and a
 repository link. The scoring process loads the target file and prediction file,
 checks that they have the same number of rows, and computes the selected
 metric. The submission is then saved and displayed in the leaderboard.
@@ -1212,11 +1219,11 @@ mounts the main routes:
 
 \begin{itemize}[leftmargin=*]
   \item \modulepath{/metrics} for metric creation and listing
-  \item \modulepath{/benchmark} for benchmark creation and browsing and
+  \item \modulepath{/benchmark} for benchmark creation and browsing
   \item \modulepath{/submission} for leaderboard submissions.
 \end{itemize}
 
-The backend uses schemas for benchmarks, metrics, and submissions. The route
+\noindent The backend uses schemas for benchmarks, metrics, and submissions. The route
 files handle benchmark browsing and creation, metric browsing and creation,
 and submission scoring. The Python scripts are called from the backend when
 the system needs to validate uploaded links or calculate a submission score.
@@ -1228,7 +1235,7 @@ collections. The metric collection stores the display name, the scikit learn
 metric function name, needed parameters, problem type, and whether higher or
 lower values are better.
 
-The benchmark collection stores the benchmark title, description, target
+\noindent The benchmark collection stores the benchmark title, description, target
 column, dataset link, test set link, target label link, problem type,
 evaluation metric, metric parameters, creation date, and creator. The
 submission collection stores benchmark id, submitter id, repository link,
@@ -1268,16 +1275,16 @@ and checks that it is either classification or regression. It also checks that
 the benchmark title is unique. Dataset and file links are validated, and Google
 Drive file links are required for the test file and target file.
 
-After link validation, the backend calls the Python validation script through
+\noindent After link validation, the backend calls the Python validation script through
 \modulepath{run_python}. The script downloads or retrieves the test and target
 files, then checks two important rules:
 
 \begin{enumerate}[leftmargin=*]
-  \item the test dataset must not contain the target column and
+  \item the test dataset must not contain the target column
   \item the target file must contain the target column.
 \end{enumerate}
 
-The current validation script also checks that the target column is numeric.
+\noindent The current validation script also checks that the target column is numeric.
 If the validation succeeds, the benchmark is saved in MongoDB.
 
 \begin{lstlisting}[style=algostyle,caption={Benchmark creation flow}]
@@ -1303,7 +1310,7 @@ needed parameters, and \modulepath{whichBetter}. The
 \modulepath{lower}. This value is important because it controls leaderboard
 sorting.
 
-The system prevents duplicate metrics with the same name, problem type, and
+\noindent The system prevents duplicate metrics with the same name, problem type, and
 scikit learn metric name. It also prevents deleting a metric if at least one
 benchmark still uses it.
 
@@ -1315,7 +1322,7 @@ for the same benchmark. This is done by checking for an existing submission
 with the same benchmark id and submitter id. If the submitter wants to change
 the prediction file later, the update endpoint is used instead.
 
-For each submission, the backend validates the repository link and prediction
+\noindent For each submission, the backend validates the prediction
 file link. Then it calls \modulepath{get_score.py}. The Python script retrieves
 the true labels and submitted predictions, checks that the files have the same
 number of rows, checks that the prediction file contains the target column, and
@@ -1335,7 +1342,7 @@ Output: score or validation error
 8:  Save submission with score
 \end{lstlisting}
 
-The scoring algorithm is kept in Python because the project already uses
+\noindent The scoring algorithm is kept in Python because the project already uses
 Scikit learn metrics there. The backend sends the needed file links, target
 column, metric name, and metric parameters. The Python script returns either a
 score or an error message.
@@ -1374,15 +1381,7 @@ The module has several important constraints:
 \begin{itemize}[leftmargin=*]
   \item it currently supports classification and regression tasks
   \item datasets and prediction files are provided as links
-  \item the test dataset must not contain the target column
-  \item the target file and prediction file must contain the selected target
-        column
-  \item the target file and prediction file must have the same number of rows
   \item metrics must map to valid scikit learn metric functions
-  \item benchmark creation and submission actions are protected by backend
-        permission checks and
-  \item one user has only one active submission per benchmark, but the user can
-        update it.
 \end{itemize}
 
 
@@ -1393,7 +1392,16 @@ The module has several important constraints:
 The modules were tested using real datasets, saved preprocessing artifacts, generated reports, and benchmark workflow checks. The Auto Preprocessing results were evaluated by training machine learning models on the transformed outputs. Reporting was checked by generating HTML and graph outputs. Benchmarking was checked through benchmark creation, metric handling, submission validation, scoring, and leaderboard behavior.
 
 \section{Testing Plan and Strategy}
-The testing strategy focuses on verifying that each module works independently and that the generated outputs are usable by later steps. For preprocessing, the main check is that training artifacts are saved and can be reused during testing. For reporting, the main check is that report data is collected and rendered correctly. For benchmarking, the main check is that submissions are validated and scored using the same metric configuration.
+The testing strategy focuses on checking each module separately and making sure
+that its output can be used correctly by the next step in the workflow. The
+tests were designed around the main responsibility of each part. For Auto
+Preprocessing, the important check was that the module can process the training
+data, save the fitted preprocessing artifacts, and reuse them later on test data.
+For the reporting part, the main check was that the pipeline information,
+branches, graphs, and metric results are collected correctly and displayed in a
+readable report. For the Benchmarking module, the main check was that benchmark
+files and user submissions are validated correctly, then scored using the same
+target file and metric configuration for all users.
 
 \section{Module Testing}
 
@@ -1556,7 +1564,7 @@ TestReviews & XGBClassifier & Macro F1-score & 0.6080 \\
 \renewcommand{\arraystretch}{1.0}
 \end{table}
 
-These results show that the preprocessing output can be used by different
+\noindent These results show that the preprocessing output can be used by different
 models after transformation. The tabular results were strong in many datasets,
 especially the larger classification datasets and the car price regression
 dataset. The lower scores on datasets such as  TestReviews show
@@ -1568,7 +1576,7 @@ still need better features, model tuning, or more suitable models.
 Auto Preprocessing was compared with AutoCleanML to check the performance of the proposed preprocessing approach. The comparison was done using several tabular datasets collected from Kaggle. The same datasets and the same machine learning models were used for both tools.
 The comparison was applied only on tabular datasets because AutoCleanML mainly works with tabular data. For classification datasets, the Macro F1-score was used as the evaluation metric. For regression datasets, the R-squared score was used to measure how well the model predicts the target values.
 After preprocessing the datasets, the output data was tested using four machine learning models. For classification problems, Logistic Regression, Random Forest, Decision Tree, and KNN were used. For regression problems, Linear Regression, Random Forest, Decision Tree, and KNN were used. This helped test the preprocessing output with different model types, not only one model.
-The results were saved and plotted as comparison graphs between Accelera and AutoCleanML. These graphs show the score of each tool on the selected datasets. The purpose of this comparison was to check whether Accelera can produce preprocessing results that are close to, or better than, an existing preprocessing tool.
+The results were recorded and compared between Accelera and AutoCleanML for each selected dataset and model. The purpose of this comparison was to check whether Accelera can produce preprocessing results that are close to, or better than, an existing preprocessing tool.
 
 \begin{table}[H]
 \centering
@@ -1707,22 +1715,55 @@ Springer, 2021.
 \label{chap:conclusions-future-work}
 
 \section{Faced Challenges}
-The main challenges were keeping preprocessing consistent between training and testing, supporting different dataset types inside one module, generating useful reports without mixing report logic with preprocessing logic, and designing a benchmark workflow that evaluates all submissions fairly.
+
+\noindent In Auto Preprocessing, one challenge was that there are many possible
+preprocessing techniques, such as different imputation methods, scaling methods,
+encoding methods, and feature selection methods. It was not practical to try
+every technique for every dataset, so the module needed a rule-based approach
+that chooses techniques expected to work well for many datasets. The challenge
+was to make these rules general enough to be useful, but still simple and stable
+enough to run automatically.
+
+\noindent In the reporting part, another challenge was handling the different outputs
+that can come from pipeline execution. Scikit-learn metrics may return single
+values, per-class values, arrays, matrices, or text reports. The reporting code
+needed to display these different formats clearly in one report without losing
+important information. It was also difficult to organize graph information,
+branches, selected paths, and metric summaries together in a readable way.
 
 \section{Gained Experience}
-This work provided practical experience in automated data preprocessing, report generation, feature engineering, metric handling, backend workflow design, and testing machine learning support modules using real datasets.
+This work provided practical experience in building machine learning support
+modules that are used before, during, and after model training. In Auto
+Preprocessing, I gained experience in choosing suitable preprocessing rules for
+different types of data, handling missing values, encoding categorical features,
+scaling numerical features, preparing text and image inputs, and saving fitted
+artifacts so the same transformations can be reused during testing.
+
+\noindent In the pipeline reporting part, I gained experience in collecting execution
+information from a machine learning workflow and presenting it in a clear form.
+This included working with graph structure, pipeline branches, selected paths,
+metric nodes, and different metric output formats. It also improved my
+understanding of how reports can help users inspect the result of a pipeline
+instead of depending only on terminal output.
+
+\noindent In the Benchmarking module, I gained experience in backend workflow design,
+database schemas, file validation, scoring submissions, and leaderboard
+presentation. I also learned how important it is to keep evaluation fair by
+using the same hidden target file and metric configuration for all submissions.
+Testing these parts with real datasets helped me understand how implementation
+details affect the full machine learning workflow.
 
 \section{Conclusions}
 
 This report documented my individual work in the Auto Preprocessing module,
-the Accelera Pipeline module, and the Benchmarking module in Accelera. The
+the Accelera Pipe module, and the Benchmarking module in Accelera. The
 Auto Preprocessing module prepares tabular, text, and image datasets before
 model training. It handles repeated steps such as cleaning, splitting,
 encoding, scaling, text vectorization, image loading, and artifact saving. The
 most important point in this module is consistency, because the fitted
 preprocessing objects saved during training are reused later during testing.
 
-\noindent The Accelera Pipeline module includes metric nodes and pipeline
+\noindent The Accelera Pipe module includes metric nodes and pipeline
 reporting. The metric nodes calculate supervised or unsupervised evaluation
 results during the pipeline flow. The reporting part helps make pipeline
 outputs easier to understand. Instead of leaving the user with only terminal
@@ -1750,13 +1791,18 @@ The main advantage of Auto Preprocessing is consistency. The same fitted
 objects used during training are saved and loaded during testing. This reduces
 the chance of data leakage and mismatched transformations. Another advantage is
 that the module supports more than one data type, so the same project can
-prepare tabular, text, and image datasets.
+prepare tabular, text, and image datasets using suitable preprocessing steps for
+each type. The preprocessing reports also help with data understanding and
+exploratory data analysis by showing summaries, missing values, feature
+distributions, correlations, and the preprocessing decisions applied to the
+dataset.
 
-The main advantage of the Reporting module is explainability. The user can see
-data summaries, generated visualizations, preprocessing decisions, graph
-structure when available, and metric results in one place.
+\noindent The main advantage of the Reporting module is explainability. The user can see
+the executed pipeline graph, branches, selected paths, and metric results in one
+place. This makes the pipeline output easier to understand, especially when the
+workflow contains more than one model path or different metric result formats.
 
-The Benchmarking module helps make comparison fairer because all submissions
+\noindent The Benchmarking module helps make comparison fairer because all submissions
 are evaluated using the same ground truth and metric configuration.
 
 \subsection{Current Limitations}
@@ -1767,33 +1813,23 @@ There are also limitations:
   \item the preprocessing rules are fixed heuristics and may not be optimal for
         every dataset
   \item the tabular preprocessing path assumes ordinary structured data and may
-        need extensions for time-series or special domain data
-  \item text preprocessing uses classical TF-IDF, not transformer-based
+        need extensions for time series or special domain data
+  \item text preprocessing uses classical TF-IDF, not transformer based
         language models
-  \item image preprocessing prepares data loaders but does not automatically
-        choose the best neural network architecture
-  \item graph report generation depends on graph serialization before
-        report execution
   \item benchmark files are provided through links, so file availability
         depends on external storage and
-  \item the benchmark testing described in the current report is mainly manual.
 \end{itemize}
 
 \subsection{Possible Improvements}
 
 Future improvements can include adaptive preprocessing based on the model type,
 better handling of imbalanced datasets, more advanced text preprocessing,
-server-side benchmark file storage, stronger automated tests for the
-Benchmarking module, and more polished report templates. The graph report can also be
-extended to include execution time and memory information for each branch.
-
+and server-side benchmark file storage. 
 
 \appendix
 \renewcommand{\lstlistingname}{Code Example}
 \chapter{User Guide}
 \label{chap:user-guide}
-
-
 
 This chapter gives simple examples for calling the main classes from the code.
 The examples are small, but they show the normal constructor calls and the main
@@ -1826,7 +1862,7 @@ preprocessor = ClassicalTrainingPreprocessing(
 X_train, y_train, X_val, y_val = preprocessor.common_preprocessing()
 \end{lstlisting}
 
-For regression, the main change is the problem type and target column.
+\noindent For regression, the main change is the problem type and target column.
 
 \begin{lstlisting}[style=code,caption={Calling tabular regression preprocessing}]
 preprocessor = ClassicalTrainingPreprocessing(
@@ -1837,7 +1873,7 @@ preprocessor = ClassicalTrainingPreprocessing(
 )
 \end{lstlisting}
 
-For test data, the user should pass the same folder path. This makes the test
+\noindent For test data, the user should pass the same folder path. This makes the test
 data use the saved training transformers instead of fitting new transformers.
 
 \begin{lstlisting}[style=code,caption={Calling tabular testing preprocessing}]
@@ -1882,7 +1918,7 @@ text_preprocessor = TextTrainingPreprocessing(
 X_train, y_train, X_val, y_val = text_preprocessor.common_preprocessing()
 \end{lstlisting}
 
-For testing text data, the user again passes the same folder path. If the test
+\noindent For testing text data, the user again passes the same folder path. If the test
 data does not contain the target column, the class returns the transformed text
 features and \modulepath{None} for labels.
 
@@ -1912,7 +1948,7 @@ Training/
   Dogs/
 \end{verbatim}
 
-The user passes the training folder and output folder. If there is no separate
+\noindent The user passes the training folder and output folder. If there is no separate
 validation folder, the module can split the training folder.
 
 \begin{lstlisting}[style=code,caption={Calling image training preprocessing}]
@@ -1933,7 +1969,7 @@ image_preprocessor = ClassificationImageTrainingPreprocessing(
 train_loader, val_loader = image_preprocessor.common_preprocessing()
 \end{lstlisting}
 
-For image testing, the user provides a list of image paths. Class names are
+\noindent For image testing, the user provides a list of image paths. Class names are
 optional, but if they are provided, they must match the saved training classes.
 
 \begin{lstlisting}[style=code,caption={Calling image testing preprocessing}]
@@ -1961,32 +1997,6 @@ the generated \modulepath{report.html} file from the output folder. The report
 shows the dataset overview, missing values, duplicate rows, dropped columns,
 graphs, preprocessing decisions, selected features, and processed data samples.
 
-\section{Using Metric Nodes in Accelera Pipeline}
-
-\begin{lstlisting}[style=code,caption={Creating metric results from metric nodes}]
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import silhouette_score
-
-from accelera.src.accelera_pipe.wrappers.supervised_metric import SupervisedMetric
-from accelera.src.accelera_pipe.wrappers.unsupervised_metric import UnSupervisedMetric
-
-accuracy_node = SupervisedMetric(
-    metric_name="Accuracy",
-    metric=accuracy_score,
-    y_true=y_test,
-)
-accuracy_result = accuracy_node.execute(y_pred)
-
-silhouette_node = UnSupervisedMetric(
-    metric_name="Silhouette Score",
-    metric=silhouette_score,
-)
-silhouette_node.set_X(X_cluster)
-silhouette_result = silhouette_node.execute(cluster_labels)
-
-metric_results = [accuracy_result, silhouette_result]
-\end{lstlisting}
-
 \section{Using Pipeline Reports}
 
 To generate a pipeline report, the pipeline graph should be serialized first.
@@ -2005,7 +2015,7 @@ report = GraphReport(
 report.execute()
 \end{lstlisting}
 
-The output is a \modulepath{report.html} file. It contains the graph image,
+\noindent The output is a \modulepath{report.html} file. It contains the graph image,
 branch tables, selected branch, and metric summary.
 
 \section{Using the Benchmark Platform}
@@ -2014,10 +2024,8 @@ The benchmark platform is used from the web interface. The benchmark creator
 enters the title, problem type, target column, dataset link, test-set link,
 target-label link, and evaluation metric. A user submits a prediction file link
 and repository link. The backend calls the Python scoring script, saves the
-score, and displays the result in the leaderboard.
-
-The prediction file must contain the target column expected by the benchmark.
+score, and displays the result in the leaderboard. The prediction file must contain the target column expected by the benchmark.
 Also, the number of rows in the prediction file must match the number of rows
-in the target-label file.
+in the target label file.
 
 \end{document}
