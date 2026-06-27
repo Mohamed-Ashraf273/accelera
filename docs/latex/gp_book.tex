@@ -232,12 +232,31 @@ the required report structure for the remaining modules.
 \addcontentsline{toc}{chapter}{List of Abbreviations}
 \begin{tabular}{ll}
 AI & Artificial Intelligence \\
+API & Application Programming Interface \\
 AST & Abstract Syntax Tree \\
+AWS & Amazon Web Services \\
+CI/CD & Continuous Integration and Continuous Deployment \\
+CLI & Command-Line Interface \\
 CPU & Central Processing Unit \\
+Docker & Containerization Platform \\
+EC2 & Elastic Compute Cloud \\
+Git & Distributed Version Control System \\
+GUI & Graphical User Interface \\
+Heroku & Cloud Application Platform \\
+HTTP & Hypertext Transfer Protocol \\
+HTTPS & Hypertext Transfer Protocol Secure \\
+IP & Internet Protocol \\
+JSON & JavaScript Object Notation \\
 ML & Machine Learning \\
 OpenMP & Open Multi-Processing \\
+REST & Representational State Transfer \\
 RSS & Resident Set Size \\
+SSH & Secure Shell \\
 SVC & Support Vector Classifier \\
+URI & Uniform Resource Identifier \\
+URL & Uniform Resource Locator \\
+VCS & Version Control System \\
+VM & Virtual Machine \\
 VMS & Virtual Memory Size \\
 \end{tabular}
 
@@ -266,7 +285,7 @@ $F(L)$ & Feature representation of loop $L$ \\
 \textbf{Name} & \textbf{Email} & \textbf{Phone Number} \\ \hline
 Mohamed Ashraf & \texttt{mohamed.abdelaziz03@eng-st.cu.edu.eg} & +2 01004538215 \\ \hline
 Nesma Osama & \texttt{nesma.ahmed03@eng-st.cu.edu.eg} & +2 01067193062 \\ \hline
-Mazen Adel & \texttt{abc1@email.com} & +2 01xxxxxxxx \\ \hline
+Mazen Adel & \texttt{mez3n1151@gmail.com} & +2 01152794877 \\ \hline
 Mohamed Khater & \texttt{abc1@email.com} & +2 01xxxxxxxx \\ \hline
 \end{tabularx}
 
@@ -306,9 +325,10 @@ metric evaluation, reporting, and comparison between several alternatives. When
 these steps are written as separate scripts, repeated work, unclear execution
 order, and performance bottlenecks become common problems.
 
-Accelera addresses this by combining five main units:
+Accelera addresses this by combining six main units:
 \texttt{auto\_preprocessing}, \texttt{accelera\_automl},
-\texttt{accelera\_pipe}, \texttt{parallelizer}, and the benchmark platform.
+\texttt{accelera\_pipe}, \texttt{parallelizer}, the benchmark platform, and
+the Deployment module.
 Table~\ref{tab:intro-modules-overview} gives a quick overview of these modules
 and how they contribute to the full system.
 
@@ -354,6 +374,15 @@ Provides a prototype web platform for datasets, metrics, submissions, and
 leaderboard-style comparison. &
 Connects the framework to a future environment for fair pipeline evaluation and
 community comparison. \\
+\midrule
+
+Deployment &
+Transforms trained models and generated artifacts into deployable services
+using configuration files, model packaging, runtime validation, and deployment
+commands for local and cloud/server targets. &
+Bridges the gap between model development and real-world usage by making
+trained outputs accessible through service endpoints rather than leaving them
+only as local files. \\
 
 \bottomrule
 \end{tabular}
@@ -387,13 +416,18 @@ system. This creates several practical problems.
 
   \item \textbf{Lack of fair comparison:} Pipeline results need a structured
   place where metrics, submissions, and benchmarks can be compared.
+
+  \item \textbf{Deployment gap:} A trained model is not useful to external
+  users until it is packaged, served through an API, configured for its runtime
+  environment, and exposed on a local or remote host.
 \end{itemize}
 
 These problems justify the need for Accelera. The project provides automation
 where the workflow is repetitive, graph execution where the workflow contains
-branches, native acceleration where supported custom code is slow, and benchmark
-components where results must be compared. The motivation is not only speed; it
-is also organization, reproducibility, and usability.
+branches, native acceleration where supported custom code is slow, benchmark
+components where results must be compared, and deployment support where trained
+models must become usable services. The motivation is not only speed; it is
+also organization, reproducibility, usability, and practical delivery.
 
 The \texttt{auto\_preprocessing} module is motivated by the fact that data
 preparation usually consumes a large part of the development effort. It handles
@@ -430,11 +464,19 @@ checks, inserting OpenMP pragmas, and compiling the result as a native
 Python-callable extension. If the optimization path fails, the original function
 is preserved, which keeps the workflow correct.
 
-Finally, the benchmark platform is motivated by the need for organized
+The benchmark platform is motivated by the need for organized
 comparison. A machine-learning framework becomes more useful when users can
 compare pipelines on common datasets and metrics. The benchmark module therefore
 represents a future-facing part of the project, where submissions, metrics, and
 leaderboard-style results can help users evaluate their solutions fairly.
+
+Finally, the Deployment module is motivated by the final step that many
+machine-learning projects postpone: making the trained model available outside
+the notebook or local script. Deployment normally requires packaging artifacts,
+building an API layer, preparing dependencies, exposing ports, configuring
+servers, and checking that the service responds correctly. Accelera includes
+this step so that the workflow can continue from model creation to a reachable
+prediction service.
 
 \begin{table}[!htbp]
 \centering
@@ -469,6 +511,12 @@ Converts supported functions to native code and inserts safe OpenMP pragmas. \\
 Difficult result comparison &
 Benchmark platform &
 Stores benchmark information, metrics, submissions, and leaderboard views. \\
+\midrule
+
+Local-only trained models &
+Deployment module &
+Packages saved models into validated API services that can run in Docker,
+Heroku, or AWS EC2 workflows. \\
 
 \bottomrule
 \end{tabular}
@@ -514,6 +562,11 @@ The main objectives of the project are:
 
   \item Build a benchmark platform prototype for datasets, submissions, users,
   metrics, and leaderboard-based comparison.
+
+  \item Provide a Deployment module that packages trained models and generated
+  artifacts into usable services, supports local and remote deployment
+  workflows, manages deployment configuration, and reduces the infrastructure
+  knowledge required to expose a trained model through an API.
 \end{enumerate}
 
 The problem addressed by the project can be stated as follows:
@@ -521,10 +574,12 @@ The problem addressed by the project can be stated as follows:
 \begin{quote}
 Machine-learning workflows in Python are easy to write but become difficult to
 organize, repeat, compare, and optimize when they include many preprocessing
-steps, model alternatives, custom functions, and evaluation paths. Accelera aims
+steps, model alternatives, custom functions, evaluation paths, and deployment
+requirements. Accelera aims
 to preserve Python usability while adding automated preprocessing, budgeted
 model search, graph-based execution, safe loop-level acceleration, and
-benchmark-oriented evaluation.
+benchmark-oriented evaluation, while also supporting the final step of turning
+trained artifacts into accessible services.
 \end{quote}
 
 This problem has two sides. The first side is \textbf{workflow complexity}. As
@@ -589,6 +644,16 @@ visualization. It also includes a benchmark platform prototype with backend and
 frontend components for datasets, metrics, users, submissions, and leaderboards.
 These outcomes improve visibility and comparison.
 
+\subsection*{Outcome 7: Deployment support}
+
+The Deployment module extends Accelera beyond experimentation by converting
+saved machine-learning artifacts into runnable services. It organizes
+\texttt{config.json} files, model pickle files, serving code, schema
+validation, telemetry logging, Docker packaging, and target-specific commands
+for local containers, Heroku, and AWS EC2. This outcome is important because it
+allows Accelera to support the complete journey from building a model to making
+the model reachable through an endpoint.
+
 \begin{table}[!htbp]
 \centering
 \acceleraTableStyle
@@ -622,6 +687,12 @@ static analysis, safety checks, OpenMP pragmas, compilation, and caching. \\
 Benchmarking support &
 The Benchmark Platform provides a foundation for dataset-based evaluation,
 prediction submission, metric calculation, and leaderboard-style comparison. \\
+\midrule
+
+Deployment support &
+The Deployment module packages trained models and supporting artifacts into
+validated API services that can run locally in Docker or be deployed to
+supported cloud/server targets. \\
 
 \bottomrule
 \end{tabular}
@@ -648,10 +719,12 @@ analysis to clarify how the project could be developed into a product or service
 
 Accelera targets the data-science workflow as a complete process, not as one
 isolated task. Some existing tools focus on preprocessing, others focus on model
-selection, and others focus on competition platforms or code acceleration.
-Accelera combines these directions through five connected parts:
+selection, others focus on competition platforms or code acceleration, and
+others focus only on hosting or cloud deployment.
+Accelera combines these directions through six connected parts:
 \texttt{auto\_preprocessing}, \texttt{accelera\_automl},
-\texttt{accelera\_pipe}, \texttt{parallelizer}, and the benchmark platform.
+\texttt{accelera\_pipe}, \texttt{parallelizer}, the benchmark platform, and
+the Deployment module.
 
 \section{Targeted Customers}
 
@@ -700,7 +773,8 @@ Small teams and startups &
 Need a practical toolkit that reduces development time without building an
 internal ML platform from scratch. &
 Combines preprocessing, AutoML, pipeline execution, reports, and benchmark
-support in one project. \\
+support in one project, with deployment support for turning selected models
+into accessible services. \\
 
 \bottomrule
 \end{tabular}
@@ -743,6 +817,8 @@ research-friendly framework with practical automation and optimization features.
   accelerated through C++ and OpenMP.
   \item \textbf{Fairer comparison:} benchmark components help compare pipelines
   using common datasets and metrics.
+  \item \textbf{Practical delivery:} deployment commands help move saved models
+  from local artifacts to runnable API services.
 \end{itemize}
 
 \section{Market Survey}
@@ -755,6 +831,8 @@ different because it tries to connect these ideas into one toolkit.
 \begin{table}[!htbp]
 \centering
 \acceleraTableStyle
+\scriptsize
+\renewcommand{\arraystretch}{1.08}
 \caption{Market comparison summary.}
 \label{tab:market-comparison}
 \begin{tabular}{p{0.22\textwidth}p{0.28\textwidth}p{0.19\textwidth}p{0.21\textwidth}}
@@ -788,6 +866,22 @@ Require user knowledge of acceleration syntax and do not manage ML workflow
 structure. &
 Provides an automatic attempt to optimize supported preprocessing functions
 inside the pipeline. \\
+\midrule
+
+Heroku &
+Cloud application hosting and container deployment. &
+Provides hosting infrastructure but does not manage ML artifacts, schema
+validation, or model version snapshots as part of the training workflow. &
+Connects model packaging, serving code, validation, telemetry, and Heroku
+container commands inside one ML-oriented deployment module. \\
+\midrule
+
+AWS EC2 &
+General-purpose virtual machines for cloud hosting. &
+Powerful but requires manual server access, SSH, Docker setup, port exposure,
+and operational knowledge. &
+Automates EC2-oriented file synchronization, remote Docker build/run commands,
+and health checks for Accelera model services. \\
 
 \bottomrule
 \end{tabular}
@@ -904,14 +998,51 @@ pipeline module. It attempts to optimize supported custom preprocessing
 functions and attach the optimized callable back to the pipeline node. This makes
 code acceleration part of the workflow instead of a separate manual task.
 
+\subsection{Deployment and Hosting Platforms}
+
+Deployment platforms such as Heroku, AWS EC2, Render, Railway, and Google Cloud
+Run are relevant to Accelera because they help developers publish software
+services. Their main value is infrastructure: they provide servers, routing,
+containers, or managed execution environments. This is important, but it does
+not by itself solve the machine-learning-specific work of collecting model
+artifacts, preserving deployment configuration, validating input schemas, and
+connecting a trained model to an inference API.
+
+\textbf{Pros:}
+\begin{itemize}
+  \item Provide public or cloud-hosted environments for running applications.
+  \item Reduce the need to own physical servers.
+  \item Support common deployment units such as containers, web services, or
+  virtual machines.
+\end{itemize}
+
+\textbf{Cons:}
+\begin{itemize}
+  \item Usually require the user to prepare the ML serving code and runtime
+  dependencies separately.
+  \item Do not automatically understand Accelera model artifacts,
+  \texttt{config.json}, schema validation, or prediction telemetry.
+  \item General-purpose platforms may be difficult for beginners because they
+  involve CLI tools, SSH, ports, environment variables, and deployment logs.
+\end{itemize}
+
+Accelera's Deployment module is different because it is not only a hosting
+target. It is part of the ML workflow itself. It receives the outputs produced
+by training or pipeline modules, copies model binaries, writes deployment
+requirements, builds a Docker service, exposes prediction endpoints, validates
+requests, records telemetry, and provides commands for local Docker, Heroku,
+and AWS EC2. This integration increases Accelera's market value because it
+makes the system closer to an end-to-end ML platform rather than only a model
+training toolkit.
+
 \section{Business Case and Financial Analysis}
 
 Accelera can be developed as an open-source framework with optional hosted
-services around benchmarking, reporting, team collaboration, and managed
-execution. The open-source part helps adoption because students, researchers,
-and developers can use the framework freely. The business value can come from
-hosted benchmark features, team dashboards, managed experiment tracking, and
-support services.
+services around benchmarking, reporting, team collaboration, managed execution,
+and deployment assistance. The open-source part helps adoption because students,
+researchers, and developers can use the framework freely. The business value
+can come from hosted benchmark features, team dashboards, managed experiment
+tracking, deployment templates, and support services.
 
 \subsection{Business Case}
 
@@ -919,7 +1050,12 @@ The main business case is based on reducing time spent in repetitive
 data-science work. Users and teams spend time preparing data, comparing models,
 rewriting scripts, debugging pipeline steps, and measuring results. Accelera can
 reduce this time by providing one framework that handles multiple stages of the
-workflow.
+workflow. The Deployment module strengthens this business case because
+organizations do not only need trained models; they need trained models to
+become usable services. Automating deployment-related steps can reduce manual
+DevOps effort, reduce time-to-market, and lower the technical barrier for users
+who understand ML but are less experienced with Docker, SSH, cloud machines, or
+service exposure.
 
 \begin{table}[!htbp]
 \centering
@@ -951,6 +1087,12 @@ Benchmark platform supports submissions, metrics, and leaderboards. &
 Universities, communities, and organizations. \\
 \midrule
 
+Shorter deployment path &
+Deployment support helps package model artifacts, build a serving API, and run
+the service on supported targets. &
+Small teams, prototypes, and applied ML projects. \\
+\midrule
+
 Lower entry barrier &
 Reports and automation make ML workflows easier for beginners. &
 Education and training programs. \\
@@ -973,6 +1115,13 @@ The third possible product direction is professional support and integration.
 Organizations that want to use Accelera internally may need help adapting the
 framework to their datasets, infrastructure, or benchmark requirements. This
 creates a possible support and consulting model.
+
+The Deployment module also creates a practical commercial path for a managed
+deployment tier. A hosted product could provide prepared deployment templates,
+private model-serving environments, monitored endpoints, and simplified rollback
+support. Even when the current implementation remains lightweight and
+developer-controlled, its presence makes Accelera easier to present as a
+complete platform because it connects experimentation with operational use.
 
 \subsection{Financial Analysis}
 
@@ -1329,6 +1478,112 @@ a loop to distribute loop iterations across multiple threads. OpenMP is useful
 because it does not require rewriting the whole program. However, the pragma must
 be inserted only when the loop is safe to parallelize.
 
+\subsection{Deployment}
+Deployment is the process of moving software from a development environment to
+an environment where users or other systems can access it. In machine-learning
+projects, deployment is important because the trained model must be connected
+to software that receives input, runs inference, and returns predictions.
+
+\subsection{Model Deployment}
+Model deployment means packaging a trained model together with the code and
+dependencies needed to use it. A deployed model is usually exposed through a
+service endpoint so that other applications can send data and receive
+predictions. This is different from only saving a model file, because a saved
+file still requires a runtime service before it becomes usable by external
+users.
+
+\subsection{Machine Learning Deployment}
+Machine-learning deployment adds extra concerns beyond ordinary software
+deployment. The system must preserve preprocessing steps, load model binaries,
+validate input schemas, handle prediction errors, and sometimes track requests
+for monitoring. These concerns explain why Accelera treats deployment as a
+module connected to the ML workflow rather than only as a cloud-hosting task.
+
+\subsection{Cloud and Server Deployment}
+Cloud deployment runs a service on infrastructure provided by a cloud provider.
+Server deployment runs the service on a machine that may be local, virtual, or
+cloud-hosted. In both cases, the deployed service must receive network traffic
+on a configured port and must be started with the correct dependencies and
+environment variables.
+
+\subsection{Web Services, APIs, and REST APIs}
+A web service is a program that exposes functionality over the network. An API
+defines how other programs interact with that service. A REST API commonly uses
+HTTP methods and URLs to exchange structured data. In the Deployment module,
+prediction requests are sent to API endpoints such as \texttt{/predict}, while
+status information is exposed through endpoints such as \texttt{/health}.
+
+\subsection{HTTP, HTTPS, JSON, URLs, and Ports}
+HTTP is the common protocol used by web clients and servers. HTTPS is the secure
+version of HTTP. JSON is a text format frequently used to send structured data
+between clients and APIs. A URL identifies where a service can be reached, and
+a port identifies the network entry point used by the service on a machine.
+These concepts are needed to understand deployed prediction endpoints.
+
+\subsection{Docker and Containerization}
+Docker is a containerization tool that packages an application with its runtime
+environment. A container helps the same service run consistently across
+machines because dependencies, files, and startup commands are described
+explicitly. The Deployment module uses Docker to package the FastAPI serving
+application, model files, configuration, and required Python libraries into one
+runnable service image.
+
+\subsection{Virtual Machines, AWS, and AWS EC2}
+A virtual machine is a software-defined computer that runs on physical cloud
+hardware. AWS is a major cloud provider, and EC2 is its virtual-machine service.
+Deploying to EC2 gives the user flexible control over the server, but it also
+requires practical infrastructure steps such as SSH access, file
+synchronization, Docker installation, port exposure, and health checking.
+
+\subsection{Heroku and Container Hosting}
+Heroku is a platform for deploying web applications with less direct server
+management. It can run containerized applications through its container
+registry. In Accelera, Heroku is treated as a deployment target where the
+prepared Docker service can be pushed and released through Heroku CLI commands.
+
+\subsection{SSH and CLI Tools}
+SSH is a secure protocol for connecting to remote machines and running commands.
+A CLI is a text-based interface used to execute commands from a terminal. The
+Deployment module uses CLI workflows for local Docker, Heroku, and EC2. For
+EC2, SSH is used to run remote commands, build Docker images, start containers,
+and read logs.
+
+\subsection{Environment Variables and Configuration Files}
+Environment variables are runtime values provided outside the source code, such
+as the port on which a server should listen. Configuration files store structured
+settings used by the program. Accelera uses \texttt{config.json} to locate model
+artifacts, define input schema rules, and configure tracking behavior.
+
+\subsection{Pickle Files and Model Artifacts}
+Pickle files with the \texttt{.pkl} extension are commonly used in Python to
+serialize trained objects such as Scikit-learn models or preprocessors. In the
+Deployment module, these files are treated as model artifacts. They are copied
+into the deployment workspace, loaded by the model service, and used during
+inference.
+
+\subsection{Version Control, Git, GitHub, and Repositories}
+Version control records changes over time and helps users return to previous
+states. Git is a widely used version-control system, GitHub hosts Git
+repositories, and a repository stores a project's files and history. Accelera
+also implements a lightweight model VCS for deployment artifacts. This VCS is
+not a replacement for Git; it snapshots model files and deployment
+configuration so that earlier model versions can be restored.
+
+\subsection{Backend Services, FastAPI, and Uvicorn}
+A backend service runs server-side logic and responds to client requests.
+FastAPI is a Python framework for building APIs, and Uvicorn is an ASGI server
+used to run FastAPI applications. The Deployment module uses FastAPI to define
+prediction and health endpoints, while Uvicorn starts the application inside
+the Docker container.
+
+\subsection{Deployment Scripts}
+Deployment scripts automate repeated infrastructure commands. Instead of asking
+the user to copy files, build containers, start services, and check endpoints
+manually, a script can execute these steps in sequence. Accelera's
+\modulepath{deployment.py} script provides commands for preparing files,
+building Docker images, running locally, deploying to Heroku, and deploying to
+EC2.
+
 \newpage
 
 \section{Comparative Study of Previous Work}
@@ -1472,6 +1727,57 @@ warm starts, and voting or stacking inside Accelera. \\
 \end{tabularx}
 \end{table}
 
+\subsection{Model Deployment Platforms}
+Deployment platforms such as Heroku, AWS EC2, AWS Elastic Beanstalk, Render,
+Railway, Google Cloud Run, and Hugging Face Spaces provide ways to host
+applications or model demos. Their role is important because they give
+developers infrastructure for running web services. However, these platforms
+mainly provide the hosting layer. The user usually remains responsible for
+building the ML serving application, preparing dependency files, loading model
+artifacts, validating inputs, logging predictions, and maintaining model
+versions.
+
+Accelera's Deployment module is different in scope. It is not a general cloud
+provider; it is an ML-oriented deployment layer inside the Accelera workflow.
+It takes the generated configuration and model pickle files, prepares a FastAPI
+serving container, exposes prediction endpoints, runs schema validation,
+records telemetry, and provides commands for local Docker, Heroku, and AWS EC2
+deployment. Therefore, Accelera complements infrastructure platforms by
+preparing the ML service itself and connecting it to the artifacts created by
+the rest of the framework.
+
+\begin{table}[H]
+\centering
+\acceleraTableStyle
+\caption{Deployment-related platforms and Accelera's difference.}
+\label{tab:deployment_related_platforms}
+\begin{tabularx}{\textwidth}{p{0.24\textwidth}X X}
+\toprule
+\textbf{Platform} & \textbf{Main focus} & \textbf{Accelera difference} \\
+\midrule
+Heroku &
+Application hosting with container deployment support. &
+Accelera prepares the ML serving container and provides Heroku-specific
+commands for pushing and releasing it. \\
+\midrule
+AWS EC2 &
+General-purpose virtual machines with full server control. &
+Accelera automates file synchronization, remote Docker build/run steps, and
+health checks for model services. \\
+\midrule
+Render, Railway, or Cloud Run &
+Managed hosting for web services or containers. &
+Accelera focuses on creating the ML API, validation, telemetry, and deployment
+package before such hosting is considered. \\
+\midrule
+Hugging Face Spaces &
+Hosted ML demos and interactive applications. &
+Accelera emphasizes integration with local model artifacts and repeatable
+deployment workflows inside the project. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
 \section{Implemented Approach}
 
 \subsection{Auto Preprocessing}
@@ -1575,6 +1881,48 @@ preprocessing node contains a supported custom Python function, the pipeline can
 attempt to optimize this function using the Parallelizer. This allows the
 project to combine graph-level workflow execution with code-level acceleration.
 
+\subsection{Deployment Module Technologies}
+The Deployment module uses a set of practical software-engineering technologies
+to move trained artifacts toward a runnable service. This section introduces the
+tools used by the module; the detailed module architecture is described later
+in Section~\ref{sec:deployment-module}.
+
+Git-style versioning inspired the internal model VCS. The module does not
+replace Git for source code, but it applies the same idea of named snapshots to
+deployment artifacts. The VCS stores model files and \texttt{config.json}
+inside commit directories, records metadata in an index file, and allows a
+previous model snapshot to be restored before deployment.
+
+FastAPI and Uvicorn form the serving layer. FastAPI defines HTTP endpoints for
+single prediction, CSV prediction, health checks, tracking summaries, and the
+interactive GUI. Uvicorn runs the application inside the container and listens
+on the configured service port.
+
+Docker is used as the portability layer. The deployment script writes a
+\texttt{Dockerfile}, copies serving files, installs runtime dependencies, adds
+the saved model artifacts, exposes the service port, and starts the Uvicorn
+server. This keeps the runtime environment more repeatable than launching the
+service directly from an arbitrary local Python environment.
+
+Great Expectations supports the runtime validation layer. The configuration
+file defines expected feature names, data types, required fields, allowed
+values, and numeric bounds. Incoming requests are checked and coerced before
+they reach the model service, which reduces the risk of invalid payloads
+causing hidden prediction errors.
+
+SSH and \texttt{rsync} are used for AWS EC2 deployment. The script connects to
+the remote machine, creates the target directory, synchronizes the Dockerfile,
+configuration, serving source, and model files, builds the container on the
+remote host, starts it, and checks the health endpoint. Heroku deployment uses
+Heroku CLI commands to authenticate, push the container image, release it, and
+open the deployed application.
+
+Configuration files and generated artifacts are the connection point between
+training and deployment. The \texttt{config.json} file tells the service where
+to find model pickle files, how to validate input data, and whether telemetry
+should be enabled. The deployment scripts then convert these local artifacts
+into a concrete service package.
+
 
 \chapter{System Design and Architecture}
 \section{Overview and Assumptions}
@@ -1611,6 +1959,20 @@ does not cause data leakage, so the platform can evaluate submissions fairly.
   submit predictions in the required format, so the scoring script can calculate
   the result correctly.
 \end{itemize}
+
+\subsection{Deployment Assumptions}
+The Deployment module assumes that the selected model or pipeline has already
+produced serializable model artifacts and a deployment configuration file. The
+configuration must describe the model files relative to the deployment
+workspace, the expected input schema when validation is enabled, and the
+tracking settings used by the serving application.
+
+For local execution and cloud/server execution, the module assumes that Docker
+is available on the target machine or can be installed during the EC2 workflow
+when the corresponding option is selected. For remote EC2 deployment, the user
+must provide a reachable host, a valid SSH user, and any required private key.
+The public port used by the service must also be reachable from the client
+machine for the final health check and GUI endpoint to work.
 
 \newpage
 \section{System Architecture}
@@ -1675,8 +2037,10 @@ Score, ranking, and benchmark results. \\
 \midrule
 
 Deployment &
-Turns a saved model or pipeline into a deployed service. &
-Model URL, service endpoint, and optional inference UI. \\
+Turns a saved model or pipeline into a validated API service by packaging model
+artifacts, configuration, serving code, and deployment commands. &
+Model URL, service endpoint, health endpoint, telemetry summary, and optional
+inference UI. \\
 
 \bottomrule
 \end{tabularx}
@@ -1863,9 +2227,20 @@ the user's pipeline.
 
 \subsubsection*{Deployment flow}
 
-The Deployment block receives a saved model or pipeline. It prepares the
-deployment service, builds the required API layer, handles authentication or API
-configuration, publishes an endpoint, and optionally provides an inference UI.
+The Deployment block receives saved model artifacts and the active deployment
+configuration. It prepares the deployment service by collecting the model files,
+copying the serving source code, writing runtime requirements, generating a
+Docker image definition, and exposing a FastAPI application. Inside the serving
+container, requests pass through schema validation before reaching the model
+service. After inference, telemetry is written so the user can inspect request
+counts, statuses, latencies, and prediction activity.
+
+The block also separates the service package from the target environment. The
+same prepared service can be built locally in Docker, pushed to Heroku through
+container commands, or synchronized to an AWS EC2 virtual machine over SSH and
+run as a remote Docker container. This design makes Deployment the final
+architectural bridge between the outputs of AutoML or graph pipelines and
+real-world usage through a reachable HTTP endpoint.
 
 The final deployment block produces a deployed model URL or service. This output
 has two possible meanings:
@@ -2547,6 +2922,12 @@ added to the leaderboard and becomes the final model when its score is stronger
 than the best individual model.
 
 \subsection{Modular Decomposition}
+Table~\ref{tab:automl_implementation_units} summarizes the main implementation
+units of the AutoML module. The table helps connect the high-level AutoML
+workflow described above with the concrete files that implement estimator
+lifecycle management, configuration-space construction, trial evaluation,
+optimization, meta-learning, and ensemble construction.
+
 \begin{table}[H]
 \centering
 \acceleraTableStyle
@@ -3193,8 +3574,11 @@ type, and the model used after preprocessing.
 The main implementation challenges were preserving correctness while sharing
 branch computations, releasing intermediate arrays only after their final
 consumer, and limiting generated OpenMP code to loops that pass dependency and
-conversion checks. The experiments also identify memory usage during
-branch-level parallel execution as the main remaining graph-backend challenge.
+conversion checks. For the Deployment module, the main challenge was combining
+model artifacts, serving code, validation, telemetry, Docker packaging, and
+remote execution into one repeatable workflow. The experiments also identify
+memory usage during branch-level parallel execution as the main remaining
+graph-backend challenge.
 
 \section{Gained Experience}
 \mbox{}
@@ -3222,12 +3606,26 @@ leaderboard comparison. The testing and experimental results show that the
 implemented modules can produce usable outputs, generate reports, evaluate
 models, and compare results. Overall, Accelera gives a practical base for a
 more organized and reusable machine learning workflow.
+Accelera Pipe provides a graph-based execution model for branch-heavy
+machine-learning pipelines and supports fitted executed graphs. The Code
+Parallelizer provides a source-to-source path from supported Python or C++
+loops to OpenMP-annotated C++ using converter rules, loop feature extraction,
+classifier guidance, and safety checks. The Deployment module completes the
+workflow by turning saved models and generated artifacts into validated API
+services that can run locally or on supported cloud/server targets. The
+available experiments show runtime improvements on large branch-selection
+workloads while preserving selected models, accuracy, and output equivalence,
+and the deployment tests verify repeatable serving, validation, telemetry, and
+orchestration behavior.
 
 \section{Future Work}
 Future work should continue reducing graph memory consumption while preserving
 parallel branch execution, and should extend safe converter , loop-analysis
 coverage without weakening correctness checks, The preprocessing pipeline can be improved by adapting the preprocessing steps based on the selected model type and by adding techniques to handle imbalanced datasets.
 In the future, the benchmark platform can be improved by saving uploaded datasets on the server instead of using Google Drive links. It can also allow users to upload code files directly, instead of submitting only links.
+The Deployment module can also be extended with additional targets such as
+managed container services, richer monitoring, authentication for prediction
+endpoints, and more advanced model registry metadata.
 
 \renewcommand{\bibname}{Reference}
 \addcontentsline{toc}{chapter}{Reference}
@@ -3302,13 +3700,16 @@ David H. Wolpert. ``Stacked generalization.'' \emph{Neural Networks},
 \section{Software Platform}
 The implemented modules use Python, C++, PyBind11, CMake, Clang-based AST
 analysis, OpenMP, NumPy, Pandas, Matplotlib, PyTorch, Scikit-learn, Node.js,
-React, and MongoDB. The Auto Preprocessing module depends mainly on Python
+React, MongoDB, FastAPI, Uvicorn, Great Expectations, Docker, Heroku CLI, SSH,
+and AWS EC2 workflows. The Auto Preprocessing module depends mainly on Python
 data-science libraries. The Pipeline Reporting module uses Python, HTML report
 generation, Matplotlib, Pandas tables, and Graphviz for graph visualization.
 The Benchmark Platform uses a Node.js and Express backend, MongoDB for storing
 benchmarks and submissions, React for the frontend, and Python scripts for
-dataset validation and metric scoring. The available experiments include Linux
-and Windows execution paths.
+dataset validation and metric scoring. The Deployment module uses FastAPI and
+Uvicorn for serving, Great Expectations for runtime validation, Docker for
+container packaging, and SSH/\texttt{rsync} for EC2 synchronization. The
+available experiments include Linux and Windows execution paths.
 
 \chapter{Use Cases}
 \section{Auto Preprocessing Use Cases}

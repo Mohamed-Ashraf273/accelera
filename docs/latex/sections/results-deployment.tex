@@ -1,52 +1,225 @@
-\subsection{Experimental Setup and Test suite}
-\noindent The verification of the Deployment module is performed through a comprehensive test suite managed by the \texttt{pytest} framework. To ensure high test isolation and allow headless execution in CI/CD pipelines, the test suite leverages extensive mocking via the Python \texttt{monkeypatch} utility to decouple tests from system-level configurations, active network services (e.g., Heroku API, AWS EC2 hosts), and runtime dependency installations. 
+\subsection{Experimental Setup and Test Suite}
+\noindent The Deployment module was verified using a focused \texttt{pytest}
+test suite that exercises the module as a serving, packaging, versioning, and
+orchestration component. The goal of this verification is not only to check
+individual functions, but also to confirm that the deployment workflow can move
+from saved artifacts and configuration files to a prepared API service in a
+repeatable manner.
 
-\noindent Tests are executed inside temporary filesystem workspaces generated dynamically using the \texttt{tmp\_path} fixture. This ensures that the generated version control indices, log files, and Docker deployment artifacts do not contaminate the primary workspace.
+The test environment is intentionally isolated from external cloud services.
+Temporary workspaces created with the \texttt{tmp\_path} fixture are used to
+hold generated configuration files, model artifacts, VCS registries, Dockerfile
+outputs, and telemetry logs. The \texttt{monkeypatch} fixture replaces external
+dependencies such as subprocess calls, SSH execution, Heroku commands, and EC2
+health checks. This allows the test suite to verify the correctness of the
+deployment logic without requiring a live Heroku account, a running EC2
+instance, or active Docker containers during every test run.
 
-\subsection{Subsystem Verification Details}
-\noindent The verification targets the six major components of the deployment module:
+The command used to execute the deployment test suite is shown below. The
+explicit \texttt{PYTHONPATH} value is important because the deployment tests
+load modules both through the package path and through the isolated serving
+runtime path.
 
-\begin{enumerate}[leftmargin=*]
-  \item \textbf{Model Version Control (VCS) verification}:
-    Validates the stability of the 7-character short SHA-1 hash calculation, confirming that identical timestamp-message pairs produce identical commit IDs. Tests ensure that \texttt{vcs.init()} initializes the experiments metadata directory structure and saves a clean registry template (\texttt{experiments.json}). Commit operations are verified to correctly copy model serialization binaries (e.g., \texttt{model.pkl}), snapshot active configurations, update the \texttt{HEAD} reference, and append metadata entries. Rollback capabilities are verified by deploying historical commits and confirming that the active runtime files are updated with the corresponding commit snapshots.
-  
-  \item \textbf{Model Service Pipeline verification}:
-    Tests check that the \texttt{ModelService} correctly parses configurations, loads active model estimators and preprocessors in the correct sequence, and performs inference. Mock tests confirm that preprocessing steps (such as scaling or encoding) are applied in order before predictions are generated.
-  
-  \item \textbf{Runtime Schema Validation verification}:
-    Validates the runtime behavior of input schema checking. Ephemeral Great Expectations suites are mocked to verify column-presence verification (identifying missing or unexpected fields) and value-bound checking. The data type auto-coercion system is verified by testing how it handles numeric conversions (casting strings to floats or integers) and parsing boolean representations (such as \texttt{"true"}, \texttt{"false"}, or numeric binary flags).
-  
-  \item \textbf{Web Serving Endpoints verification}:
-    Verifies that the FastAPI application correctly routes incoming HTTP requests. Tests evaluate the \texttt{/predict} and \texttt{/predict/csv} endpoints for JSON inputs and multi-row CSV file uploads. Endpoint testing checks that success responses return correct JSON structures with HTTP 200 codes, validation errors throw HTTP 422 codes, and server errors return HTTP 500 codes.
-  
-  \item \textbf{Prediction Tracking and Telemetry verification}:
-    Verifies the telemetry logging behavior. Tests ensure that when telemetry is disabled, no disk writes occur. When active, request parameters, model outputs, timestamps, and latency figures are verified to be written as valid JSON lines to the log file. Additionally, tests verify the telemetry reader's ability to aggregate counts (successful runs, error runs, total row counts) and report them dynamically.
-  
-  \item \textbf{Orchestration CLI verification}:
-    Validates port parsing limits (allowing ports between 1 and 65535, while rejecting negative numbers, non-numeric values, or out-of-bound ports). Tests check the preparation task (\texttt{prepare}) to verify that it creates a clean staging directory, compiles a standard \texttt{Dockerfile} using a Python slim base, and builds a clean \texttt{requirements.txt} containing only runtime-specific dependencies.
-\end{enumerate}
+\begin{lstlisting}[style=algostyle,caption={Deployment test-suite execution command},label={alg:deployment_test_command}]
+PYTHONPATH=accelera/src/deployment:accelera/src pytest accelera/src/deployment/tests
+\end{lstlisting}
 
-\subsection{Deployment Test Results}
-\noindent When executed in an environment with all core dependencies installed, all 51 test cases compile and pass successfully. Table~\ref{tab:deployment-test-summary} summarizes the verification results for the deployment module.
+This setup verifies the Deployment module in a way that is suitable for
+headless execution and continuous integration. Instead of depending on the
+availability of external platforms, the tests check that Accelera generates the
+correct files, calls the correct commands, validates inputs correctly, records
+telemetry correctly, and preserves model snapshots correctly.
+
+\subsection{Verification Objectives}
+\noindent The Deployment module contains several responsibilities that must
+work together. Table~\ref{tab:deployment_verification_objectives} summarizes
+the main verification objectives used in the test suite. The table is included
+before the detailed results to show how each group of tests supports a concrete
+quality requirement of the module.
 
 \begin{table}[H]
 \centering
-\caption{Deployment Module Test Suite Verification Summary}
-\label{tab:deployment-test-summary}
-\begin{tabular}{lrrrl}
+\acceleraTableStyle
+\caption{Deployment module verification objectives.}
+\label{tab:deployment_verification_objectives}
+\begin{tabularx}{\textwidth}{p{0.28\textwidth}X X}
 \toprule
-\textbf{Test Component File} & \textbf{Test Cases} & \textbf{Passed} & \textbf{Failed} & \textbf{Verified Feature} \\
+\textbf{Objective} & \textbf{Reason} & \textbf{Evidence in tests} \\
 \midrule
-\texttt{vcs\_test.py} & 14 & 14 & 0 & Registry snapshots, workspace rollbacks \\
-\texttt{modelservice\_test.py} & 6 & 6 & 0 & Sequencing of preprocessor transforms \\
-\texttt{schema\_validation\_test.py} & 8 & 8 & 0 & Data coercion and column checking \\
-\texttt{server\_test.py} & 9 & 9 & 0 & FastAPI routing, telemetry integration \\
-\texttt{tracking\_test.py} & 3 & 3 & 0 & Telemetry logging and count aggregation \\
-\texttt{deployment\_test.py} & 11 & 11 & 0 & Staging setup, Dockerfile compiling \\
+Artifact reproducibility &
+The deployed service must be based on known model files and a known
+configuration. &
+VCS tests check commit creation, parent links, \texttt{HEAD}, deployed markers,
+and rollback restoration. \\
 \midrule
-\textbf{Total} & \textbf{51} & \textbf{51} & \textbf{0} & \textbf{End-to-End System Correctness} \\
+Serving correctness &
+The service must load models and preprocessors in the expected order before
+prediction. &
+Model service tests load serialized artifacts, verify idempotent loading, and
+check preprocessing before prediction. \\
+\midrule
+Input reliability &
+Invalid payloads must be rejected before reaching the model. &
+Schema validation tests cover missing columns, unexpected columns, type
+coercion, booleans, integers, numeric ranges, and allowed values. \\
+\midrule
+API behavior &
+The deployed service must expose predictable routes for prediction, health,
+GUI, CSV upload, and tracking. &
+Server tests verify successful responses, validation errors, internal errors,
+row counting, GUI rendering, and tracking summary behavior. \\
+\midrule
+Operational repeatability &
+Deployment commands must produce correct Docker, Heroku, and EC2 command
+flows. &
+Orchestration tests inspect Docker build/run calls, Heroku sequencing, SSH
+transport, remote scripts, \texttt{rsync}, stop, and log commands. \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
-\noindent This successful validation confirms that the deployment engine operates as intended, offering robust models, automated runtime validation, telemetry logging, and repeatable container deployments without regression errors.
+\subsection{Subsystem Verification Details}
+\noindent The test suite targets the major components of the Deployment module:
+model VCS, model loading, runtime validation, API serving, telemetry, and
+deployment orchestration. These components were tested separately because each
+one represents a failure point in a real deployment workflow.
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Model Version Control verification:}
+  The VCS tests verify the stability of short SHA-1 commit identifiers, prefix
+  resolution, index save/load behavior, workspace initialization, commit
+  creation, parent tracking, log formatting, status reporting, and deployment
+  rollback. The most important result is that committed model artifacts and
+  configuration files can be restored into the active deployment workspace,
+  which supports repeatable deployment and rollback.
+
+  \item \textbf{Model Service verification:}
+  The \texttt{ModelService} tests verify that the service reads
+  \texttt{config.json}, loads serialized preprocessors and models, identifies
+  the predict-capable artifact, and applies preprocessing before prediction.
+  They also verify that loading is idempotent and that a clear runtime error is
+  raised when no loaded artifact supports prediction.
+
+  \item \textbf{Runtime Schema Validation verification:}
+  The schema tests verify both disabled and enabled validation modes. They
+  confirm that missing columns and unexpected columns are detected, that numeric
+  and integer values are coerced safely, that boolean representations are
+  normalized, and that invalid values produce structured validation errors.
+  These checks are important because the deployed API must protect the model
+  from malformed inputs.
+
+  \item \textbf{Web Serving Endpoints verification:}
+  The server tests verify the behavior of the FastAPI routes without requiring
+  a live server process. They check that the root path redirects to the GUI,
+  that \texttt{/health} and \texttt{/tracking/summary} report service state,
+  that missing prediction input is rejected, that successful predictions record
+  telemetry events, and that validation or internal errors map to the expected
+  HTTP error behavior.
+
+  \item \textbf{Prediction Tracking verification:}
+  The telemetry tests verify that a disabled tracker performs no writes, while
+  an enabled tracker writes valid JSON lines and can summarize request counts,
+  total rows, status counts, and the last recorded event. This confirms that
+  the deployed service has a lightweight observability layer rather than only a
+  prediction endpoint.
+
+  \item \textbf{Deployment Orchestration verification:}
+  The orchestration tests verify the command-building and file-generation logic
+  of \modulepath{deployment.py}. They check valid and invalid ports, model path
+  validation, service-source synchronization, generated \texttt{requirements.txt},
+  generated \texttt{Dockerfile}, Docker build and run commands, Heroku
+  deployment order, SSH configuration, remote EC2 script generation,
+  \texttt{rsync} synchronization, EC2 deployment flow, and remote stop/log
+  operations.
+\end{enumerate}
+
+\subsection{Command-Flow Verification}
+\noindent In addition to unit-level behavior, the tests verify important
+command flows that a user would execute during deployment. This is significant
+because deployment failures often happen not inside model inference, but in the
+surrounding operational steps: building containers, selecting ports,
+synchronizing files, and starting services on remote hosts.
+
+Table~\ref{tab:deployment_command_flow_results} summarizes the command flows
+covered by the orchestration tests. The table shows that the Deployment module
+was tested as an operational tool, not only as a collection of Python helper
+functions.
+
+\begin{table}[H]
+\centering
+\acceleraTableStyle
+\caption{Verified deployment command flows.}
+\label{tab:deployment_command_flow_results}
+\begin{tabularx}{\textwidth}{p{0.26\textwidth}X X}
+\toprule
+\textbf{Flow} & \textbf{Verified behavior} & \textbf{Result} \\
+\midrule
+Local Docker build &
+The build command includes Docker build arguments, image naming, and optional
+cache bypass. &
+Command construction passed. \\
+\midrule
+Local Docker run &
+The module checks for containers already publishing the selected port, stops
+conflicting containers, and starts a new mapped container. &
+Port-handling flow passed. \\
+\midrule
+Heroku deployment &
+The complete deployment sequence runs login, optional app creation, container
+login, push, release, and open in the expected order. &
+Heroku orchestration passed. \\
+\midrule
+EC2 remote deployment &
+The module prepares files, creates the remote directory, synchronizes build
+inputs, runs the remote deployment script, and checks the public URL. &
+EC2 orchestration passed. \\
+\midrule
+EC2 operations &
+The stop and logs commands generate the expected remote Docker operations. &
+Operational commands passed. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Deployment Test Results}
+\noindent When the deployment test suite is executed in an environment with the
+required Python dependencies available, all 51 test cases pass. The result is a
+strong indication that the module's core responsibilities are implemented
+consistently: artifacts are versioned, models are loaded, inputs are validated,
+API behavior is predictable, telemetry is recorded, and deployment commands are
+generated correctly.
+
+Table~\ref{tab:deployment-test-summary} presents the final test distribution.
+The table is organized by test file so that each subsystem can be traced back
+to its verification source in the repository.
+
+\begin{table}[H]
+\centering
+\acceleraTableStyle
+\scriptsize
+\caption{Deployment Module Test Suite Verification Summary}
+\label{tab:deployment-test-summary}
+\begin{tabularx}{\textwidth}{p{0.29\textwidth}rrrX}
+\toprule
+\textbf{Test File} & \textbf{Cases} & \textbf{Passed} & \textbf{Failed} & \textbf{Verified Feature} \\
+\midrule
+\texttt{vcs\_test.py} & 14 & 14 & 0 & Registry snapshots, \texttt{HEAD}, status, and rollback restoration \\
+\texttt{modelservice\_test.py} & 6 & 6 & 0 & Artifact loading, idempotent loading, and preprocessor sequencing \\
+\texttt{schema\_validation\_test.py} & 8 & 8 & 0 & Column checks, type coercion, booleans, ranges, and allowed values \\
+\texttt{server\_test.py} & 9 & 9 & 0 & FastAPI routes, prediction responses, GUI rendering, and telemetry events \\
+\texttt{tracking\_test.py} & 3 & 3 & 0 & JSONL telemetry writing and summary aggregation \\
+\texttt{deployment\_test.py} & 11 & 11 & 0 & Docker, Heroku, SSH, EC2, model-path, and generated-file workflows \\
+\midrule
+\textbf{Total} & \textbf{51} & \textbf{51} & \textbf{0} & \textbf{All deployment checks passed} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\noindent The successful result confirms that the Deployment module operates as
+a reliable final stage for Accelera. It does not merely save model files; it
+validates the artifacts needed for serving, builds a deployable runtime
+package, protects inference through schema validation, exposes API behavior,
+records prediction activity, and verifies the command paths needed for local
+and remote deployment. This strengthens Accelera's position as an end-to-end
+machine-learning system that continues beyond training and evaluation into
+practical service delivery.
