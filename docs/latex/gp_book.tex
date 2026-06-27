@@ -30,9 +30,9 @@
 \usepackage{float}
 \usepackage{tabularx}
 \usepackage{array}
-\usepackage[none]{hyphenat}
-\setlength{\emergencystretch}{3em}
-\sloppy
+\usepackage{microtype}
+\setlength{\emergencystretch}{1.5em}
+\fussy
 
 % Unified table style
 \newcommand{\acceleraTableStyle}{%
@@ -300,12 +300,9 @@ OpenMP & Open Multi-Processing \\
 RMSE & Root Mean Squared Error \\
 RSS & Resident Set Size \\
 SMBO & Sequential Model-Based Optimization \\
-API & Application Programming Interface \\
-AST & Abstract Syntax Tree \\
 AWS & Amazon Web Services \\
 CI/CD & Continuous Integration and Continuous Deployment \\
 CLI & Command-Line Interface \\
-CPU & Central Processing Unit \\
 Docker & Containerization Platform \\
 EC2 & Elastic Compute Cloud \\
 Git & Distributed Version Control System \\
@@ -315,10 +312,7 @@ HTTP & Hypertext Transfer Protocol \\
 HTTPS & Hypertext Transfer Protocol Secure \\
 IP & Internet Protocol \\
 JSON & JavaScript Object Notation \\
-ML & Machine Learning \\
-OpenMP & Open Multi-Processing \\
 REST & Representational State Transfer \\
-RSS & Resident Set Size \\
 SSH & Secure Shell \\
 SVC & Support Vector Classifier \\
 URI & Uniform Resource Identifier \\
@@ -365,7 +359,6 @@ Mohamed Ashraf & \texttt{mohamed.abdelaziz03@eng-st.cu.edu.eg} & +2 01004538215 
 Nesma Osama & \texttt{nesma.ahmed03@eng-st.cu.edu.eg} & +2 01067193062 \\ \hline
 Mohamed Khater & \texttt{mk0015264@gmail.com} & +2 01068071299 \\ \hline
 Mazen Adel & \texttt{mez3n1151@gmail.com} & +2 01152794877 \\ \hline
-Mohamed Khater & \texttt{mohamed.khater03@eng-st.cu.edu.eg} & +2 01068071299 \\ \hline
 \end{tabularx}
 
 \end{table}
@@ -377,7 +370,7 @@ Mohamed Khater & \texttt{mohamed.khater03@eng-st.cu.edu.eg} & +2 01068071299 \\ 
 \begin{tabular}{|p{0.25\textwidth}|p{0.42\textwidth}|p{0.25\textwidth}|}
 \hline
 \textbf{Name} & \textbf{Email} & \textbf{Number} \\ \hline
-Salma Abdelmoniem & \underline{salmaabdelmotaleb@eng.cu.edu.eg}  & +2 01114302362 \\ \hline
+Salma Abdelmoniem & \texttt{salma.cufece@gmail.com}  & +2 01114302362 \\ \hline
 \end{tabular}
 \end{table}
 
@@ -405,10 +398,69 @@ metric evaluation, reporting, deployment, and comparison between several
 alternatives. When these steps are written as separate scripts, repeated work,
 unclear execution order, and performance bottlenecks become common problems.
 
-Accelera addresses this by combining six main units:
-auto\_preprocessing, accelera\_automl,
-accelera\_pipe, parallelizer, the benchmark platform, and
-the Deployment module.
+\medskip
+\noindent Accelera addresses this by combining six main units:
+\texttt{auto\_preprocessing}, \texttt{accelera\_automl},
+\texttt{accelera\_pipe}, \texttt{parallelizer}, deployment support, and the
+benchmark platform. Table~\ref{tab:intro-modules-overview} gives a quick
+overview of these modules and how they contribute to the full system.
+
+
+\begin{table}[H]
+\centering
+\acceleraTableStyle
+\caption{Main Accelera modules and their roles.}
+\label{tab:intro-modules-overview}
+\begin{tabular}{p{0.23\textwidth}p{0.34\textwidth}p{0.33\textwidth}}
+\toprule
+\textbf{Module} & \textbf{Main role} & \textbf{Why it matters} \\
+\midrule
+
+\texttt{auto\_preprocessing} &
+Prepares tabular, text, and image data using automated preprocessing steps. &
+Reduces repeated manual data-cleaning work and produces reusable preprocessing
+artifacts and reports. \\
+\midrule
+
+\texttt{accelera\_automl} &
+Searches for suitable classification and regression models under time and trial
+budgets. &
+Helps users compare model candidates systematically instead of manually testing
+each model. \\
+\midrule
+
+\texttt{accelera\_pipe} &
+Builds graph-based machine-learning workflows with preprocessing, model,
+prediction, metric, merge, and branch nodes. &
+Exposes workflow structure, supports branch execution, and allows fitted paths
+to be reused through an executed graph. \\
+\midrule
+
+\texttt{parallelizer} &
+Analyzes supported Python/C++ loop-heavy code, inserts safe OpenMP pragmas, and
+compiles native callable extensions. &
+Targets custom preprocessing bottlenecks that would otherwise remain slow in
+pure Python. \\
+\midrule
+
+Benchmark platform &
+Provides a prototype web platform for datasets, metrics, submissions, and
+leaderboard-style comparison. &
+Connects the framework to a future environment for fair pipeline evaluation and
+community comparison. \\
+\midrule
+
+Deployment &
+Transforms trained models and generated artifacts into deployable services
+using configuration files, model packaging, runtime validation, and deployment
+commands for local and cloud/server targets. &
+Bridges the gap between model development and real-world usage by making
+trained outputs accessible through service endpoints rather than leaving them
+only as local files. \\
+
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Motivation and Justification}
 
@@ -518,22 +570,22 @@ prediction service.
 \midrule
 
 Manual and repetitive data preparation &
-auto\_preprocessing &
+\texttt{auto\_preprocessing} &
 Automates common preprocessing and produces saved artifacts and reports. \\
 \midrule
 
 Time-consuming model selection &
-accelera\_automl &
+\texttt{accelera\_automl} &
 Searches candidate models and configurations under controlled budgets. \\
 \midrule
 
 Repeated work in branch-heavy workflows &
-accelera\_pipe &
+\texttt{accelera\_pipe} &
 Represents the workflow as a graph and exposes shared execution structure. \\
 \midrule
 
 Slow custom Python loops &
-parallelizer &
+\texttt{parallelizer} &
 Converts supported functions to native code and inserts safe OpenMP pragmas. \\
 \midrule
 
@@ -570,6 +622,10 @@ and benchmark-oriented evaluation.
 \begin{enumerate}
   \item Build an automated preprocessing module for tabular, text, and image
   datasets.
+
+  \item Support data cleaning, missing-value handling, categorical encoding,
+  robust scaling, TF-IDF text representation, image preparation, feature
+  selection, and report generation.
 
   \item Implement AutoML classifiers and regressors that search across supported
   model configurations using scoring metrics, cross-validation, time budgets,
@@ -614,10 +670,13 @@ benchmark-oriented evaluation, while also supporting the final step of turning
 trained artifacts into accessible services.
 \end{quote}
 
-Workflow complexity increases when preprocessing steps, branches, and candidate
-models grow, while execution performance may suffer from repeated work and slow
-Python loops. Accelera addresses both issues by combining high-level workflow
-automation with lower-level execution optimization.
+\medskip
+\noindent This problem has two sides. The first side is \textbf{workflow complexity}. As
+the number of preprocessing steps, branches, and candidate models increases, the
+workflow becomes harder to manage manually. The second side is
+\textbf{execution performance}. Even if the workflow is correct, it may repeat
+shared work or spend too much time in slow Python loops. Accelera addresses both
+sides by combining high-level automation with lower-level execution support.
 
 \section{Project Outcomes}
 
@@ -626,7 +685,7 @@ them. Each module provides a different part of the final system.
 
 \subsection*{Outcome 1: Automated preprocessing}
 
-The auto\_preprocessing module prepares datasets for machine-learning
+The \texttt{auto\_preprocessing} module prepares datasets for machine-learning
 models. For tabular data, it handles duplicates, missing values, column-type
 detection, categorical encoding, robust scaling, target processing, feature
 selection, and report generation. For text data, it applies cleaning,
@@ -636,7 +695,7 @@ set of processed arrays, saved preprocessors, selected features, and reports.
 
 \subsection*{Outcome 2: AutoML model search}
 
-The accelera\_automl module provides estimator-style AutoML classes for
+The \texttt{accelera\_automl} module provides estimator-style AutoML classes for
 classification and regression. It searches candidate configurations, evaluates
 them with cross-validation, supports warm-starting from dataset metafeatures,
 and can build voting or stacked ensembles. The outcome is a fitted final model,
@@ -644,15 +703,15 @@ best score, leaderboard, and run history.
 
 \subsection*{Outcome 3: Graph-based pipeline execution}
 
-The accelera\_pipe module provides a graph-based pipeline interface.
+The \texttt{accelera\_pipe} module provides a graph-based pipeline interface.
 It represents preprocessing, model, prediction, metric, branch, and merge
 operations as graph nodes. The output of a pipeline run includes predictions and
-an ExecutedGraph, which stores the selected fitted path for later use.
+an \texttt{ExecutedGraph}, which stores the selected fitted path for later use.
 This outcome gives the project its workflow-execution layer.
 
 \subsection*{Outcome 4: Source-level parallelization}
 
-The parallelizer module accelerates supported loop-heavy code. It can
+The \texttt{parallelizer} module accelerates supported loop-heavy code. It can
 process C/C++ code, supported Python code, custom Python functions, and
 transformer methods. It extracts loops, computes features, classifies
 parallelization opportunities, applies safety rules, inserts OpenMP pragmas, and
@@ -662,7 +721,7 @@ falls back to the original Python implementation.
 \subsection*{Outcome 5: Pipeline and parallelizer integration}
 
 One of the most important outcomes is the connection between
-accelera\_pipe and the parallelizer. When a preprocessing node
+\texttt{accelera\_pipe} and the \texttt{parallelizer}. When a preprocessing node
 contains a supported custom Python function, the pipeline attempts to optimize
 it before adding it to the graph. This allows the system to combine graph-level
 workflow execution with code-level acceleration.
@@ -678,7 +737,7 @@ These outcomes improve visibility and comparison.
 
 The Deployment module extends Accelera beyond experimentation by converting
 saved machine-learning artifacts into runnable services. It organizes
-config.json files, model pickle files, serving code, schema
+\texttt{config.json} files, model pickle files, serving code, schema
 validation, telemetry logging, Docker packaging, and target-specific commands
 for local containers, Heroku, and AWS EC2. This outcome is important because it
 allows Accelera to support the complete journey from building a model to making
@@ -728,7 +787,6 @@ supported cloud/server targets. \\
 \end{tabular}
 \end{table}
 
-\newpage
 \section{Document Organization}
 
 The rest of this report is organized into seven main parts: Chapter 2 presents the market visibility study, 
@@ -753,9 +811,9 @@ analysis to clarify how the project could be developed into a product or service
 isolated task. Some existing tools focus on preprocessing, others focus on model
 selection, others focus on competition platforms or code acceleration, and
 others focus only on hosting or cloud deployment.
-Accelera also can be used as a compination of five connected parts (end-2-end) E2E module:
-auto\_preprocessing, accelera\_automl,
-accelera\_pipe, parallelizer, the benchmark platform, and
+Accelera combines these directions through six connected parts:
+\texttt{auto\_preprocessing}, \texttt{accelera\_automl},
+\texttt{accelera\_pipe}, \texttt{parallelizer}, the benchmark platform, and
 the Deployment module.
 
 \section{Targeted Customers}
@@ -864,6 +922,65 @@ on only one part of the workflow. Some tools focus on preprocessing, some on
 AutoML, some on competitions, and some on code acceleration. Accelera is
 different because it tries to connect these ideas into one toolkit.
 
+\begin{table}[!htbp]
+\centering
+\acceleraTableStyle
+\scriptsize
+\renewcommand{\arraystretch}{1.08}
+\caption{Market comparison summary.}
+\label{tab:market-comparison}
+\begin{tabular}{p{0.22\textwidth}p{0.28\textwidth}p{0.19\textwidth}p{0.21\textwidth}}
+\toprule
+\textbf{Tool or platform} & \textbf{Main focus} & \textbf{Limitation} & \textbf{Accelera difference} \\
+\midrule
+
+\texttt{scikit-learn} &
+Machine-learning models, preprocessing tools, and linear pipelines. &
+Pipeline execution is mainly linear and does not focus on graph-based branch
+execution or custom code parallelization. &
+Adds graph-based pipeline execution and integration with the Parallelizer. \\
+\midrule
+
+AutoCleanML &
+Automatic data cleaning and preprocessing. &
+Focused mainly on data cleaning and does not cover the whole workflow. &
+Adds AutoML, graph pipelines, parallelization, reports, and benchmarks. \\
+\midrule
+
+Auto-sklearn / TPOT / AutoGluon &
+Automated model selection and machine-learning search. &
+Focus mainly on model search, not graph execution or source-level code
+parallelization. &
+Choose Accelera when AutoML must be part of an end-to-end workflow: it combines
+model search with preprocessing, graph pipelines, and the Parallelizer. \\
+\midrule
+
+Numba / Cython &
+Python performance acceleration. &
+Require user knowledge of acceleration syntax and do not manage ML workflow
+structure. &
+Provides an automatic attempt to optimize supported preprocessing functions
+inside the pipeline. \\
+\midrule
+
+Heroku &
+Cloud application hosting and container deployment. &
+Provides hosting infrastructure but does not manage ML artifacts, schema
+validation, or model version snapshots as part of the training workflow. &
+Connects model packaging, serving code, validation, telemetry, and Heroku
+container commands inside one ML-oriented deployment module. \\
+\midrule
+
+AWS EC2 &
+General-purpose virtual machines for cloud hosting. &
+Powerful but requires manual server access, SSH, Docker setup, port exposure,
+and operational knowledge. &
+Automates EC2-oriented file synchronization, remote Docker build/run commands,
+and health checks for Accelera model services. \\
+
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{AutoCleanML}
 
@@ -891,30 +1008,22 @@ closer to a complete workflow framework.
 
 \subsection{scikit-learn}
 
-scikit-learn is one of the strongest tools in the machine-learning
+\texttt{scikit-learn} is one of the strongest tools in the machine-learning
 market. It provides a wide range of models, preprocessing tools, metrics, and a
-simple Pipeline abstraction. For this reason, it is the most important
-competitor for accelera\_pipe.
+simple \texttt{Pipeline} abstraction. It is mature, widely used, and integrates
+well with the Python data-science ecosystem. Its pipeline interface is simple
+and reliable, which makes it useful for building standard machine-learning
+workflows.
 
-\textbf{Pros:}
-\begin{itemize}
-  \item Mature and widely used.
-  \item Provides many models, preprocessing utilities, and metrics.
-  \item Has a simple and reliable pipeline interface.
-  \item Integrates well with the Python data-science ecosystem.
-\end{itemize}
+\medskip
+\noindent Despite these strengths, the standard \texttt{scikit-learn} pipeline is mainly
+linear. Branch-heavy workflows may require repeated pipelines or external search
+utilities, and the library does not focus on native graph scheduling for
+pipeline branches. It also does not automatically convert supported custom
+preprocessing functions to C++ and OpenMP.
 
-\textbf{Cons:}
-\begin{itemize}
-  \item The standard pipeline is mainly linear.
-  \item Branch-heavy workflows may require repeated pipelines or external search
-  utilities.
-  \item It does not focus on native graph scheduling for pipeline branches.
-  \item It does not automatically convert supported custom preprocessing
-  functions to C++ and OpenMP.
-\end{itemize}
-
-Accelera uses \texttt{scikit-learn} as a strong baseline rather than ignoring
+\medskip
+\noindent Accelera uses \texttt{scikit-learn} as a strong baseline rather than ignoring
 it. The difference is that \texttt{accelera\_pipe} represents the workflow as a
 graph and integrates with the Parallelizer for supported custom preprocessing
 acceleration. For this reason, \texttt{scikit-learn} is the most important
@@ -973,23 +1082,20 @@ not by itself solve the machine-learning-specific work of collecting model
 artifacts, preserving deployment configuration, validating input schemas, and
 connecting a trained model to an inference API.
 
-\textbf{Pros:}
-\begin{itemize}
-  \item Provide public or cloud-hosted environments for running applications.
-  \item Reduce the need to own physical servers.
-  \item Support common deployment units such as containers, web services, or
-  virtual machines.
-\end{itemize}
+These platforms are useful because they give users public or cloud-hosted
+environments for running applications without owning physical servers. They
+also support common deployment units such as containers, web services, and
+virtual machines, which makes them suitable targets for publishing trained
+machine-learning services after the serving code has been prepared.
 
-\textbf{Cons:}
-\begin{itemize}
-  \item Usually require the user to prepare the ML serving code and runtime
-  dependencies separately.
-  \item Do not automatically understand Accelera model artifacts,
-  \texttt{config.json}, schema validation, or prediction telemetry.
-  \item General-purpose platforms may be difficult for beginners because they
-  involve CLI tools, SSH, ports, environment variables, and deployment logs.
-\end{itemize}
+However, these platforms are general-purpose hosting tools rather than
+machine-learning deployment systems. The user usually still needs to prepare
+the serving code, runtime dependencies, model-loading logic, and prediction
+API separately. They also do not automatically understand Accelera model
+artifacts, \texttt{config.json}, schema validation, or prediction telemetry.
+For beginners, this can add difficulty because the deployment process may
+involve CLI tools, SSH, ports, environment variables, service logs, and cloud
+configuration.
 
 Accelera's Deployment module is different because it is not only a hosting
 target. It is part of the ML workflow itself. It receives the outputs produced
@@ -1000,67 +1106,6 @@ and AWS EC2. This integration increases Accelera's market value because it
 makes the system closer to an end-to-end ML platform rather than only a model
 training toolkit.
 
-
-\begin{table}[!htbp]
-\centering
-\acceleraTableStyle
-\scriptsize
-\renewcommand{\arraystretch}{1.08}
-\caption{Market comparison summary.}
-\label{tab:market-comparison}
-\begin{tabular}{p{0.22\textwidth}p{0.28\textwidth}p{0.19\textwidth}p{0.21\textwidth}}
-\toprule
-\textbf{Tool or platform} & \textbf{Main focus} & \textbf{Limitation} & \textbf{Accelera difference} \\
-\midrule
-
-\texttt{scikit-learn} &
-Machine-learning models, preprocessing tools, and linear pipelines. &
-Pipeline execution is mainly linear and does not focus on graph-based branch
-execution or custom code parallelization. &
-Adds graph-based pipeline execution and integration with the Parallelizer. \\
-\midrule
-
-AutoCleanML &
-Automatic data cleaning and preprocessing. &
-Focused mainly on data cleaning and does not cover the whole workflow. &
-Adds AutoML, graph pipelines, parallelization, reports, and benchmarks. \\
-\midrule
-
-Auto-sklearn / TPOT / AutoGluon &
-Automated model selection and machine-learning search. &
-Focus mainly on model search, not graph execution or source-level code
-parallelization. &
-Combines AutoML with preprocessing, graph pipelines, and the Parallelizer. \\
-\midrule
-
-Numba / Cython &
-Python performance acceleration. &
-Require user knowledge of acceleration syntax and do not manage ML workflow
-structure. &
-Provides an automatic attempt to optimize supported preprocessing functions
-inside the pipeline. \\
-\midrule
-
-Heroku &
-Cloud application hosting and container deployment. &
-Provides hosting infrastructure but does not manage ML artifacts, schema
-validation, or model version snapshots as part of the training workflow. &
-Connects model packaging, serving code, validation, telemetry, and Heroku
-container commands inside one ML-oriented deployment module. \\
-\midrule
-
-AWS EC2 &
-General-purpose virtual machines for cloud hosting. &
-Powerful but requires manual server access, SSH, Docker setup, port exposure,
-and operational knowledge. &
-Automates EC2-oriented file synchronization, remote Docker build/run commands,
-and health checks for Accelera model services. \\
-
-\bottomrule
-\end{tabular}
-\end{table}
-
-\newpage
 \section{Business Case and Financial Analysis}
 
 Accelera can be developed as an open-source framework with optional hosted
@@ -3155,7 +3200,7 @@ final output.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.92\textwidth]{imgs/block_diagram.png}
+\includegraphics[width=0.92\textwidth]{imgs/block_diagram_automl.jpeg}
 \caption{Block diagram of the Accelera AutoML module.}
 \label{fig:gp-automl-block-diagram}
 \end{figure}
@@ -4140,7 +4185,6 @@ manually by comparing the actual output with the expected output. In some
 cases, the results were compared with another tool, to check if
 the preprocessing results were reasonable.
 \subsection{Module Testing}
-\input{sections/results-modhamed}
 \subsubsection{Auto Preprocessing Module}
 Most of the preprocessing functions were tested using unit tests. These tests
 were used to check validation rules, artifact saving,and feature transformation. Real datasets were also used to test the system in a
@@ -4362,9 +4406,16 @@ TPOT         & 0.877654 & 3953.78 & 8 & 1 \\
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{imgs/average_accuracy_time.png}
-\caption{Mean classification accuracy and runtime for the evaluated AutoML systems.}
-\label{fig:automl_classification_average}
+\includegraphics[width=0.90\textwidth]{imgs/average_accuracy_cls.png}
+\caption{Mean classification accuracy for the evaluated AutoML systems.}
+\label{fig:automl_classification_average_accuracy}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\textwidth]{imgs/average_runtime_cls.png}
+\caption{Mean classification runtime for the evaluated AutoML systems.}
+\label{fig:automl_classification_average_runtime}
 \end{figure}
 
 \begin{figure}[H]
@@ -4410,9 +4461,16 @@ FLAML        & 0.522743 & 0.497530 & 1863.85 & 4 & 4 & 4 & 2 \\
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{imgs/reg_average_r2_time.png}
-\caption{Mean regression $R^2$ and runtime for the evaluated AutoML systems.}
-\label{fig:automl_regression_average}
+\includegraphics[width=0.90\textwidth]{imgs/average_r2_reg.png}
+\caption{Mean regression $R^2$ for the evaluated AutoML systems.}
+\label{fig:automl_regression_average_r2}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\textwidth]{imgs/average_runtime_reg.png}
+\caption{Mean regression runtime for the evaluated AutoML systems.}
+\label{fig:automl_regression_average_runtime}
 \end{figure}
 
 \begin{figure}[H]
@@ -4448,6 +4506,8 @@ relative to Auto-sklearn, accompanied in both cases by substantial runtime
 reductions. The complete stored artifacts and reproduction instructions are
 retained with the implementation so that the reported measurements can be
 inspected and rerun.
+
+\input{sections/results-modhamed}
 
 \subsubsection{Deployment Module}
 \input{sections/results-deployment}
@@ -7190,7 +7250,7 @@ final output.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.92\textwidth]{imgs/block_diagram.png}
+\includegraphics[width=0.92\textwidth]{imgs/block_diagram_automl.jpeg}
 \caption{Block diagram of the Accelera AutoML module.}
 \label{fig:gp-automl-block-diagram}
 \end{figure}
@@ -7943,15 +8003,6 @@ forward selection. \\
   \item The evaluator assumes independent and identically distributed samples.
   Classification uses stratified splitting where possible, while regression uses
   ordinary K-fold or shuffle splitting.
-  \item Specialized grouped, temporal, or spatial validation is outside the
-  current design.
-  \item Optional libraries such as XGBoost, LightGBM, and CatBoost are used only
-  when available in the environment.
-  \item Trial failures, timeouts, and estimator exceptions must be recorded in
-  the run history rather than crashing the full search.
-  \item Search should remain reproducible when a random state is provided.
-  \item Warm-start metadata must be stored relative to the package so it works
-  after installation.
 \end{itemize}
 
 \subsection{Module Summary}
@@ -8339,9 +8390,16 @@ TPOT         & 0.877654 & 3953.78 & 8 & 1 \\
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{imgs/average_accuracy_time.png}
-\caption{Mean classification accuracy and runtime for the evaluated AutoML systems.}
-\label{fig:automl_classification_average}
+\includegraphics[width=0.90\textwidth]{imgs/average_accuracy_cls.png}
+\caption{Mean classification accuracy for the evaluated AutoML systems.}
+\label{fig:automl_classification_average_accuracy}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\textwidth]{imgs/average_runtime_cls.png}
+\caption{Mean classification runtime for the evaluated AutoML systems.}
+\label{fig:automl_classification_average_runtime}
 \end{figure}
 
 \begin{figure}[H]
@@ -8387,9 +8445,16 @@ FLAML        & 0.522743 & 0.497530 & 1863.85 & 4 & 4 & 4 & 2 \\
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{imgs/reg_average_r2_time.png}
-\caption{Mean regression $R^2$ and runtime for the evaluated AutoML systems.}
-\label{fig:automl_regression_average}
+\includegraphics[width=0.90\textwidth]{imgs/average_r2_reg.png}
+\caption{Mean regression $R^2$ for the evaluated AutoML systems.}
+\label{fig:automl_regression_average_r2}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\textwidth]{imgs/average_runtime_reg.png}
+\caption{Mean regression runtime for the evaluated AutoML systems.}
+\label{fig:automl_regression_average_runtime}
 \end{figure}
 
 \begin{figure}[H]
@@ -9541,247 +9606,108 @@ score, and displays the result in the leaderboard.
 Also, the number of rows in the prediction file must match the number of rows
 in the target label file.
 
-\mbox{}
-\chapter{Feasibility Study}
+\chapter{Code Documentation}
 
-\section{Purpose and Evaluation Criteria}
-This chapter checks whether Accelera is practical to build, run, and improve.
-The study covers the full project: Auto Preprocessing, AutoML, Accelera Pipe,
-the Code Parallelizer, the Benchmark Platform, and Deployment. Since this is a
-student project and some parts are still prototypes, the chapter separates what
-already works from what still needs more production-level work.
+\section{AutoML Code Documentation}
+The main AutoML source package is located under
+\modulepath{accelera/src/accelera\_automl/}. The public API wrappers are under
+\modulepath{accelera/api/accelera\_automl/}. This section maps the AutoML design
+to the source-code organization.
 
-The evaluation is based on seven simple points: technical feasibility,
-operational feasibility, economic feasibility, schedule feasibility, legal and
-ethical feasibility, security feasibility, and scalability. In simple words, the
-study asks whether the tools exist, whether users can run the system, whether
-the cost is reasonable, whether the work can be delivered in stages, whether the
-project respects data and license rules, whether it is safe to use, and whether
-it can grow later.
-
-In this chapter, a module is called \textbf{feasible} when its main workflow can
-be implemented and tested with available tools. It is called \textbf{feasible
-with constraints} when it can work, but still depends on extra requirements such
-as compilers, cloud accounts, hardware limits, or stronger production controls.
-A \textbf{prototype-feasible} result means that the idea and core workflow are
-shown, but the module still needs more security, testing, or scaling before
-public production use.
-
-\section{Technical Feasibility}
-\subsection{Architecture and Technology Availability}
-Accelera is technically feasible because it is built from common and available
-technologies. Python is used for the public APIs and machine-learning libraries
-such as NumPy, Pandas, and Scikit-learn. C++20 and PyBind11 are used for the
-native graph backend and Python bindings. CMake handles native builds, while
-LLVM/Clang and OpenMP support loop analysis and parallel code generation. The
-web platform uses React, Express, and MongoDB. The Deployment module uses
-FastAPI and Docker, with optional commands for Heroku and EC2. These tools are
-well known and do not require special hardware.
-
-{\acceleraTableStyle
-\begin{longtable}{p{0.17\textwidth} p{0.39\textwidth} p{0.36\textwidth}}
-\caption{Module-level technical feasibility assessment.}
-\label{tab:module-technical-feasibility} \\
-\hline
-\textbf{Module} & \textbf{Implementation evidence and resources} &
-\textbf{Constraints and assessment} \\
-\hline
-\endfirsthead
-
-\hline
-\textbf{Module} & \textbf{Implementation evidence and resources} &
-\textbf{Constraints and assessment} \\
-\hline
-\endhead
-
-\hline
-\multicolumn{3}{r}{\small Continued on the next page} \\
-\hline
-\endfoot
-
-\hline
-\endlastfoot
-
-Auto Preprocessing & Uses Pandas, NumPy, Scikit-learn, text tools, image tools,
-saved transformers, and HTML reports. Training and testing can reuse saved
-preprocessing artifacts. & \textbf{Feasible.} It needs valid input columns and
-enough storage for reports and artifacts. Very unusual data types may need more
-rules. \\
-\hline
-
-AutoML & Supports classification and regression search, trial and time budgets,
-meta-learning support, and ensembles using existing estimator libraries. &
-\textbf{Feasible with constraints.} Search time grows with dataset size,
-number of trials, and number of model families. Fixed seeds and versions are
-needed for repeatable results. \\
-\hline
-
-Accelera Pipe & Uses a Python graph API, a C++ execution backend, PyBind11
-bindings, branch scheduling, shared nodes, memory release, metrics, path
-selection, and pickle saving/loading. & \textbf{Feasible with constraints.}
-Native compilation is required. Parallel branches can improve speed, but branch
-width and dataset size must be controlled to avoid high memory use. \\
-\hline
-
-Code Parallelizer & Uses Python-to-C++ conversion, Clang AST loop extraction,
-safety rules, classifier support, OpenMP insertion, PyBind11 compilation, and a
-compiled-module cache. & \textbf{Feasible with constraints.} It supports only a
-documented subset of Python and analyzable loops. LLVM, Clang, a C++ compiler,
-and OpenMP must be available. Unsupported functions fall back to Python. \\
-\hline
-
-Benchmark Platform & Uses a React frontend, an Express backend, MongoDB,
-authentication helpers, submission records, metrics, and scoring scripts. &
-\textbf{Prototype-feasible.} The main web technologies are mature, but public use
-needs stronger upload isolation, authorization tests, rate limiting, monitoring,
-backups, and more backend tests. \\
-\hline
-
-Deployment & Uses FastAPI serving, input validation, telemetry, model artifact
-loading, Docker packaging, and commands for local Docker, Heroku, and EC2. &
-\textbf{Feasible with constraints.} Local Docker deployment is practical. Remote
-deployment needs accounts, credentials, network access, supported CLIs, health
-checks, and proper secret management. \\
-\hline
-
-\end{longtable}
-}
-
-
-\subsection{Integration and Portability}
-Integration is feasible because the modules exchange normal artifacts such as
-arrays, data frames, fitted models, preprocessing objects, graph objects, metric
-results, configuration files, and saved models. Auto Preprocessing can prepare
-data for AutoML or Accelera Pipe. Accelera Pipe can call the Parallelizer for
-supported custom preprocessing functions. Selected models or executed graphs can
-then be used by the Deployment module. The Benchmark Platform is a separate path
-for comparing prediction files and showing results.
-
-The package supports Python 3.9 or newer and uses CMake with C++20. Linux and
-Windows are realistic targets because the build logic includes platform-specific
-LLVM discovery and installation paths. However, this does not mean everything is
-zero-configuration. Compiler versions, OpenMP runtimes, Node.js, MongoDB,
-Docker, and cloud CLIs still need clear documentation and testing. Users can
-still run pure-Python parts even if the native graph or AST tools are not
-installed.
-
-\section{Operational Feasibility}
-Accelera is operationally feasible for students, researchers, and data-science
-developers who already know basic Python and machine-learning workflows. The
-APIs use familiar words such as \texttt{fit}, \texttt{transform}, and
-\texttt{predict}. Reports, graph visualizations, metrics, examples, and saved
-artifacts make the output easier to understand. The project is modular, so users
-can run one module without running the full web platform.
-
-{\acceleraTableStyle
-\begin{longtable}{p{0.22\textwidth} p{0.32\textwidth} p{0.38\textwidth}}
-\caption{Operational workflows and requirements.}
-\label{tab:operational-feasibility} \\
-\toprule
-\textbf{Workflow} & \textbf{Main user and output} &
-\textbf{What is needed} \\
-\midrule
-\endfirsthead
-\toprule
-\textbf{Workflow} & \textbf{Main user and output} &
-\textbf{What is needed} \\
-\midrule
-\endhead
-\bottomrule
-\endlastfoot
-Prepare a dataset & Data scientist; processed data, saved artifacts, and a
-report. & Correct target and feature settings, writable output folders, and
-consistent use of training transformations during testing. \\
-\hline
-Search for a model & Data scientist; ranked trials, selected model, and
-optional ensemble. & Clear time/trial budget, suitable metric, fixed seed, and
-enough memory for candidate evaluation. \\
-\hline
-Build a graph pipeline & Python developer; validation results and an executed
-graph. & Native graph binding, compatible nodes, validation data for selecting a
-path, and memory-aware branch design. \\
-\hline
-Parallelize code & Developer who needs speed; annotated C++ or compiled Python
-callable. & Supported source syntax, compiler toolchain, correctness comparison,
-and timing comparison with the original code. \\
-\hline
-Run a benchmark & Platform admin and participants; scored submissions and a
-leaderboard. & Running frontend/backend, database connection, available dataset,
-metric definition, user controls, and submission validation. \\
-\hline
-Deploy a model & ML or DevOps user; local or remote prediction service. & Valid
-model/config files, Docker or provider tools, credentials, network access,
-monitoring, and rollback plan. \\
-\end{longtable}
-}
-
-The main operational challenge is installation. A full setup may include Python,
-C++ tools, Node.js, MongoDB, Docker, and optional cloud tools. This is acceptable
-for a modular research project, but the user experience can be improved with
-version checks, clearer error messages, prebuilt wheels, containerized services,
-and smoke tests. The Parallelizer fallback also helps because unsupported code
-continues to run in Python instead of breaking the full workflow.
-
-
-\section{Performance, Scalability, and Maintenance Feasibility}
-Accelera can scale on one machine and can also grow at service boundaries, but
-each module has a different limit. Auto Preprocessing is limited mainly by data
-size and transformation cost. AutoML is limited by the number and cost of trials.
-Accelera Pipe is limited by branch width, model training time, and memory. The
-Parallelizer is limited by the supported source patterns and whether the target
-loop actually benefits from parallelism. The Benchmark Platform is limited by
-database traffic, storage, and submissions. Deployment is limited by request
-rate, model latency, container resources, and telemetry growth.
-
-Some controls already support moderate workloads. AutoML has time and trial
-budgets. Accelera Pipe releases intermediate arrays after their last consumer and
-keeps node caching optional. The Parallelizer caches generated and compiled code.
-Docker helps make deployment repeatable, and MongoDB stores benchmark records.
-Further scaling needs load tests, queues, artifact cleanup rules, indexes,
-isolation, and monitoring. Parallel execution should be enabled based on timing
-measurements, not just assumed to help every workload.
-
-Maintenance is feasible because the modules are separated, but the dependency
-surface is large. The project should clearly define supported Python, Node.js,
-compiler, LLVM, database, and cloud-tool versions. CI should build native modules
-on Linux and Windows, run Python tests, lint frontend/backend code, build Docker
-images, and run a small end-to-end test. Generated caches and models should store
-version metadata so old artifacts can be rejected or rebuilt safely.
-
-\section{Overall Feasibility Decision}
 \begin{table}[H]
 \centering
-\caption{Overall project feasibility decision.}
-\label{tab:overall-feasibility-decision}
 \acceleraTableStyle
-\begin{tabularx}{\textwidth}{p{0.22\textwidth} p{0.22\textwidth} X}
+\caption{Main implementation units of Accelera AutoML}
+\label{tab:appendix_automl_implementation_units}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.43\textwidth}X}
 \toprule
-\textbf{Dimension} & \textbf{Decision} & \textbf{Condition} \\
+\textbf{File or directory} & \textbf{Responsibility} \\
 \midrule
-Technical & Feasible with constraints & Keep native toolchain support and
-document module limits. \\
-\hline
-Operational & Feasible & Keep modular workflows, examples, diagnostics, and
-clear artifacts. \\
-\hline
-Security & Prototype-feasible & Add isolation, authentication, secret management,
-artifact trust, and public-service hardening. \\
-\hline
-Scalability & Feasible for moderate workloads & Measure memory and latency,
-limit concurrency, and scale services based on demand. \\
+\modulepath{base.py} &
+Shared estimator lifecycle, validation, fitted state, leaderboard, and
+run-history access. \\
+\midrule
+\modulepath{classification.py} &
+Classification defaults and task-specific engine construction. \\
+\midrule
+\modulepath{regression.py} &
+Regression defaults and task-specific engine construction. \\
+\midrule
+\modulepath{core/automl.py} &
+AutoML orchestration, final model fitting, compatibility checks, and ensemble
+selection. \\
+\midrule
+\modulepath{components/} &
+Model registries, hyperparameter definitions, activation conditions, and
+estimator factories. \\
+\midrule
+\modulepath{configspace\_search\_space.py} &
+Task-specific conditional search-space assembly and configuration conversion. \\
+\midrule
+\modulepath{evaluation.py} &
+Fidelity-aware model construction, preprocessing comparison, cross-validation,
+and metric-to-cost conversion. \\
+\midrule
+\modulepath{optimization/smac\_optimizer.py} &
+Trial scheduling, surrogate modelling, expected improvement, promotions,
+parallel workers, and timeout control. \\
+\midrule
+\modulepath{meta\_learning/} &
+Metafeature extraction, similarity ranking, and warm-start retrieval. \\
+\midrule
+\modulepath{meta\_learning\_data/} &
+Packaged historical classification and regression metadata used for warm
+starts. \\
+\midrule
+\modulepath{stacked\_ensemble.py} &
+Classification adapters, bagging, forward selection, and stacked
+classification. \\
+\midrule
+\begin{tabular}[t]{@{}l@{}}\modulepath{stacked\_ensemble\_}\\\modulepath{regression.py}\end{tabular} &
+Regression stacking and forward selection. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-The final decision is that Accelera is feasible as an academic, research, and
-controlled prototype platform. The main module workflows use available
-technologies and can be tested in the repository. The project is also practical
-for local and small-team use when dependencies and resource limits are respected.
-Public production use is not fully complete yet. The Benchmark Platform and
-remote Deployment paths still need stronger security, load testing, monitoring,
-backups, and clear ownership. These missing parts do not make the design wrong;
-they show the next engineering step needed to move from a working prototype to a
-reliable production service.
+\noindent The public estimator lifecycle starts when the user calls
+\texttt{fit}. The estimator validates \(X\) and \(y\), resets any previous
+fitted state, builds the task-specific engine, runs the search, and stores the
+returned result. Prediction methods validate the input and delegate to the
+selected final model. Calling prediction before fitting raises an explicit
+runtime error.
 
+\noindent The stored result includes the best individual model, optional
+ensemble, selected final model, best score, leaderboard, and detailed
+run-history records. These records make the module inspectable because they
+preserve both successful and failed trials.
+
+\chapter{Feasibility Study}
+
+\section{AutoML Feasibility}
+The AutoML module is technically feasible because it is built on established
+Python machine-learning libraries such as Scikit-learn and is integrated within
+the existing Accelera package structure. The implementation does not require
+specialized hardware and can run on standard CPU-based environments, although
+larger search budgets and larger datasets require more computation time.
+
+\noindent From an operational perspective, the module is feasible because it
+provides a simple Scikit-learn-style interface. Users can create an AutoML
+classifier or regressor, call \texttt{fit}, and then use standard methods such
+as \texttt{predict}, \texttt{score}, and \texttt{return\_leaderboard}. This
+makes the system suitable for users who want automated model selection without
+manually testing many algorithms and hyperparameter settings.
+
+\noindent The project is also economically feasible because it mainly depends on
+open-source software tools and does not require paid cloud services or
+commercial AutoML platforms. Reusing the same module across multiple
+classification and regression tasks can reduce the manual effort needed for
+model selection, tuning, and comparison.
+
+\noindent The main limitation is computational cost. AutoML search can be
+time-consuming, especially when many models, folds, and trials are evaluated.
+However, this cost is controlled through time budgets, per-trial timeouts,
+multi-fidelity evaluation, and configurable search settings. Therefore, the
+module is feasible as a practical AutoML extension for the Accelera framework.
 
 \end{document}
