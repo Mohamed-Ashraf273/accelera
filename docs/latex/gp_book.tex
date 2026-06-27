@@ -1640,49 +1640,6 @@ Benchmark Platform, and Deployment. The blue arrows in the diagram represent
 standalone or module-level flows, while the red arrows represent the end-to-end
 workflow path.
 
-\begin{table}[H]
-\centering
-\acceleraTableStyle
-\caption{Main blocks in the Accelera architecture.}
-\label{tab:block-diagram-modules}
-\begin{tabularx}{\textwidth}{p{0.24\textwidth}X X}
-\toprule
-\textbf{Block} & \textbf{Main responsibility} & \textbf{Output} \\
-\midrule
-
-Auto Preprocessing &
-Prepares datasets according to their type: tabular, text, or image. &
-Processed data, reports, and saved preprocessing artifacts. \\
-\midrule
-
-Accelera AutoML &
-Searches for good model and preprocessing configurations. &
-Best model, score, leaderboard, and run history. \\
-\midrule
-
-Accelera Pipe &
-Builds and executes graph-based machine-learning workflows. &
-Predictions, executed graph, selected path, and reports. \\
-\midrule
-
-Parallelizer &
-Optimizes supported loop-heavy Python/C++ code using analysis, safety rules,
-OpenMP, compilation, and caching. &
-Parallelized C++ code or optimized Python-callable native module. \\
-\midrule
-
-Benchmark Platform &
-Evaluates user prediction files against benchmark ground truth. &
-Score, ranking, and benchmark results. \\
-\midrule
-
-Deployment &
-Turns a saved model or pipeline into a deployed service. &
-Model URL, service endpoint, and optional inference UI. \\
-
-\bottomrule
-\end{tabularx}
-\end{table}
 
 \subsubsection*{Auto Preprocessing flow}
 
@@ -1740,39 +1697,39 @@ continuing to deployment. \\
 \end{tabularx}
 \end{table}
 
-\subsubsection*{Accelera Pipe and Parallelizer interaction}
+\subsubsection*{Accelera Pipe module}
 
-Accelera Pipe is the graph-execution part of the system. It represents the
-workflow as a graph of nodes. These nodes may represent preprocessing, model
-training, prediction, metric evaluation, merging, branching, and input/output
-operations.
+Accelera Pipe is the graph-execution module of the system. Its role is to let the
+user define a machine-learning workflow as a graph instead of a fixed linear
+sequence. Each graph node represents one operation in the workflow, such as data
+input, preprocessing, model training, prediction, metric evaluation, merging, or
+branching. The edges between nodes describe data dependencies, meaning that a
+node can execute only after its required source nodes have produced their
+outputs.
 
-A key feature is the interaction between Accelera Pipe and the Parallelizer. If
-a graph preprocessing node contains a supported custom method, the graph can send
-that method to the Parallelizer. The Parallelizer then tries to optimize it and
-return an optimized callable. After that, the optimized method can be attached
-back to the graph.
+This design allows Accelera Pipe to support workflows that are more flexible
+than a traditional sequential pipeline. For example, the graph may contain
+multiple model branches, shared preprocessing nodes, or metric nodes used to
+select the best path. The module is also responsible for managing execution
+order, selected-path extraction, persistence, and intermediate-memory lifetime.
+After training, the selected fitted path can be stored in an executed graph so it
+can be reused later for inference without keeping unnecessary temporary training
+data.
 
-\begin{enumerate}
-  \item The user defines a graph workflow in \texttt{accelera\_pipe}.
-  \item The graph detects a supported custom preprocessing method.
-  \item The method is sent to the Parallelizer.
-  \item The Parallelizer analyzes, rewrites, compiles, and caches the optimized
-  implementation when possible.
-  \item The optimized method is returned and reattached to the graph.
-  \item The graph continues execution using either the optimized method or the
-  original method if optimization fails.
-\end{enumerate}
+Accelera Pipe therefore works at the workflow level. It does not only run a list
+of steps; it manages how the steps are connected, when they are executed, which
+branches are selected, and which intermediate results can be released safely.
 
-This interaction is important because it connects workflow-level optimization
-with code-level optimization. Accelera Pipe manages the execution graph, while
-the Parallelizer attempts to speed up supported loop-heavy custom code inside
-that graph.
 
-\subsubsection*{Parallelizer flow}
+\subsubsection*{Code Parallelizer module}
 
-The Parallelizer block accepts several kinds of input. This makes it usable both
-as a standalone module and as an internal acceleration module for Accelera Pipe.
+The Code Parallelizer is the code-level optimization module of the system. Its
+main role is to analyze supported loop-heavy code and attempt to accelerate it
+using C++ and OpenMP. The module can be used as a standalone tool or as an
+internal optimization step when Accelera Pipe receives a custom preprocessing
+function.
+
+The Parallelizer accepts several kinds of input:
 
 \begin{itemize}
   \item C/C++ file or source code.
@@ -1781,16 +1738,26 @@ as a standalone module and as an internal acceleration module for Accelera Pipe.
   \item Custom transformer method.
 \end{itemize}
 
-After receiving the input, the Parallelizer normalizes it. If the input is
-supported Python code, it is converted to C++ first. Then the module extracts
-loops using a Clang AST based analysis stage. After loop extraction, it computes
-features such as memory access, dependencies, reductions, branches, and function
-calls. These features are used with a classifier and rule-based safety checks to
-decide whether a loop can be parallelized.
+After receiving the input, the module first normalizes it into a form that can
+be analyzed. If the input is supported Python code, it is converted into C++ so
+that both Python-originated and native C/C++ code can follow the same analysis
+path. The module then extracts loops using a Clang AST based analysis stage.
+After loop extraction, it computes features such as memory access patterns,
+dependencies, reductions, branches, nested loops, function calls, and
+vectorization potential.
+
+These features are passed through a classifier and combined with deterministic
+rule-based safety checks. This is important because the classifier alone is not
+trusted to change program semantics. If the loop is considered safe, the module
+inserts an OpenMP pragma such as \texttt{\#pragma omp parallel for}. If the loop
+matches a reduction pattern, the module can generate an OpenMP reduction clause.
+If the loop is unsafe or unsupported, it is left unchanged.
 
 \begin{table}[!htbp]
 \centering
-\acceleraTableStyle
+\normalsize
+\renewcommand{\arraystretch}{1.08}
+\setlength{\tabcolsep}{4pt}
 \caption{Parallelizer stages.}
 \label{tab:parallelizer-stages}
 \begin{tabularx}{\textwidth}{p{0.23\textwidth}X}
@@ -1805,7 +1772,7 @@ for analysis. \\
 
 Python-to-C++ conversion &
 Converts supported Python code into C++ so it can enter the same loop-analysis
-path. \\
+path as native C/C++ code. \\
 \midrule
 
 Loop extraction &
@@ -1818,7 +1785,8 @@ function calls, and vectorization potential. \\
 \midrule
 
 Safety decision &
-Combines classifier output with deterministic rule-based checks. \\
+Combines classifier output with deterministic rule-based checks to avoid unsafe
+parallelization. \\
 \midrule
 
 Pragma insertion &
@@ -1836,6 +1804,34 @@ possible. \\
 The final pragma generation is intentionally rule-based. This makes the behavior
 safer and easier to inspect, especially when the available data for fully
 AI-generated pragma generation is limited or synthetic.
+
+
+\subsubsection*{Interaction between Accelera Pipe and the Parallelizer}
+
+The two modules interact at custom preprocessing nodes. If an Accelera Pipe graph
+contains a preprocessing node with a supported custom method, the graph can send
+that method to the Parallelizer before storing or executing it. The Parallelizer
+then attempts to analyze, rewrite, compile, and cache an optimized version of the
+method. If successful, the optimized callable is attached back to the same graph
+node. If optimization fails, the original method is kept.
+
+\begin{enumerate}
+  \item The user defines a graph workflow in \texttt{accelera\_pipe}.
+  \item The graph detects a supported custom preprocessing method.
+  \item The method is sent to the Parallelizer.
+  \item The Parallelizer analyzes, rewrites, compiles, and caches the optimized
+  implementation when possible.
+  \item The optimized callable is returned and reattached to the graph node.
+  \item The graph continues execution using either the optimized method or the
+  original method if optimization fails.
+\end{enumerate}
+
+This interaction connects workflow-level optimization with code-level
+optimization. Accelera Pipe controls the structure and execution of the machine
+learning graph, while the Parallelizer attempts to speed up supported custom
+code inside that graph. As a result, the system can optimize both the way the
+workflow is scheduled and the way expensive preprocessing code is executed.
+
 
 \subsubsection*{Benchmark Platform flow}
 
@@ -1955,8 +1951,6 @@ numerical representation suitable for machine learning models.
 \noindent It supports image classification by reading images from class
 folders, validating image files, resizing images, applying augmentation, normalizing pixel values, and
 preparing the data loaders needed for training.
-
-
 
 
 \subsection{Modular Decomposition}
