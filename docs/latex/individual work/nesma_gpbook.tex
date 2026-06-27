@@ -294,7 +294,7 @@ In many machine learning projects, building the model is not the only important 
 
 \noindent Accelera tries to make these steps easier by providing them in one framework. The Auto Preprocessing module is responsible for preparing the data automatically. It applies the needed preprocessing steps and saves the fitted objects, such as encoders and scalers, so the same steps can be used later on new data. This is important because using different preprocessing steps between training and testing can give wrong results.\\
 
-\noindent The Accelera Pipeline module helps the user evaluate and understand pipeline results in a clearer way. Metric nodes calculate the evaluation results during the pipeline flow, while the reporting part shows the generated graphs, explains the different branches, and allows the user to compare the results of these branches. Instead of only displaying numbers in the terminal, the module creates HTML reports that include graphs, tables, and metric summaries.\\
+\noindent The Accelera Pipe module helps the user evaluate and understand pipeline results in a clearer way. Metric nodes calculate the evaluation results during the pipeline flow, while the reporting part shows the generated graphs, explains the different branches, and allows the user to compare the results of these branches. Instead of only displaying numbers in the terminal, the module creates HTML reports that include graphs, tables, and metric summaries.\\
 
 \noindent The Benchmarking module is used when different users want to compare their results on the same task. The benchmark creator prepares the test data and keeps the correct target values hidden. Then, users submit their predictions, and the system evaluates them using the same metric. This makes the comparison fair because all submissions are tested using the same rules.\\
 
@@ -304,16 +304,16 @@ In many machine learning projects, building the model is not the only important 
 
 In machine learning projects, preparing the data and understanding the results are important steps before and after model training. However, these steps may become difficult when they are done manually, especially when the dataset contains different types of data or when the user needs to repeat the same process many times.\\
 
-\noindent This project focuses on improving these steps inside Accelera. It aims to support the user during data preprocessing, pipeline execution, pipeline reporting, and benchmarking. The Auto Preprocessing module prepares different types of datasets for machine learning tasks. The Accelera Pipeline module includes metric nodes for calculating evaluation results and reporting classes for presenting pipeline outputs in a clear form using reports, graphs, tables, and metric summaries. The Benchmarking module gives users a fair way to submit their predictions and compare their results using the same evaluation rules.\\
+\noindent This project focuses on improving these steps inside Accelera. It aims to support the user during data preprocessing, pipeline execution, pipeline reporting, and benchmarking. The Auto Preprocessing module prepares different types of datasets for machine learning tasks. The Accelera Pipe module includes metric nodes for calculating evaluation results and reporting classes for presenting pipeline outputs in a clear form using reports, graphs, tables, and metric summaries. The Benchmarking module gives users a fair way to submit their predictions and compare their results using the same evaluation rules.\\
 
 \noindent the main objective of this work is to make the machine learning workflow more organized, easier to understand, and less dependent on manual steps.\\
 
 
 \section{Project Outcomes}
-The implemented work produces three main outcomes. First, the Auto Preprocessing module prepares tabular, text, and image datasets and saves the fitted artifacts needed for later testing. Second, the Accelera Pipeline module calculates metric results through metric nodes and generates readable pipeline outputs using HTML pages, tables, graphs, and metric summaries. Third, the Benchmarking module supports benchmark creation, submission validation, scoring, and leaderboard display.
+The implemented work produces three main outcomes. First, the Auto Preprocessing module prepares tabular, text, and image datasets and saves the fitted artifacts needed for later testing. Second, the Accelera Pipe module calculates metric results through metric nodes and generates readable pipeline outputs using HTML pages, tables, graphs, and metric summaries. Third, the Benchmarking module supports benchmark creation, submission validation, scoring, and leaderboard display.
 
 \section{Document Organization}
-Chapter 2 summarizes the related concepts and previous work. Chapter 3 explains the system design and architecture of Auto Preprocessing, the Accelera Pipeline module, and Benchmarking. Chapter 4 presents testing and comparative evaluation. Chapter 5 concludes the report and lists future improvements. The user guide is in the appendix.
+Chapter 2 summarizes the related concepts and previous work. Chapter 3 explains the system design and architecture of Auto Preprocessing, the Accelera Pipe module, and Benchmarking. Chapter 4 presents testing and comparative evaluation. Chapter 5 concludes the report and lists future improvements. The user guide is in the appendix.
 
 
 \chapter{Literature Survey}
@@ -541,7 +541,7 @@ metrics where higher is better and metrics where lower is better.
 
 \chapter{System Design and Architecture}
 \label{chap:system design}
-This chapter explains the design of the modules included in this individual report. The main modules are Auto Preprocessing, the Accelera Pipeline module, and the Benchmarking Platform.
+This chapter explains the design of the modules included in this individual report. The main modules are Auto Preprocessing, the Accelera Pipe module, and the Benchmarking Platform.
 \section{Overview and Assumptions}
 The design of these modules depends on some assumptions.
 \subsection{Auto Preprocessing Assumptions}
@@ -569,9 +569,9 @@ does not cause data leakage, so the platform can evaluate submissions fairly.
   submit predictions in the required format, so the scoring script can calculate
   the result correctly.
 \end{itemize}
-\subsection{Accelera Pipeline Module Assumptions}
+\subsection{Accelera Pipe Module Assumptions}
  
-The Accelera Pipeline module depends on the following assumptions:
+The Accelera Pipe module depends on the following assumptions:
 
 \begin{itemize}
   \item \textbf{Metric node assumption:} The pipeline is assumed to pass the
@@ -593,7 +593,7 @@ The Accelera Pipeline module depends on the following assumptions:
 
 \chapter{System Architecture}
 
-This section explains the implemented modules in this report. It discusses the three main parts: Auto Preprocessing, the Accelera Pipeline module, and Benchmarking. For each module, the section explains module overview and how it works.
+This section explains the implemented modules in this report. It discusses the three main parts: Auto Preprocessing, the Accelera Pipe module, and Benchmarking. For each module, the section explains module overview and how it works.
 
 \section{Auto Preprocessing Module}
 \subsection{Module Overview}
@@ -1002,7 +1002,7 @@ can see which inputs were ignored instead of silently losing files.
 
 The Auto Preprocessing report belongs to the Auto Preprocessing module because
 it explains what happened to the dataset during preprocessing. It is separate
-from the Accelera pipeline report, which explains pipeline branches and metric
+from the Accelera Pipe report, which explains pipeline branches and metric
 results.
 
 \noindent For tabular data, \modulepath{TabularPreprocessingReport} receives the
@@ -1037,11 +1037,11 @@ machine learning project. With the report, the user can see the important
 changes instead of only receiving transformed arrays.
 
 
-\section{Accelera Pipeline Module}
+\section{Accelera Pipe Module}
 
 \subsection{Metric Node Wrappers}
 
-Metric nodes are part of the Accelera pipeline execution. They are responsible
+Metric nodes are part of the Accelera Pipe execution. They are responsible
 for calculating evaluation results after a model or clustering step produces
 predictions. The reporting module may display these results later, but the
 metric node itself belongs to the pipeline because it performs the metric
@@ -1756,14 +1756,14 @@ details affect the full machine learning workflow.
 \section{Conclusions}
 
 This report documented my individual work in the Auto Preprocessing module,
-the Accelera Pipeline module, and the Benchmarking module in Accelera. The
+the Accelera Pipe module, and the Benchmarking module in Accelera. The
 Auto Preprocessing module prepares tabular, text, and image datasets before
 model training. It handles repeated steps such as cleaning, splitting,
 encoding, scaling, text vectorization, image loading, and artifact saving. The
 most important point in this module is consistency, because the fitted
 preprocessing objects saved during training are reused later during testing.
 
-\noindent The Accelera Pipeline module includes metric nodes and pipeline
+\noindent The Accelera Pipe module includes metric nodes and pipeline
 reporting. The metric nodes calculate supervised or unsupervised evaluation
 results during the pipeline flow. The reporting part helps make pipeline
 outputs easier to understand. Instead of leaving the user with only terminal
