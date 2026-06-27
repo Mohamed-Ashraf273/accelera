@@ -1640,6 +1640,21 @@ Benchmark Platform, and Deployment. The blue arrows in the diagram represent
 standalone or module-level flows, while the red arrows represent the end-to-end
 workflow path.
 
+The architecture follows three broad stages: data preparation, model or graph
+construction, and artifact consumption. Auto Preprocessing prepares reusable
+features and preprocessing artifacts; AutoML and Accelera Pipe provide
+alternative model-building paths; and Deployment or the Benchmark Platform
+consumes the resulting model, executed graph, endpoint, or prediction file. The
+Parallelizer is a supporting optimization module that can operate independently
+on source code or accelerate supported custom preprocessing inside Accelera
+Pipe.
+
+The red route represents the complete data-to-service lifecycle, while the blue
+routes show standalone use. Modules exchange explicit artifacts rather than
+internal state, allowing users to stop after any stage.
+
+\clearpage
+
 
 \subsubsection*{Auto Preprocessing flow}
 
@@ -1720,6 +1735,66 @@ Accelera Pipe therefore works at the workflow level. It does not only run a list
 of steps; it manages how the steps are connected, when they are executed, which
 branches are selected, and which intermediate results can be released safely.
 
+Formally, a pipeline is represented as a directed acyclic graph
+
+\begin{equation}
+G=(V,E), \qquad E\subseteq V\times V,
+\end{equation}
+
+where each vertex $v\in V$ is an executable node and each edge $(u,v)\in E$
+indicates that $v$ consumes the output of $u$. A node becomes ready only after
+all its predecessors have completed:
+
+\begin{equation}
+\operatorname{ready}(v)
+\Longleftrightarrow
+\forall u\in\operatorname{Pred}(v),\;
+\operatorname{state}(u)=\text{finished}.
+\label{eq:graph-node-ready}
+\end{equation}
+
+Ready nodes without mutual dependencies may be scheduled concurrently by the
+C++ backend. This is the basis of parallel branch execution; it is different
+from OpenMP loop parallelization, which operates inside one custom function.
+
+\begin{table}[!htbp]
+\centering
+\acceleraTableStyle
+\caption{Principal node families in an Accelera Pipe graph.}
+\label{tab:accelera-pipe-node-families}
+\begin{tabularx}{\textwidth}{p{0.20\textwidth}X}
+\toprule
+\textbf{Node family} & \textbf{Architectural responsibility} \\
+\midrule
+Preprocess & Fits or applies a transformer and forwards transformed features. \\
+Model & Fits a supervised or unsupervised estimator using upstream data. \\
+Predict & Applies a fitted model method such as \texttt{predict} or
+\texttt{predict\_proba}. \\
+Metric & Evaluates predictions and supplies values used for path selection. \\
+Branch/Merge & Expands alternatives or combines compatible branch outputs. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The graph also applies consumer-count-based lifetime management. If $c_t(u)$ is
+the number of unfinished downstream consumers of node $u$ after execution step
+$t$, then completing consumer $v$ updates the count by
+
+\begin{equation}
+c_{t+1}(u)=c_t(u)-1, \qquad u\in\operatorname{Pred}(v).
+\end{equation}
+
+Temporary output from $u$ becomes releasable when $c_{t+1}(u)=0$. Consequently,
+a transformed array shared by several model branches remains alive until the
+last model consumes it, then can be cleared without affecting correctness.
+Duplicate first preprocessing nodes may also be shared, allowing equivalent
+branches to reference one transformed result rather than repeat the same work.
+
+After metric evaluation, the configured selection strategy determines the path
+retained in the \texttt{ExecutedGraph}. This inference graph keeps fitted
+preprocessors and models but does not need transient training arrays. It can be
+serialized as one pickle artifact and later called with new input data.
+
 
 \subsubsection*{Code Parallelizer module}
 
@@ -1738,6 +1813,27 @@ The Parallelizer accepts several kinds of input:
   \item Custom transformer method.
 \end{itemize}
 
+\begin{table}[!htbp]
+\centering
+\acceleraTableStyle
+\caption{Parallelizer input dispatch and output behavior.}
+\label{tab:parallelizer-input-dispatch}
+\begin{tabularx}{\textwidth}{p{0.24\textwidth}p{0.30\textwidth}X}
+\toprule
+\textbf{Input} & \textbf{Normalization} & \textbf{Result} \\
+\midrule
+C/C++ file & Read native source directly & Parallelized source file. \\
+Python file & Convert supported Python AST to C++ & Parallelized source file. \\
+C/C++ or Python string & Detect syntax and convert Python when required &
+Parallelized C++ source string. \\
+Python function & Capture source and helpers, flatten nested functions, then
+convert & Cached native Python-callable or original function on failure. \\
+Custom transformer & Extract its custom \texttt{transform()} method & Optimized
+method attached to the same instance when compilation succeeds. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
 After receiving the input, the module first normalizes it into a form that can
 be analyzed. If the input is supported Python code, it is converted into C++ so
 that both Python-originated and native C/C++ code can follow the same analysis
@@ -1752,6 +1848,39 @@ trusted to change program semantics. If the loop is considered safe, the module
 inserts an OpenMP pragma such as \texttt{\#pragma omp parallel for}. If the loop
 matches a reduction pattern, the module can generate an OpenMP reduction clause.
 If the loop is unsafe or unsupported, it is left unchanged.
+
+For each extracted loop $L$, feature extraction produces a fixed-dimensional
+vector $\mathbf{x}(L)\in\mathbb{R}^{40}$. The classifier proposes a class from
+
+\begin{equation}
+\hat{y}(L)\in
+\{\texttt{parallel\_for},\texttt{reduction},\texttt{none}\}.
+\end{equation}
+
+The proposal is then resolved with deterministic evidence. In simplified form,
+the implemented decision can be written as
+
+\begin{equation}
+D(L)=
+\begin{cases}
+\hat{y}(L), & \hat{y}(L)\neq\texttt{none},\\
+\texttt{reduction}, & L\text{ contains a supported scalar reduction},\\
+\texttt{parallel\_for}, & L\text{ has independent array writes},\\
+\texttt{parallel\_for}, & L\text{ is a supported consecutive nest},\\
+\texttt{none}, & \text{otherwise}.
+\end{cases}
+\label{eq:parallelizer-decision}
+\end{equation}
+
+The safety analysis rejects evidence such as loop-carried dependencies,
+indirect writes, and early exits before an independent-write rule is accepted.
+For supported reductions, the generated directive has the form
+
+\begin{equation}
+\texttt{\#pragma omp parallel for reduction(}\odot\texttt{:r)},
+\end{equation}
+
+where $r$ is the reduction variable and $\odot$ is the recognized operator.
 
 \begin{table}[!htbp]
 \centering
@@ -1831,6 +1960,31 @@ optimization. Accelera Pipe controls the structure and execution of the machine
 learning graph, while the Parallelizer attempts to speed up supported custom
 code inside that graph. As a result, the system can optimize both the way the
 workflow is scheduled and the way expensive preprocessing code is executed.
+
+The replacement contract preserves behavior at the pipeline boundary. Let $f$
+be the original Python preprocessing callable and let $\mathcal{C}(f)$ denote
+source capture, conversion, OpenMP rewriting, compilation, and module loading.
+The callable attached to the preprocessing node is
+
+\begin{equation}
+f_{\mathrm{node}}=
+\begin{cases}
+\mathcal{C}(f), & \text{if every optimization stage succeeds},\\
+f, & \text{if source conversion, analysis, or compilation fails}.
+\end{cases}
+\label{eq:parallelizer-fallback-contract}
+\end{equation}
+
+This fallback contract gives the integration three useful properties:
+
+\begin{itemize}
+  \item \textbf{Transparent use:} the graph calls the node through the same
+  Python interface regardless of which implementation is attached.
+  \item \textbf{Failure isolation:} unsupported syntax or a compiler failure
+  disables the optimization for that callable without invalidating the graph.
+  \item \textbf{Persistent reuse:} source-backed functions retain serializable
+  Python source, while successful native modules can be recovered from cache.
+\end{itemize}
 
 
 \subsubsection*{Benchmark Platform flow}
@@ -1914,7 +2068,7 @@ connected into a complete machine-learning workflow. Third, the interaction
 between Accelera Pipe and the Parallelizer allows the project to combine
 graph-based execution with source-level acceleration.
 
-
+\newpage
 \input{sections/methdoloy-mohamed}
 
 \clearpage
