@@ -4120,27 +4120,54 @@ parts work correctly. The testing was not done in one way only, because each
 part of the project has a different output. The main purpose of testing was to make sure that each part can receive the
 input, apply the required steps, save the needed files, and return the expected
 output without errors.
-\section{Testing Setup}
-The testing was done mainly in a Python environment. The main tools used in
-testing were Python, Pytest, Pandas, NumPy, Scikit-learn, PyTorch, Matplotlib,
-and the libraries used in the implementation. For the benchmark platform,
-Node.js, Express, React, MongoDB, and Python scoring scripts were also checked.
-\noindent Some tests were written and run automatically using Pytest. Other parts were
-checked manually by comparing the actual output with the expected output.
-\section{Testing Plan and Strategy}
-The testing plan was based on testing the project step by step. First, each
-module was tested separately. After that, the outputs were checked in a more
-complete workflow. For example, preprocessing output was passed to machine
-learning models, generated reports were opened and inspected, and benchmark
-submissions were checked after scoring.
 
-\noindent Different testing methods were used depending on the part being tested. Some
-parts were tested using unit tests with Pytest. Other parts were checked
-manually by comparing the actual output with the expected output. In some
-cases, the results were compared with another tool, to check if
-the preprocessing results were reasonable.
+\section{Testing Setup}
+
+The testing was done mainly in a Python development environment. The main tools
+used during testing were Python, Pytest, Pandas, NumPy, Scikit-learn, PyTorch,
+Matplotlib, and the other libraries used in the implementation. These tools were
+used to test data preprocessing, model training, prediction, evaluation, and
+report generation.
+
+For the benchmark platform, the testing also included the web and backend tools.
+Node.js, Express, React, MongoDB, and Python scoring scripts were checked to make
+sure that submissions could be uploaded, processed, scored, and displayed
+correctly. This helped verify that the platform works as a complete web-based
+system, not only as separate frontend and backend files.
+
+Some tests were written and executed automatically using Pytest. These tests
+were useful for checking repeated cases quickly and making sure that changes in
+the code did not break existing functionality. Other parts were tested manually,
+especially visual outputs such as generated reports, graphs, benchmark pages,
+and deployment responses. Manual testing was also used when the expected output
+needed to be inspected by the user.
+
+\section{Testing Plan and Strategy}
+
+The testing plan was based on testing the project step by step. First, each
+module was tested separately to make sure that its main function worked
+correctly. For example, the preprocessing module was tested by checking the
+generated cleaned data and reports, while the machine learning modules were
+tested by checking predictions, accuracy values, and saved models.
+
+After testing individual modules, integration testing was performed. In this
+stage, the output of one module was passed to another module to check that the
+modules could work together. For example, preprocessing output was passed to
+machine learning models, generated reports were opened and inspected, and
+benchmark submissions were checked after scoring.
+
+The testing strategy also included comparing actual outputs with expected
+outputs. For machine learning parts, this included checking that the model
+produced valid predictions and reasonable metrics. For the benchmark platform,
+this included checking that submitted files were scored correctly and that the
+leaderboard was updated. For saved files and reports, the test checked that the
+files were created successfully and could be opened again.
+
+Overall, the testing strategy focused on three main goals: checking that each
+module works alone, checking that connected modules work together, and checking
+that the final outputs are correct and usable.
+
 \subsection{Module Testing}
-\input{sections/results-modhamed}
 \subsubsection{Auto Preprocessing Module}
 Most of the preprocessing functions were tested using unit tests. These tests
 were used to check validation rules, artifact saving,and feature transformation. Real datasets were also used to test the system in a
@@ -4307,8 +4334,164 @@ dataset. The lower scores on datasets such as  TestReviews show
 that preprocessing alone does not solve every modeling problem. Some datasets
 still need better features, model tuning, or more suitable models.
 
+\subsubsection{Accelera Pipe Module}
+
+Accelera Pipe was tested at node, graph, and persistence levels. The automated
+tests construct preprocessing, model, prediction, metric, merge, and branch
+nodes, then execute the resulting graphs in both serial and parallel modes.
+The tests compare transformed data, predictions, probabilities, and metric
+values with the corresponding Scikit-learn operations. They also exercise
+supervised and unsupervised workflows, mixed node types, and the
+\texttt{all}, \texttt{max}, \texttt{min}, and custom path-selection strategies.
+
+Table~\ref{tab:accelera-pipe-module-tests} organizes these tests according to
+the graph behavior being verified. Each test builds a small graph with a known
+expected result, executes it through the same public pipeline interface used by
+applications, and compares the returned values or graph state with that
+expectation.
+
+\begin{table}[H]
+\centering
+\acceleraTableStyle
+\caption{Accelera Pipe module-testing coverage.}
+\label{tab:accelera-pipe-module-tests}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.22\textwidth}
+  >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Test area} & \textbf{Test procedure} & \textbf{Verified result} \\
+\midrule
+Node chains & Execute single and multiple preprocessors followed by model,
+prediction, and metric nodes. & Transformed values, predictions, probabilities,
+and metrics agree with the reference operations. \\
+\midrule
+Branches and merges & Build preprocessing and model branches, merge predictions,
+and exercise hard voting and single-model merges. & Every branch receives the
+correct input and the merge returns the expected combined output. \\
+\midrule
+Path selection & Execute the same candidate graph with \texttt{all},
+\texttt{max}, \texttt{min}, and custom selectors. & Returned and retained paths
+follow the requested metric-selection rule. \\
+\midrule
+Data lifetime & Share duplicate first branch nodes and execute multiple consumers
+of one transformed array. & Shared work is not repeated, and intermediate data
+is released only after its final consumer completes. \\
+\midrule
+Persistence and reuse & Save and reload unexecuted pipelines and fitted executed
+graphs, including custom and lambda preprocessors. & Training graphs remain
+trainable, while loaded executed graphs reproduce inference results. \\
+\midrule
+Failure handling & Supply invalid metrics, incompatible inputs, and unsupported
+node behavior. & The pipeline raises an explicit error associated with the node
+that failed instead of returning a partial result. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\noindent Branch-specific tests verify that equivalent first preprocessing
+nodes are shared without incorrectly merging later nodes whose inputs differ.
+Consumer-count tests ensure that an intermediate array remains available until
+its final dependent node finishes and is then released. Save-and-load tests
+train a graph, serialize the fitted executed graph, reload it, and confirm that
+inference produces the same result. Invalid model, metric, and graph inputs are
+also tested to confirm that failures are reported at the responsible node. The
+tests passed for the supported graph structures, showing that graph execution,
+branch sharing, intermediate lifetime management, and fitted-state persistence
+behave consistently.
+
+\noindent Testing both serial and parallel graph execution is important because
+the mathematical result should not depend on scheduling. The same prediction
+tests are therefore executed with parallel execution enabled and disabled.
+Unsupervised tests additionally verify that clustering models can execute
+without a supervised target, while mixed-type tests confirm that feature
+selection and preprocessing objects can be chained before fitting. Together,
+these tests cover the graph from construction to repeated inference rather than
+checking only individual Python wrapper methods.
+
+\subsubsection{Code Parallelizer Module}
+
+The Code Parallelizer was tested through its complete source-to-execution
+path. Test inputs include C/C++ files, C/C++ source strings, Python functions,
+and custom transformer methods. The tests first verify input dispatch and loop
+extraction, then check feature collection, classifier or rule-based decisions,
+OpenMP pragma generation, native compilation, and callable loading. Temporary
+output paths are supplied explicitly so file generation is isolated and can be
+verified on Linux and Windows.
+
+Table~\ref{tab:parallelizer-module-tests} summarizes the principal testing
+layers. The test suite separates source transformation from native execution so
+that a failure can be located in input handling, loop analysis, pragma
+generation, conversion, compilation, or runtime behavior.
+
+\acceleraTableStyle
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.20\textwidth}
+  >{\raggedright\arraybackslash}p{0.35\textwidth}
+  >{\raggedright\arraybackslash}p{0.35\textwidth}}
+\caption{Code Parallelizer module-testing coverage.}
+\label{tab:parallelizer-module-tests}\\
+\toprule
+\textbf{Test area} & \textbf{Test procedure} & \textbf{Verified result} \\
+\midrule
+\endfirsthead
+\caption[]{Code Parallelizer module-testing coverage (continued).}\\
+\toprule
+\textbf{Test area} & \textbf{Test procedure} & \textbf{Verified result} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\small Continued on the next page}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Input modes & Provide C/C++ files, source strings, Python functions, and custom
+transformer methods. & Each input reaches the correct file-based or in-memory
+processing path. \\
+\midrule
+Loop extraction & Analyze files containing one loop, multiple loops, nested
+loops, or no loops and serialize extracted features. & Loop boundaries and
+feature records match the source, including the empty-input case. \\
+\midrule
+Decision safety & Test classifier responses, obvious independent writes,
+reductions, and unavailable classifier service. & Deterministic rules validate
+or replace predictions and provide a rule-based fallback. \\
+\midrule
+Pragma generation & Generate directives for independent loops, reductions, and
+nested structures. & Valid directives are inserted once; unsafe reductions and
+redundant inner-loop directives are rejected. \\
+\midrule
+Python conversion & Convert assignments, augmented assignments, powers,
+subscripts, ranges, function definitions, and supported helper calls. & The
+generated C++ preserves the supported Python operation and parameter names. \\
+\midrule
+Native callable path & Compile supported NumPy loops, nested helpers, referenced
+helpers, and custom-transformer \texttt{transform} methods. & The loaded PyBind11
+callable matches the original Python output and remains pickleable. \\
+\midrule
+Fallback and cache & Pass unsupported syntax and repeat a supported compilation.
+& Unsupported functions retain their Python implementation, while repeated
+supported functions reuse cached artifacts. \\
+\end{longtable}
+
+\noindent The generated code is inspected for supported directives such as
+\texttt{parallel for} and reductions. Nested-loop tests confirm that selecting
+an outer loop does not also insert an unsafe directive into its inner loop.
+Callable tests compare the compiled result with the original Python result,
+while unsupported syntax is expected to return the original callable through
+the conservative fallback path. Repeated compilation tests also verify cache
+reuse. These checks showed that supported loops are transformed and executed
+correctly, whereas unsupported or unsafe cases remain sequential instead of
+silently changing program behavior.
+
+\noindent Correctness is checked before performance. For compiled Python
+callables, the test invokes both the original function and the generated native
+callable with equivalent arrays and compares their outputs. File-based tests
+also confirm that the requested output file is created at the supplied path,
+which prevents tests and concurrent runs from writing to an implicit shared
+location. The fallback tests are equally important: a construct outside the
+converter subset must remain executable in Python rather than producing invalid
+C++ or an incorrect OpenMP transformation.
+
 \subsubsection{AutoML Module}
-\paragraph{Testing Setup}
+
 The AutoML experiments compare Accelera AutoML with Auto-sklearn, FLAML, and
 TPOT on supervised tabular classification and regression tasks. The evaluation
 asks two practical questions: whether the systems attain comparable predictive
@@ -4317,7 +4500,6 @@ evaluated primarily by accuracy, while regression is evaluated by the
 coefficient of determination ($R^2$), root mean squared error (RMSE), and mean
 absolute error (MAE). Runtime is reported in seconds for both task types.
 
-\paragraph{Testing Plan and Strategy}
 The classification experiments were executed through the open-source
 AutoMLBenchmark (AMLB) runner, available at
 \url{https://github.com/openml/automlbenchmark.git}. They use the
@@ -4335,6 +4517,8 @@ used one fold and one allocated core per task. The regression time budget was
 1,800 seconds per dataset; the classification constraint allowed up to one
 hour.
 
+\newcommand{\automlcomparativeresults}{%
+\subsection{AutoML Module}
 \paragraph{Comparative Results: Classification}
 Table~\ref{tab:automl_classification_results} summarizes the classification
 results stored with the project. Auto-sklearn obtained the highest mean
@@ -4448,6 +4632,7 @@ relative to Auto-sklearn, accompanied in both cases by substantial runtime
 reductions. The complete stored artifacts and reproduction instructions are
 retained with the implementation so that the reported measurements can be
 inspected and rerun.
+}
 
 \subsubsection{Deployment Module}
 \input{sections/results-deployment}
@@ -4485,16 +4670,73 @@ returned score in MongoDB.
 These checks were important because a function can pass a unit test but still
 fail when used with the rest of the system.
 
-\subsection{Testing Schedule}
+\section{Testing Schedule}
 
-The testing was done during implementation and after completing each module.
-First, small functions were tested. Then complete module flows were tested.
-After that, final outputs such as reports, saved files, and leaderboard results
-were checked manually. The final comparison with AutoCleanML was done after the
-tabular preprocessing flow became stable.
+Testing was performed continuously during implementation and then repeated at
+module, integration, and project-release milestones. Table~\ref{tab:project-testing-schedule}
+summarizes the schedule followed across the complete project. A stage was not
+treated as complete until its automated checks passed and its generated outputs
+had been inspected where manual verification was required.
 
-\subsection{Comparative Results to Previous Work}
-\subsubsection{Auto Preprocessing}
+\acceleraTableStyle
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.18\textwidth}
+  >{\raggedright\arraybackslash}p{0.25\textwidth}
+  >{\raggedright\arraybackslash}p{0.47\textwidth}}
+\caption{Project-wide testing schedule.}
+\label{tab:project-testing-schedule}\\
+\toprule
+\textbf{Stage} & \textbf{Modules emphasized} & \textbf{Testing activity} \\
+\midrule
+\endfirsthead
+\caption[]{Project-wide testing schedule (continued).}\\
+\toprule
+\textbf{Stage} & \textbf{Modules emphasized} & \textbf{Testing activity} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\small Continued on the next page}\\
+\endfoot
+\bottomrule
+\endlastfoot
+During feature implementation & All modules & Run focused unit tests after each
+function, class, graph node, API route, or compiler rule is introduced or
+modified. \\
+\midrule
+Module stabilization & Auto Preprocessing and AutoML & Validate cleaning,
+transformation, artifact persistence, model search, metrics, time limits, and
+classification and regression behavior on representative datasets. \\
+\midrule
+Native-system stabilization & Accelera Pipe and Code Parallelizer & Test serial
+and parallel graphs, branch behavior, memory lifetime, persistence, source
+conversion, loop analysis, OpenMP generation, compilation, and fallback. \\
+\midrule
+Service stabilization & Benchmark Platform and Deployment & Verify frontend and
+backend workflows, database operations, submission scoring, API validation,
+telemetry, model versioning, and local or remote deployment command generation. \\
+\midrule
+Integration milestone & Connected project workflow & Pass preprocessing outputs
+to training and AutoML, execute and save graphs, compile custom preprocessing,
+generate reports, score submissions, and load trained artifacts for serving. \\
+\midrule
+Regression and portability & Complete repository & Run the full Pytest and
+pre-commit suites after merges, rebuild native bindings, and check relevant
+Linux and Windows paths. \\
+\midrule
+Final experimental evaluation & All evaluated modules & Freeze datasets and
+configurations, repeat measurements, verify output equivalence, produce tables
+and figures, and compare with the selected previous systems. \\
+\end{longtable}
+
+\noindent Manual verification followed the automated schedule for outputs that
+cannot be judged fully by assertions. This included preprocessing and pipeline
+reports, graph diagrams, benchmark pages, deployment responses, and generated
+figures. Comparative experiments were performed only after the corresponding
+module and integration tests were stable, which reduced the risk of reporting
+performance measurements for an incorrect workflow.
+
+\section{Comparative Results to Previous Work}
+\input{sections/results-modhamed}
+\subsection{Auto Preprocessing}
 Auto Preprocessing was compared with AutoCleanML to check the performance of the proposed preprocessing approach. The comparison was done using several tabular datasets collected from Kaggle. The same datasets and the same machine learning models were used for both tools.
 The comparison was applied only on tabular datasets because AutoCleanML mainly works with tabular data. For classification datasets, the Macro F1-score was used as the evaluation metric. For regression datasets, the R-squared score was used to measure how well the model predicts the target values.
 After preprocessing the datasets, the output data was tested using four machine learning models. For classification problems, Logistic Regression, Random Forest, Decision Tree, and KNN were used. For regression problems, Linear Regression, Random Forest, Decision Tree, and KNN were used. This helped test the preprocessing output with different model types, not only one model.
@@ -4603,6 +4845,8 @@ own preprocessing approach.
 in all cases. The final performance can still depend on the dataset, the problem
 type, and the model used after preprocessing.
 
+\automlcomparativeresults
+
 \chapter{Conclusions and Future Work}
 \section{Faced Challenges}
 The main implementation challenges were preserving correctness while sharing
@@ -4612,7 +4856,29 @@ conversion checks. The experiments also identify memory usage during
 branch-level parallel execution as the main remaining graph-backend challenge.
 
 \section{Gained Experience}
-\mbox{}
+Developing Accelera provided practical experience in designing a modular
+machine-learning system whose components exchange data, models, reports, and
+deployment artifacts through explicit interfaces. The team gained experience
+with tabular, text, and image preprocessing; constrained AutoML search;
+reproducible model evaluation; and the distinction between training state and
+the fitted state required for inference.
+
+\noindent The project also connected Python development with systems and
+compiler engineering. Implementing the graph backend, Python--C++ bindings,
+and Code Parallelizer required work with C++, PyBind11, CMake, Clang ASTs,
+OpenMP, native-module compilation, and cross-platform build behavior. This work
+demonstrated how data ownership, dependency analysis, caching, conservative
+fallback, and serialization directly affect correctness, memory use, and
+latency.
+
+\noindent Finally, integrating the React and Express benchmark platform,
+MongoDB storage, FastAPI serving, model versioning, telemetry, and container
+deployment strengthened experience in end-to-end software delivery. Automated
+tests, continuous integration, controlled comparisons, and output-equivalence
+checks showed the importance of validating complete workflows rather than only
+individual functions. The project therefore developed both machine-learning
+knowledge and the engineering discipline needed to make experimental software
+repeatable, testable, and usable across environments.
 
 \section{Conclusions}
 Accelera provides a connected framework for preparing data, selecting models,
@@ -4690,6 +4956,18 @@ Chi Wang, Qingyun Wu, Markus Weimer, and Erkang Zhu. ``FLAML: A fast and
 lightweight AutoML library.'' In \emph{Proceedings of Machine Learning and
 Systems}, 2021.
 
+\bibitem{pedregosa2011scikit}
+F. Pedregosa, G. Varoquaux, A. Gramfort, V. Michel, B. Thirion,
+O. Grisel, P. Prettenhofer, R. Weiss, V. Dubourg, and others.
+``Scikit-learn: Machine Learning in Python,''
+\textit{Journal of Machine Learning Research}, vol. 12, pp. 2825--2830, 2011.
+
+\bibitem{ompar2024}
+T. Kadosh, N. Hasabnis, P. Soundararajan, V. A. Vo, M. Capota,
+N. Ahmed, Y. Pinter, and G. Oren,
+``OMPar: Automatic Parallelization with AI-Driven Source-to-Source Compilation,''
+arXiv preprint arXiv:2409.14771, 2024.
+
 \bibitem{autogluon}
 Nick Erickson et al. ``AutoGluon-Tabular: Robust and accurate AutoML for
 structured data.'' \emph{arXiv preprint arXiv:2003.06505}, 2020.
@@ -4710,10 +4988,13 @@ David H. Wolpert. ``Stacked generalization.'' \emph{Neural Networks},
 \end{thebibliography}
 
 \appendix
+\renewcommand{\chaptername}{Appendix}
+\titleformat{\chapter}[hang]
+  {\normalfont\bfseries\fontsize{21}{25}\selectfont\raggedright}
+  {Appendix\ \thechapter:}{0.5em}{}
+\addtocontents{toc}{\protect\renewcommand{\protect\cftchappresnum}{Appendix~}}
+\addtocontents{toc}{\protect\setlength{\protect\cftchapnumwidth}{6.5em}}
 \chapter{Development Platforms and Tools}
-\section{Hardware Platform}
-
-
 \section{Software Platform}
 The implemented modules use Python, C++, PyBind11, CMake, Clang-based AST
 analysis, OpenMP, NumPy, Pandas, Matplotlib, PyTorch, Scikit-learn, Node.js,
@@ -5008,82 +5289,7 @@ The prediction file must contain the target column name expected by the
 benchmark. Also, the number of rows in the prediction file must match the
 number of rows in the target-label file.
 
-\chapter{Code Documentation}
-
-\section{AutoML Code Documentation}
-The main AutoML source package is located under
-\modulepath{accelera/src/accelera\_automl/}. The public API wrappers are under
-\modulepath{accelera/api/accelera\_automl/}. This section maps the AutoML design
-to the source-code organization.
-
-\begin{table}[H]
-\centering
-\acceleraTableStyle
-\caption{Main implementation units of Accelera AutoML}
-\label{tab:appendix_automl_implementation_units}
-\small
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.43\textwidth}X}
-\toprule
-\textbf{File or directory} & \textbf{Responsibility} \\
-\midrule
-\modulepath{base.py} &
-Shared estimator lifecycle, validation, fitted state, leaderboard, and
-run-history access. \\
-\midrule
-\modulepath{classification.py} &
-Classification defaults and task-specific engine construction. \\
-\midrule
-\modulepath{regression.py} &
-Regression defaults and task-specific engine construction. \\
-\midrule
-\modulepath{core/automl.py} &
-AutoML orchestration, final model fitting, compatibility checks, and ensemble
-selection. \\
-\midrule
-\modulepath{components/} &
-Model registries, hyperparameter definitions, activation conditions, and
-estimator factories. \\
-\midrule
-\modulepath{configspace\_search\_space.py} &
-Task-specific conditional search-space assembly and configuration conversion. \\
-\midrule
-\modulepath{evaluation.py} &
-Fidelity-aware model construction, preprocessing comparison, cross-validation,
-and metric-to-cost conversion. \\
-\midrule
-\modulepath{optimization/smac\_optimizer.py} &
-Trial scheduling, surrogate modelling, expected improvement, promotions,
-parallel workers, and timeout control. \\
-\midrule
-\modulepath{meta\_learning/} &
-Metafeature extraction, similarity ranking, and warm-start retrieval. \\
-\midrule
-\modulepath{meta\_learning\_data/} &
-Packaged historical classification and regression metadata used for warm
-starts. \\
-\midrule
-\modulepath{stacked\_ensemble.py} &
-Classification adapters, bagging, forward selection, and stacked
-classification. \\
-\midrule
-\begin{tabular}[t]{@{}l@{}}\modulepath{stacked\_ensemble\_}\\\modulepath{regression.py}\end{tabular} &
-Regression stacking and forward selection. \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\noindent The public estimator lifecycle starts when the user calls
-\texttt{fit}. The estimator validates \(X\) and \(y\), resets any previous
-fitted state, builds the task-specific engine, runs the search, and stores the
-returned result. Prediction methods validate the input and delegate to the
-selected final model. Calling prediction before fitting raises an explicit
-runtime error.
-
-\noindent The stored result includes the best individual model, optional
-ensemble, selected final model, best score, leaderboard, and detailed
-run-history records. These records make the module inspectable because they
-preserve both successful and failed trials.
-
+\iffalse
 \chapter{Feasibility Study}
 
 \section{AutoML Feasibility}
@@ -5112,7 +5318,6 @@ However, this cost is controlled through time budgets, per-trial timeouts,
 multi-fidelity evaluation, and configurable search settings. Therefore, the
 module is feasible as a practical AutoML extension for the Accelera framework.
 
-\end{document}
 ng module for tabular, text, and image
   datasets.
 
@@ -8097,25 +8302,60 @@ parts work correctly. The testing was not done in one way only, because each
 part of the project has a different output. The main purpose of testing was to make sure that each part can receive the
 input, apply the required steps, save the needed files, and return the expected
 output without errors.
-\section{Testing Setup}
-The testing was done mainly in a Python environment. The main tools used in
-testing were Python, Pytest, Pandas, NumPy, Scikit-learn, PyTorch, Matplotlib,
-and the libraries used in the implementation. For the benchmark platform,
-Node.js, Express, React, MongoDB, and Python scoring scripts were also checked.
-\noindent Some tests were written and run automatically using Pytest. Other parts were
-checked manually by comparing the actual output with the expected output.
-\section{Testing Plan and Strategy}
-The testing plan was based on testing the project step by step. First, each
-module was tested separately. After that, the outputs were checked in a more
-complete workflow. For example, preprocessing output was passed to machine
-learning models, generated reports were opened and inspected, and benchmark
-submissions were checked after scoring.
 
-\noindent Different testing methods were used depending on the part being tested. Some
-parts were tested using unit tests with Pytest. Other parts were checked
-manually by comparing the actual output with the expected output. In some
-cases, the results were compared with another tool, to check if
-the preprocessing results were reasonable.
+\section{Testing Setup}
+Testing was performed in isolated Python environments using the same dependency
+versions as the implementation. Pytest was used for automated unit and
+integration tests, while Pandas, NumPy, Scikit-learn, PyTorch, and Matplotlib
+supported data processing, model validation, and result visualization.
+CMake, C++, PyBind11, LLVM/Clang, and OpenMP were used to build and test the
+native graph and Parallelizer components.
+
+The Benchmark Platform was tested using its React frontend, Express backend,
+MongoDB database, and Python scoring scripts. Deployment tests covered FastAPI
+endpoints, input validation, model loading, telemetry, and Docker packaging.
+Tests were executed on Linux and Windows where platform-specific behavior was
+relevant.
+
+Automated tests verified expected outputs, exceptions, serialization, graph
+execution, and module integration. Manual inspection was used for generated
+reports, diagrams, web interfaces, deployment workflows, and other visual or
+environment-dependent outputs.
+
+\section{Testing Plan and Strategy}
+
+Testing followed a layered strategy. Unit tests first validated individual
+functions, classes, graph nodes, preprocessing operations, metrics, and code
+conversion rules. Integration tests then verified communication between
+components, including Python--C++ bindings, graph branches, preprocessing and
+model nodes, AutoML workflows, benchmark scoring, and deployment services.
+
+End-to-end tests exercised complete workflows from dataset preparation through
+model training, evaluation, persistence, and inference. Results were compared
+with reference implementations where possible. Performance experiments measured
+latency and memory consumption under controlled datasets, while Parallelizer
+tests additionally checked output equivalence before reporting speedup.
+
+The testing strategy followed these principles:
+
+\begin{itemize}
+    \item use identical datasets, splits, models, metrics, and random seeds when
+    comparing implementations;
+    \item test successful behavior together with invalid inputs and expected
+    failures;
+    \item verify numerical and prediction equivalence before evaluating
+    performance;
+    \item distinguish cold-cache, warm-cache, compilation, and execution time;
+    \item test saved pipelines and models after loading them in a new workflow;
+    \item inspect platform-specific behavior on Linux and Windows; and
+    \item combine automated regression tests with manual validation of visual
+    and deployment outputs.
+\end{itemize}
+
+This layered approach allowed defects to be located within individual modules
+before validating the complete Accelera workflow.
+
+
 \subsection{Module Testing}
 \input{sections/results-modhamed}
 \subsubsection{Auto Preprocessing Module}
@@ -8274,7 +8514,6 @@ TestReviews & XGBClassifier & Macro F1-score & 0.6080 \\
 \renewcommand{\arraystretch}{1.0}
 
 \end{table}
-
 
 
 \noindent These results show that the preprocessing output can be used by different
@@ -9287,6 +9526,7 @@ Also, the number of rows in the prediction file must match the number of rows
 in the target label file.
 
 \mbox{}
+\fi
 \chapter{Feasibility Study}
 
 \section{Purpose and Evaluation Criteria}

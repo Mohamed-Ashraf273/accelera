@@ -1,4 +1,5 @@
-\subsection{Experimental Setup and Test Suite}
+\medskip
+\noindent\textbf{Experimental Setup and Test Suite}\par\smallskip
 \noindent The Deployment module was verified using a focused \texttt{pytest}
 test suite that exercises the module as a serving, packaging, versioning, and
 orchestration component. The goal of this verification is not only to check
@@ -20,8 +21,9 @@ explicit \texttt{PYTHONPATH} value is important because the deployment tests
 load modules both through the package path and through the isolated serving
 runtime path.
 
-\begin{lstlisting}[style=algostyle,caption={Deployment test-suite execution command},label={alg:deployment_test_command}]
-PYTHONPATH=accelera/src/deployment:accelera/src pytest accelera/src/deployment/tests
+\begin{lstlisting}[style=algostyle,basicstyle=\ttfamily\small,caption={Deployment test-suite execution command},label={alg:deployment_test_command}]
+PYTHONPATH=accelera/src/deployment:accelera/src \
+  pytest accelera/src/deployment/tests
 \end{lstlisting}
 
 This setup verifies the Deployment module in a way that is suitable for
@@ -30,22 +32,34 @@ availability of external platforms, the tests check that Accelera generates the
 correct files, calls the correct commands, validates inputs correctly, records
 telemetry correctly, and preserves model snapshots correctly.
 
-\subsection{Verification Objectives}
+\medskip
+\noindent\textbf{Verification Objectives}\par\smallskip
 \noindent The Deployment module contains several responsibilities that must
 work together. Table~\ref{tab:deployment_verification_objectives} summarizes
 the main verification objectives used in the test suite. The table is included
 before the detailed results to show how each group of tests supports a concrete
 quality requirement of the module.
 
-\begin{table}[H]
-\centering
 \acceleraTableStyle
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.25\textwidth}
+  >{\raggedright\arraybackslash}p{0.32\textwidth}
+  >{\raggedright\arraybackslash}p{0.33\textwidth}}
 \caption{Deployment module verification objectives.}
-\label{tab:deployment_verification_objectives}
-\begin{tabularx}{\textwidth}{p{0.28\textwidth}X X}
+\label{tab:deployment_verification_objectives}\\
 \toprule
 \textbf{Objective} & \textbf{Reason} & \textbf{Evidence in tests} \\
 \midrule
+\endfirsthead
+\caption[]{Deployment module verification objectives (continued).}\\
+\toprule
+\textbf{Objective} & \textbf{Reason} & \textbf{Evidence in tests} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\small Continued on the next page}\\
+\endfoot
+\bottomrule
+\endlastfoot
 Artifact reproducibility &
 The deployed service must be based on known model files and a known
 configuration. &
@@ -74,11 +88,10 @@ Deployment commands must produce correct Docker, Heroku, and EC2 command
 flows. &
 Orchestration tests inspect Docker build/run calls, Heroku sequencing, SSH
 transport, remote scripts, \texttt{rsync}, stop, and log commands. \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\end{longtable}
 
-\subsection{Subsystem Verification Details}
+\medskip
+\noindent\textbf{Subsystem Verification Details}\par\smallskip
 \noindent The test suite targets the major components of the Deployment module:
 model VCS, model loading, runtime validation, API serving, telemetry, and
 deployment orchestration. These components were tested separately because each
@@ -133,7 +146,8 @@ one represents a failure point in a real deployment workflow.
   operations.
 \end{enumerate}
 
-\subsection{Command-Flow Verification}
+\medskip
+\noindent\textbf{Command-Flow Verification}\par\smallskip
 \noindent In addition to unit-level behavior, the tests verify important
 command flows that a user would execute during deployment. This is significant
 because deployment failures often happen not inside model inference, but in the
@@ -181,7 +195,8 @@ Operational commands passed. \\
 \end{tabularx}
 \end{table}
 
-\subsection{Deployment Test Results}
+\medskip
+\noindent\textbf{Deployment Test Results}\par\smallskip
 \noindent When the deployment test suite is executed in an environment with the
 required Python dependencies available, all 51 test cases pass. The result is a
 strong indication that the module's core responsibilities are implemented

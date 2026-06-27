@@ -296,6 +296,7 @@ Algorithm~\ref{alg:deployment_ec2} describes the EC2 workflow. EC2 deployment
 is more complex because it involves a remote machine, SSH authentication,
 network ports, remote Docker execution, and health verification.
 
+\newpage
 \begin{lstlisting}[style=algostyle,caption={Deploying the model service to AWS EC2},label={alg:deployment_ec2}]
 Input: EC2 host, SSH user, optional private key, remote directory, port, image name, container name
 Output: running EC2-hosted deployment service or a diagnostic error
