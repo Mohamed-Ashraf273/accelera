@@ -1,8 +1,19 @@
 \documentclass[12pt,a4paper]{report}
 
 \usepackage[margin=1in,headheight=22pt,headsep=0.28in]{geometry}
-\usepackage[T1]{fontenc}
-\usepackage{helvet}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage{helvet}
+\else
+  \usepackage{fontspec}
+  \setsansfont{TeX Gyre Heros}
+  \usepackage{polyglossia}
+  \setdefaultlanguage{english}
+  \setotherlanguage{arabic}
+  \newfontfamily\arabicfont[Script=Arabic]{Noto Sans Arabic}
+  \newfontfamily\arabicfontsf[Script=Arabic]{Noto Sans Arabic}
+\fi
 \renewcommand{\familydefault}{\sfdefault}
 \usepackage{setspace}
 \setstretch{1.15}
@@ -200,7 +211,7 @@ by photocopying or other means, without the permission of the authors or departm
 \addcontentsline{toc}{chapter}{Abstract}
 \project{} is a hybrid Python/C++ machine learning framework that combines a
 high-level Python interface with native execution components. The system is
-organized around sex modules: Accelera Pipe, the Code Parallelizer,
+organized around six modules: Accelera Pipe, the Code Parallelizer,
 Auto Preprocessing, AutoML, Deployment, and the Benchmark Platform. Accelera
 Pipe represents machine-learning workflows as directed graph nodes for
 preprocessing, modelling, prediction, metric evaluation, branching, and
@@ -213,6 +224,18 @@ the required report structure for the remaining modules.
 \clearpage
 \chapter*{Arabic Abstract}
 \addcontentsline{toc}{chapter}{Arabic Abstract}
+\begin{Arabic}
+مشروع أكسيليرا هو إطار عمل هجين للتعلم الآلي مبني باستخدام بايثون وسي بلس
+بلس، ويجمع بين واجهة بايثون عالية المستوى ومكونات تنفيذ أصلية. يتكون النظام
+من ست وحدات، وهي أكسيليرا بايب، ووحدة موازاة الشفرة، والمعالجة المسبقة
+التلقائية، والتعلم الآلي التلقائي، والنشر، ومنصة القياس المرجعي. تمثل أكسيليرا
+بايب سير عمل التعلم الآلي في صورة عقد ضمن رسم بياني موجه للمعالجة المسبقة،
+وبناء النماذج، والتنبؤ، وتقييم المقاييس، والتفرع، والدمج. تحلل وحدة موازاة
+الشفرة شفرات سي وسي بلس بلس وشفرات بايثون المدعومة، وتستخرج خصائص الحلقات،
+وتتنبأ بفرص التنفيذ المتوازي، وتنتج شفرة سي بلس بلس مزودة بتوجيهات أوبن إم
+بي. يوثق هذا التقرير التصميم والمنهجية والنتائج التجريبية المتاحة للوحدات
+المنفذة، مع الحفاظ على هيكل التقرير المطلوب لبقية الوحدات.
+\end{Arabic}
 
 \clearpage
 \chapter*{Acknowledgment}
@@ -306,13 +329,13 @@ metric evaluation, reporting, and comparison between several alternatives. When
 these steps are written as separate scripts, repeated work, unclear execution
 order, and performance bottlenecks become common problems.
 
-Accelera addresses this by combining five main units:
+Accelera addresses this by combining six main units:
 \texttt{auto\_preprocessing}, \texttt{accelera\_automl},
 \texttt{accelera\_pipe}, \texttt{parallelizer}, and the benchmark platform.
 Table~\ref{tab:intro-modules-overview} gives a quick overview of these modules
 and how they contribute to the full system.
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \acceleraTableStyle
 \caption{Main Accelera modules and their roles.}
@@ -629,7 +652,7 @@ prediction submission, metric calculation, and leaderboard-style comparison. \\
 
 \section{Document Organization}
 
-The rest of this report is organized into five main parts: Chapter 2 presents the market visibility study, 
+The rest of this report is organized into seven main parts: Chapter 2 presents the market visibility study, 
 Chapter 3 discusses the literature survey and related work, Chapter 4 explains the methodology and system 
 design of the main Accelera modules, Chapter 5 presents testing, verification, and experimental results, 
 and Chapter 6 concludes the report by summarizing the contributions, limitations, and possible future improvements. 
@@ -649,7 +672,7 @@ analysis to clarify how the project could be developed into a product or service
 Accelera targets the data-science workflow as a complete process, not as one
 isolated task. Some existing tools focus on preprocessing, others focus on model
 selection, and others focus on competition platforms or code acceleration.
-Accelera combines these directions through five connected parts:
+Accelera combines these directions through six connected parts:
 \texttt{auto\_preprocessing}, \texttt{accelera\_automl},
 \texttt{accelera\_pipe}, \texttt{parallelizer}, and the benchmark platform.
 
@@ -3484,6 +3507,109 @@ sentences, tokenize them, apply TF-IDF, encode labels, and generate a report.
 For image data, it can validate images, map class folders to labels, resize
 images, apply augmentation, and create DataLoaders.
 
+\section{Accelera Pipe Use Cases}
+Accelera Pipe is suitable when a machine-learning experiment is better
+represented as a graph than as one fixed sequence of operations. The user can
+place alternative preprocessing objects, estimators, or metrics in branches,
+execute independent paths concurrently, and select a fitted path using
+validation results. The executed graph can then be reused for inference without
+retraining the selected model.
+
+{\acceleraTableStyle
+\renewcommand{\arraystretch}{1.02}
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\bfseries}p{0.20\textwidth} p{0.36\textwidth} p{0.36\textwidth}}
+\caption{Representative Accelera Pipe use cases.}
+\label{tab:accelera-pipe-use-cases} \\
+\toprule
+Use case & Graph construction & Expected benefit \\
+\midrule
+\endfirsthead
+\toprule
+Use case & Graph construction & Expected benefit \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\small Continued on the next page} \\
+\endfoot
+\bottomrule
+\endlastfoot
+Candidate comparison & Branch over preprocessing methods, models, or both,
+then evaluate every path with the same metric. & A consistent search procedure
+without manually constructing and executing each candidate pipeline. \\
+\addlinespace
+Validation-based selection & Attach prediction and metric nodes containing
+validation data, then use a maximum, minimum, or custom selection strategy. & A
+fitted executable graph containing the path chosen by the required objective. \\
+\addlinespace
+Parallel experimentation & Enable the default parallel graph execution when
+independent branches are sufficiently large. & Concurrent evaluation of graph
+paths while retaining a serial mode for debugging or small workloads. \\
+\addlinespace
+Ensemble construction & Connect model branches to a merge node using a
+supported voting strategy. & Combined predictions from several estimators
+inside the same graph. \\
+\addlinespace
+Reusable inference & Save the selected executed graph and load it in a later
+process. & Persistence of fitted preprocessing and model objects in one file. \\
+\addlinespace
+Custom transformation & Add a Python function or custom transformer as a
+preprocessing node. & Automatic Parallelizer optimization when the callable is
+supported, with fallback to its original Python implementation. \\
+\end{longtable}
+}
+
+\section{Code Parallelizer Use Cases}
+The Code Parallelizer is intended for loop-heavy transformations whose
+iterations are independent or form a supported scalar reduction. It can be
+used as a standalone source-to-source tool or as an optimization service inside
+Accelera Pipe. The source form determines whether the result is generated code
+or an executable callable.
+
+{\acceleraTableStyle
+\renewcommand{\arraystretch}{1.02}
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\bfseries}p{0.20\textwidth} p{0.36\textwidth} p{0.36\textwidth}}
+\caption{Representative Code Parallelizer use cases.}
+\label{tab:parallelizer-use-cases} \\
+\toprule
+Use case & Accepted input & Produced result \\
+\midrule
+\endfirsthead
+\toprule
+Use case & Accepted input & Produced result \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\small Continued on the next page} \\
+\endfoot
+\bottomrule
+\endlastfoot
+Existing source file & Path to a supported Python, C, or C++ source file. & A
+\texttt{parallelized\_<name>.c} file written to the selected output directory. \\
+\addlinespace
+Source inspection & In-memory Python or C/C++ source text. & Parallelized C++
+source returned as a string for inspection or later compilation. \\
+\addlinespace
+Python acceleration & A supported top-level Python function containing
+loop-oriented numerical code. & A compiled Python-callable wrapper backed by
+C++ and OpenMP, or the original function if optimization fails. \\
+\addlinespace
+Transformer acceleration & A custom transformer with a supported
+\texttt{transform} method. & The transformer instance with its transform method
+replaced by the optimized callable when compilation succeeds. \\
+\addlinespace
+Pipeline integration & A custom function or transformer passed to
+\texttt{Pipeline.preprocess}. & Transparent optimization before the callable is
+stored in the preprocessing node. \\
+\end{longtable}
+}
+
+The module is most useful for element-wise array updates, row-wise numerical
+transformations, nested independent loops, and sum or product reductions. A
+loop with cross-iteration dependencies, indirect writes, unsupported Python
+syntax, or state that cannot be translated safely should remain sequential.
+
 \section{Pipeline Reporting Use Cases}
 The user can use the pipeline report after running an Accelera pipeline. The
 report helps show the graph structure, branches, selected path, and metric
@@ -3498,6 +3624,167 @@ calculates the score and displays the leaderboard.
 
 \renewcommand{\lstlistingname}{Code Example}
 \chapter{User Guide}
+\section{Using Accelera Pipe}
+\subsection{Constructing and selecting a graph}
+An Accelera Pipe program is assembled by chaining node-building methods. A
+node passed with \texttt{branch=True} is returned as a branch description;
+\texttt{branch()} inserts those descriptions into the graph. The following
+example compares two scalers under the same classifier and selects the path
+with the highest validation accuracy.
+
+\begin{lstlisting}[style=code,caption={Building and selecting an Accelera Pipe graph}]
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
+from accelera.src.accelera_pipe.core.pipeline import Pipeline
+
+pipe = Pipeline()
+pipe.branch(
+    "preprocessing",
+    pipe.preprocess("standard", StandardScaler(), branch=True),
+    pipe.preprocess("minmax", MinMaxScaler(), branch=True),
+).model(
+    "classifier", LogisticRegression(max_iter=1000)
+).predict(
+    "validation_prediction", test_data=X_val
+).metric(
+    "validation_accuracy", "accuracy_score", y_true=y_val
+)
+
+validation_results, executed_graph = pipe(
+    X_train, y_train, select_strategy="max"
+)
+test_results = executed_graph(X_test, y_true=y_test)
+\end{lstlisting}
+
+The training call returns a list of graph outputs and an
+\texttt{ExecutedGraph}. The latter contains the fitted objects from the
+selected path and accepts new feature data for inference. The available path
+selection modes are \texttt{all}, \texttt{max}, and \texttt{min}; a user-defined
+function can be supplied through \texttt{custom\_strategy}. Parallel graph
+execution is enabled by default. It can be disabled for deterministic debugging
+with \texttt{pipe.disable\_parallel\_execution()}, while
+\texttt{pipe.set\_multicore\_threshold(n)} controls the workload threshold used
+by the native scheduler.
+
+Column-specific preprocessing can be declared without a custom adapter by
+passing column names to \texttt{preprocess}. Internally, the node wraps the
+transformer in a Scikit-learn \texttt{ColumnTransformer} and passes all remaining
+columns through unchanged.
+
+\begin{lstlisting}[style=code,caption={Applying a transformer to selected columns}]
+from sklearn.preprocessing import OneHotEncoder
+
+pipe.preprocess(
+    "encode_categories",
+    OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+    columns=["city", "category"],
+)
+\end{lstlisting}
+
+The \texttt{cache} argument of preprocessing and model nodes is disabled by
+default. It should be enabled only when repeated executions reuse the same
+expensive input and the retained data is worth the additional memory.
+
+\subsection{Saving training graphs and executed graphs}
+Both graph forms are saved as one pickle file. Saving a \texttt{Pipeline}
+preserves its graph recipe for later training. Saving an
+\texttt{ExecutedGraph} preserves the fitted selected path for inference.
+
+\begin{lstlisting}[style=code,caption={Saving and loading Accelera Pipe graphs}]
+from accelera.src.accelera_pipe.core.executed_graph import ExecutedGraph
+from accelera.src.accelera_pipe.core.pipeline import Pipeline
+
+pipe.save("training_graph.pkl")
+loaded_pipe = Pipeline.load("training_graph.pkl")
+_, fitted_graph = loaded_pipe(X_train, y_train, select_strategy="max")
+
+fitted_graph.save("inference_graph.pkl")
+loaded_graph = ExecutedGraph.load("inference_graph.pkl")
+predictions = loaded_graph(X_test, y_true=y_test)
+\end{lstlisting}
+
+Top-level custom preprocessing functions and simple lambdas are represented by
+source-backed wrappers when possible. Functions that capture closure variables
+cannot be reconstructed safely and should be rewritten as top-level functions
+before the pipeline is saved.
+
+\section{Using the Code Parallelizer}
+\subsection{Parallelizing files and source strings}
+The native bindings and a compiler with OpenMP support must be available before
+using the module. Passing a file path writes generated source to the repository
+root by default; \texttt{output\_dir} selects another directory. Passing source
+text instead returns the transformed C++ code directly.
+
+\Needspace{0.40\textheight}
+\begin{lstlisting}[style=code,caption={Parallelizing a source file and a code string}]
+from accelera.src.parallelizer.parallelizer import parallelizer
+
+parallelizer.parallelize(
+    "data/hard_test_files/hard_eval_002.py",
+    output_dir="generated",
+)
+
+source = """
+double sum(const double *x, int n) {
+    double total = 0.0;
+    for (int i = 0; i < n; ++i) total += x[i];
+    return total;
+}
+"""
+parallelized_source = parallelizer.parallelize(source)
+print(parallelized_source)
+\end{lstlisting}
+
+For Python files and Python source strings, the supported subset is converted
+to C++ before loop extraction. C and C++ inputs enter loop extraction directly.
+The output should always be compiled and tested against the original program,
+because parallel execution is valid only when the loop iterations preserve the
+same observable result.
+
+\subsection{Parallelizing a Python callable}
+Passing a supported custom function returns a callable that can be invoked like
+the original Python function. The Parallelizer extracts its source and helper
+functions, converts them to C++, injects OpenMP directives, compiles a PyBind11
+module, and caches the compiled artifact.
+
+\begin{lstlisting}[style=code,caption={Compiling a custom numerical function}]
+import numpy as np
+
+from accelera.src.parallelizer.parallelizer import parallelizer
+
+def square_values(X):
+    for i in range(len(X)):
+        for j in range(len(X[i])):
+            X[i][j] = X[i][j] * X[i][j]
+    return X
+
+optimized_square = parallelizer.parallelize(square_values)
+result = optimized_square(np.ones((10000, 25), dtype=np.float64))
+\end{lstlisting}
+
+If extraction, conversion, analysis, compilation, or import fails, callable
+optimization prints a warning and returns the original Python implementation.
+This fallback protects functional execution, but users should compare outputs
+and timings to confirm both correctness and a useful speedup.
+
+\subsection{Using automatic pipeline integration}
+No direct Parallelizer call is required for custom preprocessing. Accelera Pipe
+passes custom functions and custom transformer instances through
+\texttt{parallelizer.parallelize()} when the preprocessing node is created.
+
+\begin{lstlisting}[style=code,caption={Adding an automatically optimized custom function}]
+from accelera.src.accelera_pipe.core.pipeline import Pipeline
+
+pipe = Pipeline()
+pipe.preprocess("square_values", square_values)
+outputs, executed_graph = pipe(X_train, y_train)
+\end{lstlisting}
+
+For a custom transformer, only a class-defined \texttt{transform} method is
+considered for replacement. Standard Scikit-learn objects and unsupported
+callables pass through unchanged, preserving their normal behavior.
+
 \section{Using Tabular Auto Preprocessing}
 To use tabular preprocessing, the user first loads the dataset as a Pandas
 DataFrame. Then the user gives the target column, problem type, and output
@@ -3527,6 +3814,7 @@ X_train, y_train, X_val, y_val = preprocessor.common_preprocessing()
 
 For regression, the user only changes the problem type:
 
+\Needspace{0.22\textheight}
 \begin{lstlisting}[style=code,caption={Changing tabular preprocessing to regression}]
 preprocessor = ClassicalTrainingPreprocessing(
     df=df,
