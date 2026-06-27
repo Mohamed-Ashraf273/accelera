@@ -11,8 +11,8 @@
   \usepackage{polyglossia}
   \setdefaultlanguage{english}
   \setotherlanguage{arabic}
-  \newfontfamily\arabicfont[Script=Arabic]{Noto Sans Arabic}
-  \newfontfamily\arabicfontsf[Script=Arabic]{Noto Sans Arabic}
+  \newfontfamily\arabicfont[Script=Arabic]{Amiri}
+  \newfontfamily\arabicfontsf[Script=Arabic]{Amiri}
 \fi
 \renewcommand{\familydefault}{\sfdefault}
 \usepackage{setspace}
@@ -252,7 +252,7 @@ basis for future performance optimization and fair benchmark comparison.
 \clearpage
 \chapter*{Arabic Abstract}
 \addcontentsline{toc}{chapter}{Arabic Abstract}
-\begin{Arabic}
+\begin{otherlanguage}{arabic}
 مشروع أكسيليرا هو إطار عمل هجين للتعلم الآلي مبني باستخدام بايثون وسي بلس
 بلس، ويجمع بين واجهة بايثون عالية المستوى ومكونات تنفيذ أصلية. يتكون النظام
 من ست وحدات، وهي أكسيليرا بايب، ووحدة موازاة الشفرة، والمعالجة المسبقة
@@ -263,7 +263,7 @@ basis for future performance optimization and fair benchmark comparison.
 وتتنبأ بفرص التنفيذ المتوازي، وتنتج شفرة سي بلس بلس مزودة بتوجيهات أوبن إم
 بي. يوثق هذا التقرير التصميم والمنهجية والنتائج التجريبية المتاحة للوحدات
 المنفذة، مع الحفاظ على هيكل التقرير المطلوب لبقية الوحدات.
-\end{Arabic}
+\end{otherlanguage}
 
 \clearpage
 \chapter*{Acknowledgment}
@@ -6675,7 +6675,7 @@ between Accelera Pipe and the Parallelizer allows the project to combine
 graph-based execution with source-level acceleration.
 
 
-\input{sections/\input{sections/methodology_mohamed_fixed.tex}
+\input{sections/methdoloy-mohamed.tex}
 
 \clearpage
 \section{Auto Preprocessing Module}
