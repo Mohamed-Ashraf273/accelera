@@ -402,7 +402,7 @@ records, detecting column types, imputing missing values, encoding categorical
 features, applying robust scaling, selecting features, saving preprocessors, and
 generating reports. It also supports text preprocessing using cleaning,
 tokenization, stemming, TF-IDF vectorization, and target encoding. For image
-workflows, it provides preparation paths for classification and segmentation
+workflows, it provides preparation paths for classification
 tasks. This makes the project useful before the model-selection stage even
 begins.
 
@@ -546,7 +546,7 @@ models. For tabular data, it handles duplicates, missing values, column-type
 detection, categorical encoding, robust scaling, target processing, feature
 selection, and report generation. For text data, it applies cleaning,
 tokenization, stemming, TF-IDF vectorization, and label encoding. For image
-data, it supports classification and segmentation preparation. The outcome is a
+data, it supports classification preparation. The outcome is a
 set of processed arrays, saved preprocessors, selected features, and reports.
 
 \subsection*{Outcome 2: AutoML model search}
@@ -1347,10 +1347,11 @@ advantages and disadvantages of each one.
 
 
 \subsection{\texttt{scikit-learn} Pipeline}
+
 \texttt{scikit-learn} is one of the most widely used machine learning libraries
-in Python. It provides many preprocessing tools, machine learning models,
-evaluation metrics, and utilities for building complete machine learning
-workflows.
+in Python~\cite{pedregosa2011scikit}. It provides many preprocessing tools,
+machine learning models, evaluation metrics, and utilities for building complete
+machine learning workflows.
 
 The \texttt{Pipeline} object in \texttt{scikit-learn} allows users to connect
 several processing steps together. Each step is usually a transformer, and the
@@ -1365,10 +1366,11 @@ workflows. However, \texttt{scikit-learn} pipelines are mainly linear, while
 parallel execution of independent parts of the workflow.
 
 \subsection{OMPar: Automatic Parallelization with AI-Driven Source-to-Source Compilation}
+
 OMPar is a related work that focuses on automatic parallelization using
-AI-driven source-to-source compilation. The main idea of OMPar is to analyze C
-and C++ code, detect loops that can be parallelized, and generate OpenMP pragmas
-automatically.
+AI-driven source-to-source compilation~\cite{ompar2024}. The main idea of
+OMPar is to analyze C and C++ code, detect loops that can be parallelized, and
+generate OpenMP pragmas automatically.
 
 OMPar is important for this project because it inspired the general direction of
 the Parallelizer module. Both approaches use a staged process that includes loop
@@ -3274,6 +3276,20 @@ science.'' In \emph{Applications of Evolutionary Computation}, 2016.
 Chi Wang, Qingyun Wu, Markus Weimer, and Erkang Zhu. ``FLAML: A fast and
 lightweight AutoML library.'' In \emph{Proceedings of Machine Learning and
 Systems}, 2021.
+
+\bibitem{pedregosa2011scikit}
+F. Pedregosa, G. Varoquaux, A. Gramfort, V. Michel, B. Thirion,
+O. Grisel, M. Blondel, P. Prettenhofer, R. Weiss, V. Dubourg,
+J. Vanderplas, A. Passos, D. Cournapeau, M. Brucher, M. Perrot,
+and E. Duchesnay,
+``Scikit-learn: Machine Learning in Python,''
+\textit{Journal of Machine Learning Research}, vol. 12, pp. 2825--2830, 2011.
+
+\bibitem{ompar2024}
+T. Kadosh, N. Hasabnis, P. Soundararajan, V. A. Vo, M. Capota,
+N. Ahmed, Y. Pinter, and G. Oren,
+``OMPar: Automatic Parallelization with AI-Driven Source-to-Source Compilation,''
+arXiv preprint arXiv:2409.14771, 2024.
 
 \bibitem{autogluon}
 Nick Erickson et al. ``AutoGluon-Tabular: Robust and accurate AutoML for
