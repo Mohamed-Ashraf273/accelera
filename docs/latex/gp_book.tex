@@ -18,6 +18,7 @@
 \usepackage{setspace}
 \setstretch{1.15}
 \usepackage{graphicx}
+\graphicspath{{./}{imgs/}{dots/}}
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
@@ -152,7 +153,7 @@
 \vspace*{0.5cm}
 
 % Cairo University logo
-\includegraphics[width=0.12\textwidth]{CU_logo.png}\\\\
+\includegraphics[width=0.12\textwidth]{imgs/CU_logo.png}\\\\
 {\fontsize{12}{14}\selectfont Cairo University}\\
 {\fontsize{12}{14}\selectfont Faculty of Engineering}\\
 {\fontsize{12}{14}\selectfont Department of Computer Engineering}\\
@@ -162,7 +163,7 @@
 
 \vspace{1.0cm}
 
-\includegraphics[width=0.2\textwidth]{accelera.png}
+\includegraphics[width=0.2\textwidth]{imgs/accelera.png}
 
 \vspace{0.4cm}
 
@@ -2184,7 +2185,7 @@ workflow.
 \begin{figure}[!htbp]
 \centering
 \makebox[\textwidth][c]{%
-\includegraphics[width=1.08\textwidth,height=0.55\textheight,keepaspectratio]{block_diagram.png}
+\includegraphics[width=1.08\textwidth,height=0.55\textheight,keepaspectratio]{imgs/block_diagram.png}
 }
 \caption{Overall block diagram of the Accelera project architecture.}
 \label{fig:block-diagram}
@@ -2654,7 +2655,7 @@ graph-based execution with source-level acceleration.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth,clip]{auto_preprocessed.pdf}
+    \includegraphics[width=1\textwidth,clip]{imgs/auto_preprocessed.pdf}
     \caption{Auto Preprocessing Workflow}
     \label{fig:Auto_preprocessing_workflow}
 \end{figure}
@@ -2912,7 +2913,7 @@ validation data with the preprocessing objects needed later for testing.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth,clip]{tabular.pdf}
+    \includegraphics[width=1\textwidth,clip]{imgs/tabular.pdf}
     \caption{Tabular Preprocessing Workflow}
     \label{fig:tabular_preprocessing_workflow}
 \end{figure}
@@ -2990,7 +2991,7 @@ converted into TF-IDF features before the final processed data is returned.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth,clip]{text.pdf}
+    \includegraphics[width=1\textwidth,clip]{imgs/text.pdf}
     \caption{Text Preprocessing Workflow}
     \label{fig:text_preprocessing_workflow}
 \end{figure}
@@ -3109,7 +3110,7 @@ DataLoaders are prepared.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth,clip]{image_workflow.pdf}
+    \includegraphics[width=1\textwidth,clip]{imgs/image_workflow.pdf}
     \caption{Image Preprocessing Workflow}
     \label{fig:image_preprocessing_workflow}
 \end{figure}
@@ -3208,7 +3209,7 @@ final output.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.92\textwidth]{block_diagram.png}
+\includegraphics[width=0.92\textwidth]{imgs/block_diagram.png}
 \caption{Block diagram of the Accelera AutoML module.}
 \label{fig:gp-automl-block-diagram}
 \end{figure}
@@ -4415,21 +4416,21 @@ TPOT         & 0.877654 & 3953.78 & 8 & 1 \\
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{average_accuracy_time.png}
+\includegraphics[width=0.78\textwidth]{imgs/average_accuracy_time.png}
 \caption{Mean classification accuracy and runtime for the evaluated AutoML systems.}
 \label{fig:automl_classification_average}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.90\textwidth]{thesis_4_datasets_accuracy_bar.png}
+\includegraphics[width=0.90\textwidth]{imgs/thesis_4_datasets_accuracy_bar.png}
 \caption{Per-dataset classification accuracy on common datasets.}
 \label{fig:automl_classification_common_accuracy}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.90\textwidth]{thesis_4_datasets_duration_bar.png}
+\includegraphics[width=0.90\textwidth]{imgs/thesis_4_datasets_duration_bar.png}
 \caption{Per-dataset classification duration on common datasets.}
 \label{fig:automl_classification_common_duration}
 \end{figure}
@@ -4463,21 +4464,21 @@ FLAML        & 0.522743 & 0.497530 & 1863.85 & 4 & 4 & 4 & 2 \\
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{reg_average_r2_time.png}
+\includegraphics[width=0.78\textwidth]{imgs/reg_average_r2_time.png}
 \caption{Mean regression $R^2$ and runtime for the evaluated AutoML systems.}
 \label{fig:automl_regression_average}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.90\textwidth]{reg_thesis_4_datasets_r2_bar.png}
+\includegraphics[width=0.90\textwidth]{imgs/reg_thesis_4_datasets_r2_bar.png}
 \caption{Per-dataset regression $R^2$ on common datasets.}
 \label{fig:automl_regression_common_r2}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.90\textwidth]{reg_thesis_4_datasets_duration_bar.png}
+\includegraphics[width=0.90\textwidth]{imgs/reg_thesis_4_datasets_duration_bar.png}
 \caption{Per-dataset regression duration on common datasets.}
 \label{fig:automl_regression_common_duration}
 \end{figure}
@@ -6384,7 +6385,7 @@ workflow.
 \begin{figure}[!htbp]
 \centering
 \makebox[\textwidth][c]{%
-\includegraphics[width=1.08\textwidth,height=0.55\textheight,keepaspectratio]{block_diagram.png}
+\includegraphics[width=1.08\textwidth,height=0.55\textheight,keepaspectratio]{imgs/block_diagram.png}
 }
 \caption{Overall block diagram of the Accelera project architecture.}
 \label{fig:block-diagram}
@@ -6687,7 +6688,7 @@ graph-based execution with source-level acceleration.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth,clip]{auto_preprocessed.pdf}
+    \includegraphics[width=1\textwidth,clip]{imgs/auto_preprocessed.pdf}
     \caption{Auto Preprocessing Workflow}
     \label{fig:Auto_preprocessing_workflow}
 \end{figure}
@@ -6947,7 +6948,7 @@ validation data with the preprocessing objects needed later for testing.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth,clip]{tabular.pdf}
+    \includegraphics[width=1\textwidth,clip]{imgs/tabular.pdf}
     \caption{Tabular Preprocessing Workflow}
     \label{fig:tabular_preprocessing_workflow}
 \end{figure}
@@ -7025,7 +7026,7 @@ converted into TF-IDF features before the final processed data is returned.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth,clip]{text.pdf}
+    \includegraphics[width=1\textwidth,clip]{imgs/text.pdf}
     \caption{Text Preprocessing Workflow}
     \label{fig:text_preprocessing_workflow}
 \end{figure}
@@ -7144,7 +7145,7 @@ DataLoaders are prepared.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth,clip]{image_workflow.pdf}
+    \includegraphics[width=1\textwidth,clip]{imgs/image_workflow.pdf}
     \caption{Image Preprocessing Workflow}
     \label{fig:image_preprocessing_workflow}
 \end{figure}
@@ -7243,7 +7244,7 @@ final output.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.92\textwidth]{block_diagram.png}
+\includegraphics[width=0.92\textwidth]{imgs/block_diagram.png}
 \caption{Block diagram of the Accelera AutoML module.}
 \label{fig:gp-automl-block-diagram}
 \end{figure}
@@ -8392,21 +8393,21 @@ TPOT         & 0.877654 & 3953.78 & 8 & 1 \\
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{average_accuracy_time.png}
+\includegraphics[width=0.78\textwidth]{imgs/average_accuracy_time.png}
 \caption{Mean classification accuracy and runtime for the evaluated AutoML systems.}
 \label{fig:automl_classification_average}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.90\textwidth]{thesis_4_datasets_accuracy_bar.png}
+\includegraphics[width=0.90\textwidth]{imgs/thesis_4_datasets_accuracy_bar.png}
 \caption{Per-dataset classification accuracy on common datasets.}
 \label{fig:automl_classification_common_accuracy}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.90\textwidth]{thesis_4_datasets_duration_bar.png}
+\includegraphics[width=0.90\textwidth]{imgs/thesis_4_datasets_duration_bar.png}
 \caption{Per-dataset classification duration on common datasets.}
 \label{fig:automl_classification_common_duration}
 \end{figure}
@@ -8440,21 +8441,21 @@ FLAML        & 0.522743 & 0.497530 & 1863.85 & 4 & 4 & 4 & 2 \\
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{reg_average_r2_time.png}
+\includegraphics[width=0.78\textwidth]{imgs/reg_average_r2_time.png}
 \caption{Mean regression $R^2$ and runtime for the evaluated AutoML systems.}
 \label{fig:automl_regression_average}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.90\textwidth]{reg_thesis_4_datasets_r2_bar.png}
+\includegraphics[width=0.90\textwidth]{imgs/reg_thesis_4_datasets_r2_bar.png}
 \caption{Per-dataset regression $R^2$ on common datasets.}
 \label{fig:automl_regression_common_r2}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.90\textwidth]{reg_thesis_4_datasets_duration_bar.png}
+\includegraphics[width=0.90\textwidth]{imgs/reg_thesis_4_datasets_duration_bar.png}
 \caption{Per-dataset regression duration on common datasets.}
 \label{fig:automl_regression_common_duration}
 \end{figure}
