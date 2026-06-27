@@ -1,8 +1,19 @@
 \documentclass[12pt,a4paper]{report}
 
 \usepackage[margin=1in,headheight=22pt,headsep=0.28in]{geometry}
-\usepackage[T1]{fontenc}
-\usepackage{helvet}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage{helvet}
+\else
+  \usepackage{fontspec}
+  \setsansfont{TeX Gyre Heros}
+  \usepackage{polyglossia}
+  \setdefaultlanguage{english}
+  \setotherlanguage{arabic}
+  \newfontfamily\arabicfont[Script=Arabic]{Noto Sans Arabic}
+  \newfontfamily\arabicfontsf[Script=Arabic]{Noto Sans Arabic}
+\fi
 \renewcommand{\familydefault}{\sfdefault}
 \usepackage{setspace}
 \setstretch{1.15}
@@ -185,7 +196,7 @@ Mazen Adel & Mohamed Khater \\
 
 \vspace{0.3cm}
 
-{\fontsize{12}{14}\selectfont April 17, 2026}
+{\fontsize{12}{14}\selectfont June 30, 2026}
 
 \vfill
 
@@ -241,6 +252,18 @@ basis for future performance optimization and fair benchmark comparison.
 \clearpage
 \chapter*{Arabic Abstract}
 \addcontentsline{toc}{chapter}{Arabic Abstract}
+\begin{Arabic}
+مشروع أكسيليرا هو إطار عمل هجين للتعلم الآلي مبني باستخدام بايثون وسي بلس
+بلس، ويجمع بين واجهة بايثون عالية المستوى ومكونات تنفيذ أصلية. يتكون النظام
+من ست وحدات، وهي أكسيليرا بايب، ووحدة موازاة الشفرة، والمعالجة المسبقة
+التلقائية، والتعلم الآلي التلقائي، والنشر، ومنصة القياس المرجعي. تمثل أكسيليرا
+بايب سير عمل التعلم الآلي في صورة عقد ضمن رسم بياني موجه للمعالجة المسبقة،
+وبناء النماذج، والتنبؤ، وتقييم المقاييس، والتفرع، والدمج. تحلل وحدة موازاة
+الشفرة شفرات سي وسي بلس بلس وشفرات بايثون المدعومة، وتستخرج خصائص الحلقات،
+وتتنبأ بفرص التنفيذ المتوازي، وتنتج شفرة سي بلس بلس مزودة بتوجيهات أوبن إم
+بي. يوثق هذا التقرير التصميم والمنهجية والنتائج التجريبية المتاحة للوحدات
+المنفذة، مع الحفاظ على هيكل التقرير المطلوب لبقية الوحدات.
+\end{Arabic}
 
 \clearpage
 \chapter*{Acknowledgment}
@@ -276,7 +299,31 @@ OpenMP & Open Multi-Processing \\
 RMSE & Root Mean Squared Error \\
 RSS & Resident Set Size \\
 SMBO & Sequential Model-Based Optimization \\
+API & Application Programming Interface \\
+AST & Abstract Syntax Tree \\
+AWS & Amazon Web Services \\
+CI/CD & Continuous Integration and Continuous Deployment \\
+CLI & Command-Line Interface \\
+CPU & Central Processing Unit \\
+Docker & Containerization Platform \\
+EC2 & Elastic Compute Cloud \\
+Git & Distributed Version Control System \\
+GUI & Graphical User Interface \\
+Heroku & Cloud Application Platform \\
+HTTP & Hypertext Transfer Protocol \\
+HTTPS & Hypertext Transfer Protocol Secure \\
+IP & Internet Protocol \\
+JSON & JavaScript Object Notation \\
+ML & Machine Learning \\
+OpenMP & Open Multi-Processing \\
+REST & Representational State Transfer \\
+RSS & Resident Set Size \\
+SSH & Secure Shell \\
 SVC & Support Vector Classifier \\
+URI & Uniform Resource Identifier \\
+URL & Uniform Resource Locator \\
+VCS & Version Control System \\
+VM & Virtual Machine \\
 VMS & Virtual Memory Size \\
 \end{tabular}
 
@@ -315,8 +362,8 @@ $F(L)$ & Feature representation of loop $L$ \\
 \textbf{Name} & \textbf{Email} & \textbf{Phone Number} \\ \hline
 Mohamed Ashraf & \texttt{mohamed.abdelaziz03@eng-st.cu.edu.eg} & +2 01004538215 \\ \hline
 Nesma Osama & \texttt{nesma.ahmed03@eng-st.cu.edu.eg} & +2 01067193062 \\ \hline
-Mazen Adel & \texttt{abc1@email.com} & +2 01xxxxxxxx \\ \hline
 Mohamed Khater & \texttt{mk0015264@gmail.com} & +2 01068071299 \\ \hline
+Mazen Adel & \texttt{mez3n1151@gmail.com} & +2 01152794877 \\ \hline
 \end{tabularx}
 
 \end{table}
@@ -364,7 +411,7 @@ benchmark platform. Table~\ref{tab:intro-modules-overview} gives a quick
 overview of these modules and how they contribute to the full system.
 
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \acceleraTableStyle
 \caption{Main Accelera modules and their roles.}
@@ -406,6 +453,15 @@ Provides a prototype web platform for datasets, metrics, submissions, and
 leaderboard-style comparison. &
 Connects the framework to a future environment for fair pipeline evaluation and
 community comparison. \\
+\midrule
+
+Deployment &
+Transforms trained models and generated artifacts into deployable services
+using configuration files, model packaging, runtime validation, and deployment
+commands for local and cloud/server targets. &
+Bridges the gap between model development and real-world usage by making
+trained outputs accessible through service endpoints rather than leaving them
+only as local files. \\
 
 \bottomrule
 \end{tabular}
@@ -442,6 +498,10 @@ system. This creates several practical problems.
 
   \item \textbf{Lack of fair comparison:} Pipeline results need a structured
   place where metrics, submissions, and benchmarks can be compared.
+
+  \item \textbf{Deployment gap:} A trained model is not useful to external
+  users until it is packaged, served through an API, configured for its runtime
+  environment, and exposed on a local or remote host.
 \end{itemize}
 
 \noindent These problems justify the need for Accelera. The project provides automation
@@ -459,7 +519,7 @@ records, detecting column types, imputing missing values, encoding categorical
 features, applying robust scaling, selecting features, saving preprocessors, and
 generating reports. It also supports text preprocessing using cleaning,
 tokenization, stemming, TF-IDF vectorization, and target encoding. For image
-workflows, it provides preparation paths for classification and segmentation
+workflows, it provides preparation paths for classification
 tasks. This makes the project useful before the model-selection stage even
 begins.
 
@@ -490,20 +550,19 @@ checks, inserting OpenMP pragmas, and compiling the result as a native
 Python-callable extension. If the optimization path fails, the original function
 is preserved, which keeps the workflow correct.
 
-\medskip
-\noindent The deployment module is motivated by the need to move trained models from
-experiments into usable services. After a model or pipeline is selected, users
-often need a simple way to expose it for prediction without rebuilding the full
-workflow manually. Deployment support helps connect the experimental stage with
-practical usage by preparing trained models or pipelines for service-based
-inference.
-
-\medskip
-\noindent Finally, the benchmark platform is motivated by the need for organized
+The benchmark platform is motivated by the need for organized
 comparison. A machine-learning framework becomes more useful when users can
 compare pipelines on common datasets and metrics. The benchmark module therefore
 represents a future-facing part of the project, where submissions, metrics, and
 leaderboard-style results can help users evaluate their solutions fairly.
+
+Finally, the Deployment module is motivated by the final step that many
+machine-learning projects postpone: making the trained model available outside
+the notebook or local script. Deployment normally requires packaging artifacts,
+building an API layer, preparing dependencies, exposing ports, configuring
+servers, and checking that the service responds correctly. Accelera includes
+this step so that the workflow can continue from model creation to a reachable
+prediction service.
 
 \begin{table}[!htbp]
 \centering
@@ -543,6 +602,12 @@ Helps prepare trained models or pipelines for service-based inference. \\
 Difficult result comparison &
 Benchmark platform &
 Stores benchmark information, metrics, submissions, and leaderboard views. \\
+\midrule
+
+Local-only trained models &
+Deployment module &
+Packages saved models into validated API services that can run in Docker,
+Heroku, or AWS EC2 workflows. \\
 
 \bottomrule
 \end{tabular}
@@ -589,6 +654,11 @@ and benchmark-oriented evaluation.
 
   \item Build a benchmark platform prototype for datasets, submissions, users,
   metrics, and leaderboard-based comparison.
+
+  \item Provide a Deployment module that packages trained models and generated
+  artifacts into usable services, supports local and remote deployment
+  workflows, manages deployment configuration, and reduces the infrastructure
+  knowledge required to expose a trained model through an API.
 \end{enumerate}
 
 \medskip
@@ -597,10 +667,12 @@ and benchmark-oriented evaluation.
 \begin{quote}
 Machine-learning workflows in Python are easy to write but become difficult to
 organize, repeat, compare, and optimize when they include many preprocessing
-steps, model alternatives, custom functions, and evaluation paths. Accelera aims
+steps, model alternatives, custom functions, evaluation paths, and deployment
+requirements. Accelera aims
 to preserve Python usability while adding automated preprocessing, budgeted
 model search, graph-based execution, safe loop-level acceleration, and
-benchmark-oriented evaluation.
+benchmark-oriented evaluation, while also supporting the final step of turning
+trained artifacts into accessible services.
 \end{quote}
 
 \medskip
@@ -623,7 +695,7 @@ models. For tabular data, it handles duplicates, missing values, column-type
 detection, categorical encoding, robust scaling, target processing, feature
 selection, and report generation. For text data, it applies cleaning,
 tokenization, stemming, TF-IDF vectorization, and label encoding. For image
-data, it supports classification and segmentation preparation. The outcome is a
+data, it supports classification preparation. The outcome is a
 set of processed arrays, saved preprocessors, selected features, and reports.
 
 \subsection*{Outcome 2: AutoML model search}
@@ -666,6 +738,16 @@ visualization. It also includes a benchmark platform prototype with backend and
 frontend components for datasets, metrics, users, submissions, and leaderboards.
 These outcomes improve visibility and comparison.
 
+\subsection*{Outcome 7: Deployment support}
+
+The Deployment module extends Accelera beyond experimentation by converting
+saved machine-learning artifacts into runnable services. It organizes
+\texttt{config.json} files, model pickle files, serving code, schema
+validation, telemetry logging, Docker packaging, and target-specific commands
+for local containers, Heroku, and AWS EC2. This outcome is important because it
+allows Accelera to support the complete journey from building a model to making
+the model reachable through an endpoint.
+
 \begin{table}[!htbp]
 \centering
 \acceleraTableStyle
@@ -699,6 +781,12 @@ static analysis, safety checks, OpenMP pragmas, compilation, and caching. \\
 Benchmarking support &
 The Benchmark Platform provides a foundation for dataset-based evaluation,
 prediction submission, metric calculation, and leaderboard-style comparison. \\
+\midrule
+
+Deployment support &
+The Deployment module packages trained models and supporting artifacts into
+validated API services that can run locally in Docker or be deployed to
+supported cloud/server targets. \\
 
 \bottomrule
 \end{tabular}
@@ -706,7 +794,7 @@ prediction submission, metric calculation, and leaderboard-style comparison. \\
 
 \section{Document Organization}
 
-The rest of this report is organized into five main parts: Chapter 2 presents the market visibility study, 
+The rest of this report is organized into seven main parts: Chapter 2 presents the market visibility study, 
 Chapter 3 discusses the literature survey and related work, Chapter 4 explains the methodology and system 
 design of the main Accelera modules, Chapter 5 presents testing, verification, and experimental results, 
 and Chapter 6 concludes the report by summarizing the contributions, limitations, and possible future improvements. 
@@ -726,10 +814,12 @@ analysis to clarify how the project could be developed into a product or service
 \medskip
 \noindent Accelera targets the data-science workflow as a complete process, not as one
 isolated task. Some existing tools focus on preprocessing, others focus on model
-selection, and others focus on competition platforms or code acceleration.
-Accelera combines these directions through five connected parts:
+selection, others focus on competition platforms or code acceleration, and
+others focus only on hosting or cloud deployment.
+Accelera combines these directions through six connected parts:
 \texttt{auto\_preprocessing}, \texttt{accelera\_automl},
-\texttt{accelera\_pipe}, \texttt{parallelizer}, and the benchmark platform.
+\texttt{accelera\_pipe}, \texttt{parallelizer}, the benchmark platform, and
+the Deployment module.
 
 \section{Targeted Customers}
 
@@ -779,7 +869,8 @@ Small teams and startups &
 Need a practical toolkit that reduces development time without building an
 internal ML platform from scratch. &
 Combines preprocessing, AutoML, pipeline execution, reports, and benchmark
-support in one project. \\
+support in one project, with deployment support for turning selected models
+into accessible services. \\
 
 \bottomrule
 \end{tabular}
@@ -825,6 +916,8 @@ research-friendly framework with practical automation and optimization features.
   accelerated through C++ and OpenMP.
   \item \textbf{Fairer comparison:} benchmark components help compare pipelines
   using common datasets and metrics.
+  \item \textbf{Practical delivery:} deployment commands help move saved models
+  from local artifacts to runnable API services.
 \end{itemize}
 
 \section{Market Survey}
@@ -837,6 +930,8 @@ different because it tries to connect these ideas into one toolkit.
 \begin{table}[!htbp]
 \centering
 \acceleraTableStyle
+\scriptsize
+\renewcommand{\arraystretch}{1.08}
 \caption{Market comparison summary.}
 \label{tab:market-comparison}
 \begin{tabular}{p{0.22\textwidth}p{0.28\textwidth}p{0.19\textwidth}p{0.21\textwidth}}
@@ -871,6 +966,22 @@ Require user knowledge of acceleration syntax and do not manage ML workflow
 structure. &
 Provides an automatic attempt to optimize supported preprocessing functions
 inside the pipeline. \\
+\midrule
+
+Heroku &
+Cloud application hosting and container deployment. &
+Provides hosting infrastructure but does not manage ML artifacts, schema
+validation, or model version snapshots as part of the training workflow. &
+Connects model packaging, serving code, validation, telemetry, and Heroku
+container commands inside one ML-oriented deployment module. \\
+\midrule
+
+AWS EC2 &
+General-purpose virtual machines for cloud hosting. &
+Powerful but requires manual server access, SSH, Docker setup, port exposure,
+and operational knowledge. &
+Automates EC2-oriented file synchronization, remote Docker build/run commands,
+and health checks for Accelera model services. \\
 
 \bottomrule
 \end{tabular}
@@ -966,14 +1077,51 @@ code acceleration part of the workflow instead of a separate manual task.
 ```
 
 
+\subsection{Deployment and Hosting Platforms}
+
+Deployment platforms such as Heroku, AWS EC2, Render, Railway, and Google Cloud
+Run are relevant to Accelera because they help developers publish software
+services. Their main value is infrastructure: they provide servers, routing,
+containers, or managed execution environments. This is important, but it does
+not by itself solve the machine-learning-specific work of collecting model
+artifacts, preserving deployment configuration, validating input schemas, and
+connecting a trained model to an inference API.
+
+\textbf{Pros:}
+\begin{itemize}
+  \item Provide public or cloud-hosted environments for running applications.
+  \item Reduce the need to own physical servers.
+  \item Support common deployment units such as containers, web services, or
+  virtual machines.
+\end{itemize}
+
+\textbf{Cons:}
+\begin{itemize}
+  \item Usually require the user to prepare the ML serving code and runtime
+  dependencies separately.
+  \item Do not automatically understand Accelera model artifacts,
+  \texttt{config.json}, schema validation, or prediction telemetry.
+  \item General-purpose platforms may be difficult for beginners because they
+  involve CLI tools, SSH, ports, environment variables, and deployment logs.
+\end{itemize}
+
+Accelera's Deployment module is different because it is not only a hosting
+target. It is part of the ML workflow itself. It receives the outputs produced
+by training or pipeline modules, copies model binaries, writes deployment
+requirements, builds a Docker service, exposes prediction endpoints, validates
+requests, records telemetry, and provides commands for local Docker, Heroku,
+and AWS EC2. This integration increases Accelera's market value because it
+makes the system closer to an end-to-end ML platform rather than only a model
+training toolkit.
+
 \section{Business Case and Financial Analysis}
 
 Accelera can be developed as an open-source framework with optional hosted
-services around benchmarking, reporting, team collaboration, and managed
-execution. The open-source part helps adoption because students, researchers,
-and developers can use the framework freely. The business value can come from
-hosted benchmark features, team dashboards, managed experiment tracking, and
-support services.
+services around benchmarking, reporting, team collaboration, managed execution,
+and deployment assistance. The open-source part helps adoption because students,
+researchers, and developers can use the framework freely. The business value
+can come from hosted benchmark features, team dashboards, managed experiment
+tracking, deployment templates, and support services.
 
 \subsection{Business Case}
 
@@ -981,7 +1129,12 @@ The main business case is based on reducing time spent in repetitive
 data-science work. Users and teams spend time preparing data, comparing models,
 rewriting scripts, debugging pipeline steps, and measuring results. Accelera can
 reduce this time by providing one framework that handles multiple stages of the
-workflow.
+workflow. The Deployment module strengthens this business case because
+organizations do not only need trained models; they need trained models to
+become usable services. Automating deployment-related steps can reduce manual
+DevOps effort, reduce time-to-market, and lower the technical barrier for users
+who understand ML but are less experienced with Docker, SSH, cloud machines, or
+service exposure.
 
 \begin{table}[!htbp]
 \centering
@@ -1013,6 +1166,12 @@ Benchmark platform supports submissions, metrics, and leaderboards. &
 Universities, communities, and organizations. \\
 \midrule
 
+Shorter deployment path &
+Deployment support helps package model artifacts, build a serving API, and run
+the service on supported targets. &
+Small teams, prototypes, and applied ML projects. \\
+\midrule
+
 Lower entry barrier &
 Reports and automation make ML workflows easier for beginners. &
 Education and training programs. \\
@@ -1035,6 +1194,13 @@ The third possible product direction is professional support and integration.
 Organizations that want to use Accelera internally may need help adapting the
 framework to their datasets, infrastructure, or benchmark requirements. This
 creates a possible support and consulting model.
+
+The Deployment module also creates a practical commercial path for a managed
+deployment tier. A hosted product could provide prepared deployment templates,
+private model-serving environments, monitored endpoints, and simplified rollback
+support. Even when the current implementation remains lightweight and
+developer-controlled, its presence makes Accelera easier to present as a
+complete platform because it connects experimentation with operational use.
 
 \subsection{Financial Analysis}
 
@@ -1311,8 +1477,6 @@ cleaned and converted into numbers first.
 \noindent In text preprocessing, the text may be converted to lowercase, cleaned from
 unnecessary symbols, split into words, and simplified using stemming. After that,
 methods such as TF-IDF are used to transform the text into numerical features.
-In Accelera, these steps are used to prepare text datasets so they can be used
-for machine learning models.
 
 \subsubsection{Term Frequency-Inverse Document Frequency (TF-IDF)}
 Term Frequency-Inverse Document Frequency is one common technique used
@@ -1391,6 +1555,112 @@ a loop to distribute loop iterations across multiple threads. OpenMP is useful
 because it does not require rewriting the whole program. However, the pragma must
 be inserted only when the loop is safe to parallelize.
 
+\subsection{Deployment}
+Deployment is the process of moving software from a development environment to
+an environment where users or other systems can access it. In machine-learning
+projects, deployment is important because the trained model must be connected
+to software that receives input, runs inference, and returns predictions.
+
+\subsection{Model Deployment}
+Model deployment means packaging a trained model together with the code and
+dependencies needed to use it. A deployed model is usually exposed through a
+service endpoint so that other applications can send data and receive
+predictions. This is different from only saving a model file, because a saved
+file still requires a runtime service before it becomes usable by external
+users.
+
+\subsection{Machine Learning Deployment}
+Machine-learning deployment adds extra concerns beyond ordinary software
+deployment. The system must preserve preprocessing steps, load model binaries,
+validate input schemas, handle prediction errors, and sometimes track requests
+for monitoring. These concerns explain why Accelera treats deployment as a
+module connected to the ML workflow rather than only as a cloud-hosting task.
+
+\subsection{Cloud and Server Deployment}
+Cloud deployment runs a service on infrastructure provided by a cloud provider.
+Server deployment runs the service on a machine that may be local, virtual, or
+cloud-hosted. In both cases, the deployed service must receive network traffic
+on a configured port and must be started with the correct dependencies and
+environment variables.
+
+\subsection{Web Services, APIs, and REST APIs}
+A web service is a program that exposes functionality over the network. An API
+defines how other programs interact with that service. A REST API commonly uses
+HTTP methods and URLs to exchange structured data. In the Deployment module,
+prediction requests are sent to API endpoints such as \texttt{/predict}, while
+status information is exposed through endpoints such as \texttt{/health}.
+
+\subsection{HTTP, HTTPS, JSON, URLs, and Ports}
+HTTP is the common protocol used by web clients and servers. HTTPS is the secure
+version of HTTP. JSON is a text format frequently used to send structured data
+between clients and APIs. A URL identifies where a service can be reached, and
+a port identifies the network entry point used by the service on a machine.
+These concepts are needed to understand deployed prediction endpoints.
+
+\subsection{Docker and Containerization}
+Docker is a containerization tool that packages an application with its runtime
+environment. A container helps the same service run consistently across
+machines because dependencies, files, and startup commands are described
+explicitly. The Deployment module uses Docker to package the FastAPI serving
+application, model files, configuration, and required Python libraries into one
+runnable service image.
+
+\subsection{Virtual Machines, AWS, and AWS EC2}
+A virtual machine is a software-defined computer that runs on physical cloud
+hardware. AWS is a major cloud provider, and EC2 is its virtual-machine service.
+Deploying to EC2 gives the user flexible control over the server, but it also
+requires practical infrastructure steps such as SSH access, file
+synchronization, Docker installation, port exposure, and health checking.
+
+\subsection{Heroku and Container Hosting}
+Heroku is a platform for deploying web applications with less direct server
+management. It can run containerized applications through its container
+registry. In Accelera, Heroku is treated as a deployment target where the
+prepared Docker service can be pushed and released through Heroku CLI commands.
+
+\subsection{SSH and CLI Tools}
+SSH is a secure protocol for connecting to remote machines and running commands.
+A CLI is a text-based interface used to execute commands from a terminal. The
+Deployment module uses CLI workflows for local Docker, Heroku, and EC2. For
+EC2, SSH is used to run remote commands, build Docker images, start containers,
+and read logs.
+
+\subsection{Environment Variables and Configuration Files}
+Environment variables are runtime values provided outside the source code, such
+as the port on which a server should listen. Configuration files store structured
+settings used by the program. Accelera uses \texttt{config.json} to locate model
+artifacts, define input schema rules, and configure tracking behavior.
+
+\subsection{Pickle Files and Model Artifacts}
+Pickle files with the \texttt{.pkl} extension are commonly used in Python to
+serialize trained objects such as Scikit-learn models or preprocessors. In the
+Deployment module, these files are treated as model artifacts. They are copied
+into the deployment workspace, loaded by the model service, and used during
+inference.
+
+\subsection{Version Control, Git, GitHub, and Repositories}
+Version control records changes over time and helps users return to previous
+states. Git is a widely used version-control system, GitHub hosts Git
+repositories, and a repository stores a project's files and history. Accelera
+also implements a lightweight model VCS for deployment artifacts. This VCS is
+not a replacement for Git; it snapshots model files and deployment
+configuration so that earlier model versions can be restored.
+
+\subsection{Backend Services, FastAPI, and Uvicorn}
+A backend service runs server-side logic and responds to client requests.
+FastAPI is a Python framework for building APIs, and Uvicorn is an ASGI server
+used to run FastAPI applications. The Deployment module uses FastAPI to define
+prediction and health endpoints, while Uvicorn starts the application inside
+the Docker container.
+
+\subsection{Deployment Scripts}
+Deployment scripts automate repeated infrastructure commands. Instead of asking
+the user to copy files, build containers, start services, and check endpoints
+manually, a script can execute these steps in sequence. Accelera's
+\modulepath{deployment.py} script provides commands for preparing files,
+building Docker images, running locally, deploying to Heroku, and deploying to
+EC2.
+
 \newpage
 
 \section{Comparative Study of Previous Work}
@@ -1409,10 +1679,11 @@ advantages and disadvantages of each one.
 
 
 \subsection{\texttt{scikit-learn} Pipeline}
+
 \texttt{scikit-learn} is one of the most widely used machine learning libraries
-in Python. It provides many preprocessing tools, machine learning models,
-evaluation metrics, and utilities for building complete machine learning
-workflows.
+in Python~\cite{pedregosa2011scikit}. It provides many preprocessing tools,
+machine learning models, evaluation metrics, and utilities for building complete
+machine learning workflows.
 
 The \texttt{Pipeline} object in \texttt{scikit-learn} allows users to connect
 several processing steps together. Each step is usually a transformer, and the
@@ -1427,10 +1698,11 @@ workflows. However, \texttt{scikit-learn} pipelines are mainly linear, while
 parallel execution of independent parts of the workflow.
 
 \subsection{OMPar: Automatic Parallelization with AI-Driven Source-to-Source Compilation}
+
 OMPar is a related work that focuses on automatic parallelization using
-AI-driven source-to-source compilation. The main idea of OMPar is to analyze C
-and C++ code, detect loops that can be parallelized, and generate OpenMP pragmas
-automatically.
+AI-driven source-to-source compilation~\cite{ompar2024}. The main idea of
+OMPar is to analyze C and C++ code, detect loops that can be parallelized, and
+generate OpenMP pragmas automatically.
 
 OMPar is important for this project because it inspired the general direction of
 the Parallelizer module. Both approaches use a staged process that includes loop
@@ -1592,20 +1864,70 @@ the Parallelizer. \\
 \end{tabularx}
 \end{table}
 
-\noindent The objective of Accelera AutoML is not to reproduce every capability
-of these frameworks. Its role is to provide an understandable, extensible AutoML
-engine that integrates directly with the Accelera codebase and exposes its
-search state for later research and experimentation.
+\subsection{Model Deployment Platforms}
+Deployment platforms such as Heroku, AWS EC2, AWS Elastic Beanstalk, Render,
+Railway, Google Cloud Run, and Hugging Face Spaces provide ways to host
+applications or model demos. Their role is important because they give
+developers infrastructure for running web services. However, these platforms
+mainly provide the hosting layer. The user usually remains responsible for
+building the ML serving application, preparing dependency files, loading model
+artifacts, validating inputs, logging predictions, and maintaining model
+versions.
+
+Accelera's Deployment module is different in scope. It is not a general cloud
+provider; it is an ML-oriented deployment layer inside the Accelera workflow.
+It takes the generated configuration and model pickle files, prepares a FastAPI
+serving container, exposes prediction endpoints, runs schema validation,
+records telemetry, and provides commands for local Docker, Heroku, and AWS EC2
+deployment. Therefore, Accelera complements infrastructure platforms by
+preparing the ML service itself and connecting it to the artifacts created by
+the rest of the framework.
+
+\begin{table}[H]
+\centering
+\acceleraTableStyle
+\caption{Deployment-related platforms and Accelera's difference.}
+\label{tab:deployment_related_platforms}
+\begin{tabularx}{\textwidth}{p{0.24\textwidth}X X}
+\toprule
+\textbf{Platform} & \textbf{Main focus} & \textbf{Accelera difference} \\
+\midrule
+Heroku &
+Application hosting with container deployment support. &
+Accelera prepares the ML serving container and provides Heroku-specific
+commands for pushing and releasing it. \\
+\midrule
+AWS EC2 &
+General-purpose virtual machines with full server control. &
+Accelera automates file synchronization, remote Docker build/run steps, and
+health checks for model services. \\
+\midrule
+Render, Railway, or Cloud Run &
+Managed hosting for web services or containers. &
+Accelera focuses on creating the ML API, validation, telemetry, and deployment
+package before such hosting is considered. \\
+\midrule
+Hugging Face Spaces &
+Hosted ML demos and interactive applications. &
+Accelera emphasizes integration with local model artifacts and repeatable
+deployment workflows inside the project. \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \section{Implemented Approach}
 
 \subsection{Auto Preprocessing}
-In this module we decided to implement an automated preprocessing approach for tabular datasets. The
-approach was designed to prepare data for machine learning models by applying
-suitable preprocessing steps automatically according to the type and
-characteristics of each column and some user configurations.
-\noindent The chosen approach follows a classical automated preprocessing pipeline. The
-main preprocessing decisions are:
+In this module, we decided to implement an automated preprocessing approach that
+helps users prepare datasets before model training without repeating the same
+manual cleaning steps each time. The approach was first designed for tabular
+datasets, then extended to support text and image data. Its goal is to inspect
+the input, choose suitable preprocessing steps, apply them, save reusable
+artifacts, and generate reports that help the user understand what happened to
+the data.
+
+\noindent For tabular datasets, the chosen approach follows a classical automated
+preprocessing pipeline. The main preprocessing decisions are:
 
 \begin{itemize}
   \item \textbf{Missing values:} Median imputation is used for numerical
@@ -1632,15 +1954,36 @@ main preprocessing decisions are:
 \end{itemize}
 
 \noindent This approach was chosen because it gives a good balance between automation,
-simplicity, and speed. More advanced techniques, such as
-K-nearest neighbour imputation, autoencoders, and wrapper feature selection, can
-be useful in specific cases, but they need more computation.
+simplicity, and speed. More advanced techniques, such as K-nearest neighbour
+imputation, autoencoders, and wrapper feature selection, can be useful in
+specific cases, but they need more computation and may make the system harder to
+use for beginners.
 
-\noindent One of the important additions in this project is that the module is not
-only used for data preparation. It also supports exploratory data analysis report.
+\noindent One important addition in this project is that the module is not only used for
+data preparation. It also generates exploratory data analysis reports so the
+user can learn about missing values, feature distributions, correlations, and
+the preprocessing actions applied to the dataset. The same idea was extended to
+text and image inputs, where the module applies suitable preparation steps for
+each data type instead of forcing all datasets into one tabular workflow.
 
-\noindent Also the module was extended to support text and image data
-preparation, not only tabular data.
+\subsection{Benchmark Platform}
+In this module, we decided to implement a benchmark platform that supports
+learning through repeated experimentation. The goal is not only to rank models,
+but also to let users try a task, submit predictions, see their score, inspect
+repository links from other submissions, learn from stronger techniques, improve
+their own solution, and submit again.
+
+\noindent The implemented approach separates benchmark creation from submission
+evaluation. A benchmark creator defines the problem, dataset links, test set,
+hidden target file, target column, problem type, and evaluation metric. After
+that, participants submit prediction files and repository links. The system
+validates the files, calculates the score automatically using the selected
+metric, stores the submission, and displays the result on a leaderboard.
+
+\noindent This approach was chosen because it keeps the learning process fair and
+repeatable. All participants are evaluated using the same hidden ground truth
+file and the same metric configuration, while the leaderboard and repository
+links give users a practical way to compare approaches and improve their work.
 
 \subsection{\texttt{accelera\_pipe}}
 In this module, we decided to implement a graph-based machine learning pipeline
@@ -1700,6 +2043,48 @@ preprocessing node contains a supported custom Python function, the pipeline can
 attempt to optimize this function using the Parallelizer. This allows the
 project to combine graph-level workflow execution with code-level acceleration.
 
+\subsection{Deployment Module Technologies}
+The Deployment module uses a set of practical software-engineering technologies
+to move trained artifacts toward a runnable service. This section introduces the
+tools used by the module; the detailed module architecture is described later
+in Section~\ref{sec:deployment-module}.
+
+Git-style versioning inspired the internal model VCS. The module does not
+replace Git for source code, but it applies the same idea of named snapshots to
+deployment artifacts. The VCS stores model files and \texttt{config.json}
+inside commit directories, records metadata in an index file, and allows a
+previous model snapshot to be restored before deployment.
+
+FastAPI and Uvicorn form the serving layer. FastAPI defines HTTP endpoints for
+single prediction, CSV prediction, health checks, tracking summaries, and the
+interactive GUI. Uvicorn runs the application inside the container and listens
+on the configured service port.
+
+Docker is used as the portability layer. The deployment script writes a
+\texttt{Dockerfile}, copies serving files, installs runtime dependencies, adds
+the saved model artifacts, exposes the service port, and starts the Uvicorn
+server. This keeps the runtime environment more repeatable than launching the
+service directly from an arbitrary local Python environment.
+
+Great Expectations supports the runtime validation layer. The configuration
+file defines expected feature names, data types, required fields, allowed
+values, and numeric bounds. Incoming requests are checked and coerced before
+they reach the model service, which reduces the risk of invalid payloads
+causing hidden prediction errors.
+
+SSH and \texttt{rsync} are used for AWS EC2 deployment. The script connects to
+the remote machine, creates the target directory, synchronizes the Dockerfile,
+configuration, serving source, and model files, builds the container on the
+remote host, starts it, and checks the health endpoint. Heroku deployment uses
+Heroku CLI commands to authenticate, push the container image, release it, and
+open the deployed application.
+
+Configuration files and generated artifacts are the connection point between
+training and deployment. The \texttt{config.json} file tells the service where
+to find model pickle files, how to validate input data, and whether telemetry
+should be enabled. The deployment scripts then convert these local artifacts
+into a concrete service package.
+
 
 \chapter{System Design and Architecture}
 \section{Overview and Assumptions}
@@ -1754,15 +2139,36 @@ assumptions:
 The Benchmark Platform was designed based on the following assumptions:
 
 \begin{itemize}
- \item \textbf{Benchmark data assumption:} The user is assumed to provide the
-benchmark files correctly, including the training data, test data, and separate
-target file. The user is also responsible for ensuring that the file separation
-does not cause data leakage, so the platform can evaluate submissions fairly.
-  \item \textbf{Metric and submission assumption:} The admin is assumed to define
-  the correct metric information for the benchmark, and the user is assumed to
-  submit predictions in the required format, so the scoring script can calculate
-  the result correctly.
+  \item \textbf{Benchmark data assumption:} The benchmark creator is assumed to
+  provide the benchmark files correctly, including the training data, test data,
+  and separate hidden target file. The creator is also responsible for ensuring
+  that the file separation does not cause data leakage, so the platform can
+  evaluate submissions fairly.
+
+  \item \textbf{Learning and submission assumption:} Users are assumed to submit
+  prediction files in the required format and, when possible, provide a
+  repository link for their solution. This allows other users to compare
+  techniques, learn from stronger submissions, improve their own models, and
+  submit again.
+
+  \item \textbf{Metric assumption:} The admin or benchmark creator is assumed to
+  define the correct metric information for the benchmark, so the scoring script
+  can calculate results consistently for all submissions.
 \end{itemize}
+
+\subsection{Deployment Assumptions}
+The Deployment module assumes that the selected model or pipeline has already
+produced serializable model artifacts and a deployment configuration file. The
+configuration must describe the model files relative to the deployment
+workspace, the expected input schema when validation is enabled, and the
+tracking settings used by the serving application.
+
+For local execution and cloud/server execution, the module assumes that Docker
+is available on the target machine or can be installed during the EC2 workflow
+when the corresponding option is selected. For remote EC2 deployment, the user
+must provide a reachable host, a valid SSH user, and any required private key.
+The public port used by the service must also be reachable from the client
+machine for the final health check and GUI endpoint to work.
 
 \newpage
 \section{System Architecture}
@@ -1790,49 +2196,24 @@ Benchmark Platform, and Deployment. The blue arrows in the diagram represent
 standalone or module-level flows, while the red arrows represent the end-to-end
 workflow path.
 
-\begin{table}[H]
-\centering
-\acceleraTableStyle
-\caption{Main blocks in the Accelera architecture.}
-\label{tab:block-diagram-modules}
-\begin{tabularx}{\textwidth}{p{0.24\textwidth}X X}
-\toprule
-\textbf{Block} & \textbf{Main responsibility} & \textbf{Output} \\
-\midrule
+The architecture follows three broad stages: data preparation, model or graph
+construction, and artifact consumption. Auto Preprocessing prepares reusable
+features and preprocessing artifacts; AutoML and Accelera Pipe provide
+alternative model-building paths; and Deployment or the Benchmark Platform
+consumes the resulting model, executed graph, endpoint, or prediction file. The
+Parallelizer is a supporting optimization module that can operate independently
+on source code or accelerate supported custom preprocessing inside Accelera
+Pipe.
 
-Auto Preprocessing &
-Prepares datasets according to their type: tabular, text, or image. &
-Processed data, reports, and saved preprocessing artifacts. \\
-\midrule
+The red route represents the complete data-to-service lifecycle, while the blue
+routes show standalone use. Modules exchange explicit artifacts rather than
+internal state, allowing users to stop after any stage.
 
-Accelera AutoML &
-Searches for good model and preprocessing configurations. &
-Best model, score, leaderboard, and run history. \\
-\midrule
+The Deployment module turns a saved model or pipeline into a validated API
+service by packaging model artifacts, configuration, serving code, and deployment
+commands. Its outputs may include a model URL, service endpoint, health endpoint,
+telemetry summary, and optional inference UI.
 
-Accelera Pipe &
-Builds and executes graph-based machine-learning workflows. &
-Predictions, executed graph, selected path, and reports. \\
-\midrule
-
-Parallelizer &
-Optimizes supported loop-heavy Python/C++ code using analysis, safety rules,
-OpenMP, compilation, and caching. &
-Parallelized C++ code or optimized Python-callable native module. \\
-\midrule
-
-Benchmark Platform &
-Evaluates user prediction files against benchmark ground truth. &
-Score, ranking, and benchmark results. \\
-\midrule
-
-Deployment &
-Turns a saved model or pipeline into a deployed service. &
-Model URL, service endpoint, and optional inference UI. \\
-
-\bottomrule
-\end{tabularx}
-\end{table}
 
 \subsubsection*{Auto Preprocessing flow}
 
@@ -1890,39 +2271,99 @@ continuing to deployment. \\
 \end{tabularx}
 \end{table}
 
-\subsubsection*{Accelera Pipe and Parallelizer interaction}
+\subsubsection*{Accelera Pipe module}
 
-Accelera Pipe is the graph-execution part of the system. It represents the
-workflow as a graph of nodes. These nodes may represent preprocessing, model
-training, prediction, metric evaluation, merging, branching, and input/output
-operations.
+Accelera Pipe is the graph-execution module of the system. Its role is to let the
+user define a machine-learning workflow as a graph instead of a fixed linear
+sequence. Each graph node represents one operation in the workflow, such as data
+input, preprocessing, model training, prediction, metric evaluation, merging, or
+branching. The edges between nodes describe data dependencies, meaning that a
+node can execute only after its required source nodes have produced their
+outputs.
 
-A key feature is the interaction between Accelera Pipe and the Parallelizer. If
-a graph preprocessing node contains a supported custom method, the graph can send
-that method to the Parallelizer. The Parallelizer then tries to optimize it and
-return an optimized callable. After that, the optimized method can be attached
-back to the graph.
+This design allows Accelera Pipe to support workflows that are more flexible
+than a traditional sequential pipeline. For example, the graph may contain
+multiple model branches, shared preprocessing nodes, or metric nodes used to
+select the best path. The module is also responsible for managing execution
+order, selected-path extraction, persistence, and intermediate-memory lifetime.
+After training, the selected fitted path can be stored in an executed graph so it
+can be reused later for inference without keeping unnecessary temporary training
+data.
 
-\begin{enumerate}
-  \item The user defines a graph workflow in \texttt{accelera\_pipe}.
-  \item The graph detects a supported custom preprocessing method.
-  \item The method is sent to the Parallelizer.
-  \item The Parallelizer analyzes, rewrites, compiles, and caches the optimized
-  implementation when possible.
-  \item The optimized method is returned and reattached to the graph.
-  \item The graph continues execution using either the optimized method or the
-  original method if optimization fails.
-\end{enumerate}
+Accelera Pipe therefore works at the workflow level. It does not only run a list
+of steps; it manages how the steps are connected, when they are executed, which
+branches are selected, and which intermediate results can be released safely.
 
-This interaction is important because it connects workflow-level optimization
-with code-level optimization. Accelera Pipe manages the execution graph, while
-the Parallelizer attempts to speed up supported loop-heavy custom code inside
-that graph.
+Formally, a pipeline is represented as a directed acyclic graph
 
-\subsubsection*{Parallelizer flow}
+\begin{equation}
+G=(V,E), \qquad E\subseteq V\times V,
+\end{equation}
 
-The Parallelizer block accepts several kinds of input. This makes it usable both
-as a standalone module and as an internal acceleration module for Accelera Pipe.
+where each vertex $v\in V$ is an executable node and each edge $(u,v)\in E$
+indicates that $v$ consumes the output of $u$. A node becomes ready only after
+all its predecessors have completed:
+
+\begin{equation}
+\operatorname{ready}(v)
+\Longleftrightarrow
+\forall u\in\operatorname{Pred}(v),\;
+\operatorname{state}(u)=\text{finished}.
+\label{eq:graph-node-ready}
+\end{equation}
+
+Ready nodes without mutual dependencies may be scheduled concurrently by the
+C++ backend. This is the basis of parallel branch execution; it is different
+from OpenMP loop parallelization, which operates inside one custom function.
+
+\begin{table}[!htbp]
+\centering
+\acceleraTableStyle
+\caption{Principal node families in an Accelera Pipe graph.}
+\label{tab:accelera-pipe-node-families}
+\begin{tabularx}{\textwidth}{p{0.20\textwidth}X}
+\toprule
+\textbf{Node family} & \textbf{Architectural responsibility} \\
+\midrule
+Preprocess & Fits or applies a transformer and forwards transformed features. \\
+Model & Fits a supervised or unsupervised estimator using upstream data. \\
+Predict & Applies a fitted model method such as \texttt{predict} or
+\texttt{predict\_proba}. \\
+Metric & Evaluates predictions and supplies values used for path selection. \\
+Branch/Merge & Expands alternatives or combines compatible branch outputs. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The graph also applies consumer-count-based lifetime management. If $c_t(u)$ is
+the number of unfinished downstream consumers of node $u$ after execution step
+$t$, then completing consumer $v$ updates the count by
+
+\begin{equation}
+c_{t+1}(u)=c_t(u)-1, \qquad u\in\operatorname{Pred}(v).
+\end{equation}
+
+Temporary output from $u$ becomes releasable when $c_{t+1}(u)=0$. Consequently,
+a transformed array shared by several model branches remains alive until the
+last model consumes it, then can be cleared without affecting correctness.
+Duplicate first preprocessing nodes may also be shared, allowing equivalent
+branches to reference one transformed result rather than repeat the same work.
+
+After metric evaluation, the configured selection strategy determines the path
+retained in the \texttt{ExecutedGraph}. This inference graph keeps fitted
+preprocessors and models but does not need transient training arrays. It can be
+serialized as one pickle artifact and later called with new input data.
+
+
+\subsubsection*{Code Parallelizer module}
+
+The Code Parallelizer is the code-level optimization module of the system. Its
+main role is to analyze supported loop-heavy code and attempt to accelerate it
+using C++ and OpenMP. The module can be used as a standalone tool or as an
+internal optimization step when Accelera Pipe receives a custom preprocessing
+function.
+
+The Parallelizer accepts several kinds of input:
 
 \begin{itemize}
   \item C/C++ file or source code.
@@ -1931,16 +2372,80 @@ as a standalone module and as an internal acceleration module for Accelera Pipe.
   \item Custom transformer method.
 \end{itemize}
 
-After receiving the input, the Parallelizer normalizes it. If the input is
-supported Python code, it is converted to C++ first. Then the module extracts
-loops using a Clang AST based analysis stage. After loop extraction, it computes
-features such as memory access, dependencies, reductions, branches, and function
-calls. These features are used with a classifier and rule-based safety checks to
-decide whether a loop can be parallelized.
-
 \begin{table}[!htbp]
 \centering
 \acceleraTableStyle
+\caption{Parallelizer input dispatch and output behavior.}
+\label{tab:parallelizer-input-dispatch}
+\begin{tabularx}{\textwidth}{p{0.24\textwidth}p{0.30\textwidth}X}
+\toprule
+\textbf{Input} & \textbf{Normalization} & \textbf{Result} \\
+\midrule
+C/C++ file & Read native source directly & Parallelized source file. \\
+Python file & Convert supported Python AST to C++ & Parallelized source file. \\
+C/C++ or Python string & Detect syntax and convert Python when required &
+Parallelized C++ source string. \\
+Python function & Capture source and helpers, flatten nested functions, then
+convert & Cached native Python-callable or original function on failure. \\
+Custom transformer & Extract its custom \texttt{transform()} method & Optimized
+method attached to the same instance when compilation succeeds. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+After receiving the input, the module first normalizes it into a form that can
+be analyzed. If the input is supported Python code, it is converted into C++ so
+that both Python-originated and native C/C++ code can follow the same analysis
+path. The module then extracts loops using a Clang AST based analysis stage.
+After loop extraction, it computes features such as memory access patterns,
+dependencies, reductions, branches, nested loops, function calls, and
+vectorization potential.
+
+These features are passed through a classifier and combined with deterministic
+rule-based safety checks. This is important because the classifier alone is not
+trusted to change program semantics. If the loop is considered safe, the module
+inserts an OpenMP pragma such as \texttt{\#pragma omp parallel for}. If the loop
+matches a reduction pattern, the module can generate an OpenMP reduction clause.
+If the loop is unsafe or unsupported, it is left unchanged.
+
+For each extracted loop $L$, feature extraction produces a fixed-dimensional
+vector $\mathbf{x}(L)\in\mathbb{R}^{40}$. The classifier proposes a class from
+
+\begin{equation}
+\hat{y}(L)\in
+\{\texttt{parallel\_for},\texttt{reduction},\texttt{none}\}.
+\end{equation}
+
+The proposal is then resolved with deterministic evidence. In simplified form,
+the implemented decision can be written as
+
+\begin{equation}
+D(L)=
+\begin{cases}
+\hat{y}(L), & \hat{y}(L)\neq\texttt{none},\\
+\texttt{reduction}, & L\text{ contains a supported scalar reduction},\\
+\texttt{parallel\_for}, & L\text{ has independent array writes},\\
+\texttt{parallel\_for}, & L\text{ is a supported consecutive nest},\\
+\texttt{none}, & \text{otherwise}.
+\end{cases}
+\label{eq:parallelizer-decision}
+\end{equation}
+
+The safety analysis rejects evidence such as loop-carried dependencies,
+indirect writes, and early exits before an independent-write rule is accepted.
+For supported reductions, the generated directive has the form
+
+\begin{equation}
+\texttt{\#pragma omp parallel for reduction(}\odot\texttt{:r)},
+\end{equation}
+
+where $r$ is the reduction variable and $\odot$ is the recognized operator.
+
+\begin{table}[!htbp]
+\centering
+\normalsize
+\renewcommand{\arraystretch}{1.08}
+\setlength{\tabcolsep}{4pt}
 \caption{Parallelizer stages.}
 \label{tab:parallelizer-stages}
 \begin{tabularx}{\textwidth}{p{0.23\textwidth}X}
@@ -1955,7 +2460,7 @@ for analysis. \\
 
 Python-to-C++ conversion &
 Converts supported Python code into C++ so it can enter the same loop-analysis
-path. \\
+path as native C/C++ code. \\
 \midrule
 
 Loop extraction &
@@ -1968,7 +2473,8 @@ function calls, and vectorization potential. \\
 \midrule
 
 Safety decision &
-Combines classifier output with deterministic rule-based checks. \\
+Combines classifier output with deterministic rule-based checks to avoid unsafe
+parallelization. \\
 \midrule
 
 Pragma insertion &
@@ -1987,18 +2493,72 @@ The final pragma generation is intentionally rule-based. This makes the behavior
 safer and easier to inspect, especially when the available data for fully
 AI-generated pragma generation is limited or synthetic.
 
+
+\subsubsection*{Interaction between Accelera Pipe and the Parallelizer}
+
+The two modules interact at custom preprocessing nodes. If an Accelera Pipe graph
+contains a preprocessing node with a supported custom method, the graph can send
+that method to the Parallelizer before storing or executing it. The Parallelizer
+then attempts to analyze, rewrite, compile, and cache an optimized version of the
+method. If successful, the optimized callable is attached back to the same graph
+node. If optimization fails, the original method is kept.
+
+\begin{enumerate}
+  \item The user defines a graph workflow in \texttt{accelera\_pipe}.
+  \item The graph detects a supported custom preprocessing method.
+  \item The method is sent to the Parallelizer.
+  \item The Parallelizer analyzes, rewrites, compiles, and caches the optimized
+  implementation when possible.
+  \item The optimized callable is returned and reattached to the graph node.
+  \item The graph continues execution using either the optimized method or the
+  original method if optimization fails.
+\end{enumerate}
+
+This interaction connects workflow-level optimization with code-level
+optimization. Accelera Pipe controls the structure and execution of the machine
+learning graph, while the Parallelizer attempts to speed up supported custom
+code inside that graph. As a result, the system can optimize both the way the
+workflow is scheduled and the way expensive preprocessing code is executed.
+
+The replacement contract preserves behavior at the pipeline boundary. Let $f$
+be the original Python preprocessing callable and let $\mathcal{C}(f)$ denote
+source capture, conversion, OpenMP rewriting, compilation, and module loading.
+The callable attached to the preprocessing node is
+
+\begin{equation}
+f_{\mathrm{node}}=
+\begin{cases}
+\mathcal{C}(f), & \text{if every optimization stage succeeds},\\
+f, & \text{if source conversion, analysis, or compilation fails}.
+\end{cases}
+\label{eq:parallelizer-fallback-contract}
+\end{equation}
+
+This fallback contract gives the integration three useful properties:
+
+\begin{itemize}
+  \item \textbf{Transparent use:} the graph calls the node through the same
+  Python interface regardless of which implementation is attached.
+  \item \textbf{Failure isolation:} unsupported syntax or a compiler failure
+  disables the optimization for that callable without invalidating the graph.
+  \item \textbf{Persistent reuse:} source-backed functions retain serializable
+  Python source, while successful native modules can be recovered from cache.
+\end{itemize}
+
+
 \subsubsection*{Benchmark Platform flow}
 
-The Benchmark Platform is used for evaluation and ranking. It does not take a
-full user pipeline as input. Instead, it works with benchmark data links and user
-prediction submissions.
+The Benchmark Platform is used for learning, evaluation, and ranking. It does
+not take a full user pipeline as input. Instead, it works with benchmark data
+links, user prediction submissions, and optional repository links that show the
+technique used by the participant.
 
 A benchmark owner creates a benchmark by providing the required CSV links:
 
 \begin{itemize}
   \item training CSV file link,
   \item testing CSV file link,
-  \item true prediction or ground-truth CSV file link.
+  \item ground-truth target CSV file link.
 \end{itemize}
 
 A participant submits:
@@ -2009,15 +2569,28 @@ A participant submits:
 \end{itemize}
 
 The platform compares the submitted prediction column with the true labels,
-computes the score, and updates the ranking. This makes the benchmark module
-focused on fair evaluation and leaderboard comparison, not on directly executing
-the user's pipeline.
+computes the score, and updates the ranking. Users can then inspect the
+leaderboard, open repository links from other submissions, learn which
+techniques performed better, improve their own model, and submit another
+prediction file. This makes the benchmark module focused on fair evaluation and
+continuous learning, not on directly executing the user's pipeline.
 
 \subsubsection*{Deployment flow}
 
-The Deployment block receives a saved model or pipeline. It prepares the
-deployment service, builds the required API layer, handles authentication or API
-configuration, publishes an endpoint, and optionally provides an inference UI.
+The Deployment block receives saved model artifacts and the active deployment
+configuration. It prepares the deployment service by collecting the model files,
+copying the serving source code, writing runtime requirements, generating a
+Docker image definition, and exposing a FastAPI application. Inside the serving
+container, requests pass through schema validation before reaching the model
+service. After inference, telemetry is written so the user can inspect request
+counts, statuses, latencies, and prediction activity.
+
+The block also separates the service package from the target environment. The
+same prepared service can be built locally in Docker, pushed to Heroku through
+container commands, or synchronized to an AWS EC2 virtual machine over SSH and
+run as a remote Docker container. This design makes Deployment the final
+architectural bridge between the outputs of AutoML or graph pipelines and
+real-world usage through a reachable HTTP endpoint.
 
 The final deployment block produces a deployed model URL or service. This output
 has two possible meanings:
@@ -2105,8 +2678,6 @@ numerical representation suitable for machine learning models.
 \noindent It supports image classification by reading images from class
 folders, validating image files, resizing images, applying augmentation, normalizing pixel values, and
 preparing the data loaders needed for training.
-
-
 
 
 \subsection{Modular Decomposition}
@@ -3415,74 +3986,129 @@ selection tool and an extensible research component inside Accelera.
 
 
 \section{Benchmark Platform Module}
-\noindent The Benchmark Platform module is designed to provide a shared
+\noindent The Benchmark Platform module is designed to provide a shared learning
 environment where users can create machine learning benchmarks, submit
-predicted results, and compare submissions using selected evaluation metrics.
-The module includes a backend API, database schemas, Python validation and
-scoring scripts, and a frontend interface for users and admins.
+predicted results, compare submissions, and improve their techniques by studying
+other solutions. The module includes a backend API, database schemas, Python
+validation and scoring scripts, and a frontend interface for users and admins.
 
 \noindent The module separates benchmark creation from submission evaluation.
 This makes the workflow clearer: first, the benchmark creator defines the task
 and evaluation rules; then, users submit predictions under the same conditions.
 This separation helps ensure that all users are evaluated using the same
-ground-truth file and the same metric configuration. Another important design
-point is the use of Python scripts for file validation and metric scoring. The
-backend is implemented using Node.js and Express, while Python handles the
-machine learning evaluation part through Scikit-learn metrics and dataset
-loading utilities.
+ground-truth file and the same metric configuration. The leaderboard and
+repository links also allow users to see which approaches performed better,
+learn from them, improve their own model, and submit again. Another important
+design point is the use of Python scripts for file validation and metric
+scoring. The backend is implemented using Node.js and Express, while Python
+handles the machine learning evaluation part through Scikit-learn metrics and
+dataset loading utilities.
 
 \subsection{Functional Description}
-\noindent The main function of this module is to support fair comparison
-between different machine learning solutions. A user can create a benchmark by
-providing the benchmark title, description, problem type, target column,
-dataset link, test dataset link, ground-truth target link, and evaluation
-metric. The system validates the provided links and checks that the test set
-does not contain the target column while the target file contains the expected
-target column.
+\noindent The main function of this module is to support fair comparison and
+learning between different machine learning solutions. A user can create a
+benchmark by providing the benchmark title, description, problem type, target
+column, dataset link, test dataset link, ground-truth target link, and
+evaluation metric. The system validates the provided links and checks that the
+test set does not contain the target column while the target file contains the
+expected target column.
 
 \noindent After a benchmark is created, other users can submit their prediction
 file and repository link. The system validates the submitted prediction file,
 calculates the score using the selected Scikit-learn metric, stores the
 submission, and displays submissions on a leaderboard. The leaderboard is
 ordered based on the metric configuration, where some metrics are better when
-their value is higher and others are better when their value is lower.
+their value is higher and others are better when their value is lower. By
+checking the ranking and the repository links, users can learn from other
+solutions, modify their own approach, and submit improved predictions.
 
 \subsection{Modular Decomposition}
-\noindent The Benchmark Platform is decomposed into several smaller components:
+\noindent The Benchmark Platform is decomposed into several smaller components. Each
+component has a clear responsibility, so the benchmark workflow can be easier to
+build, test, and maintain.
 
 \begin{itemize}
+  \item \textbf{Backend Server and API Layer:}
+  The backend creates the Express application, enables CORS and JSON parsing,
+  connects to MongoDB, and mounts the main API routes. The backend exposes
+  separate routes for users, metrics, benchmarks, and submissions. This makes
+  the server organized because each group of operations is placed in its own
+  route.
+
+  \item \textbf{Database Models:}
+  The module uses Mongoose schemas to store the main data. The user schema
+  stores the user name, email, hashed password, and role. The benchmark schema
+  stores the title, description, target column, dataset links, problem type,
+  selected metric, metric parameters, creation date, and creator. The metric
+  schema stores the display name, Scikit-learn metric function name, problem
+  type, needed parameters, and whether higher or lower values are better. The
+  submission schema stores the benchmark id, submitting user, repository link,
+  prediction file link, submission date, and calculated score.
+
   \item \textbf{Benchmark Management:}
-  This component handles benchmark creation, listing, filtering, viewing,
-and deletion. It stores benchmark information such as title, description,
-problem type, dataset links, target column, selected metric, metric parameters,
-creation date, and creator.
+  This component handles creating, listing, filtering, viewing, and deleting
+  benchmarks. Users can list all benchmarks, filter benchmarks by problem type,
+  or show only benchmarks created by a specific user. When a benchmark is
+  created, the backend checks the problem type, checks that the title is unique,
+  validates the dataset links, and calls the Python validation script before
+  saving the benchmark in MongoDB. Deletion is protected, so only the benchmark
+  creator or an admin can delete a benchmark, and a benchmark cannot be deleted
+  if it already has submissions.
 
   \item \textbf{Metric Management:}
-  This component allows admin users to define evaluation metrics. Each
-metric contains a display name, the corresponding Scikit-learn metric function
-name, needed parameters, problem type, and whether a higher or lower score is
-better. Metrics are linked to benchmarks and used during submission scoring.
+  This component allows metrics to be listed, filtered by problem type,
+  displayed, created, and deleted. Creating and deleting metrics is limited to
+  admin users because a wrong metric can affect many benchmarks. Each metric
+  contains a display name, the matching Scikit-learn metric function name, the
+  problem type, needed parameters, and the value direction using
+  \texttt{higher} or \texttt{lower}. The delete route also checks if the metric
+  is already used by a benchmark, so the system does not remove a metric that is
+  still needed.
 
   \item \textbf{Submission Management:}
   This component allows users to submit prediction files for a specific
-benchmark. Each submission stores the benchmark id, submitting user, repository
-link, prediction file link, score, and submission date. Users can also update
-their existing prediction file or delete their submission if they have
-permission.
+  benchmark and attach a repository link that shows their solution. Before
+  saving a submission, the backend checks that the user did not already submit
+  to the same benchmark, validates the links, loads the benchmark metric, and
+  calls the Python scoring script. Users can also update their prediction file,
+  which recalculates the score, or delete their submission if they are the owner
+  or an admin.
 
   \item \textbf{Validation and Scoring Scripts:}
-  The backend calls Python scripts to validate benchmark files and score
-submissions. During benchmark creation, the validation script checks that the
-test file does not include the target column and that the target file contains
-the required target column. During submission, the scoring script loads the
-ground-truth file and the submitted prediction file, checks their length and
-target column, then computes the selected Scikit-learn metric.
+  The backend calls Python scripts for dataset validation and scoring. During
+  benchmark creation, the validation script checks that the test file does not
+  include the target column, that the target file includes the required target
+  column, and that the test and target files have the same number of rows.
+  During submission, the scoring script loads the hidden target file and the
+  submitted prediction file, checks their length and target column, then
+  computes the selected metric from \texttt{sklearn.metrics}. A helper function
+  is also used to convert Google Drive file links into direct download links.
+
+  \item \textbf{Authentication and Authorization:}
+  The platform uses user accounts so benchmark and submission actions can be
+  connected to their owners. The user routes handle signup and login, hash
+  passwords, and return a JWT token. The authentication middleware reads the
+  token and attaches the logged-in user to the request. The admin middleware is
+  used for admin-only actions such as creating metrics and deleting metrics.
+  These checks are also used to protect benchmark and submission deletion.
 
   \item \textbf{Leaderboard Interface:}
-  The frontend displays benchmark submissions in a leaderboard. It shows
-the submitter information, repository link, score, and submission date. The
-sorting direction depends on the selected metric, so the platform can support
-both metrics where higher is better and metrics where lower is better.
+  The frontend leaderboard displays the submissions of one benchmark with the
+  submitter name, repository link, score, and submission date. The backend sorts
+  the submissions based on the selected metric direction, so the best score
+  appears correctly whether the metric should be maximized or minimized. The
+  same screen also lets a logged-in user add a new submission, update an
+  existing prediction file, or delete a submission if the user has permission.
+
+  \item \textbf{Frontend Benchmark and Metric Screens:}
+  The React frontend provides screens for the main user actions. The benchmarks
+  screen lists benchmarks and supports filtering by problem type or by the
+  logged-in user. The create benchmark screen lets a user enter the title,
+  description, target column, dataset links, problem type, metric, and metric
+  parameters. The display benchmark screen shows benchmark details and links to
+  the leaderboard. The metrics screens allow users to view available metrics,
+  while admins can create new metrics with their Scikit-learn function name,
+  needed parameters, problem type, and score direction.
 \end{itemize}
 
 \Needspace{12\baselineskip}
@@ -3494,7 +4120,7 @@ Output: saved benchmark or validation error
 2:  Validate problem type
 3:  Check title uniqueness
 4:  Validate dataset, test set, and target label links
-5:  Run validate_user_links.py
+5:  Run benchmark file validation
 6:  If the test file contains the target column, reject benchmark
 7:  If the target file does not contain the target column, reject benchmark
 8:  Save benchmark document in MongoDB
@@ -3535,8 +4161,11 @@ must match the benchmark problem type.
 \subsection{Module Summary}
 \noindent The Benchmark Platform module provides a controlled environment for
 benchmark creation, prediction submission, validation, scoring, and leaderboard
-ranking. It keeps the web management logic in the backend and frontend, while
-the metric calculation logic is handled by Python scoring scripts.
+ranking. It also supports a learning cycle where users compare their results
+with others, review submitted repository links, improve their techniques, and
+submit updated predictions. It keeps the web management logic in the backend and
+frontend, while the metric calculation logic is handled by Python scoring
+scripts.
 
 \chapter{System Testing and Verification}
 This chapter explains how the project was tested to make sure that the main
@@ -7899,7 +8528,7 @@ tabular preprocessing flow became stable.
 Auto Preprocessing was compared with AutoCleanML to check the performance of the proposed preprocessing approach. The comparison was done using several tabular datasets collected from Kaggle. The same datasets and the same machine learning models were used for both tools.
 The comparison was applied only on tabular datasets because AutoCleanML mainly works with tabular data. For classification datasets, the Macro F1-score was used as the evaluation metric. For regression datasets, the R-squared score was used to measure how well the model predicts the target values.
 After preprocessing the datasets, the output data was tested using four machine learning models. For classification problems, Logistic Regression, Random Forest, Decision Tree, and KNN were used. For regression problems, Linear Regression, Random Forest, Decision Tree, and KNN were used. This helped test the preprocessing output with different model types, not only one model.
-The results were saved and plotted as comparison graphs between Accelera and AutoCleanML. These graphs show the score of each tool on the selected datasets. The purpose of this comparison was to check whether Accelera can produce preprocessing results that are close to, or better than, an existing preprocessing tool.
+The results were recorded and compared between Accelera and AutoCleanML for each selected dataset and model. The purpose of this comparison was to check whether Accelera can produce preprocessing results that are close to, or better than, an existing preprocessing tool.
 
 \begin{table}[H]
 \centering
@@ -8009,8 +8638,11 @@ type, and the model used after preprocessing.
 The main implementation challenges were preserving correctness while sharing
 branch computations, releasing intermediate arrays only after their final
 consumer, and limiting generated OpenMP code to loops that pass dependency and
-conversion checks. The experiments also identify memory usage during
-branch-level parallel execution as the main remaining graph-backend challenge.
+conversion checks. For the Deployment module, the main challenge was combining
+model artifacts, serving code, validation, telemetry, Docker packaging, and
+remote execution into one repeatable workflow. The experiments also identify
+memory usage during branch-level parallel execution as the main remaining
+graph-backend challenge.
 
 \section{Gained Experience}
 \mbox{}
@@ -8038,12 +8670,26 @@ leaderboard comparison. The testing and experimental results show that the
 implemented modules can produce usable outputs, generate reports, evaluate
 models, and compare results. Overall, Accelera gives a practical base for a
 more organized and reusable machine learning workflow.
+Accelera Pipe provides a graph-based execution model for branch-heavy
+machine-learning pipelines and supports fitted executed graphs. The Code
+Parallelizer provides a source-to-source path from supported Python or C++
+loops to OpenMP-annotated C++ using converter rules, loop feature extraction,
+classifier guidance, and safety checks. The Deployment module completes the
+workflow by turning saved models and generated artifacts into validated API
+services that can run locally or on supported cloud/server targets. The
+available experiments show runtime improvements on large branch-selection
+workloads while preserving selected models, accuracy, and output equivalence,
+and the deployment tests verify repeatable serving, validation, telemetry, and
+orchestration behavior.
 
 \section{Future Work}
 Future work should continue reducing graph memory consumption while preserving
 parallel branch execution, and should extend safe converter , loop-analysis
 coverage without weakening correctness checks, The preprocessing pipeline can be improved by adapting the preprocessing steps based on the selected model type and by adding techniques to handle imbalanced datasets.
 In the future, the benchmark platform can be improved by saving uploaded datasets on the server instead of using Google Drive links. It can also allow users to upload code files directly, instead of submitting only links.
+The Deployment module can also be extended with additional targets such as
+managed container services, richer monitoring, authentication for prediction
+endpoints, and more advanced model registry metadata.
 
 \renewcommand{\bibname}{Reference}
 \addcontentsline{toc}{chapter}{Reference}
@@ -8091,6 +8737,20 @@ Chi Wang, Qingyun Wu, Markus Weimer, and Erkang Zhu. ``FLAML: A fast and
 lightweight AutoML library.'' In \emph{Proceedings of Machine Learning and
 Systems}, 2021.
 
+\bibitem{pedregosa2011scikit}
+F. Pedregosa, G. Varoquaux, A. Gramfort, V. Michel, B. Thirion,
+O. Grisel, M. Blondel, P. Prettenhofer, R. Weiss, V. Dubourg,
+J. Vanderplas, A. Passos, D. Cournapeau, M. Brucher, M. Perrot,
+and E. Duchesnay,
+``Scikit-learn: Machine Learning in Python,''
+\textit{Journal of Machine Learning Research}, vol. 12, pp. 2825--2830, 2011.
+
+\bibitem{ompar2024}
+T. Kadosh, N. Hasabnis, P. Soundararajan, V. A. Vo, M. Capota,
+N. Ahmed, Y. Pinter, and G. Oren,
+``OMPar: Automatic Parallelization with AI-Driven Source-to-Source Compilation,''
+arXiv preprint arXiv:2409.14771, 2024.
+
 \bibitem{autogluon}
 Nick Erickson et al. ``AutoGluon-Tabular: Robust and accurate AutoML for
 structured data.'' \emph{arXiv preprint arXiv:2003.06505}, 2020.
@@ -8118,13 +8778,16 @@ David H. Wolpert. ``Stacked generalization.'' \emph{Neural Networks},
 \section{Software Platform}
 The implemented modules use Python, C++, PyBind11, CMake, Clang-based AST
 analysis, OpenMP, NumPy, Pandas, Matplotlib, PyTorch, Scikit-learn, Node.js,
-React, and MongoDB. The Auto Preprocessing module depends mainly on Python
+React, MongoDB, FastAPI, Uvicorn, Great Expectations, Docker, Heroku CLI, SSH,
+and AWS EC2 workflows. The Auto Preprocessing module depends mainly on Python
 data-science libraries. The Pipeline Reporting module uses Python, HTML report
 generation, Matplotlib, Pandas tables, and Graphviz for graph visualization.
 The Benchmark Platform uses a Node.js and Express backend, MongoDB for storing
 benchmarks and submissions, React for the frontend, and Python scripts for
-dataset validation and metric scoring. The available experiments include Linux
-and Windows execution paths.
+dataset validation and metric scoring. The Deployment module uses FastAPI and
+Uvicorn for serving, Great Expectations for runtime validation, Docker for
+container packaging, and SSH/\texttt{rsync} for EC2 synchronization. The
+available experiments include Linux and Windows execution paths.
 
 \chapter{Use Cases}
 \section{Auto Preprocessing Use Cases}
@@ -8149,6 +8812,108 @@ selecting the evaluation metric and cross-validation folds, limiting the total
 search budget or per-trial timeout, enabling or disabling meta-learning warm
 starts and ensemble construction, and inspecting the best score, leaderboard,
 and complete run history.
+\section{Accelera Pipe Use Cases}
+Accelera Pipe is suitable when a machine-learning experiment is better
+represented as a graph than as one fixed sequence of operations. The user can
+place alternative preprocessing objects, estimators, or metrics in branches,
+execute independent paths concurrently, and select a fitted path using
+validation results. The executed graph can then be reused for inference without
+retraining the selected model.
+
+{\acceleraTableStyle
+\renewcommand{\arraystretch}{1.02}
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\bfseries}p{0.20\textwidth} p{0.36\textwidth} p{0.36\textwidth}}
+\caption{Representative Accelera Pipe use cases.}
+\label{tab:accelera-pipe-use-cases} \\
+\toprule
+Use case & Graph construction & Expected benefit \\
+\midrule
+\endfirsthead
+\toprule
+Use case & Graph construction & Expected benefit \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\small Continued on the next page} \\
+\endfoot
+\bottomrule
+\endlastfoot
+Candidate comparison & Branch over preprocessing methods, models, or both,
+then evaluate every path with the same metric. & A consistent search procedure
+without manually constructing and executing each candidate pipeline. \\
+\addlinespace
+Validation-based selection & Attach prediction and metric nodes containing
+validation data, then use a maximum, minimum, or custom selection strategy. & A
+fitted executable graph containing the path chosen by the required objective. \\
+\addlinespace
+Parallel experimentation & Enable the default parallel graph execution when
+independent branches are sufficiently large. & Concurrent evaluation of graph
+paths while retaining a serial mode for debugging or small workloads. \\
+\addlinespace
+Ensemble construction & Connect model branches to a merge node using a
+supported voting strategy. & Combined predictions from several estimators
+inside the same graph. \\
+\addlinespace
+Reusable inference & Save the selected executed graph and load it in a later
+process. & Persistence of fitted preprocessing and model objects in one file. \\
+\addlinespace
+Custom transformation & Add a Python function or custom transformer as a
+preprocessing node. & Automatic Parallelizer optimization when the callable is
+supported, with fallback to its original Python implementation. \\
+\end{longtable}
+}
+
+\section{Code Parallelizer Use Cases}
+The Code Parallelizer is intended for loop-heavy transformations whose
+iterations are independent or form a supported scalar reduction. It can be
+used as a standalone source-to-source tool or as an optimization service inside
+Accelera Pipe. The source form determines whether the result is generated code
+or an executable callable.
+
+{\acceleraTableStyle
+\renewcommand{\arraystretch}{1.02}
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\bfseries}p{0.20\textwidth} p{0.36\textwidth} p{0.36\textwidth}}
+\caption{Representative Code Parallelizer use cases.}
+\label{tab:parallelizer-use-cases} \\
+\toprule
+Use case & Accepted input & Produced result \\
+\midrule
+\endfirsthead
+\toprule
+Use case & Accepted input & Produced result \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\small Continued on the next page} \\
+\endfoot
+\bottomrule
+\endlastfoot
+Existing source file & Path to a supported Python, C, or C++ source file. & A
+\texttt{parallelized\_<name>.c} file written to the selected output directory. \\
+\addlinespace
+Source inspection & In-memory Python or C/C++ source text. & Parallelized C++
+source returned as a string for inspection or later compilation. \\
+\addlinespace
+Python acceleration & A supported top-level Python function containing
+loop-oriented numerical code. & A compiled Python-callable wrapper backed by
+C++ and OpenMP, or the original function if optimization fails. \\
+\addlinespace
+Transformer acceleration & A custom transformer with a supported
+\texttt{transform} method. & The transformer instance with its transform method
+replaced by the optimized callable when compilation succeeds. \\
+\addlinespace
+Pipeline integration & A custom function or transformer passed to
+\texttt{Pipeline.preprocess}. & Transparent optimization before the callable is
+stored in the preprocessing node. \\
+\end{longtable}
+}
+
+The module is most useful for element-wise array updates, row-wise numerical
+transformations, nested independent loops, and sum or product reductions. A
+loop with cross-iteration dependencies, indirect writes, unsupported Python
+syntax, or state that cannot be translated safely should remain sequential.
 
 \section{Pipeline Reporting Use Cases}
 The user can use the pipeline report after running an Accelera pipeline. The
@@ -8164,11 +8929,173 @@ calculates the score and displays the leaderboard.
 
 \renewcommand{\lstlistingname}{Code Example}
 \chapter{User Guide}
+
+\section{Using Accelera Pipe}
+\subsection{Constructing and selecting a graph}
+An Accelera Pipe program is assembled by chaining node-building methods. A
+node passed with \texttt{branch=True} is returned as a branch description;
+\texttt{branch()} inserts those descriptions into the graph. The following
+example compares two scalers under the same classifier and selects the path
+with the highest validation accuracy.
+
+\begin{lstlisting}[style=code,caption={Building and selecting an Accelera Pipe graph}]
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
+from accelera.src.accelera_pipe.core.pipeline import Pipeline
+
+pipe = Pipeline()
+pipe.branch(
+    "preprocessing",
+    pipe.preprocess("standard", StandardScaler(), branch=True),
+    pipe.preprocess("minmax", MinMaxScaler(), branch=True),
+).model(
+    "classifier", LogisticRegression(max_iter=1000)
+).predict(
+    "validation_prediction", test_data=X_val
+).metric(
+    "validation_accuracy", "accuracy_score", y_true=y_val
+)
+
+validation_results, executed_graph = pipe(
+    X_train, y_train, select_strategy="max"
+)
+test_results = executed_graph(X_test, y_true=y_test)
+\end{lstlisting}
+
+The training call returns a list of graph outputs and an
+\texttt{ExecutedGraph}. The latter contains the fitted objects from the
+selected path and accepts new feature data for inference. The available path
+selection modes are \texttt{all}, \texttt{max}, and \texttt{min}; a user-defined
+function can be supplied through \texttt{custom\_strategy}. Parallel graph
+execution is enabled by default. It can be disabled for deterministic debugging
+with \texttt{pipe.disable\_parallel\_execution()}, while
+\texttt{pipe.set\_multicore\_threshold(n)} controls the workload threshold used
+by the native scheduler.
+
+Column-specific preprocessing can be declared without a custom adapter by
+passing column names to \texttt{preprocess}. Internally, the node wraps the
+transformer in a Scikit-learn \texttt{ColumnTransformer} and passes all remaining
+columns through unchanged.
+
+\begin{lstlisting}[style=code,caption={Applying a transformer to selected columns}]
+from sklearn.preprocessing import OneHotEncoder
+
+pipe.preprocess(
+    "encode_categories",
+    OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+    columns=["city", "category"],
+)
+\end{lstlisting}
+
+The \texttt{cache} argument of preprocessing and model nodes is disabled by
+default. It should be enabled only when repeated executions reuse the same
+expensive input and the retained data is worth the additional memory.
+
+\subsection{Saving training graphs and executed graphs}
+Both graph forms are saved as one pickle file. Saving a \texttt{Pipeline}
+preserves its graph recipe for later training. Saving an
+\texttt{ExecutedGraph} preserves the fitted selected path for inference.
+
+\begin{lstlisting}[style=code,caption={Saving and loading Accelera Pipe graphs}]
+from accelera.src.accelera_pipe.core.executed_graph import ExecutedGraph
+from accelera.src.accelera_pipe.core.pipeline import Pipeline
+
+pipe.save("training_graph.pkl")
+loaded_pipe = Pipeline.load("training_graph.pkl")
+_, fitted_graph = loaded_pipe(X_train, y_train, select_strategy="max")
+
+fitted_graph.save("inference_graph.pkl")
+loaded_graph = ExecutedGraph.load("inference_graph.pkl")
+predictions = loaded_graph(X_test, y_true=y_test)
+\end{lstlisting}
+
+Top-level custom preprocessing functions and simple lambdas are represented by
+source-backed wrappers when possible. Functions that capture closure variables
+cannot be reconstructed safely and should be rewritten as top-level functions
+before the pipeline is saved.
+
+\section{Using the Code Parallelizer}
+\subsection{Parallelizing files and source strings}
+The native bindings and a compiler with OpenMP support must be available before
+using the module. Passing a file path writes generated source to the repository
+root by default; \texttt{output\_dir} selects another directory. Passing source
+text instead returns the transformed C++ code directly.
+
+\Needspace{0.40\textheight}
+\begin{lstlisting}[style=code,caption={Parallelizing a source file and a code string}]
+from accelera.src.parallelizer.parallelizer import parallelizer
+
+parallelizer.parallelize(
+    "data/hard_test_files/hard_eval_002.py",
+    output_dir="generated",
+)
+
+source = """
+double sum(const double *x, int n) {
+    double total = 0.0;
+    for (int i = 0; i < n; ++i) total += x[i];
+    return total;
+}
+"""
+parallelized_source = parallelizer.parallelize(source)
+print(parallelized_source)
+\end{lstlisting}
+
+For Python files and Python source strings, the supported subset is converted
+to C++ before loop extraction. C and C++ inputs enter loop extraction directly.
+The output should always be compiled and tested against the original program,
+because parallel execution is valid only when the loop iterations preserve the
+same observable result.
+
+\subsection{Parallelizing a Python callable}
+Passing a supported custom function returns a callable that can be invoked like
+the original Python function. The Parallelizer extracts its source and helper
+functions, converts them to C++, injects OpenMP directives, compiles a PyBind11
+module, and caches the compiled artifact.
+
+\begin{lstlisting}[style=code,caption={Compiling a custom numerical function}]
+import numpy as np
+
+from accelera.src.parallelizer.parallelizer import parallelizer
+
+def square_values(X):
+    for i in range(len(X)):
+        for j in range(len(X[i])):
+            X[i][j] = X[i][j] * X[i][j]
+    return X
+
+optimized_square = parallelizer.parallelize(square_values)
+result = optimized_square(np.ones((10000, 25), dtype=np.float64))
+\end{lstlisting}
+
+If extraction, conversion, analysis, compilation, or import fails, callable
+optimization prints a warning and returns the original Python implementation.
+This fallback protects functional execution, but users should compare outputs
+and timings to confirm both correctness and a useful speedup.
+
+\subsection{Using automatic pipeline integration}
+No direct Parallelizer call is required for custom preprocessing. Accelera Pipe
+passes custom functions and custom transformer instances through
+\texttt{parallelizer.parallelize()} when the preprocessing node is created.
+
+\begin{lstlisting}[style=code,caption={Adding an automatically optimized custom function}]
+from accelera.src.accelera_pipe.core.pipeline import Pipeline
+
+pipe = Pipeline()
+pipe.preprocess("square_values", square_values)
+outputs, executed_graph = pipe(X_train, y_train)
+\end{lstlisting}
+
+For a custom transformer, only a class-defined \texttt{transform} method is
+considered for replacement. Standard Scikit-learn objects and unsupported
+callables pass through unchanged, preserving their normal behavior.
+
 \section{Using Tabular Auto Preprocessing}
-To use tabular preprocessing, the user first loads the dataset as a Pandas
-DataFrame. Then the user gives the target column, problem type, and output
-folder. The output folder is important because the module saves the fitted
-preprocessing objects and the HTML report inside it.
+
+For tabular data, the user loads the dataset as a Pandas DataFrame, chooses the
+target column, chooses the problem type, and gives an output folder. The output
+folder stores the fitted preprocessing objects and the report.
 
 \begin{lstlisting}[style=code,caption={Calling tabular training preprocessing}]
 import pandas as pd
@@ -8191,9 +9118,10 @@ preprocessor = ClassicalTrainingPreprocessing(
 X_train, y_train, X_val, y_val = preprocessor.common_preprocessing()
 \end{lstlisting}
 
-For regression, the user only changes the problem type:
+\noindent For regression, the main change is the problem type and target column.
 
-\begin{lstlisting}[style=code,caption={Changing tabular preprocessing to regression}]
+\begin{lstlisting}[style=code,caption={Calling tabular regression preprocessing}]
+
 preprocessor = ClassicalTrainingPreprocessing(
     df=df,
     target_col="price",
@@ -8202,9 +9130,8 @@ preprocessor = ClassicalTrainingPreprocessing(
 )
 \end{lstlisting}
 
-After training preprocessing, the same folder should be used for test data.
-This makes the test data use the saved training transformers instead of fitting
-new ones.
+\noindent For test data, the user should pass the same folder path. This makes the test
+data use the saved training transformers instead of fitting new transformers.
 
 \begin{lstlisting}[style=code,caption={Calling tabular testing preprocessing}]
 import pandas as pd
@@ -8223,9 +9150,10 @@ X_test, y_test = test_preprocessor.common_preprocessing()
 \end{lstlisting}
 
 \section{Using Text Auto Preprocessing}
-For text preprocessing, the user provides the text column and the target
-column. The text column must contain text values, and the target is used for
-classification.
+
+For text data, the user provides the text column and target column. The module
+cleans the text, applies TF-IDF, encodes the labels, and saves the needed
+objects.
 
 \begin{lstlisting}[style=code,caption={Calling text training preprocessing}]
 import pandas as pd
@@ -8247,9 +9175,9 @@ text_preprocessor = TextTrainingPreprocessing(
 X_train, y_train, X_val, y_val = text_preprocessor.common_preprocessing()
 \end{lstlisting}
 
-For testing text data, the user again passes the same folder path. If the test
+\noindent For testing text data, the user again passes the same folder path. If the test
 data does not contain the target column, the class returns the transformed text
-features and \texttt{None} for the labels.
+features and \modulepath{None} for labels.
 
 \begin{lstlisting}[style=code,caption={Calling text testing preprocessing}]
 from accelera.src.auto_preprocessing.core.text_testing_preprocesing import (
@@ -8267,7 +9195,8 @@ X_test, y_test = text_test_preprocessor.common_preprocessing()
 \end{lstlisting}
 
 \section{Using Image Auto Preprocessing}
-For image preprocessing, the dataset should be arranged in class folders. For
+
+For image preprocessing, the dataset should be arranged as class folders. For
 example:
 
 \begin{verbatim}
@@ -8276,9 +9205,8 @@ Training/
   Dogs/
 \end{verbatim}
 
-The user passes the training folder and the output folder. If a validation
-folder already exists, it can be passed also. If not, the module can split the
-training folder.
+\noindent The user passes the training folder and output folder. If there is no separate
+validation folder, the module can split the training folder.
 
 \begin{lstlisting}[style=code,caption={Calling image training preprocessing}]
 from accelera.src.auto_preprocessing.core.classification_image_training_preprocessing import (
@@ -8298,9 +9226,8 @@ image_preprocessor = ClassificationImageTrainingPreprocessing(
 train_loader, val_loader = image_preprocessor.common_preprocessing()
 \end{lstlisting}
 
-For image testing, the user provides a list of image paths. If class names are
-available, they can be passed too. If not, the loader can still be used for
-prediction.
+\noindent For image testing, the user provides a list of image paths. Class names are
+optional, but if they are provided, they must match the saved training classes.
 
 \begin{lstlisting}[style=code,caption={Calling image testing preprocessing}]
 from accelera.src.auto_preprocessing.core.classification_image_testing_preprocessing import (
@@ -8321,10 +9248,11 @@ test_loader, invalid_images = image_test_preprocessor.common_preprocessing()
 \end{lstlisting}
 
 \section{Reading Auto Preprocessing Reports}
-After running preprocessing with \texttt{is\_report=True}, the user opens the
-generated \texttt{report.html} file from the output folder. The report shows
-the dataset overview, missing values, duplicate rows, dropped columns, graphs,
-preprocessing decisions, selected features, and processed data samples.
+
+After running preprocessing with \modulepath{is\_report=True}, the user opens
+the generated \modulepath{report.html} file from the output folder. The report
+shows the dataset overview, missing values, duplicate rows, dropped columns,
+graphs, preprocessing decisions, selected features, and processed data samples.
 
 \section{Using Accelera AutoML}
 Accelera AutoML follows a Scikit-learn-style workflow. The user imports either
@@ -8379,9 +9307,10 @@ is that the selected score is a regression metric, such as $R^2$, and the
 predictions are numeric values instead of class labels.
 
 \section{Using Pipeline Reports}
+
 To generate a pipeline report, the pipeline graph should be serialized first.
 Then the user passes the XML graph path, output folder, and metric results to
-\texttt{GraphReport}.
+\modulepath{GraphReport}.
 
 \begin{lstlisting}[style=code,caption={Calling the pipeline graph report}]
 from accelera.src.accelera_pipe.wrappers.graph_report import GraphReport
@@ -8395,19 +9324,20 @@ report = GraphReport(
 report.execute()
 \end{lstlisting}
 
-The output is a \texttt{report.html} file. It contains the graph image, branch
-tables, selected branch, and metric summary.
+\noindent The output is a \modulepath{report.html} file. It contains the graph image,
+branch tables, selected branch, and metric summary.
 
 \section{Using the Benchmark Platform}
+
 The benchmark platform is used from the web interface. The benchmark creator
 enters the title, problem type, target column, dataset link, test-set link,
 target-label link, and evaluation metric. A user submits a prediction file link
 and repository link. The backend calls the Python scoring script, saves the
 score, and displays the result in the leaderboard.
 
-The prediction file must contain the target column name expected by the
-benchmark. Also, the number of rows in the prediction file must match the
-number of rows in the target-label file.
+\noindent The prediction file must contain the target column expected by the benchmark.
+Also, the number of rows in the prediction file must match the number of rows
+in the target label file.
 
 \chapter{Code Documentation}
 

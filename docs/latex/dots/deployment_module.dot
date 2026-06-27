@@ -1,0 +1,227 @@
+digraph DeploymentModule {
+    fontname = "Helvetica,Arial,sans-serif";
+    rankdir = TB;
+    compound = true;
+    ranksep = 0.45;
+    nodesep = 0.35;
+    splines = ortho;
+
+    node [
+        fontname = "Helvetica,Arial,sans-serif";
+        shape = box;
+        style = "filled,rounded";
+        fillcolor = "#ffffff";
+        color = "#333333";
+        penwidth = 1.5;
+        margin = "0.32,0.18";
+    ];
+
+    edge [
+        fontname = "Helvetica,Arial,sans-serif";
+        color = "#333333";
+        penwidth = 1.5;
+        arrowsize = 0.8;
+    ];
+    
+    subgraph cluster_inputs {
+        label = "WORKSPACE INPUTS\n";
+        fontname = "Helvetica-Bold";
+        style = "dashed,rounded";
+        color = "#dddddd";
+        penwidth = 1.5;
+        margin = "6,6";
+
+        config_json [
+            label = "Configuration\n(config.json)";
+            fillcolor = "#ffffff";
+            margin = "0.22,0.12";
+        ];
+
+        input_anchor [
+            label = "";
+            shape = point;
+            width = 0.01;
+            height = 0.01;
+            fixedsize = true;
+            style = invis;
+            group = main;
+        ];
+
+        model_pkl [
+            label = "Model Pickles\n(models/*.pkl)";
+            fillcolor = "#ffffff";
+            margin = "0.22,0.12";
+        ];
+        
+        { rank = same; config_json; input_anchor; model_pkl; }
+
+        config_json -> input_anchor [style = invis; weight = 100;];
+        input_anchor -> model_pkl [style = invis; weight = 100;];
+    }
+    
+    subgraph cluster_vcs {
+        label = "VCS REGISTRY\n";
+        fontname = "Helvetica-Bold";
+        style = "dashed,rounded";
+        color = "#dddddd";
+        penwidth = 1.5;
+        margin = "10,10";
+        
+        vcs_registry [
+            label = "VCS Engine\n(Index File & Registry)";
+            fillcolor = "#ffffff";
+            group = main;
+        ];
+    }
+    
+    subgraph cluster_orchestrator {
+        label = "ORCHESTRATOR\n";
+        fontname = "Helvetica-Bold";
+        style = "dashed,rounded";
+        color = "#dddddd";
+        penwidth = 1.5;
+        margin = "10,10";
+        
+        deployment_engine [
+            label = "Deployment Builder\n(Generate Files)";
+            fillcolor = "#ffffff";
+            group = main;
+        ];
+    }
+    
+    subgraph cluster_serving_container {
+        label = "SERVING CONTAINER\n";
+        fontname = "Helvetica-Bold";
+        style = "dashed,rounded";
+        color = "#dddddd";
+        penwidth = 2.0;
+        margin = "10,10";
+        
+        validation [
+            label = "Schema Validation\n(Great Expectations)";
+            fillcolor = "#ffffff";
+            group = main;
+        ];
+
+        inference [
+            label = "Model Inference\n(ModelService)";
+            fillcolor = "#ffffff";
+            group = main;
+        ];
+
+        telemetry [
+            label = "Telemetry Logging\n(Request Tracker)";
+            fillcolor = "#ffffff";
+            group = main;
+        ];
+    }
+    
+    subgraph cluster_targets {
+        label = "DEPLOYMENT TARGETS\n";
+        fontname = "Helvetica-Bold";
+        style = "dashed,rounded";
+        color = "#dddddd";
+        penwidth = 1.5;
+        margin = "6,6";
+
+        target_anchor [
+            label = "";
+            shape = point;
+            width = 0.01;
+            height = 0.01;
+            fixedsize = true;
+            style = invis;
+            group = main;
+        ];
+        
+        local_docker [
+            label = "Local Docker\n(ml-model container)";
+            fillcolor = "#ffffff";
+            margin = "0.22,0.12";
+        ];
+
+        heroku [
+            label = "Heroku Cloud\n(Container Stack)";
+            fillcolor = "#ffffff";
+            margin = "0.22,0.12";
+        ];
+
+        aws_ec2 [
+            label = "AWS EC2 VM\n(SSH & Docker)";
+            fillcolor = "#ffffff";
+            margin = "0.22,0.12";
+        ];
+        
+        { rank = same; local_docker; heroku; aws_ec2; }
+
+        local_docker -> heroku [style = invis; weight = 100;];
+        heroku -> aws_ec2 [style = invis; weight = 100;];
+    }
+    
+    input_anchor -> vcs_registry [
+        ltail = cluster_inputs;
+        lhead = cluster_vcs;
+        label = <
+            <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="6">
+                <TR><TD>commit</TD></TR>
+            </TABLE>
+        >;
+        fontsize = 10;
+    ];
+    
+    vcs_registry -> deployment_engine [
+        ltail = cluster_vcs;
+        lhead = cluster_orchestrator;
+        label = <
+            <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="6">
+                <TR><TD>trigger</TD></TR>
+            </TABLE>
+        >;
+        fontsize = 10;
+    ];
+    
+    deployment_engine -> validation [
+        ltail = cluster_orchestrator;
+        lhead = cluster_serving_container;
+        label = <
+            <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="6">
+                <TR><TD>builds</TD></TR>
+            </TABLE>
+        >;
+        fontsize = 10;
+    ];
+    
+    validation -> inference [
+        label = <
+            <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+                <TR><TD>valid request</TD></TR>
+            </TABLE>
+        >;
+        fontsize = 10;
+    ];
+
+    inference -> telemetry [
+        label = <
+            <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+                <TR><TD>logs result</TD></TR>
+            </TABLE>
+        >;
+        fontsize = 10;
+    ];
+    
+    telemetry -> target_anchor [
+        ltail = cluster_serving_container;
+        lhead = cluster_targets;
+        label = <
+            <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="6">
+                <TR><TD>runs on</TD></TR>
+            </TABLE>
+        >;
+        fontsize = 10;
+    ];
+
+    target_anchor -> heroku [
+        style = invis;
+        weight = 100;
+    ];
+}
