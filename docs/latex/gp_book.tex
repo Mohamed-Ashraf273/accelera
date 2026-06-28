@@ -31,8 +31,8 @@
 \usepackage{tabularx}
 \usepackage{array}
 \usepackage[none]{hyphenat}
-\setlength{\emergencystretch}{3em}
-\sloppy
+\setlength{\emergencystretch}{1.5em}
+\fussy
 
 % Unified table style
 \newcommand{\acceleraTableStyle}{%
@@ -286,28 +286,21 @@ implementation, and evaluation of this work.
 
 \chapter*{List of Abbreviations}
 \addcontentsline{toc}{chapter}{List of Abbreviations}
+
 \begin{tabular}{ll}
 AI & Artificial Intelligence \\
 AMLB & AutoMLBenchmark \\
 API & Application Programming Interface \\
 AST & Abstract Syntax Tree \\
 AutoML & Automated Machine Learning \\
-CPU & Central Processing Unit \\
-CV & Cross-Validation \\
-EI & Expected Improvement \\
-ML & Machine Learning \\
-OpenMP & Open Multi-Processing \\
-RMSE & Root Mean Squared Error \\
-RSS & Resident Set Size \\
-SMBO & Sequential Model-Based Optimization \\
-API & Application Programming Interface \\
-AST & Abstract Syntax Tree \\
 AWS & Amazon Web Services \\
 CI/CD & Continuous Integration and Continuous Deployment \\
 CLI & Command-Line Interface \\
 CPU & Central Processing Unit \\
+CV & Cross-Validation \\
 Docker & Containerization Platform \\
 EC2 & Elastic Compute Cloud \\
+EI & Expected Improvement \\
 Git & Distributed Version Control System \\
 GUI & Graphical User Interface \\
 Heroku & Cloud Application Platform \\
@@ -318,7 +311,9 @@ JSON & JavaScript Object Notation \\
 ML & Machine Learning \\
 OpenMP & Open Multi-Processing \\
 REST & Representational State Transfer \\
+RMSE & Root Mean Squared Error \\
 RSS & Resident Set Size \\
+SMBO & Sequential Model-Based Optimization \\
 SSH & Secure Shell \\
 SVC & Support Vector Classifier \\
 URI & Uniform Resource Identifier \\
@@ -363,7 +358,6 @@ $F(L)$ & Feature representation of loop $L$ \\
 \textbf{Name} & \textbf{Email} & \textbf{Phone Number} \\ \hline
 Mohamed Ashraf & \texttt{mohamed.abdelaziz03@eng-st.cu.edu.eg} & +2 01004538215 \\ \hline
 Nesma Osama & \texttt{nesma.ahmed03@eng-st.cu.edu.eg} & +2 01067193062 \\ \hline
-Mohamed Khater & \texttt{mk0015264@gmail.com} & +2 01068071299 \\ \hline
 Mazen Adel & \texttt{mez3n1151@gmail.com} & +2 01152794877 \\ \hline
 Mohamed Khater & \texttt{mohamed.khater03@eng-st.cu.edu.eg} & +2 01068071299 \\ \hline
 \end{tabularx}
@@ -2072,14 +2066,7 @@ assumptions:
   the required search settings, such as metric, cross-validation folds,
   time budget, trial limit, and whether meta-learning or ensembles should be
   enabled.
-
-  \item \textbf{Inspection assumption:} The user or researcher may need to
-  inspect the leaderboard, run history, fidelity stages, and ensemble decisions,
-  so the module keeps successful and failed trials as structured records.
-
-  \item \textbf{Extensibility assumption:} A maintainer may need to add a new
-  model family, so model definitions, evaluation, optimization, meta-learning,
-  and ensemble construction should remain separated.
+  
 \end{itemize}
 \subsection{Benchmark Assumptions}
 
@@ -3149,15 +3136,15 @@ stage can combine strong candidates before final model selection.
 
 
 
-Figure~\ref{fig:gp-automl-block-diagram} shows the main blocks of the
+Figure~\ref{fig:gp-automl-block_diagram_automl} shows the main blocks of the
 Accelera AutoML module and the flow between user input, search, evaluation, and
 final output.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.92\textwidth]{imgs/block_diagram.png}
+\includegraphics[width=0.92\textwidth]{imgs/block_diagram_automl.jpeg}
 \caption{Block diagram of the Accelera AutoML module.}
-\label{fig:gp-automl-block-diagram}
+\label{fig:gp-automl-block_diagram_automl}
 \end{figure}
 
 \subsection{Accelera AutoML Module Design}
@@ -3899,7 +3886,7 @@ forward selection. \\
 \end{tabularx}
 \end{table}
 
-\subsection{Constraints and Assumptions}
+\subsection{Design Constraints}
 
 \begin{itemize}
   \item The current module targets supervised tabular classification and
@@ -3908,15 +3895,6 @@ forward selection. \\
   \item The evaluator assumes independent and identically distributed samples.
   Classification uses stratified splitting where possible, while regression uses
   ordinary K-fold or shuffle splitting.
-  \item Specialized grouped, temporal, or spatial validation is outside the
-  current design.
-  \item Optional libraries such as XGBoost, LightGBM, and CatBoost are used only
-  when available in the environment.
-  \item Trial failures, timeouts, and estimator exceptions must be recorded in
-  the run history rather than crashing the full search.
-  \item Search should remain reproducible when a random state is provided.
-  \item Warm-start metadata must be stored relative to the package so it works
-  after installation.
 \end{itemize}
 
 \subsection{Module Summary}
@@ -4546,9 +4524,16 @@ TPOT         & 0.877654 & 3953.78 & 8 & 1 \\
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{imgs/average_accuracy_time.png}
-\caption{Mean classification accuracy and runtime for the evaluated AutoML systems.}
-\label{fig:automl_classification_average}
+\includegraphics[width=0.78\textwidth]{imgs/average_accuracy_cls.png}
+\caption{Mean classification accuracy for the evaluated AutoML systems.}
+\label{fig:automl_classification_average_accuracy}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{imgs/average_runtime_cls.png}
+\caption{Mean classification runtime for the evaluated AutoML systems.}
+\label{fig:automl_classification_average_runtime}
 \end{figure}
 
 \begin{figure}[H]
@@ -4594,9 +4579,16 @@ FLAML        & 0.522743 & 0.497530 & 1863.85 & 4 & 4 & 4 & 2 \\
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{imgs/reg_average_r2_time.png}
-\caption{Mean regression $R^2$ and runtime for the evaluated AutoML systems.}
-\label{fig:automl_regression_average}
+\includegraphics[width=0.78\textwidth]{imgs/average_r2_reg.png}
+\caption{Mean regression $R^2$ for the evaluated AutoML systems.}
+\label{fig:automl_regression_average_r2}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{imgs/average_runtime_reg.png}
+\caption{Mean regression runtime for the evaluated AutoML systems.}
+\label{fig:automl_regression_average_runtime}
 \end{figure}
 
 \begin{figure}[H]
@@ -8578,9 +8570,16 @@ TPOT         & 0.877654 & 3953.78 & 8 & 1 \\
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{imgs/average_accuracy_time.png}
-\caption{Mean classification accuracy and runtime for the evaluated AutoML systems.}
-\label{fig:automl_classification_average}
+\includegraphics[width=0.78\textwidth]{imgs/average_accuracy_cls.png}
+\caption{Mean classification accuracy for the evaluated AutoML systems.}
+\label{fig:automl_classification_average_accuracy}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{imgs/average_runtime_cls.png}
+\caption{Mean classification runtime for the evaluated AutoML systems.}
+\label{fig:automl_classification_average_runtime}
 \end{figure}
 
 \begin{figure}[H]
@@ -8626,9 +8625,16 @@ FLAML        & 0.522743 & 0.497530 & 1863.85 & 4 & 4 & 4 & 2 \\
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{imgs/reg_average_r2_time.png}
-\caption{Mean regression $R^2$ and runtime for the evaluated AutoML systems.}
-\label{fig:automl_regression_average}
+\includegraphics[width=0.78\textwidth]{imgs/average_r2_reg.png}
+\caption{Mean regression $R^2$ for the evaluated AutoML systems.}
+\label{fig:automl_regression_average_r2}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{imgs/average_runtime_reg.png}
+\caption{Mean regression runtime for the evaluated AutoML systems.}
+\label{fig:automl_regression_average_runtime}
 \end{figure}
 
 \begin{figure}[H]
